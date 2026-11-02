@@ -77,6 +77,25 @@ La luz sola lleva la escena de gris plano a decente. El salto grande son los ass
 Esto es, literalmente, las tareas 1 a 3 de la subfase 06 más el plan 07. La captura
 `art/render/lookdev-luz-suave.jpg` es el máximo alcanzable **sin** ninguno de esos cuatro.
 
+## Bloqueante conocido: no salen sombras
+
+En la prueba de la manzana (2026-11-02) **no aparece ni una sola sombra arrojada**: ni los
+edificios sobre la calle, ni las farolas, ni la ficha. No es cuestión de ángulo, de
+`ShadowSoftness` ni de intensidad: se probó a 0,15 y a 0, y con el sol de frente y de lado.
+
+`Lighting.Technology` **no se puede leer ni escribir por script** (exige capacidad `RobloxScript`),
+así que no se puede comprobar desde aquí. Hay dos causas posibles y las dos son ajustes manuales
+de Studio:
+
+1. **`Lighting` > Properties > Technology** distinto de `Future`. Con `Voxel` o `Legacy` no hay
+   sombras dinámicas de piezas.
+2. **Calidad de renderizado de Studio** baja: *File > Studio Settings > Rendering > Quality Level*.
+   Si está por debajo del máximo, el viewport no dibuja sombras aunque el juego las tenga.
+
+Hasta que una de las dos se suba, cualquier captura de este banco de pruebas va a parecer plana y
+**no sirve para juzgar la iluminación**. Los valores de este documento están puestos para cuando
+las sombras funcionen.
+
 ## Con assets: hasta dónde llega
 
 `art/render/lookdev-cielo-pbr.jpg` es la misma calle con la skybox y los tres sets PBR de
