@@ -1,5 +1,5 @@
 {
-  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02. Las texturas CC0 salen de art/generators/fetch_cc0.ps1 y la skybox de art/generators/pbr_assets.py. Si un asset se borra, se regenera, se sube y se actualiza este archivo.",
+  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02. Las texturas CC0 salen de art/generators/fetch_cc0.ps1, la skybox de art/generators/pbr_assets.py y los modelos de art/blender/facade/build_facade.py subidos por Open Cloud. Si un asset se borra, se regenera, se sube y se actualiza este archivo.",
   "skybox": {
     "front": "rbxassetid://130728511009606",
     "back": "rbxassetid://80764594111224",
@@ -7,6 +7,12 @@
     "right": "rbxassetid://110426578506982",
     "up": "rbxassetid://113330714001871",
     "down": "rbxassetid://91237438205488"
+  },
+  "models": {
+    "facade_wall": "rbxassetid://70698494343538",
+    "facade_trim": "rbxassetid://103873536836124",
+    "facade_glass": "rbxassetid://109039875989083",
+    "nota": "Subidos por Open Cloud con content-type model/fbx. Llegan sin texturas: el material se aplica en Studio con MaterialVariant."
   },
   "cc0": {
     "brick_red": {
@@ -49,9 +55,7 @@
       "rbxassetid://139623111065709",
       "rbxassetid://134844213584077",
       "rbxassetid://98940203231630",
-      "rbxassetid://117145705650698",
-      "rbxassetid://83484755331691",
-      "rbxassetid://78452583129868"
+      "rbxassetid://117145705650698"
     ]
   }
 }
