@@ -3,6 +3,7 @@
 local Auction = require("./Auction")
 local Board = require("./Board")
 local Building = require("./Building")
+local Economy = require("../config/Economy")
 local Movement = require("./Movement")
 local Property = require("./Property")
 local Rng = require("./Rng")
@@ -42,6 +43,30 @@ local function append(events: { Event }, more: { Event })
 	for _, event in more do
 		table.insert(events, event)
 	end
+end
+
+-- Puja representativa de una subasta: una sola, con el incremento de Economy. Nil si el
+-- jugador ya va ganando o no puede superar la puja actual.
+local function representativeBid(state: GameState, playerId: PlayerId): Action?
+	local pending = state.pending
+	if not pending then
+		return nil
+	end
+	local auction = pending.auction
+	if not auction then
+		return nil
+	end
+	if auction.highBidder == playerId then
+		return nil
+	end
+	local player = playerOf(state, playerId)
+	if not player or player.cash <= auction.high then
+		return nil
+	end
+	return {
+		type = "Bid",
+		amount = math.min(auction.high + Economy.auctionBidStep, player.cash),
+	}
 end
 
 -- Resuelve la casilla pisada. Una propiedad libre abre la compra; la ajena cobra renta; la
@@ -266,6 +291,39 @@ local function validate(state: GameState, playerId: PlayerId, action: Action): s
 	return nil
 end
 
+-- Enumera el espacio finito de acciones legales de un jugador: Roll, Buy/DeclineBuy, una puja
+-- representativa, Build por casilla edificable y EndTurn. Los intercambios no se enumeran (su
+-- espacio es infinito) y se validan en apply. Los candidatos pasan por validate, la única tabla
+-- de permisos: nunca se devuelve una acción que apply rechazaría (R8).
+function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
+	local phase = state.phase
+	local candidates: { Action } = {}
+	if phase == "AwaitRoll" or phase == "AwaitEnd" then
+		table.insert(candidates, { type = if phase == "AwaitRoll" then "Roll" else "EndTurn" })
+		for _, square in state.board.squares do
+			if square.kind == "Property" then
+				table.insert(candidates, { type = "Build", index = square.index })
+			end
+		end
+	elseif phase == "AwaitBuy" then
+		table.insert(candidates, { type = "Buy" })
+		table.insert(candidates, { type = "DeclineBuy" })
+	elseif phase == "Auction" then
+		local bidAction = representativeBid(state, playerId)
+		if bidAction then
+			table.insert(candidates, bidAction)
+		end
+	end
+
+	local actions: { Action } = {}
+	for _, action in candidates do
+		if not validate(state, playerId, action) then
+			table.insert(actions, action)
+		end
+	end
+	return actions
+end
+
 function Engine.apply(state: GameState, playerId: PlayerId, action: Action): Types.ApplyResult
 	local reason = validate(state, playerId, action)
 	if reason then
@@ -277,6 +335,37 @@ function Engine.apply(state: GameState, playerId: PlayerId, action: Action): Typ
 		return { ok = false, error = `Acción desconocida: {action.type}` }
 	end
 	return { ok = true, events = rule.handler(state, playerId, action) }
+end
+
+-- Ejecuta una acción de tiempo agotado y devuelve solo sus eventos. En un estado válido la
+-- acción siempre es legal; si no lo fuera, apply no toca nada y aquí no hay eventos.
+local function perform(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Engine.apply(state, playerId, action)
+	if not result.ok then
+		return {}
+	end
+	return result.events
+end
+
+-- Tiempo agotado: resuelve la fase en curso. Devuelve eventos, nunca un ApplyResult. En las
+-- fases sin resolución automática (incluido GameOver) devuelve {} sin tocar el estado.
+function Engine.timeout(state: GameState): { Event }
+	local phase = state.phase
+	if phase == "Auction" then
+		return Auction.close(state)
+	elseif phase ~= "AwaitRoll" and phase ~= "AwaitBuy" and phase ~= "AwaitEnd" then
+		return {}
+	end
+	local player = state.players[state.turnIndex]
+	if not player then
+		return {}
+	end
+	if phase == "AwaitRoll" then
+		return perform(state, player.id, { type = "Roll" })
+	elseif phase == "AwaitBuy" then
+		return perform(state, player.id, { type = "DeclineBuy" })
+	end
+	return perform(state, player.id, { type = "EndTurn" })
 end
 
 return Engine

@@ -13,6 +13,14 @@ return {
 	buildingCostRate = 0.5,
 	maxRentMultiplier = 4,
 	maxBuildingLevel = 3,
+	-- Puja representativa que enumera Engine.legalActions: min(alta + paso, efectivo).
+	auctionBidStep = 10,
+	-- Reservas del bot: efectivo que debe quedarle tras pagar para decidir actuar.
+	bot = {
+		buyReserve = 200,
+		buildReserve = 200,
+		bidReserve = 100,
+	},
 	rounds = { S = 20, M = 15, L = 12 },
 	finalRoundsCount = 2,
 	-- Multiplicadores de los efectos dinámicos de renta. Se aplican al producto y el total
