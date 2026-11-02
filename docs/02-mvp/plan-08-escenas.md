@@ -177,7 +177,8 @@ end)
 - [ ] **Construir:** llega una grúa y el edificio crece a toda velocidad.
 - [ ] **Bancarrota:** una grúa se lleva la ficha y el avatar se vuelve espectro.
 - [ ] **Traición:** un foco sigue al traidor y un cartel gigante lo señala; la marca dura sus 3 rondas.
-- [ ] **Última Ronda:** aviso visible, con cambio de música y de ambiente.
+- [ ] **Última Ronda:** aviso visible, con cambio de música y de ambiente, solo en modo Rondas.
+- [ ] **Sin Fin:** la presión de la ronda 30 tiene su aviso, y el podio funciona con un único superviviente.
 - [ ] **Podio:** fichas, clasificación, premios del final y botón de revancha.
 - [ ] **Inicio:** el vuelo de cámara muestra los puentes abriéndose y los barrios iluminándose según el tamaño.
 - [ ] La corona se ve sobre la ficha del líder durante toda la partida.

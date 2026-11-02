@@ -12,7 +12,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 | Género | Juego de mesa multijugador por turnos, de party |
 | Público | Grupos de amigos en Roblox que buscan un plan juntos; apto para todo público |
 | Jugadores | 2 a 8 en el MVP; 9 a 12 después |
-| Duración | 25 a 35 minutos por partida |
+| Duración | 25 a 35 minutos en modo Rondas; sin duración fija en modo Sin Fin |
 | Dispositivos | PC y móvil desde el MVP |
 | Promesa | Nadie está a salvo y nadie está fuera hasta el final |
 
@@ -79,7 +79,7 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 
 ## Juego base
 
-**Cualquiera que conozca el juego clásico entiende la base en un minuto; los cambios existen para acortar la partida y evitar que alguien se quede fuera.** El objetivo es terminar con el mayor patrimonio: efectivo más propiedades y edificios.
+**Cualquiera que conozca el juego clásico entiende la base en un minuto; los cambios existen para acortar la partida y evitar que alguien se quede fuera.** En el modo principal, Rondas, el objetivo es terminar con el mayor patrimonio: efectivo más propiedades y edificios. En el modo Sin Fin gana el último que no esté en bancarrota.
 
 | Elemento | Clásico | Flip the Table |
 | --- | --- | --- |
@@ -88,7 +88,7 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 | Subastas | Si nadie compra | Rápidas, de 15 segundos |
 | Edificios | Cuatro casas y un hotel | Tres niveles: casa, edificio y rascacielos |
 | Intercambios | Libres entre jugadores | Igual, y además pactos con reglas que el juego hace cumplir |
-| Final | Queda un solo jugador | Límite de rondas; gana el mayor patrimonio |
+| Final | Queda un solo jugador | Rondas: límite de rondas y gana el mayor patrimonio, o antes si todos los rivales están en bancarrota. Sin Fin: queda un solo jugador activo, como en el clásico |
 | Bancarrota | Eliminación | Vuelves como espectro y sigues jugando |
 | Cárcel | Esperar turnos | Arresto en escena, y el grupo vota tu castigo en el Tribunal |
 | Turnos | Sin límite | Temporizador; si se agota, el juego decide por ti |
@@ -107,11 +107,11 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 
 ## Dinámicas únicas
 
-**Cinco sistemas hacen que la partida pueda voltearse y que los amigos se la hagan entre ellos: cartas de giro, perks, casillas nuevas, pactos y remontada.** Regla de diseño: un giro sorprende y sacude la partida, pero nunca elimina a nadie ni la termina por sí solo.
+**Cinco sistemas hacen que la partida pueda voltearse y que los amigos se la hagan entre ellos: cartas de giro, perks, casillas nuevas, pactos y remontada.** Regla de diseño: un giro sorprende y sacude la partida, pero nunca elimina a nadie ni la termina por sí solo. El juego debe ser dinámico e impredecible: ninguna estrategia debe basarse en saber de antemano qué evento va a llegar.
 
 ### Cartas de giro (20 en el MVP)
 
-Caes en una casilla Giro, robas una carta y la guardas; tu mano tiene un máximo de 3. Hay una legendaria como máximo cada 3 rondas, y quien va peor tiene más probabilidad de robarla.
+Caes en una casilla Giro, robas una carta y la guardas; tu mano tiene un máximo de 3. Cuantas más rondas pasan sin legendarias, más probable es robar una. Justo después de una la probabilidad es muy baja, pero nunca cero, y quien va peor tiene más probabilidad de robarla.
 
 | Carta | Rareza | Efecto |
 | --- | --- | --- |
@@ -213,18 +213,30 @@ El siguiente turno no empieza hasta que termina la escena en curso. Una escena n
 
 Las rondas salen de una estimación de 20 segundos por turno y buscan unos 30 minutos en todos los casos. Son un punto de partida que se ajustará en las pruebas. El juego se diseña y equilibra para 4 a 8; con 2 o 3 se puede jugar, pero queda fuera de los objetivos.
 
+### Modos de partida
+
+| | Rondas | Sin Fin |
+| --- | --- | --- |
+| Cómo termina | Al acabar la última ronda, o antes si queda un solo jugador activo | Cuando queda un solo jugador activo |
+| Quién gana | Mayor patrimonio, o el único jugador activo | El último que no esté en bancarrota |
+| Duración | 25 a 35 minutos | Sin duración fija |
+| Tensión final | Renta doble en las dos últimas rondas | Presión desde la ronda 30: la Salida deja de pagar y la renta se duplica |
+| Dónde se juega | Partidas públicas y privadas | Solo partidas privadas; lo elige el anfitrión |
+
+En ambos modos, quien se arruina sigue jugando como espectro y puede resucitar, pero la partida termina en cuanto queda un solo jugador activo.
+
 **La ciudad crece delante del grupo.** Al empezar, un vuelo de cámara muestra cómo los puentes se abren y los barrios extra se iluminan según cuántos sean. El tamaño queda fijo durante la partida.
 
 ## Qué incluye el MVP
 
-**El MVP es una sola ciudad, terminada al máximo nivel, para 2 a 8 amigos.** Se recorta la variedad de contenido, nunca la calidad. Si hace falta, salen en este orden: fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas. Debe responder una pregunta: ¿un grupo de amigos pide la revancha al terminar?
+**El MVP es una sola ciudad, terminada al máximo nivel, para 2 a 8 amigos.** Se recorta la variedad de contenido, nunca la calidad. Si hace falta, salen en este orden: el modo Sin Fin, fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas. Debe responder una pregunta: ¿un grupo de amigos pide la revancha al terminar?
 
 | Área | Qué incluye |
 | --- | --- |
 | Mapa | Metrópolis de Noche, con 3 tamaños: 32, 40 y 48 casillas |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta |
 | Reglas base | Dados, compra, renta, subasta, grupos, tres niveles de edificio, intercambios y bancarrota |
-| Final | Límite de rondas, últimas dos rondas con renta doble y podio |
+| Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos |
 | Cartas | Las 20 de esta ficha, cada una con su escena; 5 legendarias con cinemática completa |
 | Perks | Los 12 de esta ficha, elegidos en 3 momentos de la partida |
 | Casillas nuevas | Giro, Mercado Negro, Duelo, Portal, Cartelera de la Suerte y Tribunal, más la Zona Caliente |
@@ -246,7 +258,7 @@ Los objetivos son una propuesta inicial, medida en al menos 20 partidas con tus 
 
 - [ ] Al menos 70 % de las partidas iniciadas llegan al final.
 - [ ] Al menos 40 % de los grupos juega una segunda partida seguida.
-- [ ] Las partidas duran de 25 a 35 minutos en partidas de 4 a 8 jugadores.
+- [ ] Las partidas de 4 a 8 jugadores en modo Rondas duran de 25 a 35 minutos. Los objetivos se miden en ese modo.
 - [ ] Quien lidera a mitad de partida gana como máximo 50 % de las veces.
 - [ ] Ningún jugador dice haberse aburrido esperando, en al menos 80 % de las encuestas.
 - [ ] La partida de 8 jugadores funciona fluida en un móvil de gama media.
@@ -297,7 +309,7 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | --- | --- | --- |
 | Turnos lentos | Con 8 jugadores, cada segundo de más se multiplica | Duración máxima por escena, ficha rápida y escenas repetidas más cortas |
 | Rendimiento en móvil | La ciudad a escala real y los efectos son exigentes | Probar en móvil desde el inicio y limitar el detalle a lo visible desde la ruta |
-| Huracán demasiado fuerte | Puede sentirse como borrar la partida | Una vez por partida, nunca en las últimas 2 rondas y compensación en efectivo |
+| Huracán demasiado fuerte | Puede sentirse como borrar la partida | Sin garantía ni límite por partida y en cualquier ronda, para que nadie pueda anticiparlo; con compensación en efectivo |
 | Avatares muy distintos | Esposar o subir a cualquier avatar puede verse mal | Definir tipos de avatar compatibles y probar las escenas con tamaños extremos |
 | Marca Monopoly | El nombre, logo, personajes y diseño del tablero pertenecen a Hasbro | Identidad propia, sin esos elementos, y consulta legal antes de publicar |
 | Normas de Roblox sobre azar | La guía de experiencias prohíbe el juego de azar jugable, incluso simulado | Sin apuestas ni estética de casino, nada de pago al azar y revisión antes de publicar |
@@ -321,6 +333,11 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | Apto para todo público; pruebas con tus amigos primero; sin fecha ni presupuesto fijos | Tuya |
 | Cartelera de la Suerte en lugar de Ruleta | Tuya |
 | Duelo sin apuestas | Tuya |
+| Legendarias con probabilidad creciente, sin margen fijo | Tuya |
+| Modo Rondas y modo Sin Fin | Tuya |
+| Victoria anticipada en Rondas si todos los rivales están en bancarrota | Tuya |
+| Sin Fin solo en privadas, presión desde la ronda 30 y primero en el orden de recortes | Propuesta mía |
+| Huracán sin límite por partida y en cualquier ronda, para que no sea predecible | Tuya |
 
 ### Pendiente
 

@@ -89,7 +89,9 @@ end)
 - Crear: `docs/02-mvp/resultados/pruebas-amigos.md`
 
 **Criterios de aceptación:**
-- [ ] 20 partidas o más, de 4 a 8 jugadores, repartidas entre los 3 tamaños.
+- [ ] 20 partidas o más en modo Rondas, de 4 a 8 jugadores, repartidas entre los 3 tamaños.
+- [ ] Al menos 2 partidas completas en modo Sin Fin, para comprobar que terminan y siguen divirtiendo.
+- [ ] Se revisa con datos cada cuánto salen legendarias y si dos muy seguidas se sienten injustas.
 - [ ] Se usa una versión privada con todo el arte final.
 - [ ] Quien lidera a mitad de partida gana como máximo 50 % de las veces.
 - [ ] Los 7 criterios de salida están medidos y documentados.

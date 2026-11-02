@@ -30,7 +30,7 @@
 - El motor es determinista: mismo estado y mismas acciones, mismos eventos.
 - Una acción ilegal devuelve `ok = false` y no cambia nada.
 - Bancarrota no elimina: el jugador pasa a espectro.
-- Gana el mayor patrimonio: efectivo más propiedades y edificios.
+- Modo Rondas: gana el mayor patrimonio, efectivo más propiedades y edificios, salvo victoria anticipada. Ambos modos: si queda un solo jugador activo, gana de inmediato.
 - Subasta de 15 s; decisión de 20 s; si se agota el tiempo, el juego decide.
 - Renta doble en las dos últimas rondas.
 
@@ -273,17 +273,19 @@ end)
 **Módulos:** `rules/Turn`, `rules/Score`.
 
 **Archivos:**
-- Modificar: `src/shared/rules/Turn.luau`, `src/shared/rules/Score.luau`
+- Modificar: `src/shared/rules/Turn.luau`, `src/shared/rules/Score.luau`, `src/shared/rules/State.luau`, `src/shared/rules/Types.luau`, `src/shared/config/Economy.luau`
 - Crear: `tests/rules/Turn.spec.luau`
 
 **Interfaces:**
-- Produce: `Turn.next(state): { Event }`, `Turn.isFinalRound(state): boolean`.
+- Produce: `Turn.next(state): { Event }`, `Turn.isFinalRound(state): boolean`, `Turn.isPressureRound(state): boolean`.
+- Modifica: `State.create(opts: { playerIds, seed, endMode: EndMode? })`, con `"Rounds"` por defecto; en `"Endless"`, `maxRounds` es `nil`.
 - Eventos: `RoundStarted { round }`, `FinalRoundsStarted { round }`, `CrownMoved { from, to }`, `GameEnded { ranking, winnerId }`.
 
 **Criterios de aceptación:**
-- [ ] La partida termina tras la última ronda de su tamaño.
-- [ ] En las dos últimas rondas la renta se duplica.
-- [ ] Con un solo jugador activo, la partida continúa: los espectros aún pueden resucitar.
+- [ ] Rondas: la partida termina tras la última ronda de su tamaño.
+- [ ] Rondas: en las dos últimas rondas la renta se duplica.
+- [ ] Ambos modos: la partida termina en cuanto queda un solo jugador activo, y ese jugador gana.
+- [ ] Sin Fin: no hay rondas finales; desde la ronda 30, la Salida deja de pagar y la renta se duplica.
 - [ ] Los empates se resuelven por efectivo y, si persisten, por orden de turno.
 - [ ] La Corona pasa al primero de la clasificación al empezar cada ronda.
 
@@ -294,6 +296,19 @@ it("duplica la renta en las dos últimas rondas", function()
     local s = Fixtures.game({ players = 8 }); s.round = 11
     expect(Turn.isFinalRound(s)).toBe(true)
     s.round = 10; expect(Turn.isFinalRound(s)).toBe(false)
+end)
+it("Rondas termina antes si todos los rivales están en bancarrota", function()
+    -- 2 jugadores, ronda 1: al arruinarse uno, GameEnded con el otro como ganador.
+end)
+it("Sin Fin termina con un solo jugador activo", function()
+    local s = Fixtures.game({ players = 3, endMode = "Endless" })
+    expect(s.maxRounds).toBe(nil); expect(Turn.isFinalRound(s)).toBe(false)
+    -- Dos jugadores en Ghost tras una bancarrota: GameEnded con el activo como ganador.
+end)
+it("Sin Fin aplica presión desde la ronda 30", function()
+    local s = Fixtures.game({ players = 3, endMode = "Endless" })
+    s.round = 29; expect(Turn.isPressureRound(s)).toBe(false)
+    s.round = 30; expect(Turn.isPressureRound(s)).toBe(true)
 end)
 it("desempata por efectivo", function()
     -- A y B con igual patrimonio; A con más efectivo queda primero.
@@ -349,10 +364,10 @@ end)
 - Crear: `tests/sim.luau`, `tests/sim.spec.luau`
 
 **Interfaces:**
-- Produce: `Sim.play(opts: { players: number, seed: number, idle: boolean? }): SimResult`, con `{ finished: boolean, turns: number, leaderAtHalf: PlayerId, winner: PlayerId, events: { [string]: number } }`.
+- Produce: `Sim.play(opts: { players: number, seed: number, idle: boolean?, endMode: EndMode? }): SimResult`, con `{ finished: boolean, turns: number, leaderAtHalf: PlayerId, winner: PlayerId, events: { [string]: number } }`.
 
 **Criterios de aceptación:**
-- [ ] 1000 partidas por cada número de jugadores, de 2 a 8, terminan.
+- [ ] 1000 partidas por cada número de jugadores, de 2 a 8, terminan, en modo Rondas y en modo Sin Fin.
 - [ ] En ningún momento hay efectivo negativo tras resolver una acción.
 - [ ] Cada propiedad tiene un dueño como máximo y su dueño nunca es un espectro.
 - [ ] Con `idle = true`, solo con tiempo agotado, la partida también termina.

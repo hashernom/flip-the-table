@@ -19,7 +19,7 @@
 | Mapa | Metrópolis de Noche, con 3 tamaños: 32, 40 y 48 casillas | 01, 05, 07 |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta | 05, 07 |
 | Reglas base | Dados, compra, renta, subasta, grupos, tres niveles de edificio, intercambios y bancarrota | 02 |
-| Final | Límite de rondas, últimas dos rondas con renta doble y podio | 02, 03, 08 |
+| Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos | 02, 03, 04, 08, 09 |
 | Cartas | 20 cartas, cada una con su escena; 5 legendarias con cinemática completa | 03, 08 |
 | Perks | 12 perks, elegidos en 3 momentos de la partida | 03 |
 | Casillas nuevas | Giro, Mercado Negro, Duelo, Portal, Cartelera de la Suerte y Tribunal, más la Zona Caliente | 03, 08 |
@@ -82,7 +82,7 @@ Propuesta inicial, medida en al menos 20 partidas con grupos de amigos y despué
 
 - [ ] Al menos 70 % de las partidas iniciadas llegan al final.
 - [ ] Al menos 40 % de los grupos juega una segunda partida seguida.
-- [ ] Las partidas de 4 a 8 jugadores duran de 25 a 35 minutos.
+- [ ] Las partidas de 4 a 8 jugadores en modo Rondas duran de 25 a 35 minutos. Los objetivos se miden en ese modo.
 - [ ] Quien lidera a mitad de partida gana como máximo 50 % de las veces.
 - [ ] Ningún jugador dice haberse aburrido esperando, en al menos 80 % de las encuestas.
 - [ ] La partida de 8 jugadores funciona fluida en un móvil de gama media (30 FPS o más en el móvil de referencia).
@@ -94,11 +94,11 @@ Propuesta inicial, medida en al menos 20 partidas con grupos de amigos y despué
 | --- | --- | --- |
 | Turnos lentos | Duraciones máximas y medición con escenas provisionales | 05, 08, 10 |
 | Rendimiento en móvil | Presupuestos de assets y pruebas desde la porción vertical | 06, 07, 10 |
-| Huracán demasiado fuerte | Una vez por partida, nunca en las últimas 2 rondas y con compensación | 03, 10 |
+| Huracán demasiado fuerte | Sin garantía ni límite por partida, en cualquier ronda y con compensación | 03, 10 |
 | Avatares muy distintos | Pruebas con tamaños extremos | 07, 08 |
 | Marca Monopoly | Identidad propia y consulta legal | 10 |
 | Normas de azar de Roblox | Sin apuestas; revisión antes de publicar | 10 |
 
 ## Orden de recorte
 
-Si hace falta recortar: fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas, en ese orden. La calidad de lo que queda no se recorta.
+Si hace falta recortar: el modo Sin Fin, fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas, en ese orden. La calidad de lo que queda no se recorta.

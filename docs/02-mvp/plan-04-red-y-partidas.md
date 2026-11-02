@@ -114,7 +114,7 @@ end)
 - Produce: `Scenes.durationFor(event: Event, seenCount: number): number`.
 - Produce: `SceneClock.new(): SceneClock`, `SceneClock.schedule(clock, events, now): number`, que devuelve cuándo termina la última escena.
 - Produce: lote `{ seq: number, startsAt: number, events: { Event }, view: PlayerView }`.
-- Produce: `MatchService.start(players: { Player }, seed: number)`.
+- Produce: `MatchService.start(players: { Player }, seed: number, endMode: EndMode)`.
 
 **Criterios de aceptación:**
 - [ ] `Scenes` da duración a cada evento de la arquitectura.
@@ -180,12 +180,13 @@ end)
 
 **Interfaces:**
 - Produce: `PartyCode.generate(rng): string` (6 caracteres sin `0`, `O`, `1` ni `I`), `PartyCode.normalize(text: string): string?`.
-- Produce: `PartyService.create(host: Player): string`, `PartyService.join(player: Player, code: string): (boolean, string?)`, `PartyService.start(host: Player)`.
+- Produce: `PartyService.create(host: Player): string`, `PartyService.join(player: Player, code: string): (boolean, string?)`, `PartyService.start(host: Player, endMode: EndMode)`.
 - Produce: `PublicQueue.enqueue(player: Player)`.
 
 **Criterios de aceptación:**
 - [ ] Antes de programar, se confirma el uso actual de `TeleportService` y `MemoryStoreService` en la documentación oficial.
-- [ ] Un código válido reúne de 2 a 8 personas; solo el anfitrión inicia.
+- [ ] Un código válido reúne de 2 a 8 personas; solo el anfitrión inicia y elige el modo.
+- [ ] Las partidas públicas siempre usan el modo Rondas.
 - [ ] Un código caducado, lleno o mal escrito muestra un mensaje claro, sin teletransportar.
 - [ ] Mayúsculas, minúsculas y espacios no importan.
 - [ ] Al salir el anfitrión, el siguiente toma su lugar.
@@ -231,12 +232,12 @@ end)
 
 **Interfaces:**
 - Produce: `MatchSummary.fromState(state, startedAt, endedAt, rematch: boolean, abandoned: boolean): Summary`.
-- Produce: `Summary = { id, sizeId, players, durationSec, avgTurnSec, leaderAtHalfWon, finished, rematch, cardsPlayed, sceneSec }`.
+- Produce: `Summary = { id, sizeId, endMode, players, durationSec, avgTurnSec, leaderAtHalfWon, finished, rematch, cardsPlayed, sceneSec }`.
 
 **Criterios de aceptación:**
 - [ ] Antes de programar, se confirma el uso actual de `AnalyticsService` en la documentación oficial.
 - [ ] Cada partida genera un resumen, también si se abandona.
-- [ ] Con los resúmenes exportados, `tools/criteria-report` calcula los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
+- [ ] Con los resúmenes exportados, `tools/criteria-report` calcula, solo con partidas en modo Rondas, los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
 - [ ] No se guarda ningún dato personal: el id de partida es aleatorio y no se registran nombres.
 
 - [ ] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.

@@ -126,6 +126,7 @@ export type PlayerId = string
 export type SizeId = "S" | "M" | "L"
 export type PlayerStatus = "Active" | "Ghost" | "Left"
 export type Rarity = "Common" | "Rare" | "Legendary"
+export type EndMode = "Rounds" | "Endless"
 
 export type Phase =
     "PerkDraft" | "AwaitRoll" | "AwaitBuy" | "Auction" | "Reaction"
@@ -143,11 +144,11 @@ export type GameState = {
     rng: RngState,
     sizeId: SizeId, board: Board,
     players: { Player }, turnIndex: number,
-    round: number, maxRounds: number,
+    endMode: EndMode, round: number, maxRounds: number?,
     phase: Phase, pending: any?,
     properties: { [number]: PropertyState },
     pacts: { Pact }, modifiers: { Modifier },
-    hotZoneId: string?, lastLegendaryRound: number?, hurricaneUsed: boolean,
+    hotZoneId: string?, lastLegendaryRound: number?,
     stats: MatchStats,
 }
 
@@ -159,7 +160,7 @@ export type ApplyResult = { ok: true, events: { Event } } | { ok: false, error: 
 Funciones públicas:
 
 ```luau
-State.create(opts: { playerIds: { PlayerId }, seed: number }): GameState
+State.create(opts: { playerIds: { PlayerId }, seed: number, endMode: EndMode? }): GameState
 Engine.apply(state: GameState, playerId: PlayerId, action: Action): ApplyResult
 Engine.timeout(state: GameState): { Event }
 Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
@@ -224,7 +225,7 @@ Coincide con los 32, 40 y 48 de la ficha. Las zonas tienen 3 propiedades cada un
 | M | 15 | 6 | 11 | 14 y 15 |
 | L | 12 | 5 | 9 | 11 y 12 |
 
-Fórmula: `floor(N / 3) + 1` y `floor(2 * N / 3) + 1`. La Zona Caliente se mueve al empezar las rondas 1, 4, 7 y así sucesivamente.
+Fórmula: `floor(N / 3) + 1` y `floor(2 * N / 3) + 1`. En Sin Fin, el 2.º y el 3.er perk llegan en las rondas 6 y 12; desde la ronda 30, la Salida deja de pagar y la renta se duplica, respetando el máximo de × 4, para que la partida siempre avance hacia un final. La Zona Caliente se mueve al empezar las rondas 1, 4, 7 y así sucesivamente.
 
 ### Robo de cartas por posición
 
@@ -234,7 +235,11 @@ Fórmula: `floor(N / 3) + 1` y `floor(2 * N / 3) + 1`. La Zona Caliente se mueve
 | Mitad superior | 70 | 25 | 5 |
 | Mitad inferior | 55 | 30 | 15 |
 
-Si la legendaria no está permitida por el límite de 3 rondas, su peso pasa a Rara.
+El peso de legendaria se multiplica según las rondas pasadas desde la última robada, o desde el inicio si aún no hay ninguna. La rara no cambia y la común completa hasta 100.
+
+| Rondas sin legendaria | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 o más |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| Multiplicador | × 0,1 | × 0,25 | × 0,5 | × 1 | × 1,5 | × 2 | × 2,5 | × 3 |
 
 ### Cartelera de la Suerte
 
@@ -252,6 +257,7 @@ Peso igual para los 5 resultados. Nunca se pide apostar ni arriesgar nada.
 
 Se aplican a todas las fases y tareas.
 
+- **Impredecible:** ninguna estrategia debe basarse en saber de antemano qué evento va a llegar.
 - **Identidad propia:** no se usa el nombre, logo, personajes ni diseño de tablero de Monopoly.
 - **Sin azar con apuesta:** ninguna mecánica pide arriesgar dinero, Robux u objetos en un juego de azar, ni tiene estética de casino. [La norma de Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines) prohíbe el juego de azar jugable, incluso simulado.
 - **Sin pagar para ganar:** las cartas y los perks nunca se compran con dinero real. Solo se vende apariencia, y nada de pago es aleatorio.

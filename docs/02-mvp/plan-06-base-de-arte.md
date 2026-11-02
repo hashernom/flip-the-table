@@ -57,14 +57,17 @@
 - Produce: paleta, materiales, iluminación, proporciones, tipografía e intención de cada barrio. Todas las tareas de arte la consultan.
 
 **Criterios de aceptación:**
+- [ ] La identidad visual (logo y títulos, fuentes, colores y jerarquía) se desarrolla siguiendo la skill `impeccable`.
 - [ ] Define la paleta neón y oro de Metrópolis de Noche, con sus valores de color.
+- [ ] Define el tratamiento del título del juego, las fuentes y sus usos, y comprueba que existan o se puedan usar en Roblox.
 - [ ] Define la biblioteca de materiales: asfalto mojado, cristal, metal pulido, oro, neón y hormigón.
 - [ ] Define el aspecto de Centro, Puerto y Zona Alta, para que se distingan de un vistazo.
 - [ ] Incluye la escala de las fichas respecto a calles y edificios.
 - [ ] Aclara qué evitar: el logo, el personaje y el diseño de tablero del juego original, y símbolos de casino.
 - [ ] Incluye 3 imágenes conceptuales de la ciudad, aprobadas por el responsable.
 
-- [ ] **Paso 1:** Generar 3 direcciones visuales y presentarlas al responsable.
+- [ ] **Paso 0:** Cargar la skill `impeccable` y seguirla en toda esta tarea.
+- [ ] **Paso 1:** Generar 3 direcciones visuales, con títulos, fuentes y colores, y presentarlas al responsable.
 - [ ] **Paso 2:** Escribir la guía con la dirección elegida.
 - [ ] **Paso 3:** Hacer commit: `docs: añadir guía de estilo`.
 

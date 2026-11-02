@@ -57,7 +57,7 @@
 - Produce: `Strings.get(key: string, args: { [string]: any }?): string`.
 
 **Criterios de aceptación:**
-- [ ] Sigue la paleta de la guía de estilo.
+- [ ] Aplica a títulos, fuentes, colores y componentes la identidad de la guía de estilo, siguiendo la skill `impeccable`.
 - [ ] Texto mínimo legible en móvil; objetivos táctiles de 44 píxeles o más.
 - [ ] Los dueños y estados se identifican también por icono o forma, no solo por color.
 - [ ] Todo texto visible pasa por `Strings`.
@@ -119,6 +119,7 @@
 **Criterios de aceptación:**
 - [ ] Desde el lobby se crea un código, se entra con uno o se juega en público.
 - [ ] Se ve quién está en la party y se elige ficha antes de empezar.
+- [ ] En partidas privadas, el anfitrión elige Rondas o Sin Fin, y el lobby explica en una frase cómo termina cada uno.
 - [ ] Cada error de `PartyService` muestra un mensaje claro.
 - [ ] El ambiente del lobby muestra la identidad de la ciudad.
 

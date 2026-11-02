@@ -28,8 +28,9 @@
 ## Global Constraints
 
 - Un giro sorprende y sacude la partida, pero nunca elimina a nadie ni la termina por sí solo.
-- Mano máxima: 3 cartas. Legendaria: como máximo una cada 3 rondas.
-- Huracán: una vez por partida, nunca en las últimas 2 rondas, con compensación de la mitad del valor.
+- El juego es dinámico e impredecible: ninguna estrategia debe basarse en saber de antemano qué evento va a llegar.
+- Mano máxima: 3 cartas. Legendaria: probabilidad creciente mientras no salga ninguna; muy baja justo después de otra, pero nunca cero.
+- Huracán: impredecible, sin garantía de aparecer y sin límite por partida, en cualquier ronda, con compensación de la mitad del valor.
 - Ninguna mecánica pide arriesgar dinero en un juego de azar.
 - Perks visibles para todos, elegidos en 3 momentos.
 - Pactos, votos y duelos funcionan solo con menús.
@@ -53,26 +54,35 @@
 
 **Interfaces:**
 - Produce: `Cards.all: { CardDef }`, con `CardDef = { id: string, name: string, rarity: Rarity, target: "None" | "Player" | "Zone" | "Property" | "Pact", reaction: boolean, leaderOnly: boolean? }`.
-- Produce: `Deck.draw(state, playerId, minRarity: Rarity?): { Event }`.
+- Produce: `Deck.draw(state, playerId, minRarity: Rarity?): { Event }`, `Deck.weights(state, playerId): { Common: number, Rare: number, Legendary: number }`.
 - Ids: `Hurricane`, `WorldFlip`, `Revolution`, `Earthquake`, `CrownStrike`, `Inflation`, `Blackout`, `BounceRent`, `DeedThief`, `Backstab`, `Demolition`, `Shield`, `ExtraDie`, `Reverse`, `ForcedTip`, `Discount`, `Shove`, `Fine`, `Bribe`, `Spy`.
 
 **Criterios de aceptación:**
 - [ ] Hay 20 cartas: 5 legendarias, 6 raras y 9 comunes.
-- [ ] Los pesos siguen la tabla por posición de la arquitectura.
-- [ ] No se roba una legendaria si hubo otra hace menos de 3 rondas.
+- [ ] Los pesos siguen las tablas de posición y de rondas sin legendaria de la arquitectura, y siempre suman 100.
+- [ ] Una legendaria se puede robar en cualquier ronda, también justo después de otra.
+- [ ] Se retira `legendaryCooldownRounds` de `config/Economy`.
 - [ ] Con la mano llena, la carta se descarta (`CardDiscarded`).
 
 - [ ] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("tiene 5, 6 y 9 cartas por rareza", function() --[[ contar Cards.all ]] end)
-it("respeta el límite de legendarias", function()
-    local s = Fixtures.game({ players = 4 }); s.lastLegendaryRound = s.round
-    for _ = 1, 500 do
-        s.players[1].hand = {}
-        Deck.draw(s, s.players[1].id)
-        expect(Cards.byId[s.players[1].hand[1]].rarity ~= "Legendary").toBeTruthy()
-    end
+it("sube la probabilidad de legendaria con las rondas sin ninguna", function()
+    local s = Fixtures.game({ players = 4 }); local id = s.players[1].id
+    s.round = 10; s.lastLegendaryRound = 10
+    local justAfter = Deck.weights(s, id).Legendary
+    expect(justAfter > 0).toBeTruthy()
+    s.lastLegendaryRound = 7
+    local baseWeight = Deck.weights(s, id).Legendary
+    expect(baseWeight).toBe(justAfter * 10)
+    s.lastLegendaryRound = 3
+    expect(Deck.weights(s, id).Legendary).toBe(baseWeight * 3)
+    s.lastLegendaryRound = 1
+    expect(Deck.weights(s, id).Legendary).toBe(baseWeight * 3)
+end)
+it("los pesos suman 100", function()
+    -- Para cada posición y cada multiplicador: Common + Rare + Legendary == 100.
 end)
 it("favorece a quien va peor", function()
     -- En 5000 robos, la mitad inferior obtiene más legendarias que el líder.
@@ -144,7 +154,7 @@ end)
 - Consume: `Bankruptcy.charge`, `Building.lower`, `Score.ranking`.
 
 **Criterios de aceptación:**
-- [ ] Huracán: todas las propiedades vuelven al banco y sus dueños cobran la mitad del valor de propiedad y edificios. Una vez por partida y nunca en las últimas 2 rondas.
+- [ ] Huracán: todas las propiedades vuelven al banco y sus dueños cobran la mitad del valor de propiedad y edificios. No se garantiza que aparezca y puede repetirse, según la probabilidad general de legendarias. Se puede jugar en cualquier ronda.
 - [ ] Mundo al Revés: cada ficha activa cae en una casilla al azar; ninguna resuelve casilla.
 - [ ] Revolución: los 2 más ricos y los 2 más pobres intercambian efectivo; con 2 o 3 jugadores activos, se intercambian el primero y el último.
 - [ ] Terremoto: todos los edificios de una zona bajan un nivel.
@@ -164,16 +174,16 @@ it("Huracán devuelve todo y compensa la mitad", function()
     expect(s.properties[idx].ownerId).toBe(nil)
     expect(a.cash).toBe(cash + price / 2)
 end)
-it("Huracán no se puede jugar en las últimas 2 rondas", function()
-    -- s.round = s.maxRounds - 1: PlayCard devuelve ok = false.
+it("Huracán se puede jugar en la última ronda", function()
+    -- s.round = s.maxRounds: PlayCard devuelve ok = true.
 end)
-it("Huracán solo una vez por partida", function()
-    -- Segundo uso: ok = false.
+it("Huracán puede jugarse más de una vez", function()
+    -- Segundo uso en otra ronda permitida: ok = true.
 end)
 ```
 
 - [ ] **Paso 2:** Ejecutar `lune run tests/run CardsLegendary`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar las 5 cartas.
+- [ ] **Paso 3:** Implementar las 5 cartas y retirar el campo obsoleto `hurricaneUsed` de `Types.luau`, `State.luau` y `State.spec.luau`.
 - [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** Hacer commit: `feat: añadir cartas legendarias`.
 
@@ -214,7 +224,7 @@ end)
 
 **Criterios de aceptación:**
 - [ ] Se ofrecen 3 perks distintos, sin repetir los que el jugador tiene.
-- [ ] La selección ocurre al empezar y en las rondas de la tabla de la arquitectura.
+- [ ] La selección ocurre al empezar y en las rondas de la tabla de la arquitectura; en Sin Fin, en las rondas 6 y 12.
 - [ ] Sin elección al agotarse el tiempo, se asigna el primero ofrecido.
 - [ ] Una prueba por cada perk con el efecto de la ficha.
 
