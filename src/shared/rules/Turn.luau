@@ -123,7 +123,9 @@ end
 
 -- R11/R21: con un solo jugador Active la partida termina en ese instante y gana ese jugador,
 -- aunque la clasificación coloque delante a un espectro con más patrimonio. Añade el evento
--- a `events` y devuelve true si la partida queda cerrada (también si ya lo estaba).
+-- a `events` y devuelve true si la partida queda cerrada (también si ya lo estaba). R-P46:
+-- antes de calcular la clasificación liquida los pactos, para que el patrimonio cuente el
+-- efectivo devuelto.
 function Turn.finishIfLastActive(state: GameState, events: { Event }): boolean
 	-- Idempotente: una partida terminada no vuelve a emitir GameEnded.
 	if state.phase == "GameOver" then
@@ -132,6 +134,7 @@ function Turn.finishIfLastActive(state: GameState, events: { Event }): boolean
 	if Turn.activeCount(state) ~= 1 then
 		return false
 	end
+	append(events, Pact.settle(state))
 	local ranking = Score.ranking(state)
 	state.phase = "GameOver"
 	table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
@@ -159,6 +162,8 @@ function Turn.next(state: GameState): { Event }
 		return {}
 	end
 	dropTradesOfTurn(state)
+	-- R-P44: las ofertas de pacto caducan con el turno en que se hicieron, como los intercambios.
+	Pact.dropOffersOfTurn(state)
 	local index = nextIndex(state)
 	-- Dar la vuelta al orden abre ronda; con un solo jugador presente también cuenta.
 	local startsRound = index <= state.turnIndex
@@ -176,6 +181,8 @@ function Turn.next(state: GameState): { Event }
 	-- Rondas: la partida ha consumido su última ronda.
 	if state.endMode == "Rounds" and maxRounds ~= nil and state.round > maxRounds then
 		state.phase = "GameOver"
+		-- R-P46: liquida los pactos vivos antes de calcular la clasificación final.
+		append(events, Pact.settle(state))
 		local ranking = Score.ranking(state)
 		table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
 		return events

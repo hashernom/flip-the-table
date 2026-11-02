@@ -9,6 +9,7 @@ local Fixtures = require("../fixtures")
 local Harness = require("../harness")
 local Pact = require("../../src/shared/rules/Pact")
 local Property = require("../../src/shared/rules/Property")
+local Score = require("../../src/shared/rules/Score")
 local Turn = require("../../src/shared/rules/Turn")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
@@ -667,5 +668,178 @@ describe("Puñalada sobre un pacto formado por el módulo", function()
 		expect(caster.traitorUntilRound).toBe(s.round + Economy.pact.traitorRounds - 1)
 		expect(Pact.exemptsRent(s, caster.id, partner.id)).toBe(false)
 		expect(s.stats[caster.id].pactsBroken).toBe(1)
+	end)
+end)
+
+describe("cierre de la partida (R-P46)", function()
+	it("al llegar al límite de rondas devuelve las garantías antes de la clasificación final", function()
+		local s = Fixtures.game({ players = 2 })
+		local proposer = s.players[1]
+		local partner = s.players[2]
+		table.insert(partner.perks, "Negotiator")
+		local pactId = formPact(s, proposer.id, partner.id, 3)
+		expect(s.pacts[1].id).toBe(pactId)
+		-- Con Negociador el socio deposita 50: sin liquidar el pacto, su efectivo (1450) supera
+		-- al del proponente (1400) y la clasificación final sería otra.
+		expect(proposer.cash).toBe(Economy.startingCash - Economy.pact.deposit)
+		expect(partner.cash).toBe(Economy.startingCash - Economy.pact.negotiatorDeposit)
+		local maxRounds = s.maxRounds
+		if not maxRounds then
+			error("el modo Rounds debe tener tope de rondas", 2)
+		end
+		enterNextRoundFrom(s, maxRounds + 1)
+		local events = Turn.next(s)
+		expect(s.phase).toBe("GameOver")
+		expect(s.pacts).toEqual({})
+		expect(proposer.cash).toBe(Economy.startingCash)
+		expect(partner.cash).toBe(Economy.startingCash)
+		expect(eventOf(events, "PactEnded").pactId).toBe(pactId)
+		-- Ya liquidadas las garantías, el desempate por orden de turno deja al proponente
+		-- (players[1]) por delante del socio (players[2]).
+		local ended = eventOf(events, "GameEnded")
+		expect(ended.winnerId).toBe(proposer.id)
+		local expected: { Types.PlayerId } = { proposer.id, partner.id }
+		expect(ended.ranking).toEqual(expected)
+		expect(ended.ranking).toEqual(Score.ranking(s))
+		-- Las garantías se devuelven antes de anunciar el final.
+		local pactAt, gameAt = 0, 0
+		for index, event in events do
+			if event.type == "PactEnded" then
+				pactAt = index
+			elseif event.type == "GameEnded" then
+				gameAt = index
+			end
+		end
+		expect(pactAt > 0 and pactAt < gameAt).toBe(true)
+		-- El cierre es idempotente: una segunda llamada no vuelve a devolver nada.
+		expect(Turn.next(s)).toEqual({})
+		expect(proposer.cash).toBe(Economy.startingCash)
+	end)
+
+	it("si la partida termina por último activo también liquida los pactos", function()
+		local s = Fixtures.game({ players = 2 })
+		local proposer = s.players[1]
+		local partner = s.players[2]
+		formPact(s, proposer.id, partner.id, 3)
+		-- Estado ilegal a propósito: el socio cae sin pasar por Bankruptcy.charge, así que su
+		-- pacto sigue vivo cuando la partida se cierra por último activo.
+		partner.status = "Ghost"
+		local events: { Types.Event } = {}
+		expect(Turn.finishIfLastActive(s, events)).toBe(true)
+		expect(events[1].type).toBe("PactEnded")
+		expect(events[2].type).toBe("GameEnded")
+		expect(s.pacts).toEqual({})
+		expect(proposer.cash).toBe(Economy.startingCash)
+		expect(partner.cash).toBe(Economy.startingCash - Economy.pact.deposit)
+	end)
+
+	it("Pact.settle devuelve todas las garantías y emite un PactEnded por pacto", function()
+		local s = Fixtures.game({ players = 3 })
+		local proposer = inTurn(s)
+		local others = rivalsOf(s, proposer.id)
+		local first = formPact(s, proposer.id, others[1].id, 2)
+		Fixtures.turnOf(s, proposer.id)
+		local second = formPact(s, proposer.id, others[2].id, 2)
+		local events = Pact.settle(s)
+		expect(#events).toBe(2)
+		expect(s.pacts).toEqual({})
+		expect(proposer.cash).toBe(Economy.startingCash)
+		expect(others[1].cash).toBe(Economy.startingCash)
+		expect(others[2].cash).toBe(Economy.startingCash)
+		local ids: { string } = {}
+		for _, event in events do
+			table.insert(ids, event.pactId)
+		end
+		table.sort(ids)
+		local expected: { string } = { first, second }
+		table.sort(expected)
+		expect(ids).toEqual(expected)
+	end)
+end)
+
+describe("Puñalada con un socio fuera de la partida (R-P42)", function()
+	it("la garantía de un socio que abandonó se queda en el banco", function()
+		local s = Fixtures.game({ players = 2 })
+		local caster = inTurn(s)
+		local partner = rivalsOf(s, caster.id)[1]
+		local pactId = formPact(s, caster.id, partner.id, 3)
+		partner.status = "Left"
+		Fixtures.hand(s, caster.id, "Backstab")
+		local action: Types.Action = { type = "PlayCard", cardId = "Backstab", pactId = pactId }
+		local result = Engine.apply(s, caster.id, action)
+		if not result.ok then
+			error(result.error, 2)
+		end
+		expect(s.pacts).toEqual({})
+		-- El lanzador activo conserva su garantía; la del socio no se acredita a nadie.
+		expect(caster.cash).toBe(Economy.startingCash)
+		expect(partner.cash).toBe(Economy.startingCash - Economy.pact.deposit)
+		expect(eventOf(result.events, "PactBroken").playerId).toBe(caster.id)
+		expect(caster.traitorUntilRound).toBe(s.round + Economy.pact.traitorRounds - 1)
+	end)
+end)
+
+describe("caducidad de las ofertas (R-P44)", function()
+	it("una oferta muere al terminar el turno en que se hizo", function()
+		local s = Fixtures.game({ players = 3 })
+		local proposer = inTurn(s)
+		local target = rivalsOf(s, proposer.id)[1]
+		local pactId = proposePact(s, proposer.id, target.id, 3)
+		expect(#offersOf(s)).toBe(1)
+		Fixtures.turnOf(s, proposer.id)
+		Turn.next(s)
+		expect(#offersOf(s)).toBe(0)
+		expect(s.pacts).toEqual({})
+		local action: Types.Action = { type = "RespondPact", pactId = pactId, accept = true }
+		expect(rejected(Engine.apply(s, target.id, action))).toBe("La oferta ya no existe")
+		-- La siguiente propuesta del mismo jugador recibe un id nuevo.
+		Fixtures.turnOf(s, proposer.id)
+		expect(proposePact(s, proposer.id, target.id, 3) ~= pactId).toBe(true)
+	end)
+end)
+
+-- Primera propiedad alcanzable con dos pasos de dado desde otra casilla, igual que en
+-- Reaction.spec: la renta nace de una tirada real para que la ventana se abra en el motor.
+local function rentableIndex(state: Types.GameState): number
+	for _, square in state.board.squares do
+		if square.kind == "Property" and square.index >= 4 then
+			return square.index
+		end
+	end
+	error("el tablero no tiene una propiedad alcanzable con dos pasos", 2)
+end
+
+describe("Renta Rebotada y pactos (R-P45)", function()
+	it("un socio no paga la renta desviada a su compañero de pacto", function()
+		local s = Fixtures.game({ players = 3 })
+		local payer = inTurn(s)
+		local rivals = rivalsOf(s, payer.id)
+		local owner, third = rivals[1], rivals[2]
+		-- El pacto es entre el dueño y el tercero: la renta rebotada al tercero no se cobra.
+		Fixtures.turnOf(s, owner.id)
+		formPact(s, owner.id, third.id, 3)
+		Fixtures.turnOf(s, payer.id)
+		local ownerCash = owner.cash
+		local thirdCash = third.cash
+		Fixtures.hand(s, payer.id, "BounceRent")
+		local index = rentableIndex(s)
+		Fixtures.give(s, owner.id, index)
+		Fixtures.placeOn(s, payer.id, index - 2)
+		Fixtures.dice(s, 1, 1)
+		local rolled = Engine.apply(s, payer.id, { type = "Roll" })
+		if not rolled.ok then
+			error(rolled.error, 2)
+		end
+		expect(s.phase).toBe("Reaction")
+		local action: Types.Action = { type = "React", cardId = "BounceRent", targetId = third.id }
+		local result = Engine.apply(s, payer.id, action)
+		if not result.ok then
+			error(result.error, 2)
+		end
+		expect(result.events).toEqual({})
+		expect(s.phase).toBe("AwaitEnd")
+		expect(third.cash).toBe(thirdCash)
+		expect(owner.cash).toBe(ownerCash)
+		expect(payer.cash).toBe(Economy.startingCash)
 	end)
 end)

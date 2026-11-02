@@ -20,6 +20,9 @@ type PactOffer = {
 	fromId: PlayerId,
 	toId: PlayerId,
 	rounds: number,
+	-- Turno en que se hizo: la oferta caduca al terminarlo (R-P44), como los intercambios (R20).
+	round: number,
+	turnIndex: number,
 }
 
 -- Fases en las que se puede proponer, responder y romper. Son fases de turno: nada se mueve
@@ -86,8 +89,10 @@ local function depositOf(player: Player): number
 	return Economy.pact.deposit
 end
 
--- Un jugador que no está Active (Ghost o Left) no recibe dinero: el banco se queda con él.
-local function creditIfActive(state: GameState, playerId: PlayerId, amount: number)
+-- Devuelve una garantía a un jugador activo: quien no está Active (Ghost o Left) no recibe
+-- dinero, el banco se queda con él. Es la única regla de devolución de garantías, compartida por
+-- los pactos y por la Puñalada (Cards, R-P42).
+function Pact.creditIfActive(state: GameState, playerId: PlayerId, amount: number)
 	if amount == 0 then
 		return
 	end
@@ -95,6 +100,16 @@ local function creditIfActive(state: GameState, playerId: PlayerId, amount: numb
 	if player and player.status == "Active" then
 		player.cash += amount
 	end
+end
+
+-- Cierra el pacto en la posición `index`: cada parte recupera su propia garantía y se anota el
+-- evento. Lo comparten la caducidad por rondas y la liquidación del final de la partida (R-P46).
+local function closeAndRefund(state: GameState, index: number, events: { Event })
+	local pact = state.pacts[index]
+	table.remove(state.pacts, index)
+	Pact.creditIfActive(state, pact.a, pact.depositA)
+	Pact.creditIfActive(state, pact.b, pact.depositB)
+	table.insert(events, { type = "PactEnded", pactId = pact.id })
 end
 
 -- Motivo por el que una propuesta no es válida, o nil. No modifica el estado. Es la única
@@ -156,9 +171,32 @@ function Pact.propose(state: GameState, fromId: PlayerId, toId: string, rounds: 
 	end
 	local seq = (pending.pactSeq or 0) + 1
 	pending.pactSeq = seq
-	local offer: PactOffer = { id = `P{seq}`, fromId = fromId, toId = toId, rounds = rounds }
+	local offer: PactOffer = {
+		id = `P{seq}`,
+		fromId = fromId,
+		toId = toId,
+		rounds = rounds,
+		round = state.round,
+		turnIndex = state.turnIndex,
+	}
 	table.insert(offers, offer)
 	return { ok = true, events = {} }
+end
+
+-- R-P44: una oferta caduca con el turno en que se hizo, igual que los intercambios (R20). La
+-- llama Turn.next antes de mover el turno, mientras round y turnIndex señalan al que termina.
+function Pact.dropOffersOfTurn(state: GameState)
+	local pending = state.pending
+	local offers = pending and pending.pactOffers
+	if not offers then
+		return
+	end
+	for index = #offers, 1, -1 do
+		local offer: PactOffer = offers[index]
+		if offer.round == state.round and offer.turnIndex == state.turnIndex then
+			table.remove(offers, index)
+		end
+	end
 end
 
 -- Motivo por el que una respuesta no es válida, o nil. Con accept = true revalida que el
@@ -308,7 +346,7 @@ function Pact.breakPact(state: GameState, playerId: PlayerId, pactId: string): A
 	table.remove(state.pacts, index)
 	-- El socio cobra lo suyo y lo que pierde el traidor. Si ya no está activo, el banco se queda
 	-- con las dos garantías, como en cualquier cobro a un jugador fuera del circuito de dinero.
-	creditIfActive(state, partnerId, partnerDeposit + breakerDeposit)
+	Pact.creditIfActive(state, partnerId, partnerDeposit + breakerDeposit)
 	breaker.traitorUntilRound = state.round + Economy.pact.traitorRounds - 1
 	local stats = state.stats[playerId]
 	stats.pactsBroken = (stats.pactsBroken or 0) + 1
@@ -336,13 +374,19 @@ end
 function Pact.expire(state: GameState): { Event }
 	local events: { Event } = {}
 	for index = #state.pacts, 1, -1 do
-		local pact = state.pacts[index]
-		if pact.untilRound < state.round then
-			table.remove(state.pacts, index)
-			creditIfActive(state, pact.a, pact.depositA)
-			creditIfActive(state, pact.b, pact.depositB)
-			table.insert(events, { type = "PactEnded", pactId = pact.id })
+		if state.pacts[index].untilRound < state.round then
+			closeAndRefund(state, index, events)
 		end
+	end
+	return events
+end
+
+-- R-P46: al cerrar la partida no puede quedar ninguna garantía en depósito. La llama Turn antes
+-- de calcular la clasificación final, para que el patrimonio cuente el efectivo devuelto.
+function Pact.settle(state: GameState): { Event }
+	local events: { Event } = {}
+	for index = #state.pacts, 1, -1 do
+		closeAndRefund(state, index, events)
 	end
 	return events
 end
@@ -358,7 +402,7 @@ function Pact.onBankruptcy(state: GameState, playerId: PlayerId): { Event }
 			table.remove(state.pacts, index)
 			local survivorId = if pact.a == playerId then pact.b else pact.a
 			local survivorDeposit = if pact.a == playerId then pact.depositB else pact.depositA
-			creditIfActive(state, survivorId, survivorDeposit)
+			Pact.creditIfActive(state, survivorId, survivorDeposit)
 			table.insert(events, { type = "PactEnded", pactId = pact.id })
 		end
 	end

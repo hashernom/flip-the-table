@@ -9,6 +9,7 @@ local Building = require("./Building")
 local CardsConfig = require("../config/Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Pact = require("./Pact")
 local Perks = require("./Perks")
 local Reaction = require("./Reaction")
 local Rng = require("./Rng")
@@ -424,7 +425,9 @@ local function deedThief(
 end
 
 -- Puñalada: rompe un pacto propio sin coste (R-P1). Cada parte recupera su garantía —el lanzador
--- no la pierde como en una ruptura normal— y el lanzador queda marcado como Traidor.
+-- no la pierde como en una ruptura normal— y el lanzador queda marcado como Traidor. R-P42: las
+-- devoluciones pasan por el criterio del motor, así que un socio Ghost o Left no recibe nada: lo
+-- que depositó se queda en el banco. Con los dos socios activos el resultado es el de siempre.
 local function backstab(state: GameState, player: Player, _target: Player?, events: { Event }, args: PlayArgs)
 	local index = findPactIndex(state, args.pactId :: string)
 	if not index then
@@ -435,8 +438,8 @@ local function backstab(state: GameState, player: Player, _target: Player?, even
 	local partnerDeposit = if pact.a == player.id then pact.depositB else pact.depositA
 	local partnerId = if pact.a == player.id then pact.b else pact.a
 	table.remove(state.pacts, index)
-	player.cash += ownDeposit
-	playerOf(state, partnerId).cash += partnerDeposit
+	Pact.creditIfActive(state, player.id, ownDeposit)
+	Pact.creditIfActive(state, partnerId, partnerDeposit)
 	-- Misma convención que los modificadores: untilRound es la última ronda activa, así que una
 	-- marca de 3 rondas creada en R llega hasta R+2 y cubre R, R+1 y R+2.
 	player.traitorUntilRound = state.round + Economy.pact.traitorRounds - 1

@@ -184,7 +184,8 @@ end
 -- Cobra una renta ya calculada: transfiere el importe del pagador al dueño y emite RentPaid.
 -- Es la parte de payRent que va después de calcular la renta, sin abrir ninguna ventana de
 -- reacción: la usan payRent (sin carta) y la resolución de Renta Rebotada (con un tercero), que
--- nunca puede encadenar otra ventana. Una renta de 0 no emite RentPaid (R16).
+-- nunca puede encadenar otra ventana. Una renta de 0 no emite RentPaid (R16). R-P45: la renta
+-- desviada a un tercero también respeta el pacto, así que un socio del dueño no la paga.
 function Property.chargeRent(
 	state: GameState,
 	payerId: PlayerId,
@@ -192,6 +193,9 @@ function Property.chargeRent(
 	index: number,
 	amount: number
 ): { Event }
+	if Pact.exemptsRent(state, payerId, ownerId) then
+		return {}
+	end
 	if amount == 0 then
 		return {}
 	end
