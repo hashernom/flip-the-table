@@ -40,6 +40,13 @@ return {
 	},
 	tax = 100,
 	portalToll = 50,
+	-- Efectos de las cartas comunes de la ficha y descuento de la siguiente compra.
+	cards = {
+		forcedTip = 50,
+		fine = 100,
+		shoveSteps = 3,
+		discountMultiplier = 0.5,
+	},
 	tribunal = {
 		fine = 150,
 		payToPlayer = 100,

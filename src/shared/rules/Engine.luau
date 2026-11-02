@@ -3,6 +3,7 @@
 local Auction = require("./Auction")
 local Board = require("./Board")
 local Building = require("./Building")
+local Cards = require("./Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
 local Property = require("./Property")
@@ -95,18 +96,34 @@ local function resolveLanding(state: GameState, playerId: PlayerId): (Phase, { E
 	return "AwaitEnd", Property.payRent(state, playerId, square.index)
 end
 
--- Roll: dos dados, movimiento de la ficha y resolución de la casilla.
+-- Roll: dos dados (o tres con Dado Extra), movimiento de la ficha y resolución de la casilla.
+-- Marcha Atrás invierte el sentido de la tirada. Las dos marcas se consumen aquí.
 local function roll(state: GameState, playerId: PlayerId, _action: Action): { Event }
-	local a = Rng.int(state.rng, 1, 6)
-	local b = Rng.int(state.rng, 1, 6)
 	local pending = state.pending
 	if not pending then
 		error("Engine.roll: el estado no tiene pending", 2)
 	end
-	pending.rolled = { a = a, b = b }
+	local extraDie = pending.extraDie == true
+	local backwards = pending.reverse == true
+	pending.extraDie = nil
+	pending.reverse = nil
 
-	local events: { Event } = { { type = "DiceRolled", playerId = playerId, a = a, b = b } }
-	append(events, Movement.advance(state, playerId, a + b))
+	local a = Rng.int(state.rng, 1, 6)
+	local b = Rng.int(state.rng, 1, 6)
+	local total = a + b
+	-- El dado extra solo aparece en el evento cuando se usa: las tiradas antiguas no cambian.
+	local dice: Event = { type = "DiceRolled", playerId = playerId, a = a, b = b }
+	local rolled: { [string]: number } = { a = a, b = b }
+	if extraDie then
+		local c = Rng.int(state.rng, 1, 6)
+		total += c
+		dice.c = c
+		rolled.c = c
+	end
+	pending.rolled = rolled
+
+	local events: { Event } = { dice }
+	append(events, Movement.advance(state, playerId, if backwards then -total else total))
 	-- Anotación explícita: Luau ensancha la unión de literales al inferir la local.
 	local phase: Phase, landingEvents: { Event } = resolveLanding(state, playerId)
 	append(events, landingEvents)
@@ -124,8 +141,11 @@ local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): 
 	local events = Turn.next(state)
 	local pending = state.pending
 	if pending then
-		-- La vista del turno siguiente no debe enseñar los dados del jugador anterior.
+		-- La vista del turno siguiente no debe enseñar los dados del jugador anterior ni las
+		-- cartas de tirada sin gastar: solo valen para la tirada de este turno.
 		pending.rolled = nil
+		pending.extraDie = nil
+		pending.reverse = nil
 	end
 	if state.phase ~= "GameOver" then
 		state.phase = "AwaitRoll"
@@ -145,13 +165,19 @@ local function buyCheck(state: GameState, playerId: PlayerId, _action: Action): 
 	return nil
 end
 
--- Buy: cobra la propiedad pendiente. Todo lo rechazable se comprueba antes de mutar.
+-- Buy: cobra la propiedad pendiente al precio de Property.priceFor (que aplica Descuento) y
+-- consume la marca si era del comprador. Todo lo rechazable se comprueba antes de mutar.
 local function buy(state: GameState, playerId: PlayerId, _action: Action): { Event }
 	local pending = state.pending
 	if not pending or not pending.index then
 		error("Engine.buy: la fase AwaitBuy no tiene pending.index", 2)
 	end
-	local events = Property.buy(state, playerId, pending.index)
+	local price = Property.priceFor(state, playerId, pending.index)
+	local events = Property.buy(state, playerId, pending.index, price)
+	-- La subasta no pasa por aquí: nunca aplica ni consume el Descuento.
+	if pending.discountId == playerId then
+		pending.discountId = nil
+	end
 	pending.index = nil
 	state.phase = "AwaitEnd"
 	return events
@@ -208,6 +234,32 @@ local function build(state: GameState, playerId: PlayerId, action: Action): { Ev
 	return result.events
 end
 
+-- Argumentos de PlayCard que entiende Cards; el resto de la acción (type, cardId) no le sirve.
+local function cardArgs(action: Action): Cards.PlayArgs
+	return {
+		targetId = action.targetId,
+		zoneId = action.zoneId,
+		index = action.index,
+		pactId = action.pactId,
+	}
+end
+
+-- Motivo por el que PlayCard no puede aplicarse, o nil. Cards.reason es la única regla de mano,
+-- fase de la carta y objetivo.
+local function playCardCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Cards.reason(state, playerId, action.cardId, cardArgs(action))
+end
+
+-- PlayCard: aplica el efecto de la carta sin cambiar la fase. Cards.play vuelve a validar sin
+-- mutar; un rechazo aquí sería un fallo de programación porque playCardCheck ya lo habría dado.
+local function playCard(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Cards.play(state, playerId, action.cardId, cardArgs(action))
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
 -- Motivo por el que una propuesta de intercambio no es válida, o nil. Trade.proposeReason es la
 -- única regla.
 local function proposeTradeCheck(state: GameState, playerId: PlayerId, action: Action): string?
@@ -249,6 +301,12 @@ local rules: { [string]: ActionRule } = {
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
 	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
 	Build = { phases = { "AwaitRoll", "AwaitEnd" }, turnOnly = true, check = buildCheck, handler = build },
+	PlayCard = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = playCardCheck,
+		handler = playCard,
+	},
 	ProposeTrade = {
 		phases = { "AwaitRoll", "AwaitEnd" },
 		turnOnly = true,
@@ -361,6 +419,8 @@ local function abandonTurn(state: GameState): { Event }
 	if pending then
 		pending.index = nil
 		pending.rolled = nil
+		pending.extraDie = nil
+		pending.reverse = nil
 	end
 	local events = Turn.next(state)
 	if state.phase ~= "GameOver" then

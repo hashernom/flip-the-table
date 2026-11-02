@@ -96,6 +96,21 @@ function Property.rentFor(state: GameState, index: number): number
 	)
 end
 
+-- Precio de compra de una casilla para un jugador. La carta Descuento deja su marca en
+-- pending.discountId y la consume una compra directa (nunca una subasta): aquí vive la única
+-- fórmula, compartida por canBuy, Engine.buy y la interfaz.
+function Property.priceFor(state: GameState, playerId: PlayerId, index: number): number
+	local price = Board.square(state, index).price
+	if not price then
+		error(`Property.priceFor: la casilla {index} no es una propiedad`, 2)
+	end
+	local pending = state.pending
+	if pending and pending.discountId == playerId then
+		return math.floor(price * Economy.cards.discountMultiplier)
+	end
+	return price
+end
+
 -- Predicado único de compra. Lo usa Engine y la Tarea 9 lo reutilizará en legalActions:
 -- así el motor, la interfaz y el bot no duplican la regla.
 function Property.canBuy(state: GameState, playerId: PlayerId, index: number, price: number?): boolean
@@ -111,20 +126,14 @@ function Property.canBuy(state: GameState, playerId: PlayerId, index: number, pr
 	if not property or property.ownerId then
 		return false
 	end
-	local cost = price or square.price
-	if not cost then
-		return false
-	end
+	local cost = price or Property.priceFor(state, playerId, index)
 	return player.cash >= cost
 end
 
--- Compra directa: asume que canBuy ya dio el visto bueno.
+-- Compra directa: asume que canBuy ya dio el visto bueno. Sin precio explícito usa el mismo
+-- Property.priceFor que canBuy, para que la pareja canBuy/buy nunca cobre de más.
 function Property.buy(state: GameState, playerId: PlayerId, index: number, price: number?): { Event }
-	local square = Board.square(state, index)
-	local cost = price or square.price
-	if not cost then
-		error(`Property.buy: la casilla {index} no es una propiedad`, 2)
-	end
+	local cost = price or Property.priceFor(state, playerId, index)
 	local property = propertyAt(state, index)
 	if property.ownerId then
 		error(`Property.buy: la casilla {index} ya tiene dueño`, 2)
