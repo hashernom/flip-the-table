@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Producir Metrópolis de Noche completa, las 8 fichas y los personajes de escena, al nivel de la porción vertical.
+**Goal:** Producir Metrópolis completa, las 8 fichas y los personajes de escena, al nivel de la porción vertical.
 
 **Architecture:** `CityBuilder` deja de crear piezas grises y carga los modelos aprobados según `CityLayout`. El detalle se concentra en lo visible desde la ruta.
 

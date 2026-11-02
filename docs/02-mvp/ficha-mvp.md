@@ -16,7 +16,7 @@
 
 | Área | Qué incluye | Subfases |
 | --- | --- | --- |
-| Mapa | Metrópolis de Noche, con 3 tamaños: 32, 40 y 48 casillas | 01, 05, 07 |
+| Mapa | Metrópolis, con 3 tamaños: 32, 40 y 48 casillas | 01, 05, 07 |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta | 05, 07 |
 | Reglas base | Dados, compra, renta, subasta, grupos, tres niveles de edificio, intercambios y bancarrota | 02 |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos | 02, 03, 04, 08, 09 |
