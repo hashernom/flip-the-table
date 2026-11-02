@@ -5,3 +5,6 @@ sourcemap.json
 *.rbxlx
 *.rbxl.lock
 *.rbxlx.lock
+*.blend
+*.blend1
+art/check-full.txt
