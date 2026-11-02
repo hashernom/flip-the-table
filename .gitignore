@@ -8,3 +8,4 @@ sourcemap.json
 *.blend
 *.blend1
 art/check-full.txt
+srv.log

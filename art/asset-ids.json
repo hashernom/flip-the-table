@@ -1,5 +1,5 @@
 {
-  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02 para la prueba de luz. Si se borra el asset, se regenera con art/generators/pbr_assets.py y se vuelve a subir.",
+  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02. Las texturas CC0 salen de art/generators/fetch_cc0.ps1 y la skybox de art/generators/pbr_assets.py. Si un asset se borra, se regenera y se vuelve a subir.",
   "skybox": {
     "front": "rbxassetid://130728511009606",
     "back": "rbxassetid://80764594111224",
@@ -8,21 +8,35 @@
     "up": "rbxassetid://113330714001871",
     "down": "rbxassetid://91237438205488"
   },
-  "textures": {
+  "procedural": {
     "limestone": {
       "albedo": "rbxassetid://114375194063151",
       "roughness": "rbxassetid://128913742934911",
       "normal": "rbxassetid://130288238810852"
-    },
+    }
+  },
+  "cc0": {
     "brick": {
-      "albedo": "rbxassetid://95607629939024",
-      "roughness": "rbxassetid://126002287634078",
-      "normal": "rbxassetid://138499103748415"
+      "color": "rbxassetid://117145705650698",
+      "normal": "rbxassetid://83484755331691",
+      "roughness": "rbxassetid://78452583129868",
+      "fuente": "ambientCG Bricks075A, CC0"
+    },
+    "concrete": {
+      "color": "rbxassetid://111200245070453",
+      "normal": "rbxassetid://137076655980555",
+      "roughness": "rbxassetid://79369376727167",
+      "fuente": "ambientCG Concrete034, CC0"
     },
     "asphalt": {
-      "albedo": "rbxassetid://102871027653708",
-      "roughness": "rbxassetid://131559911701324",
-      "normal": "rbxassetid://84109786110489"
+      "color": "rbxassetid://127396582316127",
+      "normal": "rbxassetid://89752594019417",
+      "roughness": "rbxassetid://137425056226224",
+      "fuente": "ambientCG Asphalt012, CC0"
     }
+  },
+  "obsoletos_2026_11_02": {
+    "_nota": "Sustituidos al rehacer el cielo y el ladrillo. Se pueden borrar de la cuenta.",
+    "ids": ["rbxassetid://91487453005421", "rbxassetid://139623111065709", "rbxassetid://134844213584077", "rbxassetid://98940203231630", "rbxassetid://93625179469458"]
   }
 }
