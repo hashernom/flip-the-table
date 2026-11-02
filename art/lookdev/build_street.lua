@@ -37,7 +37,7 @@ if not root then
 	error("Falta Workspace.LookDev: ejecuta antes build_lookdev.lua")
 end
 
-for _, name in { "Block", "Dressing", "Backdrop", "Facade", "Windows" } do
+for _, name in { "Block", "Dressing", "Backdrop", "Facade", "Windows", "Props" } do
 	local old = root:FindFirstChild(name)
 	if old then
 		old:Destroy()
@@ -199,8 +199,10 @@ for _, row in { { x = -35, facing = 1 }, { x = 35, facing = -1 } } do
 end
 
 -- Mobiliario de calle
-for i = 0, 5 do
-	piece(dressing, Vector3.new(16, 0.08, 0.9), Vector3.new(0, 0.06, -14 + i * 3.0), Color3.fromRGB(198, 198, 194), Enum.Material.SmoothPlastic)
+-- Paso de cebra: franjas con el eje largo en Z, la dirección de los coches, apiladas a lo ancho de
+-- la calzada. Giradas 90° parecían una maraña.
+for i = 0, 11 do
+	piece(dressing, Vector3.new(0.9, 0.08, 9), Vector3.new(-14.3 + i * 2.6, 0.08, -10), Color3.fromRGB(206, 206, 202), Enum.Material.SmoothPlastic)
 end
 for _, z in { -40, 40 } do
 	piece(dressing, Vector3.new(0.9, 1.4, 0.9), Vector3.new(-16.2, 1.1, z), Color3.fromRGB(178, 40, 40), Enum.Material.Metal)
