@@ -564,7 +564,7 @@ describe("Espía", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = inTurn(s)
 		local target = rivalsOf(s, a.id)[1]
-		Fixtures.hand(s, target.id, "Shield")
+		Fixtures.hand(s, target.id, "Reverse")
 		Fixtures.hand(s, target.id, "Fine")
 		Fixtures.hand(s, a.id, "Spy")
 		local events = playCard(s, a.id, "Spy", target.id)
@@ -576,11 +576,11 @@ describe("Espía", function()
 		expect(pendingOf(s).spy).toEqual({
 			viewerId = a.id,
 			targetId = target.id,
-			hand = { "Shield", "Fine" },
+			hand = { "Reverse", "Fine" },
 		})
 		-- Es una copia: los cambios posteriores del rival no reescriben lo que vio el lanzador.
 		table.insert(target.hand, "Reverse")
-		expect(pendingOf(s).spy.hand).toEqual({ "Shield", "Fine" })
+		expect(pendingOf(s).spy.hand).toEqual({ "Reverse", "Fine" })
 		expect(a.hand).toEqual({})
 		expect(a.cash).toBe(Economy.startingCash)
 		expect(a.position).toBe(1)
