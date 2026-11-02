@@ -2,6 +2,7 @@
 -- Avance del turno, rondas, Corona y final de la partida. La caducidad de los intercambios
 -- también vive aquí (R20).
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Score = require("./Score")
 local Types = require("./Types")
 
@@ -173,6 +174,14 @@ function Turn.next(state: GameState): { Event }
 	if first ~= nil and state.round == first then
 		table.insert(events, { type = "FinalRoundsStarted", round = state.round })
 	end
+	-- Marcas de una vez por ronda: el dado repetido de Dedos Rápidos se recarga al empezar ronda.
+	local pending = state.pending
+	if pending then
+		pending.rerollRound = nil
+	end
+	-- El borrador de perks del momento abre antes de que sigan los turnos de la ronda (R-P28:
+	-- Engine.endTurn no pisa la fase que deja abierta).
+	Perks.begin(state)
 	return events
 end
 

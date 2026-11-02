@@ -3,6 +3,7 @@
 -- carta uniforme dentro de la rareza y mano máxima de Economy.handLimit.
 local Cards = require("../config/Cards")
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Rng = require("./Rng")
 local Score = require("./Score")
 local Types = require("./Types")
@@ -101,8 +102,17 @@ local function pickPool(rng: Rng.RngState, weights: RarityWeights, minRarity: Ra
 	return Cards.byRarity.Common
 end
 
+-- Mano máxima del jugador: Contrabandista la sube a Economy.smugglerHandLimit.
+local function handLimitOf(player: Types.Player): number
+	if Perks.has(player, "Smuggler") then
+		return Economy.smugglerHandLimit
+	end
+	return Economy.handLimit
+end
+
 -- Roba una carta para la mano o la descarta si está llena. La legendaria siempre marca la
--- ronda, aunque no quepa en la mano, y todo robo cuenta en stats.cardsDrawn.
+-- ronda, aunque no quepa en la mano, y todo robo cuenta en stats.cardsDrawn. Coleccionista paga
+-- al robar con la mano llena, en el mismo caso que emite CardDiscarded.
 function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { Event }
 	checkMinRarity(minRarity)
 	local player = playerOf(state, playerId)
@@ -113,7 +123,10 @@ function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { 
 	end
 	local stats = state.stats[playerId]
 	stats.cardsDrawn = (stats.cardsDrawn or 0) + 1
-	if #player.hand >= Economy.handLimit then
+	if #player.hand >= handLimitOf(player) then
+		if Perks.has(player, "Collector") then
+			player.cash += Economy.perks.collectorBonus
+		end
 		return { { type = "CardDiscarded", playerId = playerId, cardId = card.id } }
 	end
 	table.insert(player.hand, card.id)

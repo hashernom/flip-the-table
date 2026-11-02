@@ -6,6 +6,7 @@ local Building = require("./Building")
 local Cards = require("./Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Perks = require("./Perks")
 local Property = require("./Property")
 local Reaction = require("./Reaction")
 local Rng = require("./Rng")
@@ -97,33 +98,44 @@ local function resolveLanding(state: GameState, playerId: PlayerId): (Phase, { E
 	return "AwaitEnd", Property.payRent(state, playerId, square.index)
 end
 
--- Roll: dos dados (o tres con Dado Extra), movimiento de la ficha y resolución de la casilla.
--- Marcha Atrás invierte el sentido de la tirada. Las dos marcas se consumen aquí.
-local function roll(state: GameState, playerId: PlayerId, _action: Action): { Event }
+-- Resuelve una tirada de dos dados ya conocidos: consume las marcas del turno (Marcha Atrás y
+-- Dado Extra), mueve la ficha y resuelve la casilla. `announced` indica que los dos dados ya se
+-- anunciaron en un DiceRolled anterior (tirada retenida por Dedos Rápidos): entonces no se
+-- repiten y el dado extra, si lo hay, se anuncia aquí.
+local function moveRoll(
+	state: GameState,
+	playerId: PlayerId,
+	a: number,
+	b: number,
+	announced: boolean
+): { Event }
 	local pending = state.pending
 	if not pending then
-		error("Engine.roll: el estado no tiene pending", 2)
+		error("Engine.moveRoll: el estado no tiene pending", 2)
 	end
 	local extraDie = pending.extraDie == true
 	local backwards = pending.reverse == true
 	pending.extraDie = nil
 	pending.reverse = nil
 
-	local a = Rng.int(state.rng, 1, 6)
-	local b = Rng.int(state.rng, 1, 6)
 	local total = a + b
 	-- El dado extra solo aparece en el evento cuando se usa: las tiradas antiguas no cambian.
-	local dice: Event = { type = "DiceRolled", playerId = playerId, a = a, b = b }
+	local dice: Event? = nil
 	local rolled: { [string]: number } = { a = a, b = b }
 	if extraDie then
 		local c = Rng.int(state.rng, 1, 6)
 		total += c
-		dice.c = c
 		rolled.c = c
+		dice = { type = "DiceRolled", playerId = playerId, a = a, b = b, c = c }
+	elseif not announced then
+		dice = { type = "DiceRolled", playerId = playerId, a = a, b = b }
 	end
 	pending.rolled = rolled
 
-	local events: { Event } = { dice }
+	local events: { Event } = {}
+	if dice then
+		table.insert(events, dice)
+	end
 	append(events, Movement.advance(state, playerId, if backwards then -total else total))
 	-- Anotación explícita: Luau ensancha la unión de literales al inferir la local.
 	local phase: Phase, landingEvents: { Event } = resolveLanding(state, playerId)
@@ -143,6 +155,37 @@ local function roll(state: GameState, playerId: PlayerId, _action: Action): { Ev
 	return events
 end
 
+-- Roll: dos dados (o tres con Dado Extra), movimiento de la ficha y resolución de la casilla.
+-- Marcha Atrás invierte el sentido de la tirada. Las dos marcas se consumen al mover.
+-- R-P29: con Dedos Rápidos y sin usar el repetidor esa ronda, la primera tirada no mueve: deja
+-- los dados retenidos en pending.heldRoll y la fase sigue en AwaitRoll. RerollDie repite uno y
+-- la siguiente tirada mueve con los dados retenidos.
+local function roll(state: GameState, playerId: PlayerId, _action: Action): { Event }
+	local pending = state.pending
+	if not pending then
+		error("Engine.roll: el estado no tiene pending", 2)
+	end
+	local player = playerOf(state, playerId)
+	if not player then
+		error(`Engine.roll: no existe el jugador {playerId}`, 2)
+	end
+
+	local held = pending.heldRoll
+	if held then
+		pending.heldRoll = nil
+		return moveRoll(state, playerId, held.a, held.b, true)
+	end
+
+	local a = Rng.int(state.rng, 1, 6)
+	local b = Rng.int(state.rng, 1, 6)
+	if Perks.has(player, "QuickFingers") and pending.rerollRound ~= state.round then
+		pending.heldRoll = { a = a, b = b }
+		pending.rolled = { a = a, b = b }
+		return { { type = "DiceRolled", playerId = playerId, a = a, b = b } }
+	end
+	return moveRoll(state, playerId, a, b, false)
+end
+
 -- EndTurn: pasa el turno y deja al siguiente jugador listo para tirar. Turn.next puede cerrar
 -- la partida (última ronda o un solo activo): entonces la fase GameOver no se sobrescribe (R13).
 local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): { Event }
@@ -153,11 +196,14 @@ local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): 
 		-- cartas de tirada sin gastar: solo valen para la tirada de este turno. El Espía tampoco
 		-- sobrevive: la mano robada se entrega en privado y no se queda en el estado compartido.
 		pending.rolled = nil
+		pending.heldRoll = nil
 		pending.extraDie = nil
 		pending.reverse = nil
 		pending.spy = nil
 	end
-	if state.phase ~= "GameOver" then
+	-- R-P28: la ronda que empieza puede abrir el borrador de perks (Turn.next); esa fase no se
+	-- pisa al cerrar el turno.
+	if state.phase ~= "GameOver" and state.phase ~= "PerkDraft" then
 		state.phase = "AwaitRoll"
 	end
 	return events
@@ -363,10 +409,64 @@ local function react(state: GameState, playerId: PlayerId, action: Action): { Ev
 	return events
 end
 
+-- Motivo por el que DraftPerk no puede aplicarse, o nil. Perks.draftReason es la única regla:
+-- solo elige el jugador al que le toca y solo un perk de su oferta.
+local function draftPerkCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Perks.draftReason(state, playerId, action.perkId)
+end
+
+-- DraftPerk: añade el perk elegido y pasa el turno al siguiente jugador del orden. La última
+-- elección cierra el borrador (Perks.draft deja la fase en AwaitRoll).
+local function draftPerk(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Perks.draft(state, playerId, action.perkId)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
+-- Motivo por el que RerollDie no puede aplicarse, o nil. R-P29: solo con Dedos Rápidos, con
+-- dados retenidos y una vez por ronda.
+local function rerollDieCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	local pending = state.pending
+	if not pending or not pending.heldRoll then
+		return "No hay dados retenidos que repetir"
+	end
+	local player = playerOf(state, playerId)
+	if not player or not Perks.has(player, "QuickFingers") then
+		return "No tienes el perk Dedos Rápidos"
+	end
+	local die = action.die
+	if die ~= "a" and die ~= "b" then
+		return "RerollDie necesita el dado a o b"
+	end
+	if pending.rerollRound == state.round then
+		return "Ya has repetido un dado esta ronda"
+	end
+	return nil
+end
+
+-- RerollDie: repite un dado retenido y anuncia la tirada actualizada. La marca de la ronda vive
+-- en pending.rerollRound y Turn.next la limpia al empezar la siguiente.
+local function rerollDie(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local pending = state.pending
+	if not pending or not pending.heldRoll then
+		error("Engine.rerollDie: la fase AwaitRoll no tiene dados retenidos", 2)
+	end
+	local held = pending.heldRoll
+	local die: string = action.die
+	held[die] = Rng.int(state.rng, 1, 6)
+	pending.rerollRound = state.round
+	return { { type = "DiceRolled", playerId = playerId, a = held.a, b = held.b } }
+end
+
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
+	-- El borrador de perks no exige estar en turno: elige a quien le toca en el orden del draft.
+	DraftPerk = { phases = { "PerkDraft" }, turnOnly = false, check = draftPerkCheck, handler = draftPerk },
 	Roll = { phases = { "AwaitRoll" }, turnOnly = true, handler = roll },
+	RerollDie = { phases = { "AwaitRoll" }, turnOnly = true, check = rerollDieCheck, handler = rerollDie },
 	Buy = { phases = { "AwaitBuy" }, turnOnly = true, check = buyCheck, handler = buy },
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
 	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
@@ -442,6 +542,12 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 	local candidates: { Action } = {}
 	if phase == "AwaitRoll" or phase == "AwaitEnd" then
 		table.insert(candidates, { type = if phase == "AwaitRoll" then "Roll" else "EndTurn" })
+		-- R-P29: con dados retenidos, repetir cada dado es una acción más de la fase.
+		local pending = state.pending
+		if phase == "AwaitRoll" and pending and pending.heldRoll then
+			table.insert(candidates, { type = "RerollDie", die = "a" })
+			table.insert(candidates, { type = "RerollDie", die = "b" })
+		end
 		for _, square in state.board.squares do
 			if square.kind == "Property" then
 				table.insert(candidates, { type = "Build", index = square.index })
@@ -450,6 +556,15 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 	elseif phase == "AwaitBuy" then
 		table.insert(candidates, { type = "Buy" })
 		table.insert(candidates, { type = "DeclineBuy" })
+	elseif phase == "PerkDraft" then
+		-- Las ofertas del borrador en curso; validate descarta las de quien no está en turno de
+		-- elegir, así que la lista coincide exactamente con lo que apply acepta.
+		local draft = Perks.pendingDraft(state)
+		if draft then
+			for _, perkId in draft.offer do
+				table.insert(candidates, { type = "DraftPerk", perkId = perkId })
+			end
+		end
 	elseif phase == "Auction" then
 		local bidAction = representativeBid(state, playerId)
 		if bidAction then
@@ -519,12 +634,13 @@ local function abandonTurn(state: GameState): { Event }
 	if pending then
 		pending.index = nil
 		pending.rolled = nil
+		pending.heldRoll = nil
 		pending.extraDie = nil
 		pending.reverse = nil
 		pending.spy = nil
 	end
 	local events = Turn.next(state)
-	if state.phase ~= "GameOver" then
+	if state.phase ~= "GameOver" and state.phase ~= "PerkDraft" then
 		state.phase = "AwaitRoll"
 	end
 	return events
@@ -540,6 +656,9 @@ function Engine.timeout(state: GameState): { Event }
 		-- El reloj se comporta como un pase del jugador elegido: cierra la ventana y continúa la
 		-- acción que quedó en suspenso. Sin ventana abierta no hace nada.
 		return resumePending(state, Reaction.close(state))
+	elseif phase == "PerkDraft" then
+		-- El reloj asigna el primer perk ofrecido al jugador al que le toca elegir.
+		return Perks.timeout(state)
 	elseif phase ~= "AwaitRoll" and phase ~= "AwaitBuy" and phase ~= "AwaitEnd" then
 		return {}
 	end

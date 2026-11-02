@@ -3,6 +3,7 @@
 local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Reaction = require("./Reaction")
 local Turn = require("./Turn")
 local Types = require("./Types")
@@ -70,6 +71,16 @@ function Property.rentMultiplier(state: GameState, index: number): number
 					multiplier = 0
 				end
 			end
+		end
+	end
+	-- Casero: las rentas del dueño suben un 15 %. Es un efecto dinámico, así que entra en el tope
+	-- de Economy.maxRentMultiplier (R5).
+	local property = state.properties[index]
+	local ownerId = if property then property.ownerId else nil
+	if ownerId then
+		local owner = findPlayer(state, ownerId)
+		if owner and Perks.has(owner, "Landlord") then
+			multiplier *= 1 + Economy.perks.landlordRentRate
 		end
 	end
 	return math.min(multiplier, Economy.maxRentMultiplier)

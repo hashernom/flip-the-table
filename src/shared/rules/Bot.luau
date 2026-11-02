@@ -76,7 +76,11 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		return nil
 	end
 	local phase = state.phase
-	if phase == "AwaitRoll" then
+	if phase == "PerkDraft" then
+		-- El primer perk ofrecido: la lista legal ya viene en el orden de la oferta y solo trae
+		-- las acciones del jugador al que le toca elegir.
+		return firstOf(actions, "DraftPerk")
+	elseif phase == "AwaitRoll" then
 		return firstOf(actions, "Roll")
 	elseif phase == "AwaitBuy" then
 		local buy = firstOf(actions, "Buy")

@@ -3,6 +3,7 @@
 -- Property.rentFor; aquí no se duplica ningún multiplicador.
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -39,9 +40,8 @@ local function propertyAt(state: GameState, index: number): PropertyState
 	return property
 end
 
--- Coste de subir un nivel: 50 % del precio de la casilla, redondeado hacia abajo.
--- El jugador se recibe para el perk Constructor (fase 03); hoy no altera el importe.
-local function costAt(state: GameState, index: number): number
+-- Coste de subir un nivel sin perks: 50 % del precio de la casilla, redondeado hacia abajo.
+local function baseCostAt(state: GameState, index: number): number
 	local square = Board.square(state, index)
 	local price = square.price
 	if not price then
@@ -50,10 +50,21 @@ local function costAt(state: GameState, index: number): number
 	return math.floor(price * Economy.buildingCostRate)
 end
 
+-- Coste de subir un nivel para un jugador. Constructor descuenta un 20 %; la comprobación de si
+-- se puede construir vive en buildReason.
+local function costAt(state: GameState, playerId: PlayerId, index: number): number
+	local cost = baseCostAt(state, index)
+	local player = findPlayer(state, playerId)
+	if player and Perks.has(player, "Builder") then
+		return math.floor(cost * (1 - Economy.perks.builderCostRate))
+	end
+	return cost
+end
+
 -- Coste de subir un nivel. Es público para que la interfaz y el bot lo muestren sin repetir
 -- la fórmula; la comprobación de si se puede construir vive en buildReason.
-function Building.costOf(state: GameState, _playerId: PlayerId, index: number): number
-	return costAt(state, index)
+function Building.costOf(state: GameState, playerId: PlayerId, index: number): number
+	return costAt(state, playerId, index)
 end
 
 -- Motivo por el que no se puede subir un nivel, o nil. Lo comparten build (que rechaza sin
@@ -84,7 +95,7 @@ function Building.buildReason(state: GameState, playerId: PlayerId, index: any):
 	if property.level >= Economy.maxBuildingLevel then
 		return "La propiedad ya está al nivel máximo"
 	end
-	if player.cash < costAt(state, index) then
+	if player.cash < costAt(state, playerId, index) then
 		return "No tienes efectivo suficiente"
 	end
 	return nil
@@ -100,7 +111,7 @@ function Building.build(state: GameState, playerId: PlayerId, index: number): Ap
 	local player = playerOf(state, playerId)
 	local property = propertyAt(state, index)
 	local from = property.level
-	player.cash -= costAt(state, index)
+	player.cash -= costAt(state, playerId, index)
 	property.level = from + 1
 	return {
 		ok = true,

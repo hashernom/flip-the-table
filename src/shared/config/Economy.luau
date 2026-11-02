@@ -76,4 +76,24 @@ return {
 	},
 	handLimit = 3,
 	smugglerHandLimit = 4,
+	-- Perks de la fase 03: draft y efectos. Cada sistema lee su número de aquí.
+	perks = {
+		offerCount = 3,
+		-- Momentos del draft: con tope de rondas, floor(maxRounds × (momento − 1) / divisor) + 1
+		-- (momento 2 y 3); en Sin Fin, las rondas fijas de endlessRounds.
+		momentDivisor = 3,
+		endlessRounds = { 6, 12 },
+		-- Banquero: porcentaje extra sobre el bono de la Salida.
+		bankerStartRate = 0.5,
+		-- Casero: porcentaje extra sobre las rentas propias.
+		landlordRentRate = 0.15,
+		-- Constructor: descuento sobre el coste de subir un nivel.
+		builderCostRate = 0.2,
+		-- Coleccionista: pago al robar con la mano llena.
+		collectorBonus = 100,
+		-- Cazador: multiplicador del daño en efectivo de las cartas contra quien lleva la Corona.
+		hunterDamageMultiplier = 1.5,
+		-- Blindado: divisor del primer daño por carta de cada ronda.
+		armoredDamageDivisor = 2,
+	},
 }

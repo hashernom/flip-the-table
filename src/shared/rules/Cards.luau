@@ -9,6 +9,7 @@ local Building = require("./Building")
 local CardsConfig = require("../config/Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Perks = require("./Perks")
 local Reaction = require("./Reaction")
 local Rng = require("./Rng")
 local Score = require("./Score")
@@ -159,6 +160,31 @@ local function activeRanking(state: GameState): { Player }
 	return ranking
 end
 
+-- R-P30: daño en efectivo de una carta a un jugador, con Cazador y Blindado. Cazador multiplica
+-- por 1,5 (hacia abajo) lo que la carta le quita a quien lleva la Corona; Blindado reduce a la
+-- mitad el primer daño por carta de cada ronda del jugador que lo tiene. La marca del Blindado
+-- vive en Player.damageReducedRound para sobrevivir a la serialización y solo se gasta cuando hay
+-- daño que reducir.
+local function cardDamage(state: GameState, caster: Player, victim: Player, amount: number): number
+	if amount <= 0 then
+		return amount
+	end
+	local damage = amount
+	local leader = leaderOf(state)
+	if leader and leader.id == victim.id and Perks.has(caster, "Hunter") then
+		damage = math.floor(damage * Economy.perks.hunterDamageMultiplier)
+	end
+	if
+		victim.status == "Active"
+		and Perks.has(victim, "Armored")
+		and victim.damageReducedRound ~= state.round
+	then
+		damage = math.floor(damage / Economy.perks.armoredDamageDivisor)
+		victim.damageReducedRound = state.round
+	end
+	return damage
+end
+
 -- Índice del pacto con ese id, o nil. Los pactos viven en el estado desde la Tarea 8, que
 -- completa su ciclo de vida; Puñalada opera sobre el mismo arreglo.
 local function findPactIndex(state: GameState, pactId: string): number?
@@ -303,11 +329,12 @@ end
 -- Propina Forzada: cada rival paga 50 al lanzador. R-P3: todo cobro pasa por
 -- Bankruptcy.charge para que nadie quede con efectivo negativo. R-P20/R-P21: también se intenta
 -- con espectros y con quien abandonó; Bankruptcy.charge lo deja en no-op porque ya no tienen
--- dinero que dar.
+-- dinero que dar. R-P30: Cazador y Blindado actúan sobre la parte que paga cada rival.
 local function forcedTip(state: GameState, player: Player, _target: Player?, events: { Event })
 	for _, rival in state.players do
 		if rival.id ~= player.id then
-			append(events, Bankruptcy.charge(state, rival.id, Economy.cards.forcedTip, player.id))
+			local amount = cardDamage(state, player, rival, Economy.cards.forcedTip)
+			append(events, Bankruptcy.charge(state, rival.id, amount, player.id))
 		end
 	end
 end
@@ -324,8 +351,10 @@ local function shove(state: GameState, _player: Player, target: Player?, events:
 end
 
 -- Multa: el rival paga 100 al banco. Sin acreedor, Bankruptcy.charge no acredita a nadie.
-local function fine(state: GameState, _player: Player, target: Player?, events: { Event })
-	append(events, Bankruptcy.charge(state, targetOf(target).id, Economy.cards.fine))
+-- R-P30: Cazador y Blindado actúan sobre la multa.
+local function fine(state: GameState, player: Player, target: Player?, events: { Event })
+	local rival = targetOf(target)
+	append(events, Bankruptcy.charge(state, rival.id, cardDamage(state, player, rival, Economy.cards.fine)))
 end
 
 -- Soborno: apunta al lanzador como protegido. La Tarea 7 consume (y borra) su entrada del mapa
@@ -533,22 +562,24 @@ end
 -- reparte a partes iguales entre los demás activos; el resto de la división se queda con él.
 -- R-P3: el cobro pasa por Bankruptcy.charge y se acota al efectivo disponible, así que la
 -- garantía de «nunca negativo» es estructural y no depende del porcentaje configurado.
+-- R-P30: Cazador y Blindado actúan sobre el daño en efectivo de la carta.
 local function crownStrike(
 	state: GameState,
-	_player: Player,
+	player: Player,
 	target: Player?,
 	events: { Event },
 	_args: PlayArgs
 )
 	local leader = targetOf(target)
-	local amount = math.min(math.floor(leader.cash * Economy.cards.crownStrikeRate), leader.cash)
+	local base = math.max(math.floor(leader.cash * Economy.cards.crownStrikeRate), 0)
 	-- Un porcentaje negativo no tiene sentido, pero el contrato de charge prohíbe importes
-	-- negativos: el suelo en 0 deja la carta en no-op en vez de romper.
-	amount = math.max(amount, 0)
+	-- negativos: el suelo en 0 deja la carta en no-op en vez de romper. El tope sigue siendo el
+	-- efectivo del líder.
+	local amount = math.min(cardDamage(state, player, leader, base), leader.cash)
 	local rivals: { Player } = {}
-	for _, player in state.players do
-		if player.status == "Active" and player.id ~= leader.id then
-			table.insert(rivals, player)
+	for _, rival in state.players do
+		if rival.status == "Active" and rival.id ~= leader.id then
+			table.insert(rivals, rival)
 		end
 	end
 	append(events, Bankruptcy.charge(state, leader.id, amount, nil))
