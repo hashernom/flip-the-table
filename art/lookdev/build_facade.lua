@@ -7,6 +7,7 @@
 -- Requiere que existan los MaterialVariant BrickCC0, ConcreteCC0 y AsphaltCC0 (los crea el bloque
 -- de aquí abajo si faltan) y la carpeta LookDev del banco de luz.
 
+local Lighting = game:GetService("Lighting")
 local MaterialService = game:GetService("MaterialService")
 local Workspace = game:GetService("Workspace")
 
@@ -25,9 +26,14 @@ local function variant(name, baseMaterial, color, normal, roughness)
 	return created
 end
 
-variant("BrickCC0", Enum.Material.Brick, "rbxassetid://117145705650698", "rbxassetid://83484755331691", "rbxassetid://78452583129868")
+-- Ladrillo de Manhattan: rojo desgastado (Bricks097) y una variante cálida (Bricks042).
+variant("BrickRedCC0", Enum.Material.Brick, "rbxassetid://71677364092938", "rbxassetid://132924241608465", "rbxassetid://104748136545976")
+variant("BrickWarmCC0", Enum.Material.Brick, "rbxassetid://70949398469969", "rbxassetid://95950472085988", "rbxassetid://115976051933338")
 variant("ConcreteCC0", Enum.Material.Concrete, "rbxassetid://111200245070453", "rbxassetid://137076655980555", "rbxassetid://79369376727167")
 variant("AsphaltCC0", Enum.Material.Asphalt, "rbxassetid://127396582316127", "rbxassetid://89752594019417", "rbxassetid://137425056226224")
+
+-- Reparto de ladrillos, apagado de torres, skyline y hora del sol se aplican más abajo,
+-- cuando la escena ya existe (necesitan la carpeta LookDev).
 
 local root = Workspace:FindFirstChild("LookDev")
 if not root then
@@ -42,6 +48,49 @@ end
 local facade = Instance.new("Folder")
 facade.Name = "Facade"
 facade.Parent = root
+
+-- Reparto de ladrillos y apagado de torres: el hormigón claro a plena luz se quema.
+local index = 0
+for _, part in root:GetDescendants() do
+	if not part:IsA("BasePart") then
+		continue
+	end
+	if part.Material == Enum.Material.Brick then
+		index += 1
+		part.MaterialVariant = (index % 2 == 0) and "BrickWarmCC0" or "BrickRedCC0"
+		part.Color = Color3.new(1, 1, 1)
+	elseif part.Material == Enum.Material.Concrete and part.MaterialVariant == "ConcreteCC0" and part.Size.Y > 30 then
+		part.Color = Color3.fromRGB(150, 150, 148)
+	end
+end
+
+-- Skyline de fondo: tapa el borde del mundo y da profundidad sin costar detalle.
+local skyline = root:FindFirstChild("Backdrop")
+if skyline then
+	skyline:Destroy()
+end
+skyline = Instance.new("Folder")
+skyline.Name = "Backdrop"
+skyline.Parent = root
+
+local rng = Random.new(2026)
+for i = 1, 26 do
+	local angle = (i / 26) * math.pi * 2
+	local radius = 340 + rng:NextNumber() * 180
+	local height = 70 + rng:NextNumber() * 110
+	local width = 30 + rng:NextNumber() * 40
+	local block = Instance.new("Part")
+	block.Anchored = true
+	block.Size = Vector3.new(width, height, width)
+	block.Position = Vector3.new(math.cos(angle) * radius, height / 2 - 1, math.sin(angle) * radius)
+	block.Color = Color3.fromRGB(96, 104, 118)
+	block.Material = Enum.Material.Concrete
+	block.Parent = skyline
+end
+
+-- La fachada mira a +X: el sol de la mañana la ilumina de frente.
+Lighting.ClockTime = 7.7
+Lighting.ShadowSoftness = 0.3
 
 local origin = Vector3.new(-35, 0, 34)
 

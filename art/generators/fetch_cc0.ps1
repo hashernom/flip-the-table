@@ -7,7 +7,8 @@ $target = Join-Path $root "textures\cc0"
 $temp = Join-Path $env:TEMP "cc0tex"
 
 $sets = @(
-	@{ Id = "Bricks075A"; Name = "brick" },
+	@{ Id = "Bricks097"; Name = "brick_red" },
+	@{ Id = "Bricks042"; Name = "brick_warm" },
 	@{ Id = "Concrete034"; Name = "concrete" },
 	@{ Id = "Asphalt012"; Name = "asphalt" }
 )

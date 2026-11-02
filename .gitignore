@@ -9,3 +9,4 @@ sourcemap.json
 *.blend1
 art/check-full.txt
 srv.log
+srv*.log
