@@ -164,7 +164,9 @@ State.create(opts: { playerIds: { PlayerId }, seed: number, endMode: EndMode? })
 Engine.apply(state: GameState, playerId: PlayerId, action: Action): ApplyResult
 Engine.timeout(state: GameState): { Event }
 Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
-Bot.choose(state: GameState, playerId: PlayerId): Action
+Bot.choose(state: GameState, playerId: PlayerId): Action?
+-- `nil` cuando no hay ninguna acción legal (p. ej. una subasta ajena sin dinero) o cuando el bot
+-- decide no pujar en una subasta; quien dirige la partida cierra entonces con Engine.timeout.
 View.forPlayer(state: GameState, playerId: PlayerId): PlayerView
 ```
 

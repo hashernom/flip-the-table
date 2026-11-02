@@ -57,12 +57,12 @@
 - Produce: `Fixtures.game(opts: { players: number, seed: number? }): GameState`, `Fixtures.dice(state, a: number, b: number)`, `Fixtures.placeOn(state, playerId, index)`, `Fixtures.give(state, playerId, index)`, `Fixtures.squareOf(state, kind: SquareKind): number`, `Fixtures.hand(state, playerId, cardId: string)`, `Fixtures.turnOf(state, playerId)`.
 
 **Criterios de aceptación:**
-- [ ] Rechaza menos de 2 o más de 8 jugadores.
-- [ ] Todos empiezan en la casilla 1 con 1500.
-- [ ] El orden de turnos se decide con la semilla.
-- [ ] `maxRounds` es 20, 15 o 12 según el tamaño.
+- [x] Rechaza menos de 2 o más de 8 jugadores.
+- [x] Todos empiezan en la casilla 1 con 1500.
+- [x] El orden de turnos se decide con la semilla.
+- [x] `maxRounds` es 20, 15 o 12 según el tamaño.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("asigna tablero y rondas según jugadores", function()
@@ -78,10 +78,10 @@ it("empieza con 1500 en la casilla 1", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run State`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `State`, `Board` y `Fixtures`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: crear partida`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run State`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `State`, `Board` y `Fixtures`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: crear partida`.
 
 ### Task 2: Tirar dados y moverse
 
@@ -96,11 +96,11 @@ end)
 - Eventos: `DiceRolled { playerId, a, b }`, `TokenMoved { playerId, from, to, path }`, `PassedStart { playerId, amount }`.
 
 **Criterios de aceptación:**
-- [ ] Moverse da la vuelta al tablero.
-- [ ] Pasar o caer en la Salida paga 200; retroceder sobre ella no paga.
-- [ ] `TokenMoved` incluye la ruta para que el cliente la recorra.
+- [x] Moverse da la vuelta al tablero.
+- [x] Pasar o caer en la Salida paga 200; retroceder sobre ella no paga.
+- [x] `TokenMoved` incluye la ruta para que el cliente la recorra.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("avanza lo que marcan los dados", function()
@@ -117,10 +117,10 @@ it("paga 200 al pasar por la Salida", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Movement`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar el movimiento y la fase `AwaitRoll`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: tirar dados y mover fichas`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Movement`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar el movimiento y la fase `AwaitRoll`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: tirar dados y mover fichas`.
 
 ### Task 3: Comprar y pagar renta
 
@@ -134,12 +134,12 @@ end)
 - Fases: caer en una propiedad libre con dinero lleva a `AwaitBuy`; `Buy` compra y `DeclineBuy` abre subasta.
 
 **Criterios de aceptación:**
-- [ ] Renta base del 10 % del precio; × 2 con el grupo completo.
-- [ ] No se puede comprar sin dinero suficiente.
-- [ ] Caer en lo propio no cobra.
-- [ ] El multiplicador total nunca supera × 4.
+- [x] Renta base del 10 % del precio; × 2 con el grupo completo.
+- [x] No se puede comprar sin dinero suficiente.
+- [x] Caer en lo propio no cobra.
+- [x] El multiplicador total nunca supera × 4.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("cobra el 10 % del precio", function()
@@ -157,10 +157,10 @@ it("no permite comprar sin dinero", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Property`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Property` y conectar `Buy` y `DeclineBuy` en `Engine`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: comprar propiedades y pagar renta`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Property`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Property` y conectar `Buy` y `DeclineBuy` en `Engine`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: comprar propiedades y pagar renta`.
 
 ### Task 4: Subastas
 
@@ -174,16 +174,16 @@ end)
 - Eventos: `AuctionStarted { index }`, `AuctionWon { index, playerId, amount }`, `AuctionNoSale { index }`.
 
 **Criterios de aceptación:**
-- [ ] Cada puja debe superar a la anterior y no exceder el efectivo.
-- [ ] Puede pujar cualquier jugador activo, incluido quien rechazó.
-- [ ] Sin pujas, la propiedad sigue libre.
-- [ ] Al agotarse el tiempo gana la puja más alta.
+- [x] Cada puja debe superar a la anterior y no exceder el efectivo.
+- [x] Puede pujar cualquier jugador activo, incluido quien rechazó.
+- [x] Sin pujas, la propiedad sigue libre.
+- [x] Al agotarse el tiempo gana la puja más alta.
 
-- [ ] **Paso 1:** Escribir pruebas para: puja válida, puja baja rechazada, puja mayor que el efectivo rechazada, cierre con ganador y cierre sin pujas.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Auction`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar la fase `Auction` y `Bid`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir subastas`.
+- [x] **Paso 1:** Escribir pruebas para: puja válida, puja baja rechazada, puja mayor que el efectivo rechazada, cierre con ganador y cierre sin pujas.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Auction`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar la fase `Auction` y `Bid`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir subastas`.
 
 ### Task 5: Edificios
 
@@ -197,16 +197,16 @@ end)
 - Evento: `BuildingChanged { index, from, to }`.
 
 **Criterios de aceptación:**
-- [ ] Solo se construye con la zona completa.
-- [ ] Niveles de 0 a 3: solar, casa, edificio y rascacielos.
-- [ ] La renta usa × 3, × 6 y × 10 según el nivel.
-- [ ] Bajar de nivel 0 no hace nada.
+- [x] Solo se construye con la zona completa.
+- [x] Niveles de 0 a 3: solar, casa, edificio y rascacielos.
+- [x] La renta usa × 3, × 6 y × 10 según el nivel.
+- [x] Bajar de nivel 0 no hace nada.
 
-- [ ] **Paso 1:** Escribir pruebas para: construir sin zona falla, construir con zona sube y cobra el 50 % del precio, nivel 4 falla, y renta en cada nivel.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Building`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Building` y `Build` en `Engine`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir niveles de edificio`.
+- [x] **Paso 1:** Escribir pruebas para: construir sin zona falla, construir con zona sube y cobra el 50 % del precio, nivel 4 falla, y renta en cada nivel.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Building`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Building` y `Build` en `Engine`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir niveles de edificio`.
 
 ### Task 6: Intercambios
 
@@ -220,16 +220,16 @@ end)
 - Produce: `TradeOffer = { toId: PlayerId, giveCash: number, wantCash: number, giveSquares: { number }, wantSquares: { number } }`.
 
 **Criterios de aceptación:**
-- [ ] Solo se ofrece lo que se posee.
-- [ ] Al aceptar se valida otra vez, por si algo cambió.
-- [ ] Una propiedad con edificios no se intercambia hasta demolerlos.
-- [ ] Una oferta caduca al terminar el turno en que se hizo.
+- [x] Solo se ofrece lo que se posee.
+- [x] Al aceptar se valida otra vez, por si algo cambió.
+- [x] Una propiedad con edificios no se intercambia hasta demolerlos.
+- [x] Una oferta caduca al terminar el turno en que se hizo.
 
-- [ ] **Paso 1:** Escribir pruebas para: oferta válida aceptada, rechazada, propiedad ajena, dinero insuficiente al aceptar y caducidad.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Trade`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Trade`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir intercambios`.
+- [x] **Paso 1:** Escribir pruebas para: oferta válida aceptada, rechazada, propiedad ajena, dinero insuficiente al aceptar y caducidad.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Trade`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Trade`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir intercambios`.
 
 ### Task 7: Bancarrota y espectros
 
@@ -243,12 +243,12 @@ end)
 - Evento: `BankruptcyDeclared { playerId, creditorId? }`.
 
 **Criterios de aceptación:**
-- [ ] Si falta dinero, se venden automáticamente edificios y propiedades al banco a la mitad de su valor, de menor a mayor.
-- [ ] Si aun así no alcanza, el jugador queda con 0 y pasa a `Ghost`; el acreedor cobra solo lo disponible.
-- [ ] Sus propiedades restantes vuelven al banco.
-- [ ] Los espectros no aparecen como dueños ni pagan renta.
+- [x] Si falta dinero, se venden automáticamente edificios y propiedades al banco a la mitad de su valor, de menor a mayor.
+- [x] Si aun así no alcanza, el jugador queda con 0 y pasa a `Ghost`; el acreedor cobra solo lo disponible.
+- [x] Sus propiedades restantes vuelven al banco.
+- [x] Los espectros no aparecen como dueños ni pagan renta.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("no crea dinero al arruinarse", function()
@@ -263,10 +263,10 @@ it("vende antes de arruinarse", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Bankruptcy`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Bankruptcy` y `Score`; hacer que `Property.payRent` cobre con `Bankruptcy.charge`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir bancarrota sin eliminación`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Bankruptcy`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Bankruptcy` y `Score`; hacer que `Property.payRent` cobre con `Bankruptcy.charge`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir bancarrota sin eliminación`.
 
 ### Task 8: Rondas y final
 
@@ -282,14 +282,14 @@ end)
 - Eventos: `RoundStarted { round }`, `FinalRoundsStarted { round }`, `CrownMoved { from, to }`, `GameEnded { ranking, winnerId }`.
 
 **Criterios de aceptación:**
-- [ ] Rondas: la partida termina tras la última ronda de su tamaño.
-- [ ] Rondas: en las dos últimas rondas la renta se duplica.
-- [ ] Ambos modos: la partida termina en cuanto queda un solo jugador activo, y ese jugador gana.
-- [ ] Sin Fin: no hay rondas finales; desde la ronda 30, la Salida deja de pagar y la renta se duplica.
-- [ ] Los empates se resuelven por efectivo y, si persisten, por orden de turno.
-- [ ] La Corona pasa al primero de la clasificación al empezar cada ronda.
+- [x] Rondas: la partida termina tras la última ronda de su tamaño.
+- [x] Rondas: en las dos últimas rondas la renta se duplica.
+- [x] Ambos modos: la partida termina en cuanto queda un solo jugador activo, y ese jugador gana.
+- [x] Sin Fin: no hay rondas finales; desde la ronda 30, la Salida deja de pagar y la renta se duplica.
+- [x] Los empates se resuelven por efectivo y, si persisten, por orden de turno.
+- [x] La Corona pasa al primero de la clasificación al empezar cada ronda.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("duplica la renta en las dos últimas rondas", function()
@@ -315,10 +315,10 @@ it("desempata por efectivo", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Turn`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar rondas, Corona y final.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir rondas y final de partida`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Turn`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar rondas, Corona y final.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir rondas y final de partida`.
 
 ### Task 9: Fases, permisos y tiempo agotado
 
@@ -332,12 +332,12 @@ end)
 - Produce: `Engine.legalActions(state, playerId): { Action }`, `Engine.timeout(state): { Event }`, `Bot.choose(state, playerId): Action`.
 
 **Criterios de aceptación:**
-- [ ] Toda acción ilegal se rechaza sin cambiar el estado.
-- [ ] `legalActions` nunca incluye una acción que `apply` rechazaría.
-- [ ] Al agotarse el tiempo: `AwaitRoll` tira, `AwaitBuy` rechaza, `Auction` cierra y `AwaitEnd` termina el turno.
-- [ ] `Bot.choose` siempre devuelve una acción legal.
+- [x] Toda acción ilegal se rechaza sin cambiar el estado.
+- [x] `legalActions` nunca incluye una acción que `apply` rechazaría.
+- [x] Al agotarse el tiempo: `AwaitRoll` tira, `AwaitBuy` rechaza, `Auction` cierra y `AwaitEnd` termina el turno.
+- [x] `Bot.choose` siempre devuelve una acción legal.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("rechaza actuar fuera de turno sin cambiar nada", function()
@@ -351,10 +351,10 @@ it("toda acción legal se puede aplicar", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Engine`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar la validación central, el tiempo agotado y `Bot` con una heurística simple: compra si le quedan más de 200 y construye si puede.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir permisos, tiempo agotado y bot`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Engine`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar la validación central, el tiempo agotado y `Bot` con una heurística simple: compra si le quedan más de 200 y construye si puede.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir permisos, tiempo agotado y bot`.
 
 ### Task 10: Simulación de partidas
 
@@ -367,14 +367,14 @@ end)
 - Produce: `Sim.play(opts: { players: number, seed: number, idle: boolean?, endMode: EndMode? }): SimResult`, con `{ finished: boolean, turns: number, leaderAtHalf: PlayerId, winner: PlayerId, events: { [string]: number } }`.
 
 **Criterios de aceptación:**
-- [ ] 1000 partidas por cada número de jugadores, de 2 a 8, terminan, en modo Rondas y en modo Sin Fin.
-- [ ] En ningún momento hay efectivo negativo tras resolver una acción.
-- [ ] Cada propiedad tiene un dueño como máximo y su dueño nunca es un espectro.
-- [ ] Con `idle = true`, solo con tiempo agotado, la partida también termina.
-- [ ] La misma semilla produce el mismo resultado.
+- [x] 1000 partidas por cada número de jugadores, de 2 a 8, terminan, en modo Rondas y en modo Sin Fin.
+- [x] En ningún momento hay efectivo negativo tras resolver una acción.
+- [x] Cada propiedad tiene un dueño como máximo y su dueño nunca es un espectro.
+- [x] Con `idle = true`, solo con tiempo agotado, la partida también termina.
+- [x] La misma semilla produce el mismo resultado.
 
-- [ ] **Paso 1:** Escribir las pruebas con esos invariantes.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run sim`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Sim.play`; corregir en el motor lo que descubra.
-- [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
-- [ ] **Paso 5:** Hacer commit: `test: simular partidas completas`.
+- [x] **Paso 1:** Escribir las pruebas con esos invariantes.
+- [x] **Paso 2:** Ejecutar `lune run tests/run sim`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Sim.play`; corregir en el motor lo que descubra.
+- [x] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
+- [x] **Paso 5:** Hacer commit: `test: simular partidas completas`.
