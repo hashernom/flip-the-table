@@ -1,10 +1,26 @@
 --!strict
--- Avance del turno. Las rondas, la Corona y el final de la partida llegan en la Tarea 8.
+-- Avance del turno y caducidad de los intercambios. Las rondas, la Corona y el final de la
+-- partida llegan en la Tarea 8.
 local Types = require("./Types")
 
 type GameState = Types.GameState
 
 local Turn = {}
+
+-- R20: una oferta caduca con el turno en que se hizo. Se ejecuta antes de mover el turno,
+-- mientras round y turnIndex todavía señalan al turno que termina.
+local function dropTradesOfTurn(state: GameState)
+	local pending = state.pending
+	if not pending or not pending.trades then
+		return
+	end
+	for index = #pending.trades, 1, -1 do
+		local trade = pending.trades[index]
+		if trade.round == state.round and trade.turnIndex == state.turnIndex then
+			table.remove(pending.trades, index)
+		end
+	end
+end
 
 -- Siguiente jugador que sigue en la partida. Si no queda ninguno, devuelve al actual.
 local function nextIndex(state: GameState): number
@@ -20,6 +36,7 @@ local function nextIndex(state: GameState): number
 end
 
 function Turn.next(state: GameState): { Types.Event }
+	dropTradesOfTurn(state)
 	local index = nextIndex(state)
 	-- Dar la vuelta al orden abre ronda; con un solo jugador presente también cuenta.
 	if index <= state.turnIndex then

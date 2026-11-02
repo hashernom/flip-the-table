@@ -6,6 +6,7 @@ local Building = require("./Building")
 local Movement = require("./Movement")
 local Property = require("./Property")
 local Rng = require("./Rng")
+local Trade = require("./Trade")
 local Turn = require("./Turn")
 local Types = require("./Types")
 
@@ -171,6 +172,39 @@ local function build(state: GameState, playerId: PlayerId, action: Action): { Ev
 	return result.events
 end
 
+-- Motivo por el que una propuesta de intercambio no es válida, o nil. Trade.proposeReason es la
+-- única regla.
+local function proposeTradeCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Trade.proposeReason(state, playerId, action.offer)
+end
+
+-- ProposeTrade: guarda la oferta en pending.trades sin mover dinero ni casillas. Trade.propose
+-- vuelve a validar sin mutar; un rechazo aquí sería un fallo de programación porque
+-- proposeTradeCheck ya lo habría dado.
+local function proposeTrade(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Trade.propose(state, playerId, action.offer)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
+-- Motivo por el que una respuesta a un intercambio no es válida, o nil. Trade.respondReason es la
+-- única regla, incluida la revalidación completa que exige aceptar.
+local function respondTradeCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Trade.respondReason(state, playerId, action.tradeId, action.accept)
+end
+
+-- RespondTrade: a diferencia de las demás acciones, la usa el destinatario de la oferta y no el
+-- jugador en turno (turnOnly = false).
+local function respondTrade(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Trade.respond(state, playerId, action.tradeId, action.accept)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
@@ -179,6 +213,19 @@ local rules: { [string]: ActionRule } = {
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
 	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
 	Build = { phases = { "AwaitRoll", "AwaitEnd" }, turnOnly = true, check = buildCheck, handler = build },
+	ProposeTrade = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = proposeTradeCheck,
+		handler = proposeTrade,
+	},
+	-- Responder no exige estar en turno y sí estar en una fase de turno: nunca en Auction (R18).
+	RespondTrade = {
+		phases = { "AwaitRoll", "AwaitBuy", "AwaitEnd" },
+		turnOnly = false,
+		check = respondTradeCheck,
+		handler = respondTrade,
+	},
 	EndTurn = { phases = { "AwaitEnd" }, turnOnly = true, handler = endTurn },
 }
 
