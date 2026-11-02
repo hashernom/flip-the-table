@@ -108,6 +108,14 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 			return bid
 		end
 		return nil
+	elseif phase == "Reaction" then
+		-- En la ventana el bot solo usa Escudo: cancelar una carta que le apunta es gratis. Renta
+		-- Rebotada exigiría elegir a un tercero y la respuesta simple y legal es pasar.
+		local reactAction = firstOf(actions, "React")
+		if reactAction and reactAction.cardId == "Shield" then
+			return reactAction
+		end
+		return firstOf(actions, "PassReaction")
 	end
 	return nil
 end

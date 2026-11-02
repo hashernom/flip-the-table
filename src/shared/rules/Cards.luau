@@ -9,6 +9,7 @@ local Building = require("./Building")
 local CardsConfig = require("../config/Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Reaction = require("./Reaction")
 local Rng = require("./Rng")
 local Score = require("./Score")
 local Types = require("./Types")
@@ -665,8 +666,41 @@ function Cards.play(state: GameState, playerId: PlayerId, cardId: string, args: 
 	local stats = state.stats[playerId]
 	stats.cardsPlayed = (stats.cardsPlayed or 0) + 1
 
+	-- Tarea 5: una carta dirigida abre la ventana de reacción si el objetivo lleva Escudo. La
+	-- carta ya está gastada; el efecto queda en suspenso hasta que la ventana se resuelva. Sin
+	-- ventana (state.phase no cambió) el efecto se aplica aquí mismo.
+	if target and definition.target == "Player" then
+		Reaction.open(
+			state,
+			{ kind = "Card", cardId = cardId, casterId = playerId, targetId = target.id },
+			{ kind = "Card", playerId = playerId, cardId = cardId, args = args }
+		)
+		if state.phase == "Reaction" then
+			return { ok = true, events = events }
+		end
+	end
+
 	EFFECTS[cardId].apply(state, player, target, events, args)
 	return { ok = true, events = events }
+end
+
+-- Continúa una carta que quedó en suspenso por una ventana de reacción. No revalida ni toca la
+-- mano: Cards.play ya validó el objetivo y gastó la carta (CardPlayed también se emitió allí).
+-- Solo aplica el efecto y devuelve sus eventos.
+function Cards.resume(state: GameState, playerId: PlayerId, cardId: string, args: PlayArgs): { Event }
+	local effect = EFFECTS[cardId]
+	if not effect then
+		error(`Cards.resume: la carta {cardId} no tiene efecto`, 2)
+	end
+	local player = playerOf(state, playerId)
+	local definition = CardsConfig.byId[cardId]
+	local target: Player? = nil
+	if definition.target == "Player" then
+		target = findPlayer(state, args.targetId :: PlayerId)
+	end
+	local events: { Event } = {}
+	effect.apply(state, player, target, events, args)
+	return events
 end
 
 return Cards

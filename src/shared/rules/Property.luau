@@ -3,6 +3,7 @@
 local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Reaction = require("./Reaction")
 local Turn = require("./Turn")
 local Types = require("./Types")
 
@@ -168,8 +169,35 @@ function Property.buy(state: GameState, playerId: PlayerId, index: number, price
 	return { { type = "PropertyBought", playerId = playerId, index = index, price = cost } }
 end
 
+-- Cobra una renta ya calculada: transfiere el importe del pagador al dueño y emite RentPaid.
+-- Es la parte de payRent que va después de calcular la renta, sin abrir ninguna ventana de
+-- reacción: la usan payRent (sin carta) y la resolución de Renta Rebotada (con un tercero), que
+-- nunca puede encadenar otra ventana. Una renta de 0 no emite RentPaid (R16).
+function Property.chargeRent(
+	state: GameState,
+	payerId: PlayerId,
+	ownerId: PlayerId,
+	index: number,
+	amount: number
+): { Event }
+	if amount == 0 then
+		return {}
+	end
+	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
+	table.insert(events, 1, {
+		type = "RentPaid",
+		index = index,
+		from = payerId,
+		to = ownerId,
+		amount = amount,
+	})
+	return events
+end
+
 -- Cobra la renta de una casilla pisada. R9: un espectro no paga ni cobra renta. La deuda se
 -- resuelve con Bankruptcy.charge: si el pagador no puede cubrirla, vende bienes o queda Ghost.
+-- Tarea 5: si el pagador lleva Renta Rebotada se abre la ventana y el cobro queda en suspenso
+-- hasta que la ventana decida; sin la carta se cobra en el acto.
 function Property.payRent(state: GameState, payerId: PlayerId, index: number): { Event }
 	local ownerId = propertyAt(state, index).ownerId
 	if not ownerId or ownerId == payerId then
@@ -185,15 +213,15 @@ function Property.payRent(state: GameState, payerId: PlayerId, index: number): {
 	if amount == 0 then
 		return {}
 	end
-	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
-	table.insert(events, 1, {
-		type = "RentPaid",
-		index = index,
-		from = payerId,
-		to = ownerId,
-		amount = amount,
-	})
-	return events
+	Reaction.open(
+		state,
+		{ kind = "Rent", index = index, payerId = payerId, ownerId = ownerId, amount = amount },
+		{ kind = "Rent", index = index, payerId = payerId, ownerId = ownerId, amount = amount }
+	)
+	if state.phase == "Reaction" then
+		return {}
+	end
+	return Property.chargeRent(state, payerId, ownerId, index, amount)
 end
 
 return Property

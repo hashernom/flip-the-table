@@ -7,6 +7,7 @@ local Cards = require("./Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
 local Property = require("./Property")
+local Reaction = require("./Reaction")
 local Rng = require("./Rng")
 local Trade = require("./Trade")
 local Turn = require("./Turn")
@@ -128,8 +129,15 @@ local function roll(state: GameState, playerId: PlayerId, _action: Action): { Ev
 	local phase: Phase, landingEvents: { Event } = resolveLanding(state, playerId)
 	append(events, landingEvents)
 	-- La casilla puede cerrar la partida (la renta arruina al último rival y Turn fija
-	-- GameOver): la fase resuelta no sobrescribe un final ya decidido.
-	if state.phase ~= "GameOver" then
+	-- GameOver): la fase resuelta no sobrescribe un final ya decidido. Una ventana de reacción
+	-- abierta por la renta tampoco: se queda en Reaction y, al cerrarse, vuelve a la fase de la
+	-- casilla (AwaitEnd), no a AwaitRoll; si no, el jugador podría tirar dos veces.
+	if state.phase == "Reaction" then
+		local reaction = pending.reaction
+		if reaction then
+			reaction.phase = phase
+		end
+	elseif state.phase ~= "GameOver" then
 		state.phase = phase
 	end
 	return events
@@ -290,6 +298,71 @@ local function respondTrade(state: GameState, playerId: PlayerId, action: Action
 	return result.events
 end
 
+-- Ventana de reacción abierta, o nil. La abre Reaction.open desde Cards o Property.
+local function pendingReaction(state: GameState): any
+	local pending = state.pending
+	if not pending then
+		return nil
+	end
+	return pending.reaction
+end
+
+-- Reanuda la acción que la ventana dejó en suspenso. La forma de la continuación la decide
+-- Reaction: una carta (Cards.resume, sin revalidar ni tocar la mano) o una renta
+-- (Property.chargeRent, sin abrir otra ventana). Engine es quien puede require los dos módulos
+-- sin cerrar un ciclo.
+local function resumePending(state: GameState, continuation: Reaction.PendingAction?): { Event }
+	if not continuation then
+		return {}
+	end
+	if continuation.kind == "Card" then
+		return Cards.resume(state, continuation.playerId, continuation.cardId, continuation.args)
+	end
+	return Property.chargeRent(
+		state,
+		continuation.payerId,
+		continuation.ownerId,
+		continuation.index,
+		continuation.amount
+	)
+end
+
+-- Motivo por el que React/PassReaction no puede aplicarse, o nil. Reaction.reason es la única
+-- regla de la ventana: quién puede contestar, con qué carta y con qué objetivo.
+local function reactCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Reaction.reason(state, playerId, action)
+end
+
+-- React/PassReaction: Reaction.respond aplica la decisión (gasta la carta, emite CardBlocked,
+-- cierra la ventana y restaura la fase) y el motor reanuda la continuación. Escudo no reanuda
+-- nada; Renta Rebotada la paga el tercero elegido y el pagador original no paga.
+local function react(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local reaction = pendingReaction(state)
+	if not reaction then
+		error("Engine.react: la fase Reaction no tiene pending.reaction", 2)
+	end
+	local result = Reaction.respond(state, playerId, action)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	local events: { Event } = result.events
+	if action.type == "PassReaction" then
+		append(events, resumePending(state, reaction["then"]))
+	elseif action.cardId == "BounceRent" then
+		append(
+			events,
+			Property.chargeRent(
+				state,
+				action.targetId,
+				reaction.trigger.ownerId,
+				reaction.trigger.index,
+				reaction.trigger.amount
+			)
+		)
+	end
+	return events
+end
+
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
@@ -303,6 +376,15 @@ local rules: { [string]: ActionRule } = {
 		turnOnly = true,
 		check = playCardCheck,
 		handler = playCard,
+	},
+	-- La ventana la abre Reaction.open; solo el jugador elegido contesta y puede hacerlo sin
+	-- estar en turno. Una reacción nunca abre otra ventana.
+	React = { phases = { "Reaction" }, turnOnly = false, check = reactCheck, handler = react },
+	PassReaction = {
+		phases = { "Reaction" },
+		turnOnly = false,
+		check = reactCheck,
+		handler = react,
 	},
 	ProposeTrade = {
 		phases = { "AwaitRoll", "AwaitEnd" },
@@ -373,6 +455,27 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 		if bidAction then
 			table.insert(candidates, bidAction)
 		end
+	elseif phase == "Reaction" then
+		-- Pasar siempre es legal; las cartas de reacción solo si el jugador es el elegido y las
+		-- lleva. Renta Rebotada necesita un tercero: se enumeran los rivales y Reaction.reason
+		-- descarta al dueño, a los espectros y a quien se fue al validar cada candidato.
+		local reaction = pendingReaction(state)
+		if reaction then
+			if reaction.trigger.kind == "Card" then
+				table.insert(candidates, { type = "React", cardId = "Shield" })
+			else
+				for _, player in state.players do
+					if player.id ~= reaction.eligibleId then
+						table.insert(candidates, {
+							type = "React",
+							cardId = "BounceRent",
+							targetId = player.id,
+						})
+					end
+				end
+			end
+			table.insert(candidates, { type = "PassReaction" })
+		end
 	end
 
 	local actions: { Action } = {}
@@ -433,6 +536,10 @@ function Engine.timeout(state: GameState): { Event }
 	local phase = state.phase
 	if phase == "Auction" then
 		return Auction.close(state)
+	elseif phase == "Reaction" then
+		-- El reloj se comporta como un pase del jugador elegido: cierra la ventana y continúa la
+		-- acción que quedó en suspenso. Sin ventana abierta no hace nada.
+		return resumePending(state, Reaction.close(state))
 	elseif phase ~= "AwaitRoll" and phase ~= "AwaitBuy" and phase ~= "AwaitEnd" then
 		return {}
 	end
