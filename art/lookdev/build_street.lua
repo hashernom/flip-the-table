@@ -176,8 +176,8 @@ for _, row in { { x = -35, facing = 1 }, { x = 35, facing = -1 } } do
 end
 
 -- Mobiliario de calle
-for i = 0, 6 do
-	piece(dressing, Vector3.new(34, 0.08, 2.2), Vector3.new(0, 0.06, -18 + i * 4.4), Color3.fromRGB(236, 236, 232), Enum.Material.SmoothPlastic)
+for i = 0, 5 do
+	piece(dressing, Vector3.new(18, 0.08, 1.0), Vector3.new(0, 0.06, -14 + i * 3.0), Color3.fromRGB(228, 228, 224), Enum.Material.SmoothPlastic)
 end
 for _, z in { -40, 40 } do
 	piece(dressing, Vector3.new(0.9, 1.4, 0.9), Vector3.new(-16.2, 1.1, z), Color3.fromRGB(178, 40, 40), Enum.Material.Metal)
@@ -186,7 +186,11 @@ for _, z in { -40, 40 } do
 	piece(dressing, Vector3.new(4.2, 0.35, 1.0), Vector3.new(16.5, 1.1, z + 8), Color3.fromRGB(96, 66, 42), Enum.Material.Wood)
 	piece(dressing, Vector3.new(1.6, 1.2, 1.6), Vector3.new(-17.5, 0.9, z - 14), Color3.fromRGB(78, 78, 74), Enum.Material.Concrete, "ConcreteCC0")
 	piece(dressing, Vector3.new(0.5, 3.2, 0.5), Vector3.new(-17.5, 3.2, z - 14), Color3.fromRGB(62, 48, 38), Enum.Material.Wood)
-	piece(dressing, Vector3.new(3.4, 3.4, 3.4), Vector3.new(-17.5, 6.2, z - 14), Color3.fromRGB(58, 92, 54), Enum.Material.Grass)
+	-- Copa con volumen: esferas, no un cubo de cartón.
+	local canopy = piece(dressing, Vector3.new(5.2, 4.6, 5.2), Vector3.new(-17.5, 6.6, z - 14), Color3.fromRGB(62, 104, 58), Enum.Material.Grass)
+	canopy.Shape = Enum.PartType.Ball
+	local side = piece(dressing, Vector3.new(3.4, 3.0, 3.4), Vector3.new(-18.9, 4.9, z - 12.9), Color3.fromRGB(52, 92, 50), Enum.Material.Grass)
+	side.Shape = Enum.PartType.Ball
 end
 piece(dressing, Vector3.new(0.4, 7, 0.4), Vector3.new(-16.4, 3.5, -20), METAL, Enum.Material.Metal)
 piece(dressing, Vector3.new(0.7, 0.7, 0.7), Vector3.new(-16.4, 7.2, -20), Color3.fromRGB(210, 60, 50), Enum.Material.Neon)
@@ -196,13 +200,14 @@ for _, row in { { x = -35, facing = 1 }, { x = 35, facing = -1 } } do
 end
 
 -- Skyline: torres con bandas de ventanas encendidas y materiales variados.
+-- Skyline a 190-260 studs: a más distancia, las ventanas son subpíxel y el fondo queda muerto.
 local skyline = Instance.new("Folder")
 skyline.Name = "Backdrop"
 skyline.Parent = root
 local rng = Random.new(77)
-for i = 1, 34 do
-	local angle = (i / 34) * math.pi * 2
-	local radius = 320 + rng:NextNumber() * 220
+for i = 1, 30 do
+	local angle = (i / 30) * math.pi * 2
+	local radius = 190 + rng:NextNumber() * 70
 	local baseHeight = 60 + rng:NextNumber() * 90
 	local width = 26 + rng:NextNumber() * 34
 	local depth = 26 + rng:NextNumber() * 34
@@ -226,17 +231,29 @@ for i = 1, 34 do
 		crown.CastShadow = false
 	end
 
-	-- Bandas de ventanas: dos tiras verticales encendidas por torre.
-	for band = 1, 2 do
-		local offset = (band - 0.5) * width * 0.4 - width * 0.2
-		local stripe = piece(
-			skyline,
-			Vector3.new(1.6, baseHeight * 0.8, 0.6),
-			Vector3.new(x + offset, baseHeight * 0.42, z - depth / 2 - 0.4),
-			Color3.fromRGB(255, 226, 176),
-			Enum.Material.Neon
-		)
-		stripe.CastShadow = false
+	-- Columnas de ventanas, no barras: cada banda son cinco tramos con hueco entre plantas.
+	local normalX = x / radius
+	local normalZ = z / radius
+	local tangentX = -normalZ
+	local tangentZ = normalX
+	local bandRng = Random.new(i * 31 + 7)
+	for band = -1, 1 do
+		if bandRng:NextNumber() > 0.25 then
+			for level = 0, 4 do
+				local y = baseHeight * 0.2 + level * baseHeight * 0.12
+				local px = x + tangentX * band * width * 0.28 - normalX * (depth / 2 + 0.4)
+				local pz = z + tangentZ * band * width * 0.28 - normalZ * (depth / 2 + 0.4)
+				local window = piece(
+					skyline,
+					Vector3.new(3.2, baseHeight * 0.075, 0.5),
+					Vector3.new(px, y, pz),
+					Color3.fromRGB(255, 208, 150),
+					Enum.Material.Neon,
+					CFrame.new(Vector3.new(px, y, pz)) * CFrame.Angles(0, math.atan2(x, z), 0)
+				)
+				window.CastShadow = false
+			end
+		end
 	end
 end
 
