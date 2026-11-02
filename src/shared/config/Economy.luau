@@ -1,0 +1,52 @@
+--!strict
+-- Valores iniciales de la economía y los tiempos. Se ajustan en pruebas.
+
+return {
+	startingCash = 1500,
+	startBonus = 200,
+	minPropertyPrice = 60,
+	maxPropertyPrice = 400,
+	priceStep = 10,
+	baseRentRate = 0.1,
+	completeZoneRentMultiplier = 2,
+	buildingRentMultiplier = { 3, 6, 10 },
+	buildingCostRate = 0.5,
+	maxRentMultiplier = 4,
+	maxBuildingLevel = 3,
+	rounds = { S = 20, M = 15, L = 12 },
+	finalRoundsCount = 2,
+	hotZoneInterval = 3,
+	legendaryCooldownRounds = 3,
+	seconds = {
+		decision = 20,
+		auction = 15,
+		tribunalVote = 10,
+		reaction = 5,
+	},
+	tax = 100,
+	portalToll = 50,
+	tribunal = {
+		fine = 150,
+		payToPlayer = 100,
+		skipTurns = 1,
+	},
+	duel = {
+		winnerPrize = 150,
+		loserStepsBack = 2,
+		maxRounds = 3,
+	},
+	pact = {
+		deposit = 100,
+		negotiatorDeposit = 50,
+		minRounds = 1,
+		maxRounds = 5,
+		traitorRounds = 3,
+	},
+	furyThreshold = 5,
+	ghost = {
+		sabotagesToRevive = 3,
+		reviveCash = 500,
+	},
+	handLimit = 3,
+	smugglerHandLimit = 4,
+}
