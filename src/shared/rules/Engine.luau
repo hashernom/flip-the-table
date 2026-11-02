@@ -10,6 +10,8 @@ local Perks = require("./Perks")
 local Property = require("./Property")
 local Reaction = require("./Reaction")
 local Rng = require("./Rng")
+local Squares = require("./Squares")
+local SquaresConfig = require("../config/Squares")
 local Trade = require("./Trade")
 local Turn = require("./Turn")
 local Types = require("./Types")
@@ -72,8 +74,9 @@ local function representativeBid(state: GameState, playerId: PlayerId): Action?
 	}
 end
 
--- Resuelve la casilla pisada. Una propiedad libre abre la compra; la ajena cobra renta; la
--- propia y las demás casillas cierran el turno (los efectos de las especiales llegan en la 03).
+-- Resuelve la casilla pisada. Una propiedad libre abre la compra; la ajena cobra renta; las
+-- casillas de la fase 03 (Giro, Mercado Negro, Duelo, Portal, Cartelera, Tribunal e Impuesto)
+-- las resuelve Squares, que puede abrir su propia fase (Market, Duel o Tribunal).
 local function resolveLanding(state: GameState, playerId: PlayerId): (Phase, { Event })
 	local player = playerOf(state, playerId)
 	if not player then
@@ -81,7 +84,14 @@ local function resolveLanding(state: GameState, playerId: PlayerId): (Phase, { E
 	end
 	local square = Board.square(state, player.position)
 	if square.kind ~= "Property" then
-		return "AwaitEnd", {}
+		local before = state.phase
+		local events = Squares.resolve(state, playerId, square.index)
+		-- Si la casilla abrió una fase o la partida terminó (una multa arruinó al último rival),
+		-- manda la fase nueva; si no, el turno sigue hasta AwaitEnd.
+		if state.phase ~= before then
+			return state.phase, events
+		end
+		return "AwaitEnd", events
 	end
 	local property = state.properties[square.index]
 	if not property or not property.ownerId then
@@ -490,6 +500,22 @@ local function rerollDie(state: GameState, playerId: PlayerId, action: Action): 
 	return { { type = "DiceRolled", playerId = playerId, a = held.a, b = held.b } }
 end
 
+-- Motivo por el que una acción de las fases nuevas no vale, o nil. Squares.reason es la única
+-- regla de MarketBuy, MarketSkip, DuelChoice y TribunalVote.
+local function squaresCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Squares.reason(state, playerId, action)
+end
+
+-- MarketBuy, MarketSkip, DuelChoice y TribunalVote: Squares.act vuelve a validar sin mutar; un
+-- rechazo aquí sería un fallo de programación porque squaresCheck ya lo habría dado.
+local function squaresAct(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Squares.act(state, playerId, action)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
@@ -516,6 +542,13 @@ local rules: { [string]: ActionRule } = {
 		check = reactCheck,
 		handler = react,
 	},
+	-- Fases de las casillas nuevas (Tarea 7). Ninguna exige estar en turno: el Duelo pregunta a
+	-- dos jugadores, el Tribunal a todos los activos y el Mercado solo al que cayó en él;
+	-- Squares.reason decide quién puede actuar en cada una.
+	MarketBuy = { phases = { "Market" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
+	MarketSkip = { phases = { "Market" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
+	DuelChoice = { phases = { "Duel" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
+	TribunalVote = { phases = { "Tribunal" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
 	ProposeTrade = {
 		phases = { "AwaitRoll", "AwaitEnd" },
 		turnOnly = true,
@@ -564,9 +597,10 @@ local function validate(state: GameState, playerId: PlayerId, action: Action): s
 end
 
 -- Enumera el espacio finito de acciones legales de un jugador: Roll, Buy/DeclineBuy, una puja
--- representativa, Build por casilla edificable y EndTurn. Los intercambios no se enumeran (su
--- espacio es infinito) y se validan en apply. Los candidatos pasan por validate, la única tabla
--- de permisos: nunca se devuelve una acción que apply rechazaría (R8).
+-- representativa, Build por casilla edificable, las de las fases nuevas (Mercado, Duelo y
+-- Tribunal) y EndTurn. Los intercambios no se enumeran (su espacio es infinito) y se validan en
+-- apply. Los candidatos pasan por validate, la única tabla de permisos: nunca se devuelve una
+-- acción que apply rechazaría (R8).
 function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 	local phase = state.phase
 	local candidates: { Action } = {}
@@ -620,6 +654,58 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 				end
 			end
 			table.insert(candidates, { type = "PassReaction" })
+		end
+	elseif phase == "Market" then
+		-- Solo el que cayó en el Mercado compra o pasa; validate descarta además las cartas que
+		-- no puede pagar o que no caben en la mano.
+		local pending = state.pending
+		local market = if pending then pending.market else nil
+		if market and market.playerId == playerId then
+			for _, card in market.cards do
+				table.insert(candidates, { type = "MarketBuy", cardId = card.cardId })
+			end
+			table.insert(candidates, { type = "MarketSkip" })
+		end
+	elseif phase == "Duel" then
+		-- Primero el retador elige rival; después cada participante elige una vez por ronda.
+		local pending = state.pending
+		local duel = if pending then pending.duel else nil
+		if duel then
+			if duel.rivalId == nil then
+				if duel.challengerId == playerId then
+					for _, player in state.players do
+						if player.id ~= duel.challengerId and player.status == "Active" then
+							table.insert(candidates, { type = "DuelChoice", rivalId = player.id })
+						end
+					end
+				end
+			elseif playerId == duel.challengerId or playerId == duel.rivalId then
+				if duel.picks[playerId] == nil then
+					for _, choice in SquaresConfig.duelChoices do
+						table.insert(candidates, { type = "DuelChoice", choice = choice })
+					end
+				end
+			end
+		end
+	elseif phase == "Tribunal" then
+		-- Un voto por votante activo: multa, pagar a un jugador activo o perder el turno.
+		local pending = state.pending
+		local tribunal = if pending then pending.tribunal else nil
+		local player = playerOf(state, playerId)
+		if tribunal and player and player.status == "Active" and playerId ~= tribunal.accusedId then
+			if tribunal.votes[playerId] == nil then
+				table.insert(candidates, { type = "TribunalVote", verdict = "Fine" })
+				for _, target in state.players do
+					if target.status == "Active" and target.id ~= tribunal.accusedId then
+						table.insert(candidates, {
+							type = "TribunalVote",
+							verdict = "PayToPlayer",
+							targetId = target.id,
+						})
+					end
+				end
+				table.insert(candidates, { type = "TribunalVote", verdict = "SkipTurn" })
+			end
 		end
 	end
 
@@ -689,6 +775,15 @@ function Engine.timeout(state: GameState): { Event }
 	elseif phase == "PerkDraft" then
 		-- El reloj asigna el primer perk ofrecido al jugador al que le toca elegir.
 		return Perks.timeout(state)
+	elseif phase == "Market" then
+		-- El reloj del Mercado es un pase: se cierra sin comprar.
+		return Squares.marketTimeout(state)
+	elseif phase == "Duel" then
+		-- El reloj completa el rival y las jugadas que falten con azar y resuelve la ronda.
+		return Squares.duelTimeout(state)
+	elseif phase == "Tribunal" then
+		-- El reloj resuelve con las papeletas que haya; sin ninguna, multa.
+		return Squares.tribunalTimeout(state)
 	elseif phase ~= "AwaitRoll" and phase ~= "AwaitBuy" and phase ~= "AwaitEnd" then
 		return {}
 	end

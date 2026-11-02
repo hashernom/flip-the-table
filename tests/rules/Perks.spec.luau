@@ -676,7 +676,9 @@ describe("Dedos Rápidos", function()
 		table.insert(first.perks, "QuickFingers")
 		table.insert(second.perks, "QuickFingers")
 
-		-- Primer jugador: turno completo con su repetición.
+		-- Primer jugador: turno completo con su repetición. Se coloca para que la tirada acabe en
+		-- el Impuesto: una casilla que cierra el turno sin abrir otra fase (Tarea 7).
+		Fixtures.placeOn(s, first.id, 28)
 		Fixtures.dice(s, 3, 4)
 		Engine.apply(s, first.id, { type = "Roll" })
 		Rng.force(s.rng, { 6 })

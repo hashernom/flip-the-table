@@ -40,6 +40,29 @@ local function pendingIndexOf(state: GameState): number?
 	return pending.index
 end
 
+-- Mercado Negro en curso, o nil.
+local function pendingMarket(state: GameState): any
+	local pending = state.pending
+	if not pending then
+		return nil
+	end
+	return pending.market
+end
+
+-- Precio de una carta del Mercado en curso, o nil si no está en la oferta.
+local function marketPriceOf(state: GameState, cardId: string): number?
+	local market = pendingMarket(state)
+	if not market then
+		return nil
+	end
+	for _, card in market.cards do
+		if card.cardId == cardId then
+			return card.price
+		end
+	end
+	return nil
+end
+
 local function priceOf(state: GameState, index: number): number?
 	local square = state.board.squares[index]
 	if not square then
@@ -120,6 +143,22 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 			return reactAction
 		end
 		return firstOf(actions, "PassReaction")
+	elseif phase == "Market" then
+		-- Compra la primera carta de la oferta si le deja por encima de su reserva; si no, pasa.
+		local buy = firstOf(actions, "MarketBuy")
+		if buy then
+			local price = marketPriceOf(state, buy.cardId)
+			if price and player.cash - price > Economy.bot.buyReserve then
+				return buy
+			end
+		end
+		return firstOf(actions, "MarketSkip")
+	elseif phase == "Duel" then
+		-- El primer DuelChoice es el rival cuando toca elegirlo y, después, piedra.
+		return firstOf(actions, "DuelChoice")
+	elseif phase == "Tribunal" then
+		-- La multa es la primera opción legal y el castigo por defecto del Tribunal.
+		return firstOf(actions, "TribunalVote")
 	end
 	return nil
 end

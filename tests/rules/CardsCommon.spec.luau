@@ -260,8 +260,8 @@ describe("Marcha Atrás", function()
 			to = #s.board.squares,
 			path = { 1, #s.board.squares },
 		})
-		-- La última casilla es el Mercado: no abre compra.
-		expect(s.phase).toBe("AwaitEnd")
+		-- La última casilla es el Mercado Negro: abre su fase (Tarea 7), no una compra.
+		expect(s.phase).toBe("Market")
 	end)
 end)
 

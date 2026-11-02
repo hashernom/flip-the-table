@@ -102,8 +102,9 @@ local function pickPool(rng: Rng.RngState, weights: RarityWeights, minRarity: Ra
 	return Cards.byRarity.Common
 end
 
--- Mano máxima del jugador: Contrabandista la sube a Economy.smugglerHandLimit.
-local function handLimitOf(player: Types.Player): number
+-- Mano máxima del jugador: Contrabandista la sube a Economy.smugglerHandLimit. Es pública
+-- porque el Mercado Negro necesita saber si cabe la carta antes de cobrarla (Squares).
+function Deck.handLimit(player: Types.Player): number
 	if Perks.has(player, "Smuggler") then
 		return Economy.smugglerHandLimit
 	end
@@ -123,7 +124,7 @@ function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { 
 	end
 	local stats = state.stats[playerId]
 	stats.cardsDrawn = (stats.cardsDrawn or 0) + 1
-	if #player.hand >= handLimitOf(player) then
+	if #player.hand >= Deck.handLimit(player) then
 		if Perks.has(player, "Collector") then
 			player.cash += Economy.perks.collectorBonus
 		end

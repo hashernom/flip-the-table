@@ -28,14 +28,21 @@ local function dropTradesOfTurn(state: GameState)
 	end
 end
 
--- Siguiente jugador que sigue en la partida. Si no queda ninguno, devuelve al actual.
+-- Siguiente jugador que sigue en la partida. Un jugador con skipTurns > 0 pierde el turno: se
+-- descuenta la marca y se sigue buscando (Tribunal: «perder 1 turno»). Si todos los demás están
+-- fuera o saltados, vuelve el actual, que así no deja la partida parada.
 local function nextIndex(state: GameState): number
 	local count = #state.players
 	local index = state.turnIndex
 	for _ = 1, count do
 		index = index % count + 1
-		if state.players[index].status ~= "Left" then
-			return index
+		local player = state.players[index]
+		if player.status ~= "Left" then
+			if player.skipTurns > 0 then
+				player.skipTurns -= 1
+			else
+				return index
+			end
 		end
 	end
 	return state.turnIndex
