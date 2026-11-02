@@ -2,6 +2,7 @@
 -- Punto de entrada del motor: valida la acción, la aplica y devuelve los eventos.
 local Auction = require("./Auction")
 local Board = require("./Board")
+local Building = require("./Building")
 local Movement = require("./Movement")
 local Property = require("./Property")
 local Rng = require("./Rng")
@@ -155,6 +156,21 @@ local function bid(state: GameState, playerId: PlayerId, action: Action): { Even
 	return result.events
 end
 
+-- Motivo por el que Build no puede aplicarse, o nil. Building.buildReason es la única regla.
+local function buildCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Building.buildReason(state, playerId, action.index)
+end
+
+-- Build: sube un nivel de edificio sin cambiar la fase. Building.build vuelve a validar sin
+-- mutar; un rechazo aquí sería un fallo de programación porque buildCheck ya lo habría dado.
+local function build(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Building.build(state, playerId, action.index)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
@@ -162,6 +178,7 @@ local rules: { [string]: ActionRule } = {
 	Buy = { phases = { "AwaitBuy" }, turnOnly = true, check = buyCheck, handler = buy },
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
 	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
+	Build = { phases = { "AwaitRoll", "AwaitEnd" }, turnOnly = true, check = buildCheck, handler = build },
 	EndTurn = { phases = { "AwaitEnd" }, turnOnly = true, handler = endTurn },
 }
 
