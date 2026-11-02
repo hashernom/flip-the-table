@@ -169,10 +169,13 @@ describe("Property.rentMultiplier", function()
 		expect(Property.rentMultiplier(s, idx)).toBe(4)
 	end)
 
-	it("no filtra los modificadores caducados", function()
+	it("ignora los modificadores caducados", function()
 		local s = Fixtures.game({ players = 2 })
 		local idx = Fixtures.squareOf(s, "Property")
-		addModifier(s, { kind = "Inflation", untilRound = 0 })
+		s.round = 3
+		addModifier(s, { kind = "Inflation", untilRound = 2 })
+		expect(Property.rentMultiplier(s, idx)).toBe(1)
+		addModifier(s, { kind = "Inflation", untilRound = 3 })
 		expect(Property.rentMultiplier(s, idx)).toBe(2)
 	end)
 

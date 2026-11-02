@@ -40,12 +40,15 @@ return {
 	},
 	tax = 100,
 	portalToll = 50,
-	-- Efectos de las cartas comunes de la ficha y descuento de la siguiente compra.
+	-- Efectos de las cartas de la ficha y descuento de la siguiente compra.
 	cards = {
 		forcedTip = 50,
 		fine = 100,
 		shoveSteps = 3,
 		discountMultiplier = 0.5,
+		-- Duración en rondas de las cartas raras; el modificador caduca después.
+		inflationRounds = 2,
+		blackoutRounds = 2,
 	},
 	tribunal = {
 		fine = 150,

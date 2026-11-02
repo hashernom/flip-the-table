@@ -152,10 +152,11 @@ function Bankruptcy.charge(
 	end
 	local payer = playerOf(state, payerId)
 
-	-- R-P20: un espectro ya está fuera del circuito de dinero. Cobrarle no mueve efectivo, no
-	-- puede volver a declararse en bancarrota (no existiría un segundo BankruptcyDeclared) y no
-	-- cambia el número de jugadores activos. Las cartas de área pueden intentarlo sin miedo.
-	if payer.status == "Ghost" then
+	-- R-P20/R-P21: un espectro o quien abandonó ya está fuera del circuito de dinero. Cobrarle no
+	-- mueve efectivo, no puede volver a declararse en bancarrota (no existiría un segundo
+	-- BankruptcyDeclared) y no cambia el número de jugadores activos. Las cartas de área pueden
+	-- intentarlo sin miedo.
+	if payer.status == "Ghost" or payer.status == "Left" then
 		return {}
 	end
 

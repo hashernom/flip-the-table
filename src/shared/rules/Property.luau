@@ -54,17 +54,20 @@ function Property.rentMultiplier(state: GameState, index: number): number
 	if state.hotZoneId ~= nil and square.zoneId == state.hotZoneId then
 		multiplier *= Economy.hotZoneRentMultiplier
 	end
-	-- No se filtra por untilRound: la caducidad de los modificadores es de la Tarea 03.
+	-- Un modificador creado en la ronda R con duración D sigue activo en R … R+D−1: untilRound es
+	-- su última ronda activa y desde R+D se ignora.
 	for _, modifier in state.modifiers do
-		if modifier.kind == "Inflation" then
-			multiplier *= Economy.inflationRentMultiplier
-		elseif modifier.kind == "Blackout" then
-			if modifier.zoneId ~= nil and modifier.zoneId == square.zoneId then
-				multiplier = 0
-			end
-		elseif modifier.kind == "Haunt" then
-			if modifier.index ~= nil and modifier.index == index then
-				multiplier = 0
+		if modifier.untilRound >= state.round then
+			if modifier.kind == "Inflation" then
+				multiplier *= Economy.inflationRentMultiplier
+			elseif modifier.kind == "Blackout" then
+				if modifier.zoneId ~= nil and modifier.zoneId == square.zoneId then
+					multiplier = 0
+				end
+			elseif modifier.kind == "Haunt" then
+				if modifier.index ~= nil and modifier.index == index then
+					multiplier = 0
+				end
 			end
 		end
 	end
