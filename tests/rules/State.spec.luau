@@ -1,6 +1,7 @@
 --!strict
 local Harness = require("../harness")
 local Board = require("../../src/shared/rules/Board")
+local Economy = require("../../src/shared/config/Economy")
 local Fixtures = require("../fixtures")
 local Rng = require("../../src/shared/rules/Rng")
 local State = require("../../src/shared/rules/State")
@@ -96,17 +97,30 @@ describe("State.create", function()
 		expect(Fixtures.game({ players = 8 }).maxRounds).toBe(12)
 	end)
 
-	it("abre la partida en la primera ronda y esperando tirada", function()
-		local s = Fixtures.game({ players = 3 })
+	it("abre la partida en la primera ronda y en el borrador de perks", function()
+		local s = State.create({ playerIds = ids(3), seed = 1 })
 		expect(s.round).toBe(1)
 		expect(s.turnIndex).toBe(1)
-		expect(s.phase).toBe("AwaitRoll")
+		expect(s.phase).toBe("PerkDraft")
 		expect(#s.players).toBe(3)
 		expect(s.pacts).toEqual({})
 		expect(s.modifiers).toEqual({})
 		expect(s.hotZoneId).toBe(nil)
 		expect(s.lastLegendaryRound).toBe(nil)
 		expect(s.pending.trades).toEqual({})
+
+		-- R-P31: el primer borrador queda abierto, en orden de turno y con una oferta por jugador.
+		local draft = s.pending.draft
+		if not draft then
+			error("el estado inicial debe traer el borrador de perks abierto", 2)
+		end
+		expect(draft.index).toBe(1)
+		expect(draft.order).toEqual(orderOf(s))
+		expect(#draft.offer).toBe(Economy.perks.offerCount)
+		expect(s.pending.draftRound).toBe(1)
+		for _, player in s.players do
+			expect(player.perks).toEqual({})
+		end
 	end)
 
 	it("deja a todos activos, sin bienes y con sus estadísticas", function()
@@ -143,7 +157,10 @@ describe("State.create", function()
 		local expected = Rng.shuffle(rng, playerIds)
 		local s = State.create({ playerIds = playerIds, seed = 11 })
 		expect(orderOf(s)).toEqual(expected)
-		expect(s.rng.seed).toBe(rng.seed)
+		-- El borrador inicial consume el generador después del barajado (R-P31), así que la
+		-- posición final no coincide con la del barajado suelto pero sí es reproducible.
+		expect(s.rng.seed ~= rng.seed).toBe(true)
+		expect(State.create({ playerIds = playerIds, seed = 11 }).rng.seed).toBe(s.rng.seed)
 		expect(playerIds).toEqual(ids(6))
 	end)
 
@@ -216,6 +233,16 @@ describe("Board", function()
 end)
 
 describe("Fixtures", function()
+	it("salta el borrador de perks para que las pruebas de reglas tiren desde el inicio", function()
+		local s = Fixtures.game({ players = 3 })
+		expect(s.phase).toBe("AwaitRoll")
+		expect(s.pending.draft).toBe(nil)
+		expect(s.pending.draftRound).toBe(nil)
+		for _, player in s.players do
+			expect(player.perks).toEqual({})
+		end
+	end)
+
 	it("usa los ids P1..Pn y la semilla por defecto", function()
 		local a = Fixtures.game({ players = 4 })
 		local b = Fixtures.game({ players = 4, seed = 4 })

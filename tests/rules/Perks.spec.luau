@@ -15,6 +15,7 @@ local Perks = require("../../src/shared/rules/Perks")
 local PerksConfig = require("../../src/shared/config/Perks")
 local Property = require("../../src/shared/rules/Property")
 local Rng = require("../../src/shared/rules/Rng")
+local State = require("../../src/shared/rules/State")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
@@ -282,10 +283,8 @@ end)
 
 describe("momento del draft", function()
 	it("abre el draft al empezar la partida y lo cierra en AwaitRoll con un perk por jugador", function()
-		local s = Fixtures.game({ players = 3 })
-		-- El estado nace listo para tirar; el controlador de la partida abre el draft inicial.
-		expect(s.phase).toBe("AwaitRoll")
-		expect(Perks.begin(s)).toBe(true)
+		-- R-P31: la creación real deja la partida en el borrador, sin depender del servidor.
+		local s = State.create({ playerIds = { "P1", "P2", "P3" }, seed = 9 })
 		expect(s.phase).toBe("PerkDraft")
 
 		local draft = draftOf(s)
@@ -293,6 +292,7 @@ describe("momento del draft", function()
 		expect(draft.index).toBe(1)
 		expect(draft.order).toEqual({ s.players[1].id, s.players[2].id, s.players[3].id })
 		expect(#draft.offer).toBe(Economy.perks.offerCount)
+		expect(pendingOf(s).draftRound).toBe(1)
 
 		expect(draftAll(s)).toEqual({ s.players[1].id, s.players[2].id, s.players[3].id })
 		expect(s.phase).toBe("AwaitRoll")

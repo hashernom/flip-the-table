@@ -2,6 +2,7 @@
 -- Crea el estado inicial de una partida. El orden de turnos se decide con la semilla.
 local Boards = require("../config/Boards")
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Rng = require("./Rng")
 local Score = require("./Score")
 local Types = require("./Types")
@@ -90,7 +91,7 @@ function State.create(opts: CreateOptions): Types.GameState
 		round = 1,
 		-- En Sin Fin no hay tope: la partida solo acaba con un único jugador activo.
 		maxRounds = if endMode == "Rounds" then Economy.rounds[sizeId] else nil,
-		phase = "AwaitRoll",
+		phase = "PerkDraft",
 		-- Tabla persistente: las fases escriben sus claves, nunca la reemplazan.
 		pending = { trades = {} },
 		properties = newProperties(board),
@@ -107,6 +108,12 @@ function State.create(opts: CreateOptions): Types.GameState
 		error("State.create: el estado no tiene pending", 2)
 	end
 	pending.crownId = Score.ranking(state)[1]
+	-- R-P31: la partida empieza en el borrador de perks. Nadie tiene habilidades todavía y el
+	-- primer draft queda abierto en orden de turno con su oferta. No es opcional: sin borrador, la
+	-- fase PerkDraft se quedaría sin contenido y nadie podría actuar.
+	if not Perks.begin(state) then
+		error("State.create: la partida debe empezar con el borrador de perks", 2)
+	end
 	return state
 end
 

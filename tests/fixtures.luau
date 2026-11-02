@@ -27,11 +27,27 @@ function Fixtures.game(opts: GameOptions): Types.GameState
 	for index = 1, opts.players do
 		playerIds[index] = `P{index}`
 	end
-	return State.create({
+	local seed = opts.seed or opts.players
+	local state = State.create({
 		playerIds = playerIds,
-		seed = opts.seed or opts.players,
+		seed = seed,
 		endMode = opts.endMode,
 	})
+	-- Las pruebas de reglas saltan el borrador; el borrador se prueba en Perks.spec y en la
+	-- simulación. Sin esto, ninguna prueba de las fases anteriores podría tirar desde el inicio.
+	-- Se devuelve además el generador a la posición que tenía tras el barajado inicial (R-P31): el
+	-- borrador consume azar y una prueba de reglas no debe depender de ello. Si la creación
+	-- cambiara de orden sus tiradas, este reajuste dejaría de ser fiel y habría que revisarlo.
+	local rng = Rng.new(seed)
+	Rng.shuffle(rng, playerIds)
+	state.rng.seed = rng.seed
+	local pending = state.pending
+	if pending then
+		pending.draft = nil
+		pending.draftRound = nil
+	end
+	state.phase = "AwaitRoll"
+	return state
 end
 
 -- Fija la próxima tirada sin tocar el resto del generador.
