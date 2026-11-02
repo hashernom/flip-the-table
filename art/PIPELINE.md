@@ -112,8 +112,28 @@ En Studio:
 4. En **File Geometry**: **Scale Unit = Stud**.
 5. Importar y comprobar el tamaño contra una pieza de referencia.
 
-**Pendiente y bloqueante:** subir un asset crea un id en tu cuenta. Este paso lo haces tú, no un
-agente, y hay que hacerlo una vez de punta a punta antes de dar la tubería por buena.
+**Comprobado el 2026-11-02:** la subida funciona sin abrir el importador. Se sirven los archivos
+por HTTP local y se pasan esas URLs al MCP de Studio, que devuelve el `rbxassetid`:
+
+```powershell
+python -m http.server 8765 --bind 127.0.0.1 --directory art
+```
+
+Los ids de la prueba están en `art/asset-ids.json`. Cada archivo subido es un asset de tu cuenta,
+así que la subida sigue siendo tuya: un agente prepara y sirve, tú autorizas.
+
+## 7.b Aplicar PBR sin mallas
+
+`SurfaceAppearance` solo funciona en `MeshPart`. Para una `Part` normal —que es todo lo que hay
+hasta que haya mallas de verdad— el camino es `MaterialVariant`:
+
+1. Crear un `MaterialVariant` en `MaterialService` con `BaseMaterial`, `ColorMap`, `RoughnessMap` y
+   `NormalMap`.
+2. En la pieza: `Material` igual al `BaseMaterial` y `MaterialVariant` con el nombre del variant.
+
+Comprobado en Studio el 2026-11-02 sobre las fachadas del look-dev. El mapa de normales tiene que
+venir en formato OpenGL y la rugosidad en gris: un solo canal que sirva para cualquier lector.
+
 
 ## 8. Registro y aprobación
 

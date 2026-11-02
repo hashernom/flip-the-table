@@ -77,6 +77,18 @@ La luz sola lleva la escena de gris plano a decente. El salto grande son los ass
 Esto es, literalmente, las tareas 1 a 3 de la subfase 06 más el plan 07. La captura
 `art/render/lookdev-luz-suave.jpg` es el máximo alcanzable **sin** ninguno de esos cuatro.
 
+## Con assets: hasta dónde llega
+
+`art/render/lookdev-cielo-pbr.jpg` es la misma calle con la skybox y los tres sets PBR de
+`art/generators/pbr_assets.py` ya aplicados. El cielo deja de ser de Roblox y las fachadas dejan
+de ser cajas lisas, pero **las sombras de los edificios siguen sin leerse**: en esa prueba el sol
+está detrás de la manzana. Queda pendiente:
+
+- Elegir la hora del día de cada barrio y comprobar dónde caen las sombras desde la cámara real.
+- Bajar los albedos claros: la caliza a 214 se quema a plena luz y pierde toda la forma.
+- Tapar el horizonte vacío con skyline de fondo y más bruma, o se ve el borde del mundo.
+
+
 ## Regla
 
 Ningún preset de luz se da por bueno sin mirarlo en el juego, en el móvil de referencia y con
