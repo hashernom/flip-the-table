@@ -23,14 +23,18 @@ type Event = Types.Event
 type Phase = Types.Phase
 
 type Handler = (GameState, PlayerId, Action) -> { Event }
+type ApplyHandler = (GameState, PlayerId, Action) -> Types.ApplyResult
 
--- Una acción y su contrato: fases válidas, quién puede usarla y qué la ejecuta.
+-- Una acción y su contrato: fases válidas, quién puede usarla y qué la ejecuta. `handler` aplica
+-- y devuelve eventos; `apply` devuelve el ApplyResult tal cual y lo usa Squares para poder
+-- rechazar sin levantar un error. Cada regla declara una de las dos formas.
 type ActionRule = {
 	phases: { Phase },
 	turnOnly: boolean,
 	-- Comprobación extra antes de mutar (efectivo, pending...). nil = sin motivo de rechazo.
 	check: ((GameState, PlayerId, Action) -> string?)?,
-	handler: Handler,
+	handler: Handler?,
+	apply: ApplyHandler?,
 }
 
 local Engine = {}
@@ -506,16 +510,6 @@ local function squaresCheck(state: GameState, playerId: PlayerId, action: Action
 	return Squares.reason(state, playerId, action)
 end
 
--- MarketBuy, MarketSkip, DuelChoice y TribunalVote: Squares.act vuelve a validar sin mutar; un
--- rechazo aquí sería un fallo de programación porque squaresCheck ya lo habría dado.
-local function squaresAct(state: GameState, playerId: PlayerId, action: Action): { Event }
-	local result = Squares.act(state, playerId, action)
-	if not result.ok then
-		error(result.error, 2)
-	end
-	return result.events
-end
-
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
 -- Las tareas siguientes añaden sus acciones a esta misma tabla.
 local rules: { [string]: ActionRule } = {
@@ -544,11 +538,12 @@ local rules: { [string]: ActionRule } = {
 	},
 	-- Fases de las casillas nuevas (Tarea 7). Ninguna exige estar en turno: el Duelo pregunta a
 	-- dos jugadores, el Tribunal a todos los activos y el Mercado solo al que cayó en él;
-	-- Squares.reason decide quién puede actuar en cada una.
-	MarketBuy = { phases = { "Market" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
-	MarketSkip = { phases = { "Market" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
-	DuelChoice = { phases = { "Duel" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
-	TribunalVote = { phases = { "Tribunal" }, turnOnly = false, check = squaresCheck, handler = squaresAct },
+	-- Squares.reason decide quién puede actuar en cada una. Se aplican con `apply` porque
+	-- Squares.act devuelve ApplyResult y un rechazo debe volver al llamador sin levantar un error.
+	MarketBuy = { phases = { "Market" }, turnOnly = false, check = squaresCheck, apply = Squares.act },
+	MarketSkip = { phases = { "Market" }, turnOnly = false, check = squaresCheck, apply = Squares.act },
+	DuelChoice = { phases = { "Duel" }, turnOnly = false, check = squaresCheck, apply = Squares.act },
+	TribunalVote = { phases = { "Tribunal" }, turnOnly = false, check = squaresCheck, apply = Squares.act },
 	ProposeTrade = {
 		phases = { "AwaitRoll", "AwaitEnd" },
 		turnOnly = true,
@@ -728,7 +723,18 @@ function Engine.apply(state: GameState, playerId: PlayerId, action: Action): Typ
 		-- Inalcanzable tras validate; se mantiene por si las dos tablas se separan.
 		return { ok = false, error = `Acción desconocida: {action.type}` }
 	end
-	return { ok = true, events = rule.handler(state, playerId, action) }
+	-- Las reglas con `apply` ya devuelven ApplyResult (Squares): un rechazo surgido al aplicar se
+	-- propaga tal cual, sin levantar un error y sin tocar el estado.
+	local apply = rule.apply
+	if apply then
+		return apply(state, playerId, action)
+	end
+	local handler = rule.handler
+	if not handler then
+		-- Inalcanzable: cada regla declara handler o apply.
+		return { ok = false, error = `La acción {action.type} no tiene manejador` }
+	end
+	return { ok = true, events = handler(state, playerId, action) }
 end
 
 -- Ejecuta una acción de tiempo agotado y devuelve solo sus eventos. En un estado válido la

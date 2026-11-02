@@ -9,6 +9,7 @@ local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local CardsConfig = require("../config/Cards")
 local Deck = require("./Deck")
+local Economy = require("../config/Economy")
 local Movement = require("./Movement")
 local Perks = require("./Perks")
 local Rng = require("./Rng")
@@ -123,6 +124,28 @@ local function offerOf(market: PendingMarket, cardId: string): MarketCard?
 	return nil
 end
 
+-- Descuento sin gastar del jugador (carta Descuento). El Mercado lo aplica y lo consume igual que
+-- la compra directa de una propiedad (R-P37): es una marca por jugador y la gasta quien compra.
+local function hasDiscount(state: GameState, playerId: PlayerId): boolean
+	local discounts = pendingOf(state).discounts
+	return discounts ~= nil and discounts[playerId] == true
+end
+
+local function consumeDiscount(state: GameState, playerId: PlayerId)
+	local discounts = pendingOf(state).discounts
+	if discounts then
+		discounts[playerId] = nil
+	end
+end
+
+-- Precio efectivo de una carta del Mercado para el jugador, con su Descuento si lo tiene.
+local function effectivePrice(state: GameState, playerId: PlayerId, price: number): number
+	if hasDiscount(state, playerId) then
+		return math.floor(price * Economy.cards.discountMultiplier)
+	end
+	return price
+end
+
 -- Motivo por el que el jugador no puede comprar esa carta, o nil. La oferta, el efectivo y el
 -- sitio en la mano se comprueban antes de cobrar nada.
 function Squares.marketBuyReason(state: GameState, playerId: PlayerId, cardId: any): string?
@@ -144,7 +167,7 @@ function Squares.marketBuyReason(state: GameState, playerId: PlayerId, cardId: a
 	if not offer then
 		return `La carta {cardId} no está en el Mercado Negro`
 	end
-	if player.cash < offer.price then
+	if player.cash < effectivePrice(state, playerId, offer.price) then
 		return `No tienes efectivo para comprar {cardId}`
 	end
 	if #player.hand >= Deck.handLimit(player) then
@@ -165,8 +188,9 @@ function Squares.marketSkipReason(state: GameState, playerId: PlayerId): string?
 	return nil
 end
 
--- Compra: cobra el precio al banco, entrega la carta y emite MarketBought más el robo. El
--- efectivo y el hueco ya están validados, así que el cobro no puede vender bienes ni arruinar.
+-- Compra: cobra el precio efectivo al banco, gasta el Descuento, entrega la carta y emite
+-- MarketBought más el evento de entrega de Deck.add. El efectivo y el hueco ya están validados,
+-- así que el cobro no puede vender bienes ni arruinar.
 local function marketBuy(state: GameState, playerId: PlayerId, cardId: string): ApplyResult
 	local reason = Squares.marketBuyReason(state, playerId, cardId)
 	if reason then
@@ -177,16 +201,20 @@ local function marketBuy(state: GameState, playerId: PlayerId, cardId: string): 
 	if not offer then
 		error("Squares.marketBuy: la oferta validada ya no existe", 2)
 	end
-	local player = playerOf(state, playerId)
-	local events = Bankruptcy.charge(state, playerId, offer.price, nil)
-	table.insert(player.hand, cardId)
+	local price = effectivePrice(state, playerId, offer.price)
+	local discounted = hasDiscount(state, playerId)
+	local events = Bankruptcy.charge(state, playerId, price, nil)
+	-- El Descuento se gasta solo cuando la compra se completa, igual que en Property.buy.
+	if discounted then
+		consumeDiscount(state, playerId)
+	end
 	table.insert(events, 1, {
 		type = "MarketBought",
 		playerId = playerId,
 		cardId = cardId,
-		price = offer.price,
+		price = price,
 	})
-	table.insert(events, { type = "CardDrawn", playerId = playerId, cardId = cardId })
+	append(events, Deck.add(state, playerId, cardId))
 	pendingOf(state).market = nil
 	state.phase = "AwaitEnd"
 	return { ok = true, events = events }
@@ -276,6 +304,16 @@ local function beats(left: string, right: string): boolean
 		or (left == "Scissors" and right == "Paper")
 end
 
+-- Cierra un Duelo que ya no se puede celebrar (un participante se fue o ya no hay rival): sin
+-- premio y sin movimiento, con el evento de cierre y el turno listo para terminar (R-P36).
+local function closeDuelWithoutResult(state: GameState, duel: PendingDuel): { Event }
+	pendingOf(state).duel = nil
+	if state.phase == "Duel" then
+		state.phase = "AwaitEnd"
+	end
+	return { { type = "DuelResolved", round = duel.round } }
+end
+
 -- Cierra la ronda cuando ya hay dos jugadas. Un empate repite con jugadas nuevas hasta el tope
 -- de rondas; después no gana nadie. El premio lo paga el banco y el perdedor retrocede sin que
 -- se resuelva la casilla de destino: no hay apuesta ni cobro al perdedor.
@@ -284,6 +322,12 @@ local function resolveDuelRound(state: GameState): { Event }
 	local rivalId = duel.rivalId
 	if not rivalId then
 		error("Squares: el Duelo no tiene rival al resolver la ronda", 2)
+	end
+	-- R-P36: si cualquiera de los dos ya no está Active, nadie cobra ni retrocede.
+	local challenger = findPlayer(state, duel.challengerId)
+	local rival = findPlayer(state, rivalId)
+	if not challenger or challenger.status ~= "Active" or not rival or rival.status ~= "Active" then
+		return closeDuelWithoutResult(state, duel)
 	end
 	local challengerPick = duel.picks[duel.challengerId]
 	local rivalPick = duel.picks[rivalId]
@@ -347,7 +391,8 @@ local function duelChoice(state: GameState, playerId: PlayerId, action: Action):
 end
 
 -- Tiempo agotado del Duelo: el rival que falte y las jugadas que falten se eligen con Rng. Se
--- resuelve una ronda; si empata, la siguiente ronda espera a su propio reloj.
+-- resuelve una ronda; si empata, la siguiente ronda espera a su propio reloj. Si alguno de los
+-- dos participantes ya no está Active, se cierra sin premio ni movimiento (R-P36).
 function Squares.duelTimeout(state: GameState): { Event }
 	local duel: PendingDuel? = pendingOf(state).duel
 	if not duel then
@@ -357,14 +402,14 @@ function Squares.duelTimeout(state: GameState): { Event }
 		end
 		return {}
 	end
+	local challenger = findPlayer(state, duel.challengerId)
+	if not challenger or challenger.status ~= "Active" then
+		return closeDuelWithoutResult(state, duel)
+	end
 	if duel.rivalId == nil then
 		local rivals = activeRivals(state, duel.challengerId)
 		if #rivals == 0 then
-			pendingOf(state).duel = nil
-			if state.phase == "Duel" then
-				state.phase = "AwaitEnd"
-			end
-			return {}
+			return closeDuelWithoutResult(state, duel)
 		end
 		duel.rivalId = Rng.pick(state.rng, rivals).id
 	end
@@ -374,12 +419,7 @@ function Squares.duelTimeout(state: GameState): { Event }
 	end
 	local rival = findPlayer(state, rivalId)
 	if not rival or rival.status ~= "Active" then
-		-- El rival se fue a mitad del Duelo: se cierra sin premio.
-		pendingOf(state).duel = nil
-		if state.phase == "Duel" then
-			state.phase = "AwaitEnd"
-		end
-		return { { type = "DuelResolved", round = duel.round } }
+		return closeDuelWithoutResult(state, duel)
 	end
 	if duel.picks[duel.challengerId] == nil then
 		duel.picks[duel.challengerId] = Rng.pick(state.rng, DUEL_CHOICES)
@@ -525,7 +565,8 @@ local function openTribunal(state: GameState, playerId: PlayerId): { Event }
 end
 
 -- Motivo por el que un voto no vale, o nil. El acusado no vota, cada votante vota una vez y
--- pagar a alguien exige un objetivo activo distinto del acusado.
+-- pagar a alguien exige un objetivo activo. R-P39: el propio votante es un objetivo válido (en
+-- una partida de 2 jugadores es el único al que se puede pagar); solo se excluye al acusado.
 function Squares.tribunalVoteReason(state: GameState, playerId: PlayerId, action: Action): string?
 	local tribunal: PendingTribunal? = pendingOf(state).tribunal
 	if not tribunal then
@@ -610,17 +651,24 @@ local function nextPortalIndex(state: GameState, from: number): number?
 	return nil
 end
 
--- Peaje y salto. Sin un Portal al que ir o sin efectivo no se cobra nada y la ficha se queda:
--- el peaje solo se paga cuando el salto ocurre (P4: nada de deudas por un salto).
+-- Peaje y salto. R-P35: el peaje se cobra siempre con Bankruptcy.charge y puede vender bienes
+-- para cubrirlo; solo salta quien sigue Active después del cobro, así que un jugador sin nada
+-- queda Ghost y no se mueve. La ficha se sincroniza con TokenMoved (como Mundo al Revés) y
+-- después se anuncia PortalUsed.
 local function usePortal(state: GameState, playerId: PlayerId, index: number): { Event }
 	local player = playerOf(state, playerId)
 	local to = nextPortalIndex(state, index)
-	local toll = SquaresConfig.portalToll
-	if not to or player.cash < toll then
+	if not to then
+		-- Sin un segundo Portal no hay salto; tampoco habría peaje que cobrar.
 		return {}
 	end
+	local toll = SquaresConfig.portalToll
 	local events = Bankruptcy.charge(state, playerId, toll, nil)
+	if player.status ~= "Active" then
+		return events
+	end
 	player.position = to
+	table.insert(events, { type = "TokenMoved", playerId = playerId, from = index, to = to, path = {} })
 	table.insert(events, { type = "PortalUsed", from = index, to = to, toll = toll })
 	return events
 end
@@ -719,8 +767,8 @@ function Squares.reason(state: GameState, playerId: PlayerId, action: Action): s
 	return `Acción desconocida: {action.type}`
 end
 
--- Aplica la acción ya validada. Un rechazo aquí sería un fallo de programación: Engine la
--- habría filtrado con Squares.reason.
+-- Aplica la acción ya validada. Si algo cambiara entre la validación y la aplicación (hoy no
+-- puede pasar), devuelve el rechazo en vez de levantar un error: Engine.apply lo propaga tal cual.
 function Squares.act(state: GameState, playerId: PlayerId, action: Action): ApplyResult
 	local reason = Squares.reason(state, playerId, action)
 	if reason then

@@ -10,6 +10,7 @@ local Economy = require("../../src/shared/config/Economy")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
 local Rng = require("../../src/shared/rules/Rng")
+local Squares = require("../../src/shared/rules/Squares")
 local SquaresConfig = require("../../src/shared/config/Squares")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
@@ -225,6 +226,9 @@ describe("Mercado Negro", function()
 		expect(events[2]).toEqual({ type = "CardDrawn", playerId = player.id, cardId = "Hurricane" })
 		expect(player.cash).toBe(Economy.startingCash - 300)
 		expect(player.hand).toEqual({ "Hurricane" })
+		-- La compra pasa por Deck.add: cuenta como robo y actualiza la última legendaria.
+		expect(s.stats[player.id].cardsDrawn).toBe(1)
+		expect(s.lastLegendaryRound).toBe(s.round)
 		expect(pendingOf(s).market).toBe(nil)
 		expect(s.phase).toBe("AwaitEnd")
 	end)
@@ -263,6 +267,38 @@ describe("Mercado Negro", function()
 		expect(rejected(Engine.apply(t, full.id, { type = "MarketBuy", cardId = "Shield" }))).toBe(
 			"No tienes sitio en la mano"
 		)
+	end)
+
+	it("aplica el Descuento al precio y lo consume al comprar (R-P37)", function()
+		local s = Fixtures.game({ players = 3 })
+		local player = inTurn(s)
+		Fixtures.hand(s, player.id, "Discount")
+		applyOk(s, player.id, { type = "PlayCard", cardId = "Discount" })
+		expect(pendingOf(s).discounts[player.id]).toBe(true)
+
+		landOn(s, player.id, Fixtures.squareOf(s, "Market"), { 1, 1, 1 })
+		-- La común cuesta 100; con Descuento, 50. Con 75 de efectivo entra y el descuento se gasta.
+		player.cash = 75
+		local events = applyOk(s, player.id, { type = "MarketBuy", cardId = "Shield" })
+		expect(firstEvent(events, "MarketBought").price).toBe(50)
+		expect(player.cash).toBe(25)
+		expect(player.hand).toEqual({ "Shield" })
+		expect(pendingOf(s).discounts[player.id]).toBe(nil)
+		expect(s.phase).toBe("AwaitEnd")
+	end)
+
+	it("no consume el Descuento si la compra no se completa", function()
+		local s = Fixtures.game({ players = 3 })
+		local player = inTurn(s)
+		Fixtures.hand(s, player.id, "Discount")
+		applyOk(s, player.id, { type = "PlayCard", cardId = "Discount" })
+		landOn(s, player.id, Fixtures.squareOf(s, "Market"), { 1, 1, 1 })
+		player.cash = 40
+		expect(rejected(Engine.apply(s, player.id, { type = "MarketBuy", cardId = "Shield" }))).toBe(
+			"No tienes efectivo para comprar Shield"
+		)
+		expect(pendingOf(s).discounts[player.id]).toBe(true)
+		expect(player.hand).toEqual({})
 	end)
 
 	it("no pide ninguna decisión a los demás y el reloj pasa", function()
@@ -404,6 +440,34 @@ describe("Duelo", function()
 		expect(pendingOf(s).duel).toBe(nil)
 	end)
 
+	it("si un participante se fue, el reloj cierra sin premio ni movimiento (R-P36)", function()
+		for _, leaver in { "challenger", "rival" } do
+			local s = Fixtures.game({ players = 3 })
+			local challenger = inTurn(s)
+			local rival = rivalOf(s, challenger.id)
+			landOn(s, challenger.id, Fixtures.squareOf(s, "Duel"))
+			applyOk(s, challenger.id, { type = "DuelChoice", rivalId = rival.id })
+			if leaver == "challenger" then
+				challenger.status = "Left"
+			else
+				rival.status = "Left"
+			end
+			local challengerCash = challenger.cash
+			local rivalCash = rival.cash
+			local challengerPosition = challenger.position
+			local rivalPosition = rival.position
+
+			local events = Engine.timeout(s)
+			expect(events).toEqual({ { type = "DuelResolved", round = 1 } })
+			expect(challenger.cash).toBe(challengerCash)
+			expect(rival.cash).toBe(rivalCash)
+			expect(challenger.position).toBe(challengerPosition)
+			expect(rival.position).toBe(rivalPosition)
+			expect(pendingOf(s).duel).toBe(nil)
+			expect(s.phase).toBe("AwaitEnd")
+		end
+	end)
+
 	it("legalActions y el bot solo ofrecen jugadas legales", function()
 		local s = Fixtures.game({ players = 3 })
 		local challenger = inTurn(s)
@@ -453,6 +517,14 @@ describe("Portal", function()
 		local events = landOn(s, player.id, from)
 		expect(player.position).toBe(portals[1])
 		expect(player.cash).toBe(Economy.startingCash - SquaresConfig.portalToll)
+		-- La ficha se sincroniza primero con TokenMoved y después se anuncia el salto.
+		expect(events[#events - 1]).toEqual({
+			type = "TokenMoved",
+			playerId = player.id,
+			from = from,
+			to = portals[1],
+			path = {},
+		})
 		expect(events[#events]).toEqual({
 			type = "PortalUsed",
 			from = from,
@@ -462,15 +534,47 @@ describe("Portal", function()
 		expect(s.phase).toBe("AwaitEnd")
 	end)
 
-	it("sin dinero no paga ni salta", function()
+	it("sin efectivo pero con bienes vende, paga y salta (R-P35)", function()
+		local s = Fixtures.game({ players = 3 })
+		local player = inTurn(s)
+		player.cash = 30
+		-- La propiedad más barata del tablero vale 60: el banco paga 30 por ella y cubre el peaje.
+		local property = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, player.id, property)
+		local portals: { number } = {}
+		for _, square in s.board.squares do
+			if square.kind == "Portal" then
+				table.insert(portals, square.index)
+			end
+		end
+		local from = portals[1]
+
+		local events = landOn(s, player.id, from)
+		expect(player.status).toBe("Active")
+		expect(player.cash).toBe(10)
+		expect(player.position).toBe(portals[2])
+		expect(s.properties[property].ownerId).toBe(nil)
+		expect(firstEvent(events, "PortalUsed").to).toBe(portals[2])
+		expect(s.phase).toBe("AwaitEnd")
+	end)
+
+	it("sin nada con que pagar queda Ghost y no salta (R-P35)", function()
 		local s = Fixtures.game({ players = 3 })
 		local player = inTurn(s)
 		player.cash = 30
 		local portal = Fixtures.squareOf(s, "Portal")
 		local events = landOn(s, player.id, portal)
+		expect(player.status).toBe("Ghost")
+		expect(player.cash).toBe(0)
 		expect(player.position).toBe(portal)
-		expect(player.cash).toBe(30)
-		expect(#events).toBe(2)
+		expect(firstEvent(events, "BankruptcyDeclared").playerId).toBe(player.id)
+		local jumped = false
+		for _, event in events do
+			if event.type == "PortalUsed" then
+				jumped = true
+			end
+		end
+		expect(jumped).toBe(false)
 		expect(s.phase).toBe("AwaitEnd")
 	end)
 
@@ -660,6 +764,27 @@ describe("Tribunal", function()
 		expect(s.phase).toBe("AwaitEnd")
 	end)
 
+	it("pagar al propio votante es legal (R-P39)", function()
+		local s = Fixtures.game({ players = 2 })
+		local accused = inTurn(s)
+		local voter = rivalOf(s, accused.id)
+		landOn(s, accused.id, Fixtures.squareOf(s, "Tribunal"))
+		-- En 2 jugadores el votante es el único objetivo posible, así que apuntarse a sí mismo vale.
+		local targets: { PlayerId } = {}
+		for _, action in Engine.legalActions(s, voter.id) do
+			if action.type == "TribunalVote" and action.verdict == "PayToPlayer" then
+				table.insert(targets, action.targetId)
+			end
+		end
+		expect(targets).toEqual({ voter.id })
+
+		local events =
+			applyOk(s, voter.id, { type = "TribunalVote", verdict = "PayToPlayer", targetId = voter.id })
+		expect(events[1].targetId).toBe(voter.id)
+		expect(accused.cash).toBe(Economy.startingCash - SquaresConfig.tribunal.payToPlayer)
+		expect(voter.cash).toBe(Economy.startingCash + SquaresConfig.tribunal.payToPlayer)
+	end)
+
 	it("perder el turno suma skipTurns y no cobra", function()
 		local s = Fixtures.game({ players = 2 })
 		local accused = inTurn(s)
@@ -799,5 +924,30 @@ describe("Turn y skipTurns", function()
 		expect(accused.skipTurns).toBe(0)
 		expect(inTurn(s).id).toBe(voter.id)
 		expect(s.round).toBe(2)
+	end)
+
+	it("no consume el turno perdido del único jugador que queda (R-P38)", function()
+		local s = Fixtures.game({ players = 2 })
+		local current = inTurn(s)
+		local other = rivalOf(s, current.id)
+		other.status = "Left"
+		current.skipTurns = 1
+		s.phase = "AwaitEnd"
+		applyOk(s, current.id, { type = "EndTurn" })
+		-- Solo queda él: la partida termina y la marca no se gasta sin que pierda el turno.
+		expect(current.skipTurns).toBe(1)
+		expect(s.players[s.turnIndex].id).toBe(current.id)
+		expect(s.phase).toBe("GameOver")
+	end)
+end)
+
+describe("Squares.act", function()
+	it("rechaza sin levantar un error cuando la acción no es legal", function()
+		local s = Fixtures.game({ players = 3 })
+		local result = Squares.act(s, inTurn(s).id, { type = "MarketBuy", cardId = "Shield" })
+		if result.ok then
+			error("se esperaba un rechazo y la acción se aplicó", 2)
+		end
+		expect(result.error).toBe("El Mercado Negro no está abierto")
 	end)
 end)

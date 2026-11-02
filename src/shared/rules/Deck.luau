@@ -111,15 +111,16 @@ function Deck.handLimit(player: Types.Player): number
 	return Economy.handLimit
 end
 
--- Roba una carta para la mano o la descarta si está llena. La legendaria siempre marca la
--- ronda, aunque no quepa en la mano, y todo robo cuenta en stats.cardsDrawn. Coleccionista paga
--- al robar con la mano llena, en el mismo caso que emite CardDiscarded.
-function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { Event }
-	checkMinRarity(minRarity)
+-- Entrega una carta ya elegida: la mete en la mano o la descarta si no cabe, marca la ronda de la
+-- última legendaria, suma el robo a stats.cardsDrawn y emite CardDrawn o CardDiscarded. Es el
+-- único camino para dar una carta: Deck.draw y el Mercado Negro (Squares) comparten estas reglas.
+function Deck.add(state: GameState, playerId: PlayerId, cardId: string): { Event }
+	local definition = Cards.byId[cardId]
+	if not definition then
+		error(`Deck.add: la carta {cardId} no existe`, 3)
+	end
 	local player = playerOf(state, playerId)
-	local pool = pickPool(state.rng, Deck.weights(state, playerId), minRarity)
-	local card = Rng.pick(state.rng, pool)
-	if card.rarity == "Legendary" then
+	if definition.rarity == "Legendary" then
 		state.lastLegendaryRound = state.round
 	end
 	local stats = state.stats[playerId]
@@ -128,10 +129,18 @@ function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { 
 		if Perks.has(player, "Collector") then
 			player.cash += Economy.perks.collectorBonus
 		end
-		return { { type = "CardDiscarded", playerId = playerId, cardId = card.id } }
+		return { { type = "CardDiscarded", playerId = playerId, cardId = cardId } }
 	end
-	table.insert(player.hand, card.id)
-	return { { type = "CardDrawn", playerId = playerId, cardId = card.id } }
+	table.insert(player.hand, cardId)
+	return { { type = "CardDrawn", playerId = playerId, cardId = cardId } }
+end
+
+-- Roba una carta para la mano o la descarta si está llena. La entrega la resuelve Deck.add.
+function Deck.draw(state: GameState, playerId: PlayerId, minRarity: Rarity?): { Event }
+	checkMinRarity(minRarity)
+	local pool = pickPool(state.rng, Deck.weights(state, playerId), minRarity)
+	local card = Rng.pick(state.rng, pool)
+	return Deck.add(state, playerId, card.id)
 end
 
 return Deck
