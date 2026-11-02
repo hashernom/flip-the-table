@@ -2,6 +2,7 @@
 -- Mueve la ficha por el tablero y paga la Salida. No resuelve la casilla pisada:
 -- esa parte llega con las compras y la renta.
 local Economy = require("../config/Economy")
+local Turn = require("./Turn")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -49,8 +50,9 @@ function Movement.advance(state: GameState, playerId: PlayerId, steps: number): 
 		{ type = "TokenMoved", playerId = playerId, from = from, to = to, path = path },
 	}
 
-	-- La ruta incluye la Salida solo cuando se pisa. Retroceder nunca cobra.
-	if steps > 0 and table.find(path, 1) then
+	-- La ruta incluye la Salida solo cuando se pisa. Retroceder nunca cobra. En la presión de
+	-- Sin Fin la Salida deja de pagar (R12).
+	if steps > 0 and table.find(path, 1) and not Turn.isPressureRound(state) then
 		player.cash += Economy.startBonus
 		table.insert(events, { type = "PassedStart", playerId = playerId, amount = Economy.startBonus })
 	end

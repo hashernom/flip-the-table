@@ -8,6 +8,7 @@ local Types = require("../src/shared/rules/Types")
 export type GameOptions = {
 	players: number,
 	seed: number?,
+	endMode: Types.EndMode?,
 }
 
 local Fixtures = {}
@@ -26,7 +27,11 @@ function Fixtures.game(opts: GameOptions): Types.GameState
 	for index = 1, opts.players do
 		playerIds[index] = `P{index}`
 	end
-	return State.create({ playerIds = playerIds, seed = opts.seed or opts.players })
+	return State.create({
+		playerIds = playerIds,
+		seed = opts.seed or opts.players,
+		endMode = opts.endMode,
+	})
 end
 
 -- Fija la próxima tirada sin tocar el resto del generador.

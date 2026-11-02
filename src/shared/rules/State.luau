@@ -3,14 +3,26 @@
 local Boards = require("../config/Boards")
 local Economy = require("../config/Economy")
 local Rng = require("./Rng")
+local Score = require("./Score")
 local Types = require("./Types")
 
 export type CreateOptions = {
 	playerIds: { Types.PlayerId },
 	seed: number,
+	endMode: Types.EndMode?,
 }
 
 local State = {}
+
+-- Rounds por defecto. Cualquier otro texto llegaría de fuera (config o red) y debe fallar claro.
+local function endModeOf(endMode: Types.EndMode?): Types.EndMode
+	if endMode == nil or endMode == "Rounds" then
+		return "Rounds"
+	elseif endMode == "Endless" then
+		return "Endless"
+	end
+	error(`State.create: el modo de partida "{endMode}" no existe; usa "Rounds" o "Endless"`, 3)
+end
 
 local function newPlayer(id: Types.PlayerId): Types.Player
 	return {
@@ -54,6 +66,7 @@ function State.create(opts: CreateOptions): Types.GameState
 	-- La anotación evita que Luau ensanche la unión de literales al inferir la local.
 	local sizeId: Types.SizeId = Boards.forPlayerCount(#opts.playerIds)
 	checkUniqueIds(opts.playerIds)
+	local endMode: Types.EndMode = endModeOf(opts.endMode)
 
 	local board = Boards.get(sizeId)
 	local rng = Rng.new(opts.seed)
@@ -67,14 +80,16 @@ function State.create(opts: CreateOptions): Types.GameState
 		stats[id] = {}
 	end
 
-	return {
+	local state: Types.GameState = {
 		rng = rng,
 		sizeId = sizeId,
 		board = board,
 		players = players,
 		turnIndex = 1,
+		endMode = endMode,
 		round = 1,
-		maxRounds = Economy.rounds[sizeId],
+		-- En Sin Fin no hay tope: la partida solo acaba con un único jugador activo.
+		maxRounds = if endMode == "Rounds" then Economy.rounds[sizeId] else nil,
 		phase = "AwaitRoll",
 		-- Tabla persistente: las fases escriben sus claves, nunca la reemplazan.
 		pending = { trades = {} },
@@ -86,6 +101,14 @@ function State.create(opts: CreateOptions): Types.GameState
 		hurricaneUsed = false,
 		stats = stats,
 	}
+	-- R4/R25: la ronda 1 ya necesita portador de la Corona. En la creación todos están
+	-- Active, así que el primero de la clasificación es el primer activo.
+	local pending = state.pending
+	if not pending then
+		error("State.create: el estado no tiene pending", 2)
+	end
+	pending.crownId = Score.ranking(state)[1]
+	return state
 end
 
 return State

@@ -89,11 +89,13 @@ local function roll(state: GameState, playerId: PlayerId, _action: Action): { Ev
 	return events
 end
 
--- EndTurn: pasa el turno y deja al siguiente jugador listo para tirar. La Tarea 8 añade
--- aquí la última ronda y el final de la partida.
+-- EndTurn: pasa el turno y deja al siguiente jugador listo para tirar. Turn.next puede cerrar
+-- la partida (última ronda o un solo activo): entonces la fase GameOver no se sobrescribe (R13).
 local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): { Event }
 	local events = Turn.next(state)
-	state.phase = "AwaitRoll"
+	if state.phase ~= "GameOver" then
+		state.phase = "AwaitRoll"
+	end
 	return events
 end
 

@@ -8,6 +8,8 @@ export type PlayerId = string
 export type SizeId = "S" | "M" | "L"
 export type PlayerStatus = "Active" | "Ghost" | "Left"
 export type Rarity = "Common" | "Rare" | "Legendary"
+-- Rounds: la partida termina al superar el tope de rondas del tamaño. Endless: sin tope.
+export type EndMode = "Rounds" | "Endless"
 
 export type Phase =
 	"PerkDraft"
@@ -96,8 +98,9 @@ export type GameState = {
 	board: Board,
 	players: { Player },
 	turnIndex: number,
+	endMode: EndMode,
 	round: number,
-	maxRounds: number,
+	maxRounds: number?,
 	phase: Phase,
 	pending: any?,
 	properties: { [number]: PropertyState },

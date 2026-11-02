@@ -3,6 +3,7 @@
 -- nada alcanza, convierte al jugador en espectro sin dejar efectivo negativo ni crear dinero.
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Turn = require("./Turn")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -187,9 +188,13 @@ function Bankruptcy.charge(
 		credit(state, creditorId, available)
 	end
 	returnProperties(state, payerId)
-	-- SEAM Tarea 8: aquí comprobará Turn.finishIfLastActive(state) si queda un solo jugador
-	-- Active y emitirá GameEnded. La comprobación se centraliza en Turn, no en este módulo.
-	return { { type = "BankruptcyDeclared", playerId = payerId, creditorId = creditorId } }
+	local events: { Event } = {
+		{ type = "BankruptcyDeclared", playerId = payerId, creditorId = creditorId },
+	}
+	-- R11/R21: si acaba de quedar un solo jugador Active, la partida termina en este instante.
+	-- La comprobación vive en Turn; Bankruptcy solo se la pide.
+	Turn.finishIfLastActive(state, events)
+	return events
 end
 
 return Bankruptcy

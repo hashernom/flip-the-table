@@ -178,9 +178,12 @@ describe("Bankruptcy.charge", function()
 		expect(s.properties[idx].ownerId).toBe(nil)
 		expect(s.properties[idx].level).toBe(0)
 		expect(ownerCount(s, a.id)).toBe(0)
-		expect(events).toEqual({
+		-- R11: con dos jugadores, la bancarrota de uno cierra la partida en ese instante.
+		local expected: { Types.Event } = {
 			{ type = "BankruptcyDeclared", playerId = a.id, creditorId = b.id },
-		})
+			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id },
+		}
+		expect(events).toEqual(expected)
 	end)
 
 	it("nunca deja efectivo negativo ni crea dinero al quebrar", function()
@@ -204,7 +207,12 @@ describe("Bankruptcy.charge", function()
 		expect(a.status).toBe("Ghost")
 		expect(a.cash).toBe(0)
 		expect(b.cash).toBe(Economy.startingCash)
-		expect(events).toEqual({ { type = "BankruptcyDeclared", playerId = a.id } })
+		-- Sin acreedor el banco no cobra, pero la partida termina igualmente (R11).
+		local expected: { Types.Event } = {
+			{ type = "BankruptcyDeclared", playerId = a.id },
+			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id },
+		}
+		expect(events).toEqual(expected)
 	end)
 
 	it("no cobra a un acreedor espectro", function()
@@ -264,6 +272,7 @@ describe("Property.payRent con bancarrota", function()
 		local expected: { Types.Event } = {
 			{ type = "RentPaid", index = idx, from = payer.id, to = owner.id, amount = rent },
 			{ type = "BankruptcyDeclared", playerId = payer.id, creditorId = owner.id },
+			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = owner.id },
 		}
 		expect(events).toEqual(expected)
 	end)

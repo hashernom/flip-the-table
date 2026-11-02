@@ -1,18 +1,15 @@
 --!strict
--- Reglas de propiedad: renta, compra y cobro. La subasta llega en la Tarea 4.
+-- Reglas de propiedad: renta, compra y cobro.
 local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Turn = require("./Turn")
 local Types = require("./Types")
 
 type GameState = Types.GameState
 type PlayerId = Types.PlayerId
 type Player = Types.Player
 type Event = Types.Event
-
--- El contrato fija ×2 para cada efecto dinámico. Economy no expone una clave para estos
--- factores y esta tarea no puede tocarlo; si algún día se ajustan, su sitio es Economy.
-local EFFECT_DOUBLE = 2
 
 local Property = {}
 
@@ -46,20 +43,21 @@ end
 function Property.rentMultiplier(state: GameState, index: number): number
 	local square = Board.square(state, index)
 	local multiplier = 1
-	-- Rondas finales: solo con tope de rondas (en Sin Fin maxRounds es nil).
-	-- SEAM Tarea 8: sustituir esta condición por Turn.isFinalRound(state).
-	if state.maxRounds ~= nil and state.round >= state.maxRounds - Economy.finalRoundsCount + 1 then
-		multiplier *= EFFECT_DOUBLE
+	-- Rondas finales (solo Rounds) y presión de Sin Fin: efectos del calendario de la partida.
+	if Turn.isFinalRound(state) then
+		multiplier *= Economy.finalRoundsRentMultiplier
 	end
-	-- SEAM Tarea 8: aquí entrará la presión de Sin Fin (×2 desde pressureFromRound).
+	if Turn.isPressureRound(state) then
+		multiplier *= Economy.pressureRentMultiplier
+	end
 	-- state.hotZoneId lo mantiene la Tarea 03; no hay modificador de Zona Caliente.
 	if state.hotZoneId ~= nil and square.zoneId == state.hotZoneId then
-		multiplier *= EFFECT_DOUBLE
+		multiplier *= Economy.hotZoneRentMultiplier
 	end
 	-- No se filtra por untilRound: la caducidad de los modificadores es de la Tarea 03.
 	for _, modifier in state.modifiers do
 		if modifier.kind == "Inflation" then
-			multiplier *= EFFECT_DOUBLE
+			multiplier *= Economy.inflationRentMultiplier
 		elseif modifier.kind == "Blackout" then
 			if modifier.zoneId ~= nil and modifier.zoneId == square.zoneId then
 				multiplier = 0

@@ -145,18 +145,18 @@ describe("Property.rentMultiplier", function()
 	it("duplica en las rondas finales", function()
 		local s = Fixtures.game({ players = 8 })
 		local idx = Fixtures.squareOf(s, "Property")
-		s.round = s.maxRounds - Economy.finalRoundsCount
+		s.round = (s.maxRounds :: number) - Economy.finalRoundsCount
 		expect(Property.rentMultiplier(s, idx)).toBe(1)
 		s.round += 1
 		expect(Property.rentMultiplier(s, idx)).toBe(2)
 	end)
 
 	it("no duplica en Sin Fin, sin tope de rondas", function()
-		local s = Fixtures.game({ players = 8 })
+		local s = Fixtures.game({ players = 8, endMode = "Endless" })
 		local idx = Fixtures.squareOf(s, "Property")
-		local endless: any = s
-		endless.maxRounds = nil
-		s.round = 99
+		expect(s.maxRounds).toBe(nil)
+		-- Muy por encima del tope de Rounds (12) y aún antes de la presión de Sin Fin.
+		s.round = Economy.pressureFromRound - 1
 		expect(Property.rentMultiplier(s, idx)).toBe(1)
 	end)
 
@@ -206,7 +206,7 @@ describe("Property.rentMultiplier", function()
 	it("nunca supera el máximo de × 4", function()
 		local s = Fixtures.game({ players = 8 })
 		local idx = Fixtures.squareOf(s, "Property")
-		s.round = s.maxRounds
+		s.round = s.maxRounds :: number
 		addModifier(s, { kind = "Inflation", untilRound = 99 })
 		addModifier(s, { kind = "Inflation", untilRound = 99 })
 		s.hotZoneId = zoneIdOf(s, idx)

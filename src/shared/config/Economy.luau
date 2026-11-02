@@ -15,6 +15,14 @@ return {
 	maxBuildingLevel = 3,
 	rounds = { S = 20, M = 15, L = 12 },
 	finalRoundsCount = 2,
+	-- Multiplicadores de los efectos dinámicos de renta. Se aplican al producto y el total
+	-- queda acotado por maxRentMultiplier.
+	finalRoundsRentMultiplier = 2,
+	pressureRentMultiplier = 2,
+	inflationRentMultiplier = 2,
+	hotZoneRentMultiplier = 2,
+	-- Sin Fin: desde esta ronda la Salida no paga y la renta se duplica.
+	pressureFromRound = 30,
 	hotZoneInterval = 3,
 	legendaryCooldownRounds = 3,
 	seconds = {
