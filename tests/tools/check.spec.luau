@@ -12,6 +12,16 @@ local FORBIDDEN_SAMPLES = {
 	'Instance.new("Part")',
 	"task.wait()",
 	"Random.new()",
+	"game",
+	'game["Players"]',
+	"Instance",
+	"Random",
+	"task",
+	"tick()",
+	"wait()",
+	"math.random()",
+	"os.time()",
+	"os.clock()",
 }
 
 local function withSample(source: string, fn: () -> ())
@@ -43,6 +53,12 @@ describe("pureRules", function()
 
 	it("ignora las menciones en comentarios", function()
 		withSample("-- no usa workspace ni task.wait\nreturn 1\n", function()
+			expect(pureRules({ SAMPLE })).toEqual({})
+		end)
+	end)
+
+	it("ignora las menciones dentro de textos", function()
+		withSample("local a = \"game.over\"\nlocal b = 'task.wait'\nreturn a .. b\n", function()
 			expect(pureRules({ SAMPLE })).toEqual({})
 		end)
 	end)

@@ -61,6 +61,7 @@
 - [ ] Máximo 10 acciones por segundo por jugador; el resto se descarta.
 - [ ] Nunca se confía en un `playerId` enviado por el cliente: se usa el `Player` del remoto.
 
+- [ ] **Paso 0:** Añadir a `tools/check` un segundo pase de `luau-lsp analyze` para `src/server` y `src/client`, con definiciones de Roblox y `sourcemap.json`. `src/shared`, `tests` y `tools` siguen en `--platform=standard`: ese pase es lo que impide usar globales de Roblox en el motor.
 - [ ] **Paso 1: Escribir las pruebas**
 
 ```luau

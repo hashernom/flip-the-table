@@ -101,6 +101,16 @@ describe("Boards", function()
 				expect(zoneCount).toBe(expected.zones)
 			end)
 
+			it("ordena las zonas siguiendo la ruta", function()
+				expect(#board.zoneOrder).toBe(expected.zones)
+				local previous = 0
+				for _, zoneId in board.zoneOrder do
+					local first = board.zones[zoneId][1]
+					expect(first > previous).toBeTruthy()
+					previous = first
+				end
+			end)
+
 			it("sube los precios de 60 a 400 a lo largo de la ruta", function()
 				local previous = 0
 				local last = 0

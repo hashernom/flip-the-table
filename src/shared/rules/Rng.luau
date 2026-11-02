@@ -11,6 +11,10 @@ local LOW_BITS = 65536
 
 local Rng = {}
 
+local function isFiniteInteger(value: number): boolean
+	return value == value and value ~= math.huge and value ~= -math.huge and value == math.floor(value)
+end
+
 -- Multiplica por partes: el producto directo superaría los 53 bits de precisión de un número.
 local function advance(rng: RngState): number
 	local high = math.floor(rng.seed / LOW_BITS)
@@ -28,11 +32,11 @@ function Rng.new(seed: number): RngState
 end
 
 function Rng.force(rng: RngState, values: { number })
-	rng.forced = table.clone(values)
+	rng.forced = if #values > 0 then table.clone(values) else nil
 end
 
 function Rng.int(rng: RngState, min: number, max: number): number
-	if min > max then
+	if not isFiniteInteger(min) or not isFiniteInteger(max) or min > max then
 		error(`Rng.int: rango no válido [{min}, {max}]`, 2)
 	end
 	local forced = rng.forced
@@ -40,6 +44,9 @@ function Rng.int(rng: RngState, min: number, max: number): number
 		local value = table.remove(forced, 1) :: number
 		if #forced == 0 then
 			rng.forced = nil
+		end
+		if not isFiniteInteger(value) or value < min or value > max then
+			error(`Rng.int: el valor forzado {value} está fuera de [{min}, {max}]`, 2)
 		end
 		return value
 	end

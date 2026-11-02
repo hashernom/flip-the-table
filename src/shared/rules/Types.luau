@@ -45,6 +45,8 @@ export type Board = {
 	sizeId: SizeId,
 	squares: { Square },
 	zones: { [string]: { number } },
+	-- Zonas en orden de ruta. Usar esta lista al elegir con Rng: un diccionario no tiene orden estable.
+	zoneOrder: { string },
 }
 
 export type PropertyState = {

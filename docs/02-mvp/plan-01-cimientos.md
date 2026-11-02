@@ -53,14 +53,14 @@
 - Produce: `src/shared` en `ReplicatedStorage.Shared`, `src/server` en `ServerScriptService.Server`, `src/client` en `StarterPlayer.StarterPlayerScripts.Client`.
 
 **Criterios de aceptación:**
-- [ ] `rojo build -o build/game.rbxl` genera el archivo sin errores.
-- [ ] `rokit.toml` fija la versión exacta de cada herramienta.
-- [ ] `build/` queda ignorado por git.
+- [x] `rojo build -o build/game.rbxl` genera el archivo sin errores.
+- [x] `rokit.toml` fija la versión exacta de cada herramienta.
+- [x] `build/` queda ignorado por git.
 
-- [ ] **Paso 1:** Ejecutar `git init` en la raíz; crear los archivos.
-- [ ] **Paso 2:** Ejecutar `rokit add rojo-rbx/rojo`, `rokit add lune-org/lune`, `rokit add Kampfkarren/selene`, `rokit add JohnnyMorganz/StyLua` y `rokit add JohnnyMorganz/luau-lsp`.
-- [ ] **Paso 3:** Ejecutar `rojo build -o build/game.rbxl`. Esperado: archivo creado y código de salida 0.
-- [ ] **Paso 4:** Hacer commit, con `docs/` y `CLAUDE.md` incluidos: `chore: configurar repositorio y herramientas`.
+- [x] **Paso 1:** Ejecutar `git init` en la raíz; crear los archivos.
+- [x] **Paso 2:** Ejecutar `rokit add rojo-rbx/rojo`, `rokit add lune-org/lune`, `rokit add Kampfkarren/selene`, `rokit add JohnnyMorganz/StyLua` y `rokit add JohnnyMorganz/luau-lsp`.
+- [x] **Paso 3:** Ejecutar `rojo build -o build/game.rbxl`. Esperado: archivo creado y código de salida 0.
+- [x] **Paso 4:** Hacer commit, con `docs/` y `CLAUDE.md` incluidos: `chore: configurar repositorio y herramientas`.
 
 ### Task 2: Arnés de pruebas
 
@@ -74,11 +74,11 @@
 - Produce: `lune run tests/run [filtro]`, que ejecuta `tests/**/*.spec.luau` y termina con 1 si algo falla.
 
 **Criterios de aceptación:**
-- [ ] Una prueba correcta da código de salida 0.
-- [ ] Una prueba fallida da código de salida 1 y muestra su nombre.
-- [ ] El filtro ejecuta solo los archivos cuyo nombre lo contiene.
+- [x] Una prueba correcta da código de salida 0.
+- [x] Una prueba fallida da código de salida 1 y muestra su nombre.
+- [x] El filtro ejecuta solo los archivos cuyo nombre lo contiene.
 
-- [ ] **Paso 1: Escribir la prueba**
+- [x] **Paso 1: Escribir la prueba**
 
 ```luau
 describe("expect", function()
@@ -91,11 +91,11 @@ describe("expect", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run harness`. Esperado: falla porque aún no existe el arnés.
-- [ ] **Paso 3:** Implementar `tests/harness.luau` y `tests/run.luau`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS, código 0.
-- [ ] **Paso 5:** Añadir temporalmente `expect(1).toBe(2)` y comprobar que el código es 1; retirarlo.
-- [ ] **Paso 6:** Hacer commit: `test: añadir arnés de pruebas con Lune`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run harness`. Esperado: falla porque aún no existe el arnés.
+- [x] **Paso 3:** Implementar `tests/harness.luau` y `tests/run.luau`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS, código 0.
+- [x] **Paso 5:** Añadir temporalmente `expect(1).toBe(2)` y comprobar que el código es 1; retirarlo.
+- [x] **Paso 6:** Hacer commit: `test: añadir arnés de pruebas con Lune`.
 
 ### Task 3: Azar determinista
 
@@ -109,12 +109,12 @@ end)
 - Produce: `Rng.new(seed: number): RngState`, `Rng.int(rng: RngState, min: number, max: number): number`, `Rng.pick<T>(rng: RngState, list: { T }): T`, `Rng.shuffle<T>(rng: RngState, list: { T }): { T }`, `Rng.force(rng: RngState, values: { number })`.
 
 **Criterios de aceptación:**
-- [ ] Misma semilla, misma secuencia.
-- [ ] El estado es una tabla simple, serializable.
-- [ ] `Rng.force` permite fijar los dados en las pruebas.
-- [ ] `Rng.int` con `min > max` lanza un error claro.
+- [x] Misma semilla, misma secuencia.
+- [x] El estado es una tabla simple, serializable.
+- [x] `Rng.force` permite fijar los dados en las pruebas.
+- [x] `Rng.int` con `min > max` lanza un error claro.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("repite la secuencia con la misma semilla", function()
@@ -137,11 +137,11 @@ it("rechaza un rango invertido", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Rng`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar con un generador congruencial: `seed = (seed * 1103515245 + 12345) % 2^31`; usar los bits altos para el rango.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Rng`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar con un generador congruencial: `seed = (seed * 1103515245 + 12345) % 2^31`; usar los bits altos para el rango.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** Ejecutar el módulo en Studio con `execute_luau` del MCP de Roblox y comparar los 10 primeros valores de la semilla 42 con los de Lune. Esperado: iguales.
-- [ ] **Paso 6:** Hacer commit: `feat: añadir azar determinista`.
+- [x] **Paso 6:** Hacer commit: `feat: añadir azar determinista`.
 
 ### Task 4: Tipos y datos base
 
@@ -156,12 +156,12 @@ end)
 - Produce: `Boards.forPlayerCount(n: number): SizeId`, `Boards.get(sizeId: SizeId): Board`, `Economy` con los valores de la arquitectura.
 
 **Criterios de aceptación:**
-- [ ] Los tres tableros cumplen la tabla de composición de la arquitectura.
-- [ ] La casilla 1 siempre es `Start`.
-- [ ] Toda zona tiene 3 propiedades y su precio crece a lo largo de la ruta, de 60 a 400.
-- [ ] El tablero S es un prefijo lógico de los barrios: M y L añaden Puerto y Zona Alta sin renombrar zonas de Centro.
+- [x] Los tres tableros cumplen la tabla de composición de la arquitectura.
+- [x] La casilla 1 siempre es `Start`.
+- [x] Toda zona tiene 3 propiedades y su precio crece a lo largo de la ruta, de 60 a 400.
+- [x] El tablero S es un prefijo lógico de los barrios: M y L añaden Puerto y Zona Alta sin renombrar zonas de Centro.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 local expected = {
@@ -178,10 +178,10 @@ it("elige el tamaño según los jugadores", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Boards`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los tipos y los datos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir tipos y datos de tablero`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Boards`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los tipos y los datos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir tipos y datos de tablero`.
 
 ### Task 5: Comprobación global
 
@@ -195,11 +195,11 @@ end)
 - Produce: `pureRules` devuelve los archivos de `src/shared/rules` que mencionan `game.`, `workspace`, `Instance.`, `task.` o `Random.`.
 
 **Criterios de aceptación:**
-- [ ] Un archivo de `rules` con `workspace` hace fallar la comprobación y se nombra.
-- [ ] Sin problemas, el comando termina con código 0.
+- [x] Un archivo de `rules` con `workspace` hace fallar la comprobación y se nombra.
+- [x] Sin problemas, el comando termina con código 0.
 
-- [ ] **Paso 1:** Escribir la prueba: `pureRules` con un archivo de ejemplo que contiene `workspace.Gravity` lo devuelve; con `Rng.luau`, devuelve una lista vacía.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run check`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `tools/check.luau`.
-- [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
-- [ ] **Paso 5:** Hacer commit: `chore: añadir comprobación global`.
+- [x] **Paso 1:** Escribir la prueba: `pureRules` con un archivo de ejemplo que contiene `workspace.Gravity` lo devuelve; con `Rng.luau`, devuelve una lista vacía.
+- [x] **Paso 2:** Ejecutar `lune run tests/run check`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `tools/check.luau`.
+- [x] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
+- [x] **Paso 5:** Hacer commit: `chore: añadir comprobación global`.

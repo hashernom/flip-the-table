@@ -61,6 +61,7 @@ function Boards.get(sizeId: SizeId): Board
 
 	local squares: { Square } = { { index = 1, kind = "Start", barrioId = "Centro" } }
 	local zones: { [string]: { number } } = {}
+	local zoneOrder: { string } = {}
 
 	for position, block in blocks do
 		local price = priceForZone(position, #blocks)
@@ -77,13 +78,14 @@ function Boards.get(sizeId: SizeId): Board
 			table.insert(indices, index)
 		end
 		zones[block.zoneId] = indices
+		table.insert(zoneOrder, block.zoneId)
 		for _, kind: SquareKind in block.specials do
 			local index = #squares + 1
 			squares[index] = { index = index, kind = kind, barrioId = block.barrioId }
 		end
 	end
 
-	return { sizeId = sizeId, squares = squares, zones = zones }
+	return { sizeId = sizeId, squares = squares, zones = zones, zoneOrder = zoneOrder }
 end
 
 return Boards

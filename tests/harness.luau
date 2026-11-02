@@ -81,6 +81,9 @@ function Harness.expect(value: any)
 	end
 
 	function matchers.toThrow()
+		if type(value) ~= "function" then
+			error(`toThrow necesita una función, se obtuvo {show(value)}`, 2)
+		end
 		local ok = pcall(value)
 		if ok then
 			error("se esperaba un error y no se lanzó ninguno", 2)

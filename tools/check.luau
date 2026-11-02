@@ -7,6 +7,9 @@ local pureRules = require("./pure-rules")
 
 local RULES_DIR = "src/shared/rules"
 local CODE_DIRS = { "src", "tests", "tools" }
+-- src/server y src/client quedan fuera: la plataforma estándar es lo que garantiza que el
+-- código compartido no use globales de Roblox. El plan 04 añade un segundo pase para ellos.
+local PURE_DIRS = { "src/shared", "tests", "tools" }
 
 local failed = {}
 
@@ -34,7 +37,7 @@ end
 
 run("Formato (StyLua)", "stylua", { "--check", table.unpack(CODE_DIRS) })
 run("Lint (Selene)", "selene", CODE_DIRS)
-run("Tipos (luau-lsp)", "luau-lsp", { "analyze", "--platform=standard", table.unpack(CODE_DIRS) })
+run("Tipos (luau-lsp)", "luau-lsp", { "analyze", "--platform=standard", table.unpack(PURE_DIRS) })
 run("Pruebas", "lune", { "run", "tests/run" })
 
 local offenders = pureRules(luauFiles(RULES_DIR, {}))

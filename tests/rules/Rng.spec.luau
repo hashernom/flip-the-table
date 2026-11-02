@@ -59,6 +59,46 @@ describe("Rng", function()
 		end).toThrow()
 	end)
 
+	it("mantiene la secuencia de referencia de la semilla 42", function()
+		local r = Rng.new(42)
+		local values = {}
+		for i = 1, 10 do
+			values[i] = Rng.int(r, 1, 1000)
+		end
+		expect(values).toEqual({ 583, 520, 466, 778, 423, 34, 418, 809, 613, 715 })
+	end)
+
+	it("rechaza límites que no son enteros finitos", function()
+		for _, bounds in { { 0 / 0, 6 }, { 1, 0 / 0 }, { 1, math.huge }, { 1.5, 3.5 } } do
+			expect(function()
+				Rng.int(Rng.new(1), bounds[1], bounds[2])
+			end).toThrow()
+		end
+	end)
+
+	it("rechaza un valor forzado fuera de rango", function()
+		local r = Rng.new(1)
+		Rng.force(r, { 99 })
+		expect(function()
+			Rng.int(r, 1, 6)
+		end).toThrow()
+	end)
+
+	it("rechaza un valor forzado que no es entero", function()
+		local r = Rng.new(1)
+		Rng.force(r, { 2.5 })
+		expect(function()
+			Rng.int(r, 1, 6)
+		end).toThrow()
+	end)
+
+	it("trata una lista forzada vacía como azar normal", function()
+		local r = Rng.new(42)
+		Rng.force(r, {})
+		expect(r.forced).toBe(nil)
+		expect(Rng.int(r, 1, 1000)).toBe(583)
+	end)
+
 	it("rechaza una semilla no finita", function()
 		expect(function()
 			Rng.new(math.huge)

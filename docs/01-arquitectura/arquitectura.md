@@ -86,6 +86,8 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `Awards` | Premios del final | 03 |
 | `View` | Vista filtrada por jugador | 04 |
 
+`Board.zoneOrder` da las zonas en orden de ruta. Al elegir una zona con `Rng`, se usa esa lista: un diccionario no tiene orden estable y rompería el determinismo. `tools/pure-rules` también prohíbe `math.random`, `os.time` y `os.clock` en el motor.
+
 ### Datos: `src/shared/config`
 
 `Economy`, `Boards`, `Cards`, `Perks`, `Squares` y `Scenes`. Todo número ajustable vive aquí, nunca en la lógica.
