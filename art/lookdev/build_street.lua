@@ -101,6 +101,8 @@ end
 local shops = { "CAFÉ", "HOTEL", "FARMACIA", "BAR", "BANCO", "CINE", "LIBRERÍA", "TALLER", "FLORISTA", "PANADERÍA" }
 local widths = { 30, 26, 32, 24, 28 }
 local heights = { 19, 31, 22, 38, 25 }
+-- Cuatro recetas de fachada: sin esto la manzana es el mismo edificio cinco veces.
+local styles = { "toldos", "balcones", "piedra", "balcones", "toldos" }
 local bricks = { "BrickRedCC0", "BrickWarmCC0" }
 
 -- Una hilera continua: el siguiente edificio empieza donde acaba el anterior.
@@ -171,13 +173,34 @@ for _, row in { { x = -35, facing = 1 }, { x = 35, facing = -1 } } do
 			piece(dressing, Vector3.new(6.2, 0.7, 6.2), Vector3.new(centerX - row.facing * 2, tankY + 3.1, centerZ + 3), Color3.fromRGB(70, 54, 42), Enum.Material.Wood)
 		end
 
+		-- Receta de fachada, para que las dos hileras no sean un patrón.
+		local style = styles[index]
+		if style == "piedra" then
+			-- La fachada deja de ser ladrillo: cambia el edificio por completo.
+			piece(block, Vector3.new(2.02, height, width), Vector3.new(centerX, height / 2, centerZ), Color3.fromRGB(196, 190, 178), Enum.Material.Concrete, "ConcreteCC0")
+			for _, side in { -1, 1 } do
+				piece(block, Vector3.new(2.6, height, 1.6), Vector3.new(centerX + row.facing * 0.3, height / 2, centerZ + side * (width / 2 - 0.8)), Color3.fromRGB(214, 208, 196), Enum.Material.Concrete, "ConcreteCC0")
+			end
+		elseif style == "balcones" then
+			for floor = 1, 3 do
+				local y = 10.5 + floor * 5 - 1.6
+				piece(block, Vector3.new(2.2, 0.3, width * 0.45), Vector3.new(centerX + row.facing * 2.1, y, centerZ), Color3.fromRGB(214, 210, 200), Enum.Material.Concrete, "ConcreteCC0")
+				piece(block, Vector3.new(0.12, 0.9, width * 0.45), Vector3.new(centerX + row.facing * 3.1, y + 0.6, centerZ), Color3.fromRGB(46, 48, 52), Enum.Material.Metal)
+			end
+		else
+			piece(block, Vector3.new(2.6, 0.35, width - 6), Vector3.new(centerX + row.facing * 2.3, 6.0, centerZ), Color3.fromRGB(148, 44, 62), Enum.Material.Fabric)
+			for floor = 1, 2 do
+				piece(block, Vector3.new(2.8, 0.4, width + 0.2), Vector3.new(centerX + row.facing * 0.35, 10.5 + floor * 10 - 3, centerZ), Color3.fromRGB(224, 220, 210), Enum.Material.Concrete, "ConcreteCC0")
+			end
+		end
+
 		cursor += width
 	end
 end
 
 -- Mobiliario de calle
 for i = 0, 5 do
-	piece(dressing, Vector3.new(18, 0.08, 1.0), Vector3.new(0, 0.06, -14 + i * 3.0), Color3.fromRGB(228, 228, 224), Enum.Material.SmoothPlastic)
+	piece(dressing, Vector3.new(16, 0.08, 0.9), Vector3.new(0, 0.06, -14 + i * 3.0), Color3.fromRGB(198, 198, 194), Enum.Material.SmoothPlastic)
 end
 for _, z in { -40, 40 } do
 	piece(dressing, Vector3.new(0.9, 1.4, 0.9), Vector3.new(-16.2, 1.1, z), Color3.fromRGB(178, 40, 40), Enum.Material.Metal)
@@ -185,11 +208,11 @@ for _, z in { -40, 40 } do
 	piece(dressing, Vector3.new(1.2, 1.6, 1.2), Vector3.new(19.5, 1.2, z), Color3.fromRGB(70, 84, 70), Enum.Material.Metal)
 	piece(dressing, Vector3.new(4.2, 0.35, 1.0), Vector3.new(16.5, 1.1, z + 8), Color3.fromRGB(96, 66, 42), Enum.Material.Wood)
 	piece(dressing, Vector3.new(1.6, 1.2, 1.6), Vector3.new(-17.5, 0.9, z - 14), Color3.fromRGB(78, 78, 74), Enum.Material.Concrete, "ConcreteCC0")
-	piece(dressing, Vector3.new(0.5, 3.2, 0.5), Vector3.new(-17.5, 3.2, z - 14), Color3.fromRGB(62, 48, 38), Enum.Material.Wood)
-	-- Copa con volumen: esferas, no un cubo de cartón.
-	local canopy = piece(dressing, Vector3.new(5.2, 4.6, 5.2), Vector3.new(-17.5, 6.6, z - 14), Color3.fromRGB(62, 104, 58), Enum.Material.Grass)
+	-- Copa con volumen: esferas, no un cubo de cartón. Fuera de la ruta, pegadas al bordillo.
+	piece(dressing, Vector3.new(0.5, 3.2, 0.5), Vector3.new(-21.6, 3.2, z - 14), Color3.fromRGB(62, 48, 38), Enum.Material.Wood)
+	local canopy = piece(dressing, Vector3.new(4.4, 3.9, 4.4), Vector3.new(-21.6, 6.2, z - 14), Color3.fromRGB(62, 104, 58), Enum.Material.Grass)
 	canopy.Shape = Enum.PartType.Ball
-	local side = piece(dressing, Vector3.new(3.4, 3.0, 3.4), Vector3.new(-18.9, 4.9, z - 12.9), Color3.fromRGB(52, 92, 50), Enum.Material.Grass)
+	local side = piece(dressing, Vector3.new(2.8, 2.5, 2.8), Vector3.new(-22.7, 4.7, z - 13.1), Color3.fromRGB(52, 92, 50), Enum.Material.Grass)
 	side.Shape = Enum.PartType.Ball
 end
 piece(dressing, Vector3.new(0.4, 7, 0.4), Vector3.new(-16.4, 3.5, -20), METAL, Enum.Material.Metal)
