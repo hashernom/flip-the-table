@@ -1,5 +1,6 @@
 --!strict
 -- Reglas de propiedad: renta, compra y cobro. La subasta llega en la Tarea 4.
+local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local Economy = require("../config/Economy")
 local Types = require("./Types")
@@ -136,7 +137,8 @@ function Property.buy(state: GameState, playerId: PlayerId, index: number, price
 	return { { type = "PropertyBought", playerId = playerId, index = index, price = cost } }
 end
 
--- Cobra la renta de una casilla pisada. R9: un espectro no paga ni cobra renta.
+-- Cobra la renta de una casilla pisada. R9: un espectro no paga ni cobra renta. La deuda se
+-- resuelve con Bankruptcy.charge: si el pagador no puede cubrirla, vende bienes o queda Ghost.
 function Property.payRent(state: GameState, payerId: PlayerId, index: number): { Event }
 	local ownerId = propertyAt(state, index).ownerId
 	if not ownerId or ownerId == payerId then
@@ -148,11 +150,19 @@ function Property.payRent(state: GameState, payerId: PlayerId, index: number): {
 		return {}
 	end
 	local amount = Property.rentFor(state, index)
-	-- SEAM Tarea 7: sustituir este traspaso directo por Bankruptcy.charge(state, payerId, amount,
-	-- ownerId); la deuda se resuelve vendiendo bienes y nunca puede crear dinero.
-	payer.cash -= amount
-	owner.cash += amount
-	return { { type = "RentPaid", index = index, from = payerId, to = ownerId, amount = amount } }
+	-- R16: una renta de 0 no emite RentPaid.
+	if amount == 0 then
+		return {}
+	end
+	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
+	table.insert(events, 1, {
+		type = "RentPaid",
+		index = index,
+		from = payerId,
+		to = ownerId,
+		amount = amount,
+	})
+	return events
 end
 
 return Property

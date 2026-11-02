@@ -246,9 +246,9 @@ describe("Property.payRent", function()
 		local idx = Fixtures.squareOf(s, "Property")
 		Fixtures.give(s, a.id, idx)
 		addModifier(s, { kind = "Haunt", index = idx, untilRound = 99 })
-		expect(Property.payRent(s, b.id, idx)).toEqual({
-			{ type = "RentPaid", index = idx, from = b.id, to = a.id, amount = 0 },
-		})
+		expect(Property.rentFor(s, idx)).toBe(0)
+		-- R16: una renta de 0 no emite RentPaid.
+		expect(Property.payRent(s, b.id, idx)).toEqual({})
 		expect(a.cash).toBe(Economy.startingCash)
 		expect(b.cash).toBe(Economy.startingCash)
 	end)
