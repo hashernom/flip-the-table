@@ -42,6 +42,8 @@ describe("Roll", function()
 	it("registra la tirada y deja el turno en AwaitEnd", function()
 		local s = Fixtures.game({ players = 4 })
 		local id = inTurn(s).id
+		-- 3+4 desde la Salida cae en la propiedad 8; en propia, la Tarea 3 cierra en AwaitEnd.
+		Fixtures.give(s, id, 8)
 		Fixtures.dice(s, 3, 4)
 		local result = Engine.apply(s, id, { type = "Roll" })
 		if not result.ok then
@@ -265,7 +267,8 @@ describe("EndTurn", function()
 	it("cierra el turno después de moverse", function()
 		local s = Fixtures.game({ players = 2 })
 		local id = inTurn(s).id
-		Fixtures.dice(s, 1, 1)
+		-- 1+3 desde la Salida cae en el Spin: una casilla especial también cierra en AwaitEnd.
+		Fixtures.dice(s, 1, 3)
 		expect(Engine.apply(s, id, { type = "Roll" }).ok).toBe(true)
 		expect(s.phase).toBe("AwaitEnd")
 		expect(Engine.apply(s, id, { type = "EndTurn" }).ok).toBe(true)
