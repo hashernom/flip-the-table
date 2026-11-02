@@ -1,0 +1,7 @@
+build/
+sourcemap.json
+.superpowers/
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
