@@ -136,7 +136,7 @@ end
 
 -- Motivo por el que la casilla de una carta de propiedad no vale, o nil. Solo comprueba que sea
 -- una propiedad con dueño: cada carta añade sus propias restricciones.
-local function propertyTargetReason(state: GameState, index: any, cardId: string): string?
+local function propertyTargetReason(state: GameState, index: number?, cardId: string): string?
 	if type(index) ~= "number" or index % 1 ~= 0 then
 		return `La carta {cardId} necesita una propiedad`
 	end
@@ -363,7 +363,9 @@ local function backstab(state: GameState, player: Player, _target: Player?, even
 	table.remove(state.pacts, index)
 	player.cash += ownDeposit
 	playerOf(state, partnerId).cash += partnerDeposit
-	player.traitorUntilRound = state.round + Economy.pact.traitorRounds
+	-- Misma convención que los modificadores: untilRound es la última ronda activa, así que una
+	-- marca de 3 rondas creada en R llega hasta R+2 y cubre R, R+1 y R+2.
+	player.traitorUntilRound = state.round + Economy.pact.traitorRounds - 1
 	local stats = state.stats[player.id]
 	stats.pactsBroken = (stats.pactsBroken or 0) + 1
 	table.insert(events, { type = "PactBroken", pactId = pact.id, playerId = player.id })

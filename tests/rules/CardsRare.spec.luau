@@ -229,6 +229,28 @@ describe("Ladrón de Escrituras", function()
 		expect(deepCopy(s)).toEqual(before)
 	end)
 
+	it("rechaza un índice que no es una propiedad o está fuera del tablero", function()
+		local s = Fixtures.game({ players = 2 })
+		local thief = inTurn(s)
+		Fixtures.hand(s, thief.id, "DeedThief")
+		local before = deepCopy(s)
+		-- La Salida no es una propiedad.
+		expect(rejected(Engine.apply(s, thief.id, { type = "PlayCard", cardId = "DeedThief", index = 1 }))).toBe(
+			"La casilla indicada no es una propiedad"
+		)
+		-- Una casilla posterior a la última tampoco.
+		expect(
+			rejected(
+				Engine.apply(
+					s,
+					thief.id,
+					{ type = "PlayCard", cardId = "DeedThief", index = #s.board.squares + 1 }
+				)
+			)
+		).toBe("La casilla indicada no es una propiedad")
+		expect(deepCopy(s)).toEqual(before)
+	end)
+
 	it("rechaza un robo que completaría el grupo del ladrón", function()
 		local s = Fixtures.game({ players = 2 })
 		local thief = inTurn(s)
@@ -303,7 +325,13 @@ describe("Puñalada", function()
 		-- Nadie paga: cada parte recupera su garantía y el total de efectivo no cambia.
 		expect(caster.cash).toBe(Economy.startingCash)
 		expect(partner.cash).toBe(Economy.startingCash)
-		expect(caster.traitorUntilRound).toBe(s.round + Economy.pact.traitorRounds)
+		local traitorUntilRound = caster.traitorUntilRound
+		if not traitorUntilRound then
+			error("la marca de Traidor no se escribió", 2)
+		end
+		-- La marca dura exactamente 3 rondas contando la actual: untilRound es la última activa.
+		expect(traitorUntilRound - s.round + 1).toBe(3)
+		expect(traitorUntilRound).toBe(s.round + Economy.pact.traitorRounds - 1)
 		expect(partner.traitorUntilRound).toBe(nil)
 		expect(caster.hand).toEqual({})
 		expect(s.stats[caster.id].pactsBroken).toBe(1)
