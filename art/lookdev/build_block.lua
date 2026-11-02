@@ -188,10 +188,12 @@ for i = 1, 34 do
 	end
 end
 
--- Sombras marcadas: menos difuminado y sol algo más bajo.
-Lighting.ClockTime = 8.2
-Lighting.ShadowSoftness = 0.15
-Lighting.ExposureCompensation = -0.12
+-- Sombras marcadas. Ojo: además de esto hace falta Lighting.LightingStyle = Realistic, que solo
+-- se puede poner a mano en Explorer > Lighting > Properties, sección Appearance.
+Lighting.ClockTime = 9.4
+Lighting.ShadowSoftness = 0.18
+Lighting.ExposureCompensation = -0.1
+Lighting.GlobalShadows = true
 
 local atmosphere = Lighting:FindFirstChildOfClass("Atmosphere")
 if atmosphere then

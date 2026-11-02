@@ -77,24 +77,26 @@ La luz sola lleva la escena de gris plano a decente. El salto grande son los ass
 Esto es, literalmente, las tareas 1 a 3 de la subfase 06 más el plan 07. La captura
 `art/render/lookdev-luz-suave.jpg` es el máximo alcanzable **sin** ninguno de esos cuatro.
 
-## Bloqueante conocido: no salen sombras
+## Cómo se encienden las sombras (resuelto)
 
-En la prueba de la manzana (2026-11-02) **no aparece ni una sola sombra arrojada**: ni los
-edificios sobre la calle, ni las farolas, ni la ficha. No es cuestión de ángulo, de
-`ShadowSoftness` ni de intensidad: se probó a 0,15 y a 0, y con el sol de frente y de lado.
+En los places con **luz unificada** ya no existe `Lighting.Technology`: el motor va en `Future` por
+defecto y lo que queda por decidir es el estilo. La propiedad es **`Lighting.LightingStyle`**:
 
-`Lighting.Technology` **no se puede leer ni escribir por script** (exige capacidad `RobloxScript`),
-así que no se puede comprobar desde aquí. Hay dos causas posibles y las dos son ajustes manuales
-de Studio:
+| Valor | Qué hace |
+| --- | --- |
+| `Soft` | El aspecto antiguo: sin sombras dinámicas de piezas. |
+| `Realistic` | Sombreado físico y sombras arrojadas. Es el que hay que usar. |
 
-1. **`Lighting` > Properties > Technology** distinto de `Future`. Con `Voxel` o `Legacy` no hay
-   sombras dinámicas de piezas.
-2. **Calidad de renderizado de Studio** baja: *File > Studio Settings > Rendering > Quality Level*.
-   Si está por debajo del máximo, el viewport no dibuja sombras aunque el juego las tenga.
+Está en **Explorer → Lighting → Properties**, sección *Appearance*. Es un ajuste manual: la
+propiedad no es escribible por script, igual que `Technology`.
 
-Hasta que una de las dos se suba, cualquier captura de este banco de pruebas va a parecer plana y
-**no sirve para juzgar la iluminación**. Los valores de este documento están puestos para cuando
-las sombras funcionen.
+Síntoma de tenerlo en `Soft`: la escena se ve plana, sin una sola sombra arrojada, por mucho que
+`GlobalShadows` esté activado y `ShadowSoftness` a cero. Con `Realistic` aparecen las sombras de
+edificios, farolas y vehículos.
+
+Ajustes que funcionaron con sombras reales: `ClockTime` 9,4, `Brightness` 2,45, `Ambient` 44/48/60,
+`ShadowSoftness` 0,18, sol con elevación de unos 48°, y la `Atmosphere` a 0,26 de densidad para que
+la bruma no se coma las sombras lejanas.
 
 ## Con assets: hasta dónde llega
 
