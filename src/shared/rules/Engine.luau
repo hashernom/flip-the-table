@@ -906,12 +906,15 @@ function Engine.timeout(state: GameState): { Event }
 		settleTurnPhase(state)
 		return events
 	elseif phase == "GhostTurn" then
-		-- El reloj del espectro cierra su turno sin actuar: ni sabotaje ni resurrección.
+		-- El reloj del espectro cierra el turno sin acción, pero resucita si ya acumuló el umbral
+		-- de sabotajes (R-P48).
 		local player = state.players[state.turnIndex]
 		if not player then
 			return {}
 		end
-		return endTurn(state, player.id, { type = "EndTurn" })
+		local events = Comeback.ghostTimeout(state, player.id)
+		append(events, endTurn(state, player.id, { type = "EndTurn" }))
+		return events
 	elseif phase == "Market" then
 		-- El reloj del Mercado es un pase: se cierra sin comprar.
 		return Squares.marketTimeout(state)

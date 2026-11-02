@@ -200,6 +200,9 @@ function Property.chargeRent(
 	if amount == 0 then
 		return {}
 	end
+	-- R-P50: el liderazgo de la Furia se lee antes de mover el dinero, así la misma renta cuenta
+	-- igual sin depender de si el cobro cambia la clasificación.
+	local leaderBefore = Comeback.leaderId(state)
 	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
 	table.insert(events, 1, {
 		type = "RentPaid",
@@ -208,9 +211,9 @@ function Property.chargeRent(
 		to = ownerId,
 		amount = amount,
 	})
-	-- Tarea 9: una renta pagada por quien no lidera suma Furia. Va después del cobro, así que la
-	-- clasificación ya refleja el pago. Es el único camino de renta: el directo y el rebotado.
-	for _, event in Comeback.onRentPaid(state, payerId) do
+	-- Tarea 9: una renta pagada por quien no lidera suma Furia. Es el único camino de renta: el
+	-- directo y el rebotado.
+	for _, event in Comeback.onRentPaid(state, payerId, leaderBefore) do
 		table.insert(events, event)
 	end
 	return events

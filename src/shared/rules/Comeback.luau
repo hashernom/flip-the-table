@@ -1,8 +1,8 @@
 --!strict
 -- Remontada: Furia al pagar rentas y turno corto del espectro (R-P43). Un espectro roba una
--- carta de sabotaje o embruja una propiedad para que no cobre durante una ronda; con
--- Economy.ghost.sabotagesToRevive sabotajes acumulados, el turno se emplea en resucitar en la
--- Salida con Economy.ghost.reviveCash.
+-- carta de sabotaje o embruja una propiedad para que no cobre durante una ronda; al acumular
+-- Economy.ghost.sabotagesToRevive sabotajes resucita en la Salida con Economy.ghost.reviveCash
+-- (R-P48: en la misma acción que suma el tercero, o al agotarse el reloj si ya lo tenía).
 --
 -- Dependencias: Deck, Economy, Rng, Score y Types. No require Property ni Turn para no cerrar
 -- ciclos: Property llama a Comeback.onRentPaid, Turn llama a Comeback.beginGhostTurn y Engine es
@@ -20,11 +20,9 @@ type Event = Types.Event
 type ApplyResult = Types.ApplyResult
 
 -- Forma que entiende Comeback para la acción GhostAct. Engine la construye a partir de su
--- Action: { kind = "Sabotage" } o { kind = "Haunt", index }.
-export type GhostAction = {
-	kind: string,
-	index: number?,
-}
+-- Action: { kind = "Sabotage" } o { kind = "Haunt", index }. La validación de datos en tiempo de
+-- ejecución sigue en ghostActReason: la acción llega desde fuera del tipo.
+export type GhostAction = { kind: "Sabotage" } | { kind: "Haunt", index: number }
 
 -- Las tres cartas de sabotaje de la ficha: las comunes Fine y Shove y la rara Demolition. Por esta
 -- vía solo se entregan en el turno del espectro o con Alma en Pena; un robo normal puede dar las
@@ -63,27 +61,33 @@ local function append(events: { Event }, more: { Event })
 end
 
 -- Líder de la mesa: el primer Active de la clasificación. Es el criterio de la Furia, no el de la
--- Corona (que solo se mueve al empezar ronda).
-local function leaderOf(state: GameState): Player?
+-- Corona (que solo se mueve al empezar ronda). Público para que Property lo lea antes de mover el
+-- dinero (R-P50).
+function Comeback.leaderId(state: GameState): PlayerId?
 	for _, id in Score.ranking(state) do
 		local player = findPlayer(state, id)
 		if player and player.status == "Active" then
-			return player
+			return id
 		end
 	end
 	return nil
 end
 
--- Entrega una carta de sabotaje al azar entre Fine, Shove y Demolition. No toca player.sabotages:
--- el contador mide acciones de sabotaje y las 2 cartas de Alma en Pena no son acciones.
-function Comeback.giveSabotage(state: GameState, playerId: PlayerId): { Event }
+-- Entrega una carta de sabotaje al azar entre Fine, Shove y Demolition y suma el contador. El
+-- contador mide sabotajes acumulados, no acciones (R-P49): también suman los de Alma en Pena.
+function Comeback.gainSabotage(state: GameState, playerId: PlayerId): { Event }
+	local player = playerOf(state, playerId)
+	player.sabotages += 1
+	local stats = state.stats[playerId]
+	stats.sabotages = (stats.sabotages or 0) + 1
 	return Deck.add(state, playerId, Rng.pick(state.rng, SABOTAGE_CARDS))
 end
 
 -- Furia: cada renta pagada por quien no lidera suma 1. Al llegar a Economy.furyThreshold roba una
 -- carta rara o mejor (minRarity = "Rare"), vuelve a 0 y emite FuryFilled. Lo llama
--- Property.chargeRent después del cobro, así que la clasificación ya refleja el pago.
-function Comeback.onRentPaid(state: GameState, payerId: PlayerId): { Event }
+-- Property.chargeRent después del cobro. R-P50: `leaderBefore` es el líder de la clasificación
+-- antes de mover el dinero; sin él (llamada directa) se lee la clasificación actual.
+function Comeback.onRentPaid(state: GameState, payerId: PlayerId, leaderBefore: PlayerId?): { Event }
 	local payer = playerOf(state, payerId)
 	-- R-P20/R-P21: un espectro o quien se fue ya no está en el circuito de dinero. Si la renta lo
 	-- arruinó, no cobra Furia ni roba cartas: la partida puede haber terminado y no se emiten
@@ -92,8 +96,8 @@ function Comeback.onRentPaid(state: GameState, payerId: PlayerId): { Event }
 		return {}
 	end
 	-- "Furia nunca cambia cuando el pagador es el líder": ni sube ni se dispara.
-	local leader = leaderOf(state)
-	if leader and leader.id == payerId then
+	local leaderId = leaderBefore or Comeback.leaderId(state)
+	if leaderId == payerId then
 		return {}
 	end
 	payer.fury += 1
@@ -152,13 +156,16 @@ function Comeback.ghostActReason(state: GameState, playerId: PlayerId, action: G
 	if type(action.kind) ~= "string" then
 		return "GhostAct necesita el tipo de acción"
 	end
-	if action.kind == "Sabotage" then
+	-- La acción llega desde fuera del tipo (Engine la reconstruye desde Types.Action), así que la
+	-- forma se valida en tiempo de ejecución aunque el tipo sea una unión.
+	local kind: any = action.kind
+	if kind == "Sabotage" then
 		return nil
 	end
-	if action.kind ~= "Haunt" then
-		return `Acción de espectro desconocida: {action.kind}`
+	if kind ~= "Haunt" then
+		return `Acción de espectro desconocida: {kind}`
 	end
-	return hauntReason(state, playerId, action.index)
+	return hauntReason(state, playerId, (action :: any).index)
 end
 
 -- Resurrección: vuelve Active con el capital de la ficha, en la Salida y sin sabotajes guardados.
@@ -181,21 +188,25 @@ function Comeback.ghostAct(state: GameState, playerId: PlayerId, action: GhostAc
 		return { ok = false, error = reason }
 	end
 	local player = playerOf(state, playerId)
-	-- Con los sabotajes acumulados, el turno se emplea en resucitar en vez de actuar.
+	-- Estado heredado: si ya tenía el umbral al empezar la acción, revive en vez de actuar. Es la
+	-- misma salida que aplica el reloj (R-P48).
 	if player.sabotages >= Economy.ghost.sabotagesToRevive then
 		return { ok = true, events = revive(state, player) }
 	end
 	if action.kind == "Sabotage" then
-		local stats = state.stats[playerId]
-		stats.sabotages = (stats.sabotages or 0) + 1
-		player.sabotages += 1
 		local events: { Event } = { { type = "GhostActed", playerId = playerId, kind = "Sabotage" } }
-		-- R-P6: la carta se entrega con Deck.add; si la mano está llena se descarta y el
-		-- sabotaje cuenta igual (el contador mide acciones, no cartas en la mano).
-		append(events, Comeback.giveSabotage(state, playerId))
+		-- R-P49: la carta suma el contador; si la mano está llena Deck.add la descarta pero el
+		-- sabotaje cuenta igual.
+		append(events, Comeback.gainSabotage(state, playerId))
+		-- R-P48: al acumular el tercer sabotaje se resucita en la misma acción, después de
+		-- anunciar el sabotaje y su carta.
+		if player.sabotages >= Economy.ghost.sabotagesToRevive then
+			append(events, revive(state, player))
+		end
 		return { ok = true, events = events }
 	end
-	local index = action.index :: number
+	local haunt = action :: { kind: "Haunt", index: number }
+	local index = haunt.index
 	table.insert(state.modifiers, {
 		kind = "Haunt",
 		index = index,
@@ -210,6 +221,16 @@ function Comeback.ghostAct(state: GameState, playerId: PlayerId, action: GhostAc
 	}
 end
 
+-- Reloj del turno del espectro (R-P48): no actúa, pero si ya acumuló el umbral resucita antes de
+-- que el turno termine. No emite GhostActed: no hubo acción. Lo llama Engine.timeout.
+function Comeback.ghostTimeout(state: GameState, playerId: PlayerId): { Event }
+	local player = playerOf(state, playerId)
+	if player.status ~= "Ghost" or player.sabotages < Economy.ghost.sabotagesToRevive then
+		return {}
+	end
+	return revive(state, player)
+end
+
 -- Empieza el turno de un espectro: cuenta la ronda para los premios. La llama Turn.next cuando
 -- la fase del turno es GhostTurn, también si el reloj acaba cerrando el turno sin acción.
 function Comeback.beginGhostTurn(state: GameState, playerId: PlayerId)
@@ -222,15 +243,15 @@ local function hasRestlessSoul(player: Player): boolean
 	return table.find(player.perks, RESTLESS_SOUL_PERK) ~= nil
 end
 
--- Cartas de sabotaje de Alma en Pena (R-P6), en el orden en que se entregan y con sus eventos.
--- Las llama Bankruptcy justo cuando el jugador pasa a Ghost.
+-- Cartas de sabotaje de Alma en Pena (R-P6/R-P49): suman al contador como cualquier sabotaje
+-- acumulado y se entregan con Deck.add. Las llama Bankruptcy al pasar el jugador a Ghost.
 function Comeback.grantRestlessSoul(state: GameState, playerId: PlayerId): { Event }
 	local events: { Event } = {}
 	if not hasRestlessSoul(playerOf(state, playerId)) then
 		return events
 	end
 	for _ = 1, Economy.perks.restlessSoulCards do
-		append(events, Comeback.giveSabotage(state, playerId))
+		append(events, Comeback.gainSabotage(state, playerId))
 	end
 	return events
 end

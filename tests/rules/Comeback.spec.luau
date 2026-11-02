@@ -196,6 +196,24 @@ describe("Furia", function()
 		expect(payer.fury).toBe(1)
 	end)
 
+	it("lee el liderazgo antes de mover el dinero (R-P50)", function()
+		local s = Fixtures.game({ players = 2 })
+		local payer = s.players[1]
+		local owner = s.players[2]
+		local index = propertyIndices(s)[1]
+		local price = s.board.squares[index].price :: number
+		Fixtures.give(s, owner.id, index)
+		-- El pagador lidera por 10 antes del cobro; la renta (10 % del precio) le deja por debajo.
+		owner.cash = 0
+		payer.cash = price + 10
+		expect(leaderOf(s).id).toBe(payer.id)
+
+		Property.payRent(s, payer.id, index)
+		-- Si la Furia mirara la clasificación después del cobro, subiría; se lee antes (R-P50).
+		expect(payer.fury).toBe(0)
+		expect(leaderOf(s).id).toBe(owner.id)
+	end)
+
 	it("no da Furia a quien queda en bancarrota con esa renta", function()
 		local s = Fixtures.game({ players = 3 })
 		local owner = s.players[2]
@@ -328,6 +346,28 @@ describe("turno de espectro (R-P43)", function()
 		expect(countOf(events, "GhostResurrected")).toBe(0)
 	end)
 
+	it("el reloj resucita a un espectro que ya acumuló el umbral", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = s.players[2]
+		ghost.status = "Ghost"
+		ghost.cash = 0
+		ghost.position = 5
+		ghost.sabotages = Economy.ghost.sabotagesToRevive
+		enterGhostTurn(s, ghost.id)
+
+		local events = Engine.timeout(s)
+		expect(ghost.status).toBe("Active")
+		expect(ghost.cash).toBe(Economy.ghost.reviveCash)
+		expect(ghost.position).toBe(1)
+		expect(ghost.sabotages).toBe(0)
+		expect(countOf(events, "GhostResurrected")).toBe(1)
+		-- R-P48: el reloj no actúa, solo resucita y cierra el turno.
+		expect(countOf(events, "GhostActed")).toBe(0)
+		expect(s.phase).toBe("AwaitRoll")
+		expect(inTurn(s).status).toBe("Active")
+		expect(inTurn(s).id ~= ghost.id).toBe(true)
+	end)
+
 	it("un jugador que abandonó no recibe el turno de espectro", function()
 		local s = Fixtures.game({ players = 4 })
 		local first = s.players[1]
@@ -410,50 +450,58 @@ describe("sabotaje", function()
 		end
 		expect(countOf(result.events, "CardDiscarded")).toBe(1)
 		expect(#ghost.hand).toBe(3)
-		-- El contador mide acciones de sabotaje, no cartas guardadas: la resurrección avanza.
+		-- El contador acumula sabotajes (R-P49), no solo acciones: la resurrección avanza.
 		expect(ghost.sabotages).toBe(1)
 	end)
 
-	it("con tres sabotajes resucita con 500 en la casilla 1", function()
+	it("con tres sabotajes resucita en la misma acción con 500 en la casilla 1", function()
 		local s = Fixtures.game({ players = 3 })
 		local ghost = s.players[2]
 		ghost.status = "Ghost"
 		ghost.cash = 0
 		ghost.position = 9
 
-		for _ = 1, Economy.ghost.sabotagesToRevive do
+		for step = 1, Economy.ghost.sabotagesToRevive do
 			enterGhostTurn(s, ghost.id)
 			local result = Engine.apply(s, ghost.id, { type = "GhostAct", kind = "Sabotage" })
 			if not result.ok then
 				error(result.error, 2)
 			end
+			expect(eventOf(result.events, "GhostActed").kind).toBe("Sabotage")
 			-- Una sola acción: el turno sigue en un jugador activo.
 			expect(s.phase).toBe("AwaitRoll")
 			expect(inTurn(s).status).toBe("Active")
 			expect(inTurn(s).id ~= ghost.id).toBe(true)
-		end
-		expect(ghost.sabotages).toBe(Economy.ghost.sabotagesToRevive)
-		expect(ghost.status).toBe("Ghost")
-		expect(#ghost.hand).toBe(Economy.ghost.sabotagesToRevive)
-
-		-- El siguiente turno de espectro lo emplea en resucitar en vez de actuar.
-		enterGhostTurn(s, ghost.id)
-		local result = Engine.apply(s, ghost.id, { type = "GhostAct", kind = "Sabotage" })
-		if not result.ok then
-			error(result.error, 2)
+			-- El contador se reinicia justo al resucitar, en el tercer paso.
+			expect(ghost.sabotages).toBe(step % Economy.ghost.sabotagesToRevive)
+			if step < Economy.ghost.sabotagesToRevive then
+				-- R-P48: la resurrección no espera al turno siguiente.
+				expect(ghost.status).toBe("Ghost")
+				expect(countOf(result.events, "GhostResurrected")).toBe(0)
+			else
+				expect(ghost.status).toBe("Active")
+				expect(countOf(result.events, "GhostResurrected")).toBe(1)
+				expect(eventOf(result.events, "GhostResurrected")).toEqual({
+					type = "GhostResurrected",
+					playerId = ghost.id,
+					cash = Economy.ghost.reviveCash,
+				})
+				-- R-P48: el sabotaje se anuncia antes que la resurrección, en la misma acción.
+				local actedAt, revivedAt = 0, 0
+				for index, event in result.events do
+					if event.type == "GhostActed" then
+						actedAt = index
+					elseif event.type == "GhostResurrected" then
+						revivedAt = index
+					end
+				end
+				expect(actedAt > 0 and actedAt < revivedAt).toBe(true)
+			end
 		end
 		expect(ghost.status).toBe("Active")
 		expect(ghost.cash).toBe(Economy.ghost.reviveCash)
 		expect(ghost.position).toBe(1)
 		expect(ghost.sabotages).toBe(0)
-		expect(countOf(result.events, "GhostActed")).toBe(0)
-		expect(countOf(result.events, "GhostResurrected")).toBe(1)
-		expect(eventOf(result.events, "GhostResurrected")).toEqual({
-			type = "GhostResurrected",
-			playerId = ghost.id,
-			cash = Economy.ghost.reviveCash,
-		})
-		-- No se roba una cuarta carta: la resurrección sustituye a la acción.
 		expect(#ghost.hand).toBe(Economy.ghost.sabotagesToRevive)
 		expect(s.phase).toBe("AwaitRoll")
 		expect(inTurn(s).status).toBe("Active")
@@ -461,10 +509,11 @@ describe("sabotaje", function()
 		-- La partida sigue: hay tres activos.
 		expect(s.phase ~= "GameOver").toBe(true)
 
-		-- Las rondas de espectro quedan contadas para los premios (Task 10).
+		-- Las rondas de espectro quedan contadas para los premios (Task 10): la resurrección
+		-- ocurre en el tercer turno de espectro.
 		local stats = s.stats[ghost.id]
-		expect(stats.ghostRounds).toBe(Economy.ghost.sabotagesToRevive + 1)
-		expect(stats.comebackRounds).toBe(Economy.ghost.sabotagesToRevive + 1)
+		expect(stats.ghostRounds).toBe(Economy.ghost.sabotagesToRevive)
+		expect(stats.comebackRounds).toBe(Economy.ghost.sabotagesToRevive)
 	end)
 end)
 
@@ -529,9 +578,9 @@ describe("embrujo", function()
 		expect(rejected(haunt(own))).toBe("No puedes embrujar tu propia propiedad")
 		expect(rejected(haunt(nil))).toBe("El embrujo necesita el índice de una propiedad")
 		expect(rejected(haunt(2.5))).toBe("El embrujo necesita el índice de una propiedad")
-		expect(rejected(Comeback.ghostAct(s, ghost.id, { kind = "Bogus" }))).toBe(
-			"Acción de espectro desconocida: Bogus"
-		)
+		-- La acción llega de fuera del tipo: se comprueba el dato aunque el tipo sea una unión.
+		local bogus: any = { kind = "Bogus" }
+		expect(rejected(Comeback.ghostAct(s, ghost.id, bogus))).toBe("Acción de espectro desconocida: Bogus")
 		expect(deepCopy(s)).toEqual(before)
 	end)
 
@@ -587,7 +636,7 @@ describe("legalActions y Bot en GhostTurn", function()
 end)
 
 describe("Alma en Pena (R-P6)", function()
-	it("da 2 cartas de sabotaje al espectro cuando se arruina", function()
+	it("da 2 cartas de sabotaje y suma 2 al contador cuando se arruina", function()
 		local s = Fixtures.game({ players = 3 })
 		local fallen = s.players[2]
 		local creditor = s.players[1]
@@ -601,8 +650,31 @@ describe("Alma en Pena (R-P6)", function()
 			expect(isSabotageCard(cardId)).toBe(true)
 		end
 		expect(countOf(events, "CardDrawn")).toBe(2)
-		-- Las cartas del perk no cuentan como sabotajes jugados: no acercan la resurrección.
+		-- R-P49: las cartas del perk son sabotajes acumulados y acercan la resurrección.
+		expect(fallen.sabotages).toBe(Economy.perks.restlessSoulCards)
+	end)
+
+	it("con Alma en Pena, un sabotaje más resucita", function()
+		local s = Fixtures.game({ players = 3 })
+		local fallen = s.players[2]
+		local creditor = s.players[1]
+		table.insert(fallen.perks, "RestlessSoul")
+		fallen.cash = 0
+		Bankruptcy.charge(s, fallen.id, 500, creditor.id)
+		expect(fallen.status).toBe("Ghost")
+		expect(fallen.sabotages).toBe(Economy.perks.restlessSoulCards)
+
+		-- R-P48: la siguiente acción suma el tercer sabotaje y resucita en el acto.
+		enterGhostTurn(s, fallen.id)
+		local result = Engine.apply(s, fallen.id, { type = "GhostAct", kind = "Sabotage" })
+		if not result.ok then
+			error(result.error, 2)
+		end
+		expect(fallen.status).toBe("Active")
+		expect(fallen.cash).toBe(Economy.ghost.reviveCash)
+		expect(fallen.position).toBe(1)
 		expect(fallen.sabotages).toBe(0)
+		expect(countOf(result.events, "GhostResurrected")).toBe(1)
 	end)
 
 	it("sin el perk el espectro no empieza con cartas", function()
@@ -615,6 +687,7 @@ describe("Alma en Pena (R-P6)", function()
 		expect(fallen.status).toBe("Ghost")
 		expect(fallen.hand).toEqual({})
 		expect(countOf(events, "CardDrawn")).toBe(0)
+		expect(fallen.sabotages).toBe(0)
 	end)
 end)
 
