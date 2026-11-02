@@ -2,14 +2,14 @@
   "scale": {
     "unit": "stud",
     "floor": 7.0,
-    "street_width": 28.0,
-    "sidewalk": 6.0,
+    "street_width": 34.0,
+    "sidewalk": 7.0,
     "lot_front": 18.0,
     "lot_depth": 22.0,
-    "token_base_diameter": 8.0,
-    "token_height": 12.0,
+    "token_base_diameter": 6.0,
+    "token_height": 9.0,
     "avatar_height": 6.0,
-    "first_person_eye": 17.1,
+    "first_person_eye": 14.1,
     "floors": {
       "house": 2,
       "office": 5,
@@ -32,7 +32,7 @@
       ],
       "position": {
         "x": -18.0,
-        "y": 31.0,
+        "y": 35.0,
         "z": 0.0
       },
       "lod_triangles": 162,
@@ -55,7 +55,7 @@
       ],
       "position": {
         "x": 0.0,
-        "y": 31.0,
+        "y": 35.0,
         "z": 0.0
       },
       "lod_triangles": 154,
@@ -79,7 +79,7 @@
       ],
       "position": {
         "x": 18.0,
-        "y": 31.0,
+        "y": 35.0,
         "z": 0.0
       },
       "lod_triangles": 330,
@@ -91,9 +91,9 @@
       "id": "taxi-token",
       "triangles": 892,
       "dimensions_studs": {
-        "x": 8.0,
-        "y": 8.0,
-        "z": 12.0
+        "x": 6.0,
+        "y": 6.0,
+        "z": 9.0
       },
       "materials": [
         "glass",
@@ -116,7 +116,7 @@
       "triangles": 192,
       "dimensions_studs": {
         "x": 200.0,
-        "y": 40.0,
+        "y": 48.0,
         "z": 0.8
       },
       "materials": [

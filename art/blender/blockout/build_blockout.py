@@ -25,12 +25,12 @@ from mathutils import Vector
 # --- Escala del proyecto, en studs ------------------------------------------------------------
 # La referencia es el avatar de Roblox: 6 studs de alto, unos 1,70 m.
 FLOOR = 7.0  # altura de planta
-STREET_WIDTH = 28.0  # calzada: tres fichas de lado a lado
-SIDEWALK = 6.0  # acera a cada lado
+STREET_WIDTH = 34.0  # calzada: cuatro fichas de lado a lado
+SIDEWALK = 7.0  # acera a cada lado, con bordillo
 LOT_FRONT = 18.0  # frente de solar; tres solares = 54 studs, bajo el máximo de 60 de la subfase 05
 LOT_DEPTH = 22.0
-TOKEN_BASE = 8.0  # diámetro de la base de una ficha
-TOKEN_HEIGHT = 12.0  # altura de la ficha sin el avatar
+TOKEN_BASE = 6.0  # diámetro de la base de una ficha
+TOKEN_HEIGHT = 9.0  # altura de la ficha; el avatar se sube a su techo
 AVATAR_HEIGHT = 6.0
 EYE_RATIO = 0.85  # ojos del avatar, proporción de un cuerpo de 6 studs
 TOKEN_EYE = TOKEN_HEIGHT + AVATAR_HEIGHT * EYE_RATIO
@@ -201,17 +201,41 @@ def build_skyscraper(mats):
 
 
 def build_token(mats):
-    stem_height = TOKEN_HEIGHT - 4.0
-    body_top = TOKEN_HEIGHT - 1.2
-    parts = [
-        cylinder("token_base", TOKEN_BASE / 2, 1.6, (0, 0, 0.8), mats["gold"]),
-        cylinder("token_stem", TOKEN_BASE / 2 - 1.0, stem_height, (0, 0, stem_height / 2 + 1.6), mats["gold"]),
-        box("token_car", (5.2, 3.0, 2.2), (0, 0, body_top - 1.0), mats["taxi"]),
-        box("token_cabin", (2.6, 2.6, 1.6), (0, 0, body_top + 0.4), mats["glass"]),
-        box("token_light", (1.0, 0.4, 0.4), (0, -1.6, body_top - 0.6), mats["neon"]),
-    ]
-    obj = join(parts, "taxi-token")
-    bevel(obj, 0.15, 2)
+    """Ficha de TOKEN_HEIGHT exactos, para que el avatar se suba a su techo sin hueco."""
+    base_height = TOKEN_HEIGHT * 0.13
+    car_height = TOKEN_HEIGHT * 0.16
+    cabin_height = TOKEN_HEIGHT * 0.13
+    stem_height = TOKEN_HEIGHT - base_height - car_height - cabin_height
+    radius = TOKEN_BASE / 2
+
+    base = cylinder("token_base", radius, base_height, (0, 0, base_height / 2), mats["gold"])
+    stem_bottom = base_height
+    stem = cylinder(
+        "token_stem", radius - 0.8, stem_height, (0, 0, stem_bottom + stem_height / 2), mats["gold"]
+    )
+    car_bottom = stem_bottom + stem_height
+    car = box(
+        "token_car",
+        (TOKEN_BASE * 0.72, TOKEN_BASE * 0.42, car_height),
+        (0, 0, car_bottom + car_height / 2),
+        mats["taxi"],
+    )
+    cabin_bottom = car_bottom + car_height
+    cabin = box(
+        "token_cabin",
+        (TOKEN_BASE * 0.34, TOKEN_BASE * 0.34, cabin_height),
+        (0, 0, cabin_bottom + cabin_height / 2),
+        mats["glass"],
+    )
+    # Foco delantero sobre la carrocería: es lo que hace que la ficha se lea como taxi.
+    light = box(
+        "token_light",
+        (0.8, 0.35, 0.35),
+        (0, -(TOKEN_BASE * 0.42) / 2, car_bottom + car_height * 0.5),
+        mats["neon"],
+    )
+    obj = join([base, stem, car, cabin, light], "taxi-token")
+    bevel(obj, 0.12, 2)
     return obj
 
 
@@ -408,9 +432,9 @@ def main():
 
     # Cámaras. La de primera persona es la cámara real del juego: va a la altura de los ojos
     # del avatar subido a la ficha, no a la de una persona.
-    first_person = camera("cam_first_person", (-45.0, -6.0, 17.1), (40.0, 8.0, 11.0), lens=22.0)
-    street_view = camera("cam_escala", (-78.0, -4.0, 22.0), (-2.0, 26.0, 18.0), lens=28.0)
-    pedestrian = camera("cam_pedestrian", (-62.0, 12.0, 6.0), (24.0, 16.0, 16.0), lens=26.0)
+    first_person = camera("cam_first_person", (-45.0, -7.0, TOKEN_EYE), (40.0, 9.0, 9.0), lens=22.0)
+    street_view = camera("cam_escala", (-78.0, -6.0, 20.0), (-2.0, 30.0, 16.0), lens=28.0)
+    pedestrian = camera("cam_pedestrian", (-62.0, 14.0, 6.0), (24.0, 20.0, 15.0), lens=26.0)
     # Casi cenital: es la vista de maqueta que el juego ofrece como vista general.
     aerial = camera("cam_aerial", (30.0, 20.0, 300.0), (0.0, 6.0, 0.0), lens=40.0)
 
