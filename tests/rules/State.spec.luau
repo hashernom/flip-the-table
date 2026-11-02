@@ -106,7 +106,6 @@ describe("State.create", function()
 		expect(s.modifiers).toEqual({})
 		expect(s.hotZoneId).toBe(nil)
 		expect(s.lastLegendaryRound).toBe(nil)
-		expect(s.hurricaneUsed).toBe(false)
 		expect(s.pending.trades).toEqual({})
 	end)
 

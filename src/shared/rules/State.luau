@@ -98,7 +98,6 @@ function State.create(opts: CreateOptions): Types.GameState
 		modifiers = {},
 		hotZoneId = nil,
 		lastLegendaryRound = nil,
-		hurricaneUsed = false,
 		stats = stats,
 	}
 	-- R4/R25: la ronda 1 ya necesita portador de la Corona. En la creación todos están

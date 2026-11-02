@@ -9,6 +9,8 @@ local Building = require("./Building")
 local CardsConfig = require("../config/Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Rng = require("./Rng")
+local Score = require("./Score")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -123,6 +125,39 @@ local function targetReason(
 	return nil
 end
 
+-- Líder de la mesa: el portador de la Corona si sigue activo; si no, el primer jugador activo de
+-- la clasificación. La Corona nunca la lleva un espectro ni quien se fue (R25).
+local function leaderOf(state: GameState): Player?
+	local pending = state.pending
+	local crownId = if pending then pending.crownId else nil
+	if crownId then
+		local crown = findPlayer(state, crownId)
+		if crown and crown.status == "Active" then
+			return crown
+		end
+	end
+	for _, id in Score.ranking(state) do
+		local player = findPlayer(state, id)
+		if player and player.status == "Active" then
+			return player
+		end
+	end
+	return nil
+end
+
+-- Jugadores Active en el orden de la clasificación. Revolución y Golpe a la Corona reparten solo
+-- entre quien sigue jugando: ni espectros ni abandonados.
+local function activeRanking(state: GameState): { Player }
+	local ranking: { Player } = {}
+	for _, id in Score.ranking(state) do
+		local player = findPlayer(state, id)
+		if player and player.status == "Active" then
+			table.insert(ranking, player)
+		end
+	end
+	return ranking
+end
+
 -- Índice del pacto con ese id, o nil. Los pactos viven en el estado desde la Tarea 8, que
 -- completa su ciclo de vida; Puñalada opera sobre el mismo arreglo.
 local function findPactIndex(state: GameState, pactId: string): number?
@@ -173,15 +208,24 @@ local function completesZone(state: GameState, playerId: PlayerId, index: number
 	return true
 end
 
--- Apagón: la zona debe existir en el tablero.
-local function blackoutReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
+-- Motivo por el que la zona de una carta no vale, o nil. El mensaje nombra la carta que la pide.
+local function zoneReason(state: GameState, cardId: string, args: PlayArgs): string?
 	if type(args.zoneId) ~= "string" then
-		return "La carta Blackout necesita una zona"
+		return `La carta {cardId} necesita una zona`
 	end
 	if not state.board.zones[args.zoneId] then
 		return `La zona {args.zoneId} no existe`
 	end
 	return nil
+end
+
+-- Apagón y Terremoto: la zona debe existir en el tablero.
+local function blackoutReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
+	return zoneReason(state, "Blackout", args)
+end
+
+local function earthquakeReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
+	return zoneReason(state, "Earthquake", args)
 end
 
 -- Ladrón de Escrituras: propiedad ajena, sin edificios y que no complete el grupo del ladrón.
@@ -383,6 +427,133 @@ local function demolition(
 	append(events, Building.lower(state, args.index :: number))
 end
 
+-- El banco compra a la mitad: es la misma regla fija que Bankruptcy, no un valor ajustable.
+local BANK_SALE_DIVISOR = 2
+
+local function half(value: number): number
+	return math.floor(value / BANK_SALE_DIVISOR)
+end
+
+local function priceOf(state: GameState, index: number): number
+	local price = state.board.squares[index].price
+	if not price then
+		error(`Cards: la casilla {index} no es una propiedad`, 3)
+	end
+	return price
+end
+
+-- Valor que el banco paga por una casilla y sus edificios, con la misma cuenta que Bankruptcy:
+-- mitad del precio y mitad de cada nivel. Huracán compensa con este valor; Bankruptcy no puede
+-- require Building, así que la fórmula se repite aquí a propósito.
+local function saleValue(state: GameState, index: number, level: number): number
+	local price = priceOf(state, index)
+	local levelCost = math.floor(price * Economy.buildingCostRate)
+	return half(price) + level * half(levelCost)
+end
+
+-- Huracán: todas las propiedades vuelven al banco y cada dueño activo cobra la mitad del valor
+-- de la casilla y de sus edificios (R-P22: solo CardPlayed; la compensación se ve en el estado).
+-- Un dueño Ghost o Left no cobra: está fuera del circuito de dinero (R-P20/R-P21).
+local function hurricane(state: GameState, _player: Player, _target: Player?, _events: { Event })
+	for index, property in state.properties do
+		local ownerId = property.ownerId
+		if ownerId then
+			local owner = findPlayer(state, ownerId)
+			if owner and owner.status == "Active" then
+				owner.cash += saleValue(state, index, property.level)
+			end
+			property.ownerId = nil
+			property.level = 0
+		end
+	end
+end
+
+-- Mundo al Revés: cada ficha activa cae en una casilla al azar y no se resuelve nada en el
+-- destino (ni renta, ni compra, ni casilla especial). Un TokenMoved por ficha, sin ruta.
+local function worldFlip(state: GameState, _player: Player, _target: Player?, events: { Event })
+	local size = #state.board.squares
+	for _, player in state.players do
+		if player.status == "Active" then
+			local from = player.position
+			local to = Rng.int(state.rng, 1, size)
+			player.position = to
+			table.insert(
+				events,
+				{ type = "TokenMoved", playerId = player.id, from = from, to = to, path = {} }
+			)
+		end
+	end
+end
+
+-- Revolución: con 4 o más activos, el más rico cambia su efectivo con el más pobre y el segundo
+-- con el segundo más pobre; con 2 o 3, cambian el primero y el último. El intercambio es
+-- simultáneo y conserva el efectivo total.
+local function revolution(state: GameState, _player: Player, _target: Player?, _events: { Event })
+	local active = activeRanking(state)
+	local count = #active
+	if count < 2 then
+		return
+	end
+	local function swap(left: Player, right: Player)
+		local cash = left.cash
+		left.cash = right.cash
+		right.cash = cash
+	end
+	if count >= 4 then
+		swap(active[1], active[count])
+		swap(active[2], active[count - 1])
+	else
+		swap(active[1], active[count])
+	end
+end
+
+-- Terremoto: cada edificio de la zona baja un nivel. Building.lower emite BuildingChanged por
+-- cada casilla que cambia; las que ya estaban a 0 no se tocan.
+local function earthquake(
+	state: GameState,
+	_player: Player,
+	_target: Player?,
+	events: { Event },
+	args: PlayArgs
+)
+	local indices = state.board.zones[args.zoneId :: string]
+	if not indices then
+		error(`Cards.earthquake: la zona {args.zoneId} no existe`, 2)
+	end
+	for _, index in indices do
+		local property = state.properties[index]
+		if property and property.level > 0 then
+			append(events, Building.lower(state, index))
+		end
+	end
+end
+
+-- Golpe a la Corona: el líder pierde el 25 % de su efectivo (redondeado hacia abajo) y lo
+-- reparte a partes iguales entre los demás activos; el resto de la división se queda con él.
+-- Nunca crea ni destruye efectivo y no puede dejar a nadie en negativo.
+local function crownStrike(
+	state: GameState,
+	_player: Player,
+	target: Player?,
+	_events: { Event },
+	_args: PlayArgs
+)
+	local leader = targetOf(target)
+	local amount = math.floor(leader.cash * Economy.cards.crownStrikeRate)
+	local rivals: { Player } = {}
+	for _, player in state.players do
+		if player.status == "Active" and player.id ~= leader.id then
+			table.insert(rivals, player)
+		end
+	end
+	local share = if #rivals > 0 then math.floor(amount / #rivals) else 0
+	leader.cash -= amount
+	for _, rival in rivals do
+		rival.cash += share
+	end
+	leader.cash += amount - share * #rivals
+end
+
 -- Efectos implementados por id. Añadir una carta aquí la vuelve jugable; las que falten se
 -- rechazan con «Carta no implementada».
 local EFFECTS: { [string]: EffectDef } = {
@@ -399,6 +570,13 @@ local EFFECTS: { [string]: EffectDef } = {
 	DeedThief = { phases = TURN_PHASES, reason = deedThiefReason, apply = deedThief },
 	Backstab = { phases = TURN_PHASES, reason = backstabReason, apply = backstab },
 	Demolition = { phases = TURN_PHASES, reason = demolitionReason, apply = demolition },
+	-- Legendarias (Tarea 4). Huracán se puede jugar en cualquier ronda y repetirse (R-P23): no
+	-- queda ningún límite por partida que consultar.
+	Hurricane = { phases = TURN_PHASES, apply = hurricane },
+	WorldFlip = { phases = TURN_PHASES, apply = worldFlip },
+	Revolution = { phases = TURN_PHASES, apply = revolution },
+	Earthquake = { phases = TURN_PHASES, reason = earthquakeReason, apply = earthquake },
+	CrownStrike = { phases = TURN_PHASES, apply = crownStrike },
 }
 
 -- Un efecto sin definición en el catálogo sería una carta que nadie puede robar: falla al cargar.
@@ -436,6 +614,13 @@ function Cards.reason(state: GameState, playerId: PlayerId, cardId: string, args
 		local targetMessage = targetReason(state, playerId, cardId, args.targetId)
 		if targetMessage then
 			return targetMessage
+		end
+	end
+	-- R-P14: las cartas con leaderOnly solo pueden apuntar al líder de la Corona.
+	if definition.leaderOnly then
+		local leader = leaderOf(state)
+		if not leader or args.targetId ~= leader.id then
+			return "El objetivo de la carta debe ser el líder"
 		end
 	end
 	if effect.reason then

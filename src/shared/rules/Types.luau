@@ -108,7 +108,6 @@ export type GameState = {
 	modifiers: { Modifier },
 	hotZoneId: string?,
 	lastLegendaryRound: number?,
-	hurricaneUsed: boolean,
 	stats: MatchStats,
 }
 
