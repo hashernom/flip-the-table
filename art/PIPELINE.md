@@ -103,7 +103,35 @@ Los triángulos del manifiesto salen de ahí, no se escriben a mano.
 
 ## 7. Importar y subir
 
-En Studio:
+### Por Open Cloud, sin clics
+
+El camino que funciona y está probado el 2026-11-02 de punta a punta:
+
+```powershell
+$env:ROBLOX_OPENCLOUD_KEY   = "<clave con permiso de assets>"
+$env:ROBLOX_CREATOR_USER_ID = "<tu id>"
+pwsh -File art/generators/upload_model.ps1 -Path art/blender/facade/facade_wall.fbx -Name facade-wall
+```
+
+Devuelve el `assetId` y el estado de moderación. Después se inserta en Studio con
+`insert_asset` o `InsertService:LoadAsset`, y se coloca agrupando las piezas con
+`PivotTo(CFrame.new())` en cada una antes de mover el conjunto: **las piezas se insertan
+desalineadas** porque cada modelo conserva su propio origen.
+
+Tres cosas que cuestan una tarde si no se saben:
+
+| Síntoma | Causa |
+| --- | --- |
+| 401 con `Authorization: Bearer` | La clave va en la cabecera **`x-api-key`** |
+| 400 «not supported yet» con `assetType: Model` | El FBX debe ir con **`content-type: model/fbx`**, no `octet-stream` |
+| 400 sin mensaje útil | El campo `request` debe ser su propia parte multipart con **`application/json`**; el `-Form` de PowerShell lo manda como texto |
+
+**El modelo llega sin texturas.** Open Cloud no genera `SurfaceAppearance` desde el FBX
+incrustado: el material se aplica después con `MaterialVariant` (§7.b).
+
+### Con el importador de Studio
+
+Si no hay clave a mano:
 
 1. **File > Import** y elegir el `.fbx`.
 2. En **File General**: *Import Only as a Model*, *Upload to Roblox* si el asset se va a reutilizar
@@ -112,11 +140,12 @@ En Studio:
 4. En **File Geometry**: **Scale Unit = Stud**.
 5. Importar y comprobar el tamaño contra una pieza de referencia.
 
-**Comprobado el 2026-11-02:** la subida funciona sin abrir el importador. Se sirven los archivos
-por HTTP local y se pasan esas URLs al MCP de Studio, que devuelve el `rbxassetid`:
+### Texturas e imágenes
+
+Las imágenes sí se pueden subir por el MCP de Studio, sirviendo la carpeta por HTTP local:
 
 ```powershell
-python -m http.server 8765 --bind 127.0.0.1 --directory art
+python -m http.server 8801 --bind 0.0.0.0 --directory art
 ```
 
 Los ids de la prueba están en `art/asset-ids.json`. Cada archivo subido es un asset de tu cuenta,
