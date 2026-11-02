@@ -658,13 +658,61 @@ describe("Dedos Rápidos", function()
 		end
 		expect(result.events).toEqual({ { type = "DiceRolled", playerId = player.id, a = 6, b = 4 } })
 		expect(pendingOf(s).heldRoll).toEqual({ a = 6, b = 4 })
-		expect(pendingOf(s).rerollRound).toBe(1)
+		expect(pendingOf(s).rerollUsed[player.id]).toBe(1)
+		-- La tirada del turno queda al día para la vista.
+		expect(pendingOf(s).rolled).toEqual({ a = 6, b = 4 })
 		expect(player.position).toBe(1)
 
 		expect(rejected(Engine.apply(s, player.id, { type = "RerollDie", die = "b" }))).toBe(
 			"Ya has repetido un dado esta ronda"
 		)
 		expect(pendingOf(s).heldRoll).toEqual({ a = 6, b = 4 })
+	end)
+
+	it("marca el reroll por jugador: dos con el perk repiten en la misma ronda", function()
+		local s = Fixtures.game({ players = 2 })
+		local first = inTurn(s)
+		local second = s.players[s.turnIndex % #s.players + 1]
+		table.insert(first.perks, "QuickFingers")
+		table.insert(second.perks, "QuickFingers")
+
+		-- Primer jugador: turno completo con su repetición.
+		Fixtures.dice(s, 3, 4)
+		Engine.apply(s, first.id, { type = "Roll" })
+		Rng.force(s.rng, { 6 })
+		local firstReroll = Engine.apply(s, first.id, { type = "RerollDie", die = "a" })
+		if not firstReroll.ok then
+			error(firstReroll.error, 2)
+		end
+		expect(pendingOf(s).rerollUsed[first.id]).toBe(1)
+		Engine.apply(s, first.id, { type = "Roll" })
+		local ended = Engine.apply(s, first.id, { type = "EndTurn" })
+		if not ended.ok then
+			error(ended.error, 2)
+		end
+		expect(s.round).toBe(1)
+
+		-- Segundo jugador: la marca del primero no le quita la repetición.
+		expect(inTurn(s).id).toBe(second.id)
+		Fixtures.dice(s, 2, 5)
+		local held = Engine.apply(s, second.id, { type = "Roll" })
+		if not held.ok then
+			error(held.error, 2)
+		end
+		expect(pendingOf(s).heldRoll).toEqual({ a = 2, b = 5 })
+		Rng.force(s.rng, { 1 })
+		local secondReroll = Engine.apply(s, second.id, { type = "RerollDie", die = "b" })
+		if not secondReroll.ok then
+			error(secondReroll.error, 2)
+		end
+		expect(pendingOf(s).heldRoll).toEqual({ a = 2, b = 1 })
+		expect(pendingOf(s).rerollUsed[first.id]).toBe(1)
+		expect(pendingOf(s).rerollUsed[second.id]).toBe(1)
+
+		-- Y el segundo tampoco repite dos veces en la misma ronda.
+		expect(rejected(Engine.apply(s, second.id, { type = "RerollDie", die = "a" }))).toBe(
+			"Ya has repetido un dado esta ronda"
+		)
 	end)
 
 	it("la segunda tirada mueve con los dados retenidos", function()
@@ -713,7 +761,7 @@ describe("Dedos Rápidos", function()
 			error(again.error, 2)
 		end
 		expect(pendingOf(s).heldRoll).toEqual({ a = 2, b = 5 })
-		expect(pendingOf(s).rerollRound).toBe(2)
+		expect(pendingOf(s).rerollUsed[player.id]).toBe(2)
 	end)
 
 	it("sin el perk la tirada mueve de una vez", function()
@@ -729,6 +777,39 @@ describe("Dedos Rápidos", function()
 		end
 		expect(player.position).toBe(8)
 		expect(pendingOf(s).heldRoll).toBe(nil)
+	end)
+
+	it("el tiempo agotado mueve en un solo tick con el perk", function()
+		local s = Fixtures.game({ players = 2 })
+		local player = inTurn(s)
+		table.insert(player.perks, "QuickFingers")
+		Fixtures.dice(s, 3, 4)
+
+		-- R-P34: el reloj no retiene los dados; la ficha se mueve en el primer tick.
+		local events = Engine.timeout(s)
+		expect(player.position).toBe(8)
+		expect(pendingOf(s).heldRoll).toBe(nil)
+		expect(pendingOf(s).rolled).toEqual({ a = 3, b = 4 })
+		expect(events[1].type).toBe("DiceRolled")
+		expect(events[2].type).toBe("TokenMoved")
+		expect(s.phase).toBe("AwaitBuy")
+	end)
+
+	it("el tiempo agotado mueve con los dados retenidos", function()
+		local s = Fixtures.game({ players = 2 })
+		local player = inTurn(s)
+		table.insert(player.perks, "QuickFingers")
+		Fixtures.dice(s, 3, 4)
+		Engine.apply(s, player.id, { type = "Roll" })
+		expect(player.position).toBe(1)
+
+		local events = Engine.timeout(s)
+		expect(player.position).toBe(8)
+		expect(pendingOf(s).heldRoll).toBe(nil)
+		expect(pendingOf(s).rolled).toEqual({ a = 3, b = 4 })
+		-- Los dados ya se anunciaron al retenerlos: la tirada del reloj solo mueve.
+		expect(events[1].type).toBe("TokenMoved")
+		expect(s.phase).toBe("AwaitBuy")
 	end)
 end)
 

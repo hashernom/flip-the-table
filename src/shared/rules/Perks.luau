@@ -1,8 +1,8 @@
 --!strict
 -- Borrador de perks (fase PerkDraft): el reparto de la tabla «Momentos de la partida» y la
 -- oferta de cada jugador. Los efectos viven en el módulo que ya tiene su sistema; aquí solo hay
--- reparto. El draft se abre al empezar la partida (Perks.begin desde el controlador) y al entrar
--- en las rondas de la tabla (Turn.next).
+-- reparto. El draft se abre al empezar la partida (State.create, R-P31) y al entrar en las rondas
+-- de la tabla (Turn.next).
 local Economy = require("../config/Economy")
 local PerksConfig = require("../config/Perks")
 local Rng = require("./Rng")
@@ -174,9 +174,9 @@ local function advanceDraft(state: GameState, draft: Draft): boolean
 	return false
 end
 
--- Abre el borrador del momento en curso, si toca. Lo llaman el controlador de la partida al
--- crear el estado (ronda 1) y Turn.next al entrar en una ronda de la tabla. No abre dos veces
--- la misma ronda ni pisa un borrador ya abierto; devuelve true si lo abrió.
+-- Abre el borrador del momento en curso, si toca. Lo llaman State.create al crear la partida
+-- (ronda 1, R-P31) y Turn.next al entrar en una ronda de la tabla. No abre dos veces la misma
+-- ronda ni pisa un borrador ya abierto; devuelve true si lo abrió.
 function Perks.begin(state: GameState): boolean
 	if state.phase == "GameOver" then
 		return false

@@ -175,9 +175,10 @@ function Turn.next(state: GameState): { Event }
 		table.insert(events, { type = "FinalRoundsStarted", round = state.round })
 	end
 	-- Marcas de una vez por ronda: el dado repetido de Dedos Rápidos se recarga al empezar ronda.
+	-- Es un mapa por jugador (R-P33), así que se vacía entero.
 	local pending = state.pending
 	if pending then
-		pending.rerollRound = nil
+		pending.rerollUsed = nil
 	end
 	-- El borrador de perks del momento abre antes de que sigan los turnos de la ronda (R-P28:
 	-- Engine.endTurn no pisa la fase que deja abierta).

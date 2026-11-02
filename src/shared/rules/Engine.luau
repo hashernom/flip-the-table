@@ -155,6 +155,14 @@ local function moveRoll(
 	return events
 end
 
+-- ¿El jugador ya repitió un dado esta ronda? R-P33: la marca es por jugador (como los descuentos),
+-- porque dos jugadores pueden tener Dedos Rápidos a la vez. Turn.next la limpia al empezar ronda.
+local function rerollUsedThisRound(state: GameState, playerId: PlayerId): boolean
+	local pending = state.pending
+	local used = pending and pending.rerollUsed
+	return used ~= nil and used[playerId] == state.round
+end
+
 -- Roll: dos dados (o tres con Dado Extra), movimiento de la ficha y resolución de la casilla.
 -- Marcha Atrás invierte el sentido de la tirada. Las dos marcas se consumen al mover.
 -- R-P29: con Dedos Rápidos y sin usar el repetidor esa ronda, la primera tirada no mueve: deja
@@ -178,12 +186,28 @@ local function roll(state: GameState, playerId: PlayerId, _action: Action): { Ev
 
 	local a = Rng.int(state.rng, 1, 6)
 	local b = Rng.int(state.rng, 1, 6)
-	if Perks.has(player, "QuickFingers") and pending.rerollRound ~= state.round then
+	if Perks.has(player, "QuickFingers") and not rerollUsedThisRound(state, playerId) then
 		pending.heldRoll = { a = a, b = b }
 		pending.rolled = { a = a, b = b }
 		return { { type = "DiceRolled", playerId = playerId, a = a, b = b } }
 	end
 	return moveRoll(state, playerId, a, b, false)
+end
+
+-- Tirada del reloj (R-P34): resuelve el turno de una vez, sin retener dados. Con dados retenidos
+-- mueve con ellos y los consume; sin ellos tira y mueve en el acto. Dedos Rápidos no puede dejar
+-- el turno a medias cuando el jugador no actúa.
+local function rollForced(state: GameState, playerId: PlayerId): { Event }
+	local pending = state.pending
+	if not pending then
+		error("Engine.rollForced: el estado no tiene pending", 2)
+	end
+	local held = pending.heldRoll
+	if held then
+		pending.heldRoll = nil
+		return moveRoll(state, playerId, held.a, held.b, true)
+	end
+	return moveRoll(state, playerId, Rng.int(state.rng, 1, 6), Rng.int(state.rng, 1, 6), false)
 end
 
 -- EndTurn: pasa el turno y deja al siguiente jugador listo para tirar. Turn.next puede cerrar
@@ -426,7 +450,7 @@ local function draftPerk(state: GameState, playerId: PlayerId, action: Action): 
 end
 
 -- Motivo por el que RerollDie no puede aplicarse, o nil. R-P29: solo con Dedos Rápidos, con
--- dados retenidos y una vez por ronda.
+-- dados retenidos y una vez por ronda (R-P33: la marca es de este jugador).
 local function rerollDieCheck(state: GameState, playerId: PlayerId, action: Action): string?
 	local pending = state.pending
 	if not pending or not pending.heldRoll then
@@ -440,14 +464,14 @@ local function rerollDieCheck(state: GameState, playerId: PlayerId, action: Acti
 	if die ~= "a" and die ~= "b" then
 		return "RerollDie necesita el dado a o b"
 	end
-	if pending.rerollRound == state.round then
+	if rerollUsedThisRound(state, playerId) then
 		return "Ya has repetido un dado esta ronda"
 	end
 	return nil
 end
 
--- RerollDie: repite un dado retenido y anuncia la tirada actualizada. La marca de la ronda vive
--- en pending.rerollRound y Turn.next la limpia al empezar la siguiente.
+-- RerollDie: repite un dado retenido y deja la tirada del turno y la marca al día. La marca vive
+-- en pending.rerollUsed[playerId] y Turn.next la limpia al empezar la ronda siguiente.
 local function rerollDie(state: GameState, playerId: PlayerId, action: Action): { Event }
 	local pending = state.pending
 	if not pending or not pending.heldRoll then
@@ -456,7 +480,13 @@ local function rerollDie(state: GameState, playerId: PlayerId, action: Action): 
 	local held = pending.heldRoll
 	local die: string = action.die
 	held[die] = Rng.int(state.rng, 1, 6)
-	pending.rerollRound = state.round
+	local used = pending.rerollUsed
+	if not used then
+		used = {}
+		pending.rerollUsed = used
+	end
+	used[playerId] = state.round
+	pending.rolled = { a = held.a, b = held.b }
 	return { { type = "DiceRolled", playerId = playerId, a = held.a, b = held.b } }
 end
 
@@ -670,16 +700,20 @@ function Engine.timeout(state: GameState): { Event }
 	if player.status == "Left" then
 		return abandonTurn(state)
 	end
-	local action: Action = { type = "Roll" }
-	if phase == "AwaitBuy" then
-		action = { type = "DeclineBuy" }
-	elseif phase == "AwaitEnd" then
+	-- R-P34: en AwaitRoll el reloj resuelve el turno de una sola vez, también con Dedos Rápidos:
+	-- mueve con los dados retenidos si los hay y, si no, tira y mueve sin retener. Pasar por Roll
+	-- dejaría la ficha quieta un tick más.
+	if phase == "AwaitRoll" then
+		return rollForced(state, player.id)
+	end
+	local action: Action = { type = "DeclineBuy" }
+	if phase == "AwaitEnd" then
 		action = { type = "EndTurn" }
 	end
 	local events = perform(state, player.id, action)
-	-- La tirada y la compra siempre emiten eventos; si no hay ninguno, apply rechazó el defecto
-	-- (por ejemplo, AwaitBuy sin casilla pendiente) y se cierra el turno para no congelar la
-	-- partida. En AwaitEnd el turno ya avanzó aunque no haya eventos que anunciar.
+	-- La compra siempre emite eventos; si no hay ninguno, apply rechazó el defecto (por ejemplo,
+	-- AwaitBuy sin casilla pendiente) y se cierra el turno para no congelar la partida. En AwaitEnd
+	-- el turno ya avanzó aunque no haya eventos que anunciar.
 	if #events > 0 or phase == "AwaitEnd" then
 		return events
 	end
