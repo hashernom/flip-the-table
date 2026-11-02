@@ -315,6 +315,25 @@ describe("Revolución", function()
 		expect(s.players[3].cash).toBe(100)
 		expect(ghost.cash).toBe(999999)
 	end)
+
+	it("con dos activos cambia el primero y el último", function()
+		local s = Fixtures.game({ players = 3 })
+		local a = inTurn(s)
+		local ghost = s.players[3]
+		ghost.status = "Ghost"
+		ghost.cash = 999999
+		s.players[1].cash = 100
+		s.players[2].cash = 300
+		Fixtures.turnOf(s, a.id)
+		Fixtures.hand(s, a.id, "Revolution")
+
+		playCard(s, a.id, "Revolution")
+
+		-- Dos activos: 300 > 100. Se intercambian y el espectro queda fuera.
+		expect(s.players[1].cash).toBe(300)
+		expect(s.players[2].cash).toBe(100)
+		expect(ghost.cash).toBe(999999)
+	end)
 end)
 
 describe("Terremoto", function()
@@ -469,6 +488,54 @@ describe("Golpe a la Corona", function()
 		)
 		expect(deepCopy(s)).toEqual(before)
 	end)
+
+	it("acota el cobro al efectivo disponible si el porcentaje superara el 100 %", function()
+		local s = Fixtures.game({ players = 3 })
+		local a = inTurn(s)
+		local leader = s.players[2]
+		leader.cash = 100
+		pendingOf(s).crownId = leader.id
+		Fixtures.hand(s, a.id, "CrownStrike")
+		local configured = Economy.cards.crownStrikeRate
+		Economy.cards.crownStrikeRate = 2
+		local action: Types.Action = { type = "PlayCard", cardId = "CrownStrike", targetId = leader.id }
+		-- pcall garantiza que el porcentaje se restaura aunque la acción falle.
+		local ok, result = pcall(Engine.apply, s, a.id, action)
+		Economy.cards.crownStrikeRate = configured
+		if not ok then
+			error(result, 2)
+		end
+
+		expect(result.ok).toBe(true)
+		-- El cobro se acota a los 100 disponibles: no hay venta de bienes ni bancarrota, y el
+		-- reparto (floor(100 / 2) = 50 por cabeza) deja al líder a 0 sin efectivo negativo.
+		expect(leader.cash).toBe(0)
+		expect(leader.status).toBe("Active")
+		for _, player in s.players do
+			if player.id ~= leader.id then
+				expect(player.cash).toBe(Economy.startingCash + 50)
+			end
+		end
+		expect(s.phase).toBe("AwaitRoll")
+	end)
+
+	it("con un 25 % que redondea a 0 no cobra y el líder conserva su efectivo", function()
+		local s = Fixtures.game({ players = 3 })
+		local a = inTurn(s)
+		local leader = s.players[2]
+		leader.cash = 3
+		pendingOf(s).crownId = leader.id
+		Fixtures.hand(s, a.id, "CrownStrike")
+
+		local events = playCard(s, a.id, "CrownStrike", { targetId = leader.id })
+
+		-- floor(3 × 0,25) = 0: el cobro pasa igualmente por Bankruptcy.charge y es un no-op.
+		expect(leader.cash).toBe(3)
+		expect(leader.status).toBe("Active")
+		expect(events).toEqual({
+			{ type = "CardPlayed", playerId = a.id, cardId = "CrownStrike", targetId = leader.id },
+		})
+	end)
 end)
 
 describe("límites de las legendarias", function()
@@ -482,10 +549,11 @@ describe("límites de las legendarias", function()
 			for _, player in s.players do
 				player.cash = 0
 			end
-			-- Bienes para Huracán y Terremoto; el líder solo puede perder lo que tiene.
+			-- Bienes para Huracán y Terremoto; el líder arranca con efectivo para que el 25 % de
+			-- Golpe a la Corona sea observable.
 			Fixtures.give(s, s.players[2].id, zone[1])
 			s.properties[zone[1]].level = 3
-			leader.cash = 3
+			leader.cash = 12
 			pendingOf(s).crownId = leader.id
 			Fixtures.hand(s, a.id, cardId)
 			local action: Types.Action = { type = "PlayCard", cardId = cardId }
@@ -503,6 +571,15 @@ describe("límites de las legendarias", function()
 				expect(player.status).toBe("Active")
 			end
 			expect(s.phase).toBe("AwaitRoll")
+			if cardId == "CrownStrike" then
+				-- floor(12 × 0,25) = 3, uno por cabeza: el líder conserva 9 y cada rival cobra 1.
+				expect(leader.cash).toBe(9)
+				for _, player in s.players do
+					if player.id ~= leader.id then
+						expect(player.cash).toBe(1)
+					end
+				end
+			end
 		end
 	end)
 

@@ -530,24 +530,28 @@ end
 
 -- Golpe a la Corona: el líder pierde el 25 % de su efectivo (redondeado hacia abajo) y lo
 -- reparte a partes iguales entre los demás activos; el resto de la división se queda con él.
--- Nunca crea ni destruye efectivo y no puede dejar a nadie en negativo.
+-- R-P3: el cobro pasa por Bankruptcy.charge y se acota al efectivo disponible, así que la
+-- garantía de «nunca negativo» es estructural y no depende del porcentaje configurado.
 local function crownStrike(
 	state: GameState,
 	_player: Player,
 	target: Player?,
-	_events: { Event },
+	events: { Event },
 	_args: PlayArgs
 )
 	local leader = targetOf(target)
-	local amount = math.floor(leader.cash * Economy.cards.crownStrikeRate)
+	local amount = math.min(math.floor(leader.cash * Economy.cards.crownStrikeRate), leader.cash)
+	-- Un porcentaje negativo no tiene sentido, pero el contrato de charge prohíbe importes
+	-- negativos: el suelo en 0 deja la carta en no-op en vez de romper.
+	amount = math.max(amount, 0)
 	local rivals: { Player } = {}
 	for _, player in state.players do
 		if player.status == "Active" and player.id ~= leader.id then
 			table.insert(rivals, player)
 		end
 	end
+	append(events, Bankruptcy.charge(state, leader.id, amount, nil))
 	local share = if #rivals > 0 then math.floor(amount / #rivals) else 0
-	leader.cash -= amount
 	for _, rival in rivals do
 		rival.cash += share
 	end
