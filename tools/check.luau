@@ -2,10 +2,12 @@
 -- Comprobación global. Uso: lune run tools/check
 local fs = require("@lune/fs")
 local process = require("@lune/process")
+local serde = require("@lune/serde")
 
 local pureRules = require("./pure-rules")
 
 local RULES_DIR = "src/shared/rules"
+local MANIFEST_PATH = "art/manifest.json"
 local CODE_DIRS = { "src", "tests", "tools" }
 -- src/server y src/client quedan fuera: la plataforma estándar es lo que garantiza que el
 -- código compartido no use globales de Roblox. El plan 04 añade un segundo pase para ellos.
@@ -46,6 +48,22 @@ if #offenders == 0 then
 else
 	print(`FALLA Motor puro: usan APIs de Roblox:\n  {table.concat(offenders, "\n  ")}`)
 	table.insert(failed, "Motor puro")
+end
+
+-- Manifiesto de assets: nada fuera de presupuesto y nada aprobado sin revisión en el juego.
+local manifestOk, manifestErr = pcall(function()
+	local Manifest = require("./manifest")
+	local manifest = serde.decode("json", fs.readFile(MANIFEST_PATH))
+	local problems = Manifest.validate(manifest)
+	if #problems > 0 then
+		error(`{table.concat(problems, "\n  ")}`, 0)
+	end
+end)
+if manifestOk then
+	print("OK    Manifiesto")
+else
+	print(`FALLA Manifiesto ({MANIFEST_PATH}):\n  {manifestErr}`)
+	table.insert(failed, "Manifiesto")
 end
 
 if #failed > 0 then
