@@ -97,7 +97,7 @@ describe("State.create", function()
 		expect(Fixtures.game({ players = 8 }).maxRounds).toBe(12)
 	end)
 
-	it("abre la partida en la primera ronda y en el borrador de perks", function()
+	it("abre la partida en la primera ronda, con Zona Caliente y en el borrador de perks", function()
 		local s = State.create({ playerIds = ids(3), seed = 1 })
 		expect(s.round).toBe(1)
 		expect(s.turnIndex).toBe(1)
@@ -105,9 +105,16 @@ describe("State.create", function()
 		expect(#s.players).toBe(3)
 		expect(s.pacts).toEqual({})
 		expect(s.modifiers).toEqual({})
-		expect(s.hotZoneId).toBe(nil)
+		-- R-P40: la ronda 1 abre con una zona del tablero elegida con Rng. Las pruebas de reglas
+		-- usan el fixture, que la limpia para no depender de qué zona tocó.
+		local hotZoneId = s.hotZoneId
+		if not hotZoneId then
+			error("State.create debe elegir la Zona Caliente de la ronda 1", 2)
+		end
+		expect(table.find(s.board.zoneOrder, hotZoneId) ~= nil).toBe(true)
 		expect(s.lastLegendaryRound).toBe(nil)
 		expect(s.pending.trades).toEqual({})
+		expect(s.pending.pactOffers).toEqual({})
 
 		-- R-P31: el primer borrador queda abierto, en orden de turno y con una oferta por jugador.
 		local draft = s.pending.draft
@@ -157,8 +164,9 @@ describe("State.create", function()
 		local expected = Rng.shuffle(rng, playerIds)
 		local s = State.create({ playerIds = playerIds, seed = 11 })
 		expect(orderOf(s)).toEqual(expected)
-		-- El borrador inicial consume el generador después del barajado (R-P31), así que la
-		-- posición final no coincide con la del barajado suelto pero sí es reproducible.
+		-- El borrador inicial y la Zona Caliente consumen el generador después del barajado
+		-- (R-P31/R-P40), así que la posición final no coincide con la del barajado suelto pero sí
+		-- es reproducible.
 		expect(s.rng.seed ~= rng.seed).toBe(true)
 		expect(State.create({ playerIds = playerIds, seed = 11 }).rng.seed).toBe(s.rng.seed)
 		expect(playerIds).toEqual(ids(6))

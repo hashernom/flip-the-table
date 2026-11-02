@@ -6,6 +6,7 @@ local Building = require("./Building")
 local Cards = require("./Cards")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
+local Pact = require("./Pact")
 local Perks = require("./Perks")
 local Property = require("./Property")
 local Reaction = require("./Reaction")
@@ -382,6 +383,53 @@ local function respondTrade(state: GameState, playerId: PlayerId, action: Action
 	return result.events
 end
 
+-- Motivo por el que ProposePact no puede aplicarse, o nil. Pact.proposeReason es la única regla
+-- de socio, turno y duración.
+local function proposePactCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Pact.proposeReason(state, playerId, action.toId, action.rounds)
+end
+
+-- ProposePact: guarda la oferta en pending.pactOffers sin mover dinero ni crear el pacto.
+-- Pact.propose vuelve a validar sin mutar; un rechazo aquí sería un fallo de programación
+-- porque proposePactCheck ya lo habría dado.
+local function proposePact(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Pact.propose(state, playerId, action.toId, action.rounds)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
+-- Motivo por el que RespondPact no puede aplicarse, o nil. Pact.respondReason es la única regla,
+-- incluida la revalidación de efectivo y de que el proponente siga activo.
+local function respondPactCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Pact.respondReason(state, playerId, action.pactId, action.accept)
+end
+
+-- RespondPact: la usa el destinatario de la oferta, no el jugador en turno (turnOnly = false).
+local function respondPact(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Pact.respond(state, playerId, action.pactId, action.accept)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
+-- Motivo por el que BreakPact no puede aplicarse, o nil. Pact.breakReason es la única regla:
+-- solo un socio activo y solo sobre un pacto existente.
+local function breakPactCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Pact.breakReason(state, playerId, action.pactId)
+end
+
+-- BreakPact: cualquier socio puede romperlo sin estar en turno, como responder un intercambio.
+local function breakPact(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Pact.breakPact(state, playerId, action.pactId)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
+end
+
 -- Ventana de reacción abierta, o nil. La abre Reaction.open desde Cards o Property.
 local function pendingReaction(state: GameState): any
 	local pending = state.pending
@@ -557,6 +605,27 @@ local rules: { [string]: ActionRule } = {
 		check = respondTradeCheck,
 		handler = respondTrade,
 	},
+	-- Pactos (Tarea 8): proponer exige estar en turno; responder y romper no, pero solo en fases
+	-- de turno (R18). Su espacio no es finito (socio y duración), así que no se enumeran en
+	-- legalActions y se validan en apply.
+	ProposePact = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = proposePactCheck,
+		handler = proposePact,
+	},
+	RespondPact = {
+		phases = { "AwaitRoll", "AwaitBuy", "AwaitEnd" },
+		turnOnly = false,
+		check = respondPactCheck,
+		handler = respondPact,
+	},
+	BreakPact = {
+		phases = { "AwaitRoll", "AwaitBuy", "AwaitEnd" },
+		turnOnly = false,
+		check = breakPactCheck,
+		handler = breakPact,
+	},
 	EndTurn = { phases = { "AwaitEnd" }, turnOnly = true, handler = endTurn },
 }
 
@@ -594,8 +663,10 @@ end
 -- Enumera el espacio finito de acciones legales de un jugador: Roll, Buy/DeclineBuy, una puja
 -- representativa, Build por casilla edificable, las de las fases nuevas (Mercado, Duelo y
 -- Tribunal) y EndTurn. Los intercambios no se enumeran (su espacio es infinito) y se validan en
--- apply. Los candidatos pasan por validate, la única tabla de permisos: nunca se devuelve una
--- acción que apply rechazaría (R8).
+-- apply. Los pactos tampoco: elegir socio y duración no es un espacio finito, así que
+-- ProposePact/RespondPact/BreakPact se validan en apply y el bot los cableará en la Tarea 10.
+-- Los candidatos pasan por validate, la única tabla de permisos: nunca se devuelve una acción
+-- que apply rechazaría (R8).
 function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 	local phase = state.phase
 	local candidates: { Action } = {}

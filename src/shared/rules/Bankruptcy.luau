@@ -3,6 +3,7 @@
 -- nada alcanza, convierte al jugador en espectro sin dejar efectivo negativo ni crear dinero.
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Pact = require("./Pact")
 local Turn = require("./Turn")
 local Types = require("./Types")
 
@@ -140,7 +141,8 @@ end
 
 -- Cobra `amount` al jugador. Con efectivo suficiente paga directo; si no, vende bienes al banco
 -- de menor a mayor valor; si ni así alcanza, queda con 0, pasa a Ghost y devuelve sus
--- propiedades. Devuelve solo el evento de bancarrota: las ventas no tienen evento propio.
+-- propiedades. Emite BankruptcyDeclared y, si el arruinado tenía pactos, un PactEnded por cada
+-- uno (R-P10). Las ventas no tienen evento propio.
 function Bankruptcy.charge(
 	state: GameState,
 	payerId: PlayerId,
@@ -199,6 +201,12 @@ function Bankruptcy.charge(
 	local events: { Event } = {
 		{ type = "BankruptcyDeclared", playerId = payerId, creditorId = creditorId },
 	}
+	-- R-P10: los pactos del recién arruinado terminan. El socio recupera su garantía y la del
+	-- arruinado se queda en el banco. Va antes de cerrar la partida para que la clasificación
+	-- cuente el depósito devuelto al superviviente.
+	for _, event in Pact.onBankruptcy(state, payerId) do
+		table.insert(events, event)
+	end
 	-- R11/R21: si acaba de quedar un solo jugador Active, la partida termina en este instante.
 	-- La comprobación vive en Turn; Bankruptcy solo se la pide.
 	Turn.finishIfLastActive(state, events)

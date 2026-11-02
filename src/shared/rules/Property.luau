@@ -3,6 +3,7 @@
 local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
 local Economy = require("../config/Economy")
+local Pact = require("./Pact")
 local Perks = require("./Perks")
 local Reaction = require("./Reaction")
 local Turn = require("./Turn")
@@ -52,7 +53,7 @@ function Property.rentMultiplier(state: GameState, index: number): number
 	if Turn.isPressureRound(state) then
 		multiplier *= Economy.pressureRentMultiplier
 	end
-	-- state.hotZoneId lo mantiene la Tarea 03; no hay modificador de Zona Caliente.
+	-- state.hotZoneId lo mantiene HotZone (Tarea 8); no hay modificador de Zona Caliente.
 	if state.hotZoneId ~= nil and square.zoneId == state.hotZoneId then
 		multiplier *= Economy.hotZoneRentMultiplier
 	end
@@ -217,6 +218,11 @@ function Property.payRent(state: GameState, payerId: PlayerId, index: number): {
 	local owner = playerOf(state, ownerId)
 	local payer = playerOf(state, payerId)
 	if owner.status == "Ghost" or payer.status == "Ghost" then
+		return {}
+	end
+	-- Un pacto vivo exime de renta a los dos socios (Tarea 8): no hay cobro ni ventana de
+	-- reacción, porque no hay renta que rebotar.
+	if Pact.exemptsRent(state, payerId, ownerId) then
 		return {}
 	end
 	local amount = Property.rentFor(state, index)

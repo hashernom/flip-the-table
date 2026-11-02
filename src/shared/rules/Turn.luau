@@ -1,7 +1,9 @@
 --!strict
--- Avance del turno, rondas, Corona y final de la partida. La caducidad de los intercambios
--- también vive aquí (R20).
+-- Avance del turno, rondas, Corona y final de la partida. También viven aquí la caducidad de los
+-- intercambios (R20), el movimiento de la Zona Caliente (R-P40) y la de los pactos (Tarea 8).
 local Economy = require("../config/Economy")
+local HotZone = require("./HotZone")
+local Pact = require("./Pact")
 local Perks = require("./Perks")
 local Score = require("./Score")
 local Types = require("./Types")
@@ -12,6 +14,12 @@ type Player = Types.Player
 type PlayerId = Types.PlayerId
 
 local Turn = {}
+
+local function append(events: { Event }, more: { Event })
+	for _, event in more do
+		table.insert(events, event)
+	end
+end
 
 -- R20: una oferta caduca con el turno en que se hizo. Se ejecuta antes de mover el turno,
 -- mientras round y turnIndex todavía señalan al turno que termina.
@@ -177,6 +185,16 @@ function Turn.next(state: GameState): { Event }
 		return events
 	end
 	table.insert(events, { type = "RoundStarted", round = state.round })
+	-- Zona Caliente: la ronda 1 la elige State.create (R-P40); al empezar las rondas de la tabla
+	-- (4, 7, 10…) se mueve aquí, nunca a la misma zona que la anterior. Sin zona elegida no hay
+	-- nada que mover: una partida real siempre la trae de State.create, y así el fixture de
+	-- reglas (que la limpia) no altera el azar de las pruebas anteriores.
+	if state.hotZoneId ~= nil and HotZone.isMoveRound(state, state.round) then
+		append(events, HotZone.move(state))
+	end
+	-- Pactos caducados: untilRound es la última ronda activa y al entrar en la siguiente se
+	-- cierran con su garantía devuelta a cada parte.
+	append(events, Pact.expire(state))
 	moveCrown(state, events)
 	local first = firstFinalRound(state)
 	if first ~= nil and state.round == first then

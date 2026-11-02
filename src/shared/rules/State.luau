@@ -2,6 +2,7 @@
 -- Crea el estado inicial de una partida. El orden de turnos se decide con la semilla.
 local Boards = require("../config/Boards")
 local Economy = require("../config/Economy")
+local HotZone = require("./HotZone")
 local Perks = require("./Perks")
 local Rng = require("./Rng")
 local Score = require("./Score")
@@ -92,8 +93,10 @@ function State.create(opts: CreateOptions): Types.GameState
 		-- En Sin Fin no hay tope: la partida solo acaba con un único jugador activo.
 		maxRounds = if endMode == "Rounds" then Economy.rounds[sizeId] else nil,
 		phase = "PerkDraft",
-		-- Tabla persistente: las fases escriben sus claves, nunca la reemplazan.
-		pending = { trades = {} },
+		-- Tabla persistente: las fases escriben sus claves, nunca la reemplazan. Las listas de
+		-- ofertas de intercambio y de pacto nacen vacías; sus secuencias de id se crean al primer
+		-- uso.
+		pending = { trades = {}, pactOffers = {} },
 		properties = newProperties(board),
 		pacts = {},
 		modifiers = {},
@@ -114,6 +117,11 @@ function State.create(opts: CreateOptions): Types.GameState
 	if not Perks.begin(state) then
 		error("State.create: la partida debe empezar con el borrador de perks", 2)
 	end
+	-- R-P40: la ronda 1 abre con Zona Caliente, igual que el borrador. State.create devuelve
+	-- solo el estado y el arranque de la partida no emite eventos de ronda, así que el
+	-- HotZoneMoved de esta primera elección no viaja en ningún arreglo: la zona queda en el
+	-- estado y el cliente la lee de ahí.
+	HotZone.begin(state)
 	return state
 end
 

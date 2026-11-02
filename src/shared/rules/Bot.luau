@@ -89,6 +89,8 @@ end
 
 -- Acción elegida. Devuelve nil cuando no hay ninguna legal o cuando, en una subasta, no le
 -- compensa pujar: el bucle de simulación cierra con Engine.timeout. Nunca inventa una acción.
+-- Las acciones de pacto no entran en legalActions (elegir socio y duración no es un espacio
+-- finito), así que el bot no las elige aquí; la Tarea 10 las cablea con su propia heurística.
 function Bot.choose(state: GameState, playerId: PlayerId): Action?
 	local actions = Engine.legalActions(state, playerId)
 	if #actions == 0 then

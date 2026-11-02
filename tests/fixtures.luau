@@ -36,8 +36,9 @@ function Fixtures.game(opts: GameOptions): Types.GameState
 	-- Las pruebas de reglas saltan el borrador; el borrador se prueba en Perks.spec y en la
 	-- simulación. Sin esto, ninguna prueba de las fases anteriores podría tirar desde el inicio.
 	-- Se devuelve además el generador a la posición que tenía tras el barajado inicial (R-P31): el
-	-- borrador consume azar y una prueba de reglas no debe depender de ello. Si la creación
-	-- cambiara de orden sus tiradas, este reajuste dejaría de ser fiel y habría que revisarlo.
+	-- borrador y la Zona Caliente consumen azar y una prueba de reglas no debe depender de ello.
+	-- Si la creación cambiara de orden sus tiradas, este reajuste dejaría de ser fiel y habría que
+	-- revisarlo.
 	local rng = Rng.new(seed)
 	Rng.shuffle(rng, playerIds)
 	state.rng.seed = rng.seed
@@ -47,6 +48,10 @@ function Fixtures.game(opts: GameOptions): Types.GameState
 		pending.draftRound = nil
 	end
 	state.phase = "AwaitRoll"
+	-- R-P40: State.create también elige la Zona Caliente de la ronda 1. Las pruebas de reglas que
+	-- comprueban rentas exactas no deben depender de qué zona tocó, así que el fixture la limpia
+	-- igual que salta el borrador; las pruebas de Zona Caliente la colocan ellas mismas.
+	state.hotZoneId = nil
 	return state
 end
 
