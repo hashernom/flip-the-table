@@ -96,16 +96,32 @@ function Property.rentFor(state: GameState, index: number): number
 	)
 end
 
+-- Descuento pendiente del jugador. Es un conjunto por jugador (pending.discounts): dos jugadores
+-- pueden tener el suyo sin gastar a la vez y ninguno cancela el del otro.
+local function hasDiscount(state: GameState, playerId: PlayerId): boolean
+	local pending = state.pending
+	local discounts = pending and pending.discounts
+	return discounts ~= nil and discounts[playerId] == true
+end
+
+-- Gasta la marca de Descuento del jugador. Idempotente: sin marca no hace nada.
+local function consumeDiscount(state: GameState, playerId: PlayerId)
+	local pending = state.pending
+	local discounts = pending and pending.discounts
+	if discounts then
+		discounts[playerId] = nil
+	end
+end
+
 -- Precio de compra de una casilla para un jugador. La carta Descuento deja su marca en
--- pending.discountId y la consume una compra directa (nunca una subasta): aquí vive la única
--- fórmula, compartida por canBuy, Engine.buy y la interfaz.
+-- pending.discounts y la consume la compra directa (nunca una subasta): aquí vive la única
+-- fórmula, compartida por canBuy, buy y la interfaz.
 function Property.priceFor(state: GameState, playerId: PlayerId, index: number): number
 	local price = Board.square(state, index).price
 	if not price then
 		error(`Property.priceFor: la casilla {index} no es una propiedad`, 2)
 	end
-	local pending = state.pending
-	if pending and pending.discountId == playerId then
+	if hasDiscount(state, playerId) then
 		return math.floor(price * Economy.cards.discountMultiplier)
 	end
 	return price
@@ -131,8 +147,10 @@ function Property.canBuy(state: GameState, playerId: PlayerId, index: number, pr
 end
 
 -- Compra directa: asume que canBuy ya dio el visto bueno. Sin precio explícito usa el mismo
--- Property.priceFor que canBuy, para que la pareja canBuy/buy nunca cobre de más.
+-- Property.priceFor que canBuy y consume el Descuento del comprador en la misma operación, así
+-- el invariante se cumple llame quien llame. Con precio explícito manda el llamador.
 function Property.buy(state: GameState, playerId: PlayerId, index: number, price: number?): { Event }
+	local appliesDiscount = price == nil and hasDiscount(state, playerId)
 	local cost = price or Property.priceFor(state, playerId, index)
 	local property = propertyAt(state, index)
 	if property.ownerId then
@@ -141,6 +159,9 @@ function Property.buy(state: GameState, playerId: PlayerId, index: number, price
 	local player = playerOf(state, playerId)
 	player.cash -= cost
 	property.ownerId = playerId
+	if appliesDiscount then
+		consumeDiscount(state, playerId)
+	end
 	return { { type = "PropertyBought", playerId = playerId, index = index, price = cost } }
 end
 

@@ -1,6 +1,7 @@
 --!strict
 -- Cartas comunes: una prueba por carta con el estado antes y después, más permisos y objetivos.
 local Harness = require("../harness")
+local Bankruptcy = require("../../src/shared/rules/Bankruptcy")
 local Cards = require("../../src/shared/rules/Cards")
 local Economy = require("../../src/shared/config/Economy")
 local Engine = require("../../src/shared/rules/Engine")
@@ -265,7 +266,7 @@ describe("Marcha Atrás", function()
 end)
 
 describe("Propina Forzada", function()
-	it("cobra 50 a cada rival activo y no a los espectros", function()
+	it("cobra 50 a cada rival y el espectro paga 0", function()
 		local s = Fixtures.game({ players = 4 })
 		local a = inTurn(s)
 		local rivals = rivalsOf(s, a.id)
@@ -274,11 +275,14 @@ describe("Propina Forzada", function()
 		local cashFirst, cashSecond, cashGhost = first.cash, second.cash, ghost.cash
 		Fixtures.hand(s, a.id, "ForcedTip")
 		local events = playCard(s, a.id, "ForcedTip")
+		-- El espectro también recibe el intento de cobro, pero Bankruptcy.charge lo deja en no-op:
+		-- no paga, no se vuelve a declarar en bancarrota y no emite un segundo evento.
 		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "ForcedTip" } })
 		expect(a.cash).toBe(Economy.startingCash + 2 * Economy.cards.forcedTip)
 		expect(first.cash).toBe(cashFirst - Economy.cards.forcedTip)
 		expect(second.cash).toBe(cashSecond - Economy.cards.forcedTip)
 		expect(ghost.cash).toBe(cashGhost)
+		expect(ghost.status).toBe("Ghost")
 		expect(a.hand).toEqual({})
 		expect(a.position).toBe(1)
 		expect(first.position).toBe(1)
@@ -303,6 +307,18 @@ describe("Propina Forzada", function()
 		expect(other.cash).toBe(Economy.startingCash - Economy.cards.forcedTip)
 		expect(s.phase).toBe("AwaitRoll")
 	end)
+
+	it("Bankruptcy.charge no vuelve a declarar en bancarrota a un espectro", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = s.players[1]
+		local creditor = s.players[2]
+		ghost.status = "Ghost"
+		ghost.cash = 0
+		expect(Bankruptcy.charge(s, ghost.id, Economy.cards.fine, creditor.id)).toEqual({})
+		expect(ghost.status).toBe("Ghost")
+		expect(ghost.cash).toBe(0)
+		expect(creditor.cash).toBe(Economy.startingCash)
+	end)
 end)
 
 describe("Descuento", function()
@@ -320,7 +336,7 @@ describe("Descuento", function()
 		expect(a.hand).toEqual({})
 		expect(a.cash).toBe(Economy.startingCash)
 		expect(a.position).toBe(1)
-		expect(pendingOf(s).discountId).toBe(a.id)
+		expect(pendingOf(s).discounts).toEqual({ [a.id] = true })
 		expect(Property.priceFor(s, a.id, index)).toBe(half)
 
 		a.cash = half - 1
@@ -339,7 +355,7 @@ describe("Descuento", function()
 		})
 		expect(a.cash).toBe(0)
 		expect(s.properties[index].ownerId).toBe(a.id)
-		expect(pendingOf(s).discountId).toBe(nil)
+		expect(pendingOf(s).discounts).toEqual({})
 	end)
 
 	it("Property.buy sin precio cobra lo mismo que canBuy", function()
@@ -354,6 +370,58 @@ describe("Descuento", function()
 		local events = Property.buy(s, a.id, index)
 		expect(events[1].price).toBe(half)
 		expect(a.cash).toBe(0)
+		-- La compra directa también consume la marca del comprador.
+		expect(pendingOf(s).discounts[a.id]).toBe(nil)
+	end)
+
+	it("respeta el descuento pendiente de cada jugador", function()
+		local s = Fixtures.game({ players = 3 })
+		local a, b, c = s.players[1], s.players[2], s.players[3]
+		local first = Fixtures.squareOf(s, "Property")
+		local second = first + 1
+		local full = priceOf(s, first)
+		local half = math.floor(full * Economy.cards.discountMultiplier)
+
+		-- A juega su Descuento y cierra el turno sin comprar.
+		Fixtures.turnOf(s, a.id)
+		Fixtures.hand(s, a.id, "Discount")
+		s.phase = "AwaitEnd"
+		playCard(s, a.id, "Discount")
+		expect(pendingOf(s).discounts).toEqual({ [a.id] = true })
+		local ended = Engine.apply(s, a.id, { type = "EndTurn" })
+		if not ended.ok then
+			error(ended.error, 2)
+		end
+
+		-- El Descuento de B no cancela el de A; C, sin carta, paga el precio completo.
+		expect(s.players[s.turnIndex].id).toBe(b.id)
+		Fixtures.hand(s, b.id, "Discount")
+		playCard(s, b.id, "Discount")
+		expect(pendingOf(s).discounts).toEqual({ [a.id] = true, [b.id] = true })
+		expect(Property.priceFor(s, c.id, first)).toBe(full)
+
+		-- Cada compra consume la marca de su comprador y solo la suya.
+		s.phase = "AwaitBuy"
+		pendingOf(s).index = first
+		local boughtB = Engine.apply(s, b.id, { type = "Buy" })
+		if not boughtB.ok then
+			error(boughtB.error, 2)
+		end
+		expect(boughtB.events[1].price).toBe(half)
+		expect(b.cash).toBe(Economy.startingCash - half)
+		expect(pendingOf(s).discounts).toEqual({ [a.id] = true })
+
+		Fixtures.turnOf(s, a.id)
+		s.phase = "AwaitBuy"
+		pendingOf(s).index = second
+		local boughtA = Engine.apply(s, a.id, { type = "Buy" })
+		if not boughtA.ok then
+			error(boughtA.error, 2)
+		end
+		expect(boughtA.events[1].price).toBe(
+			math.floor(priceOf(s, second) * Economy.cards.discountMultiplier)
+		)
+		expect(pendingOf(s).discounts).toEqual({})
 	end)
 
 	it("no se aplica ni se consume en una subasta", function()
@@ -377,7 +445,7 @@ describe("Descuento", function()
 		expect(s.properties[index].ownerId).toBe(bidder.id)
 		expect(bidder.cash).toBe(Economy.startingCash - 100)
 		-- La marca sigue reservada para la próxima compra directa del lanzador.
-		expect(pendingOf(s).discountId).toBe(a.id)
+		expect(pendingOf(s).discounts[a.id]).toBe(true)
 	end)
 end)
 
@@ -412,6 +480,30 @@ describe("Empujón", function()
 		expect(s.phase).toBe("AwaitRoll")
 		expect(pendingOf(s).index).toBe(nil)
 		-- La casilla 4 está libre: si el destino se resolviera, abriría AwaitBuy.
+		expect(s.properties[destination].ownerId).toBe(nil)
+	end)
+
+	it("paga la Salida si el empujón la cruza y sigue sin resolver el destino", function()
+		local s = Fixtures.game({ players = 2 })
+		local a = inTurn(s)
+		local target = rivalsOf(s, a.id)[1]
+		-- Desde la penúltima casilla, 3 pasos cruzan la Salida y acaban en la propiedad 2.
+		Fixtures.placeOn(s, target.id, #s.board.squares - 1)
+		local destination = 2
+		Fixtures.hand(s, a.id, "Shove")
+		local events = playCard(s, a.id, "Shove", target.id)
+		expect(#events).toBe(3)
+		expect(events[2].type).toBe("TokenMoved")
+		expect(events[3]).toEqual({
+			type = "PassedStart",
+			playerId = target.id,
+			amount = Economy.startBonus,
+		})
+		expect(target.position).toBe(destination)
+		expect(target.cash).toBe(Economy.startingCash + Economy.startBonus)
+		-- La casilla 2 está libre: si el destino se resolviera, abriría AwaitBuy.
+		expect(s.phase).toBe("AwaitRoll")
+		expect(pendingOf(s).index).toBe(nil)
 		expect(s.properties[destination].ownerId).toBe(nil)
 	end)
 end)
@@ -493,6 +585,30 @@ describe("Espía", function()
 		expect(a.cash).toBe(Economy.startingCash)
 		expect(a.position).toBe(1)
 	end)
+
+	it("no deja la mano espiada en el estado compartido al cerrar el turno", function()
+		local s = Fixtures.game({ players = 2 })
+		local a = inTurn(s)
+		Fixtures.hand(s, a.id, "Spy")
+		playCard(s, a.id, "Spy", rivalsOf(s, a.id)[1].id)
+		expect(pendingOf(s).spy ~= nil).toBe(true)
+		s.phase = "AwaitEnd"
+		local ended = Engine.apply(s, a.id, { type = "EndTurn" })
+		if not ended.ok then
+			error(ended.error, 2)
+		end
+		expect(pendingOf(s).spy).toBe(nil)
+	end)
+
+	it("tampoco deja el Espía cuando el jugador abandona", function()
+		local s = Fixtures.game({ players = 3 })
+		local a = inTurn(s)
+		Fixtures.hand(s, a.id, "Spy")
+		playCard(s, a.id, "Spy", rivalsOf(s, a.id)[1].id)
+		a.status = "Left"
+		Engine.timeout(s)
+		expect(pendingOf(s).spy).toBe(nil)
+	end)
 end)
 
 describe("objetivo de las cartas", function()
@@ -516,5 +632,14 @@ describe("objetivo de las cartas", function()
 			"El objetivo P9 no está en la partida"
 		)
 		expect(deepCopy(s)).toEqual(before)
+	end)
+end)
+
+describe("Economy.cards", function()
+	it("fija los valores de las cartas comunes de la ficha", function()
+		expect(Economy.cards.forcedTip).toBe(50)
+		expect(Economy.cards.fine).toBe(100)
+		expect(Economy.cards.shoveSteps).toBe(3)
+		expect(Economy.cards.discountMultiplier).toBe(0.5)
 	end)
 end)

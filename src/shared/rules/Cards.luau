@@ -80,6 +80,19 @@ local function targetOf(target: Player?): Player
 	return target
 end
 
+-- Marca al jugador en el conjunto `field` de pending (lo crea si hace falta). Descuentos y
+-- sobornos son conjuntos por jugador: dos jugadores pueden tener el suyo vivo a la vez y nadie
+-- cancela la marca de otro.
+local function markPending(state: GameState, field: string, playerId: PlayerId)
+	local pending = pendingOf(state)
+	local marks = pending[field]
+	if not marks then
+		marks = {}
+		pending[field] = marks
+	end
+	marks[playerId] = true
+end
+
 -- Motivo por el que el objetivo de una carta de jugador no vale, o nil. El objetivo nunca puede
 -- ser el lanzador, un espectro, quien abandonó ni alguien fuera de la partida.
 local function targetReason(
@@ -114,20 +127,21 @@ local function reverse(state: GameState, _player: Player, _target: Player?, _eve
 	pendingOf(state).reverse = true
 end
 
--- Propina Forzada: cada rival activo paga 50 al lanzador. R-P3: todo cobro pasa por
--- Bankruptcy.charge para que nadie quede con efectivo negativo; un espectro no paga.
+-- Propina Forzada: cada rival paga 50 al lanzador. R-P3: todo cobro pasa por
+-- Bankruptcy.charge para que nadie quede con efectivo negativo. R-P20: también se intenta con
+-- los espectros; Bankruptcy.charge lo deja en no-op porque un espectro ya no tiene dinero que dar.
 local function forcedTip(state: GameState, player: Player, _target: Player?, events: { Event })
 	for _, rival in state.players do
-		if rival.id ~= player.id and rival.status == "Active" then
+		if rival.id ~= player.id then
 			append(events, Bankruptcy.charge(state, rival.id, Economy.cards.forcedTip, player.id))
 		end
 	end
 end
 
--- Descuento: la próxima compra directa del lanzador cuesta la mitad. La marca se consume en
--- Engine.buy y no afecta a las subastas.
+-- Descuento: la próxima compra directa del lanzador cuesta la mitad. Property.buy consume la
+-- marca de ese jugador y las subastas no la tocan.
 local function discount(state: GameState, player: Player, _target: Player?, _events: { Event })
-	pendingOf(state).discountId = player.id
+	markPending(state, "discounts", player.id)
 end
 
 -- Empujón: avanza al rival sin resolver la casilla de destino (ni compra, ni renta, ni efecto).
@@ -143,13 +157,7 @@ end
 -- Soborno: apunta al lanzador como protegido. La Tarea 7 consume (y borra) su entrada del mapa
 -- al cancelar el castigo del Tribunal; un mapa permite varios sobornos vivos a la vez.
 local function bribe(state: GameState, player: Player, _target: Player?, _events: { Event })
-	local pending = pendingOf(state)
-	local bribes = pending.bribes
-	if not bribes then
-		bribes = {}
-		pending.bribes = bribes
-	end
-	bribes[player.id] = true
+	markPending(state, "bribes", player.id)
 end
 
 -- Espía: guarda una copia de la mano rival para que el servidor la entregue en privado. La mano

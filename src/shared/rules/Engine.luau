@@ -142,10 +142,12 @@ local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): 
 	local pending = state.pending
 	if pending then
 		-- La vista del turno siguiente no debe enseñar los dados del jugador anterior ni las
-		-- cartas de tirada sin gastar: solo valen para la tirada de este turno.
+		-- cartas de tirada sin gastar: solo valen para la tirada de este turno. El Espía tampoco
+		-- sobrevive: la mano robada se entrega en privado y no se queda en el estado compartido.
 		pending.rolled = nil
 		pending.extraDie = nil
 		pending.reverse = nil
+		pending.spy = nil
 	end
 	if state.phase ~= "GameOver" then
 		state.phase = "AwaitRoll"
@@ -165,19 +167,14 @@ local function buyCheck(state: GameState, playerId: PlayerId, _action: Action): 
 	return nil
 end
 
--- Buy: cobra la propiedad pendiente al precio de Property.priceFor (que aplica Descuento) y
--- consume la marca si era del comprador. Todo lo rechazable se comprueba antes de mutar.
+-- Buy: compra la propiedad pendiente. Property.buy aplica el Descuento del comprador y consume
+-- su marca en la misma operación. Todo lo rechazable se comprueba antes de mutar.
 local function buy(state: GameState, playerId: PlayerId, _action: Action): { Event }
 	local pending = state.pending
 	if not pending or not pending.index then
 		error("Engine.buy: la fase AwaitBuy no tiene pending.index", 2)
 	end
-	local price = Property.priceFor(state, playerId, pending.index)
-	local events = Property.buy(state, playerId, pending.index, price)
-	-- La subasta no pasa por aquí: nunca aplica ni consume el Descuento.
-	if pending.discountId == playerId then
-		pending.discountId = nil
-	end
+	local events = Property.buy(state, playerId, pending.index)
 	pending.index = nil
 	state.phase = "AwaitEnd"
 	return events
@@ -421,6 +418,7 @@ local function abandonTurn(state: GameState): { Event }
 		pending.rolled = nil
 		pending.extraDie = nil
 		pending.reverse = nil
+		pending.spy = nil
 	end
 	local events = Turn.next(state)
 	if state.phase ~= "GameOver" then
