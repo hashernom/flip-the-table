@@ -10,3 +10,8 @@ sourcemap.json
 art/check-full.txt
 srv.log
 srv*.log
+
+# Artefactos de herramientas locales (hooks, config por maquina)
+.codex/
+.impeccable/config.local.json
+.impeccable/hook.cache.json
