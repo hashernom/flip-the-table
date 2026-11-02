@@ -140,7 +140,7 @@ end)
 - [x] **Paso 2:** Ejecutar `lune run tests/run Rng`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar con un generador congruencial: `seed = (seed * 1103515245 + 12345) % 2^31`; usar los bits altos para el rango.
 - [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Ejecutar el módulo en Studio con `execute_luau` del MCP de Roblox y comparar los 10 primeros valores de la semilla 42 con los de Lune. Esperado: iguales.
+- [x] **Paso 5:** Ejecutar el módulo en Studio con `execute_luau` del MCP de Roblox y comparar los 10 primeros valores de la semilla 42 con los de Lune. Esperado: iguales.
 - [x] **Paso 6:** Hacer commit: `feat: añadir azar determinista`.
 
 ### Task 4: Tipos y datos base
