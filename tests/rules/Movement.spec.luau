@@ -241,12 +241,18 @@ describe("Turn.next", function()
 		expect(s.round).toBe(1)
 	end)
 
-	it("sigue contando rondas con un solo jugador presente", function()
+	it("cierra la partida al dar la vuelta con un solo jugador activo", function()
 		local s = Fixtures.game({ players = 2 })
+		local survivor = s.players[1]
 		s.players[2].status = "Left"
-		Turn.next(s)
+		local events = Turn.next(s)
 		expect(s.turnIndex).toBe(1)
 		expect(s.round).toBe(2)
+		-- R11: con un solo Active, el cambio de turno termina la partida.
+		expect(s.phase).toBe("GameOver")
+		expect(#events).toBe(1)
+		expect(events[1].type).toBe("GameEnded")
+		expect(events[1].winnerId).toBe(survivor.id)
 	end)
 end)
 

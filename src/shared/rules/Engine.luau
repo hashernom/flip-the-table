@@ -85,7 +85,11 @@ local function roll(state: GameState, playerId: PlayerId, _action: Action): { Ev
 	-- Anotación explícita: Luau ensancha la unión de literales al inferir la local.
 	local phase: Phase, landingEvents: { Event } = resolveLanding(state, playerId)
 	append(events, landingEvents)
-	state.phase = phase
+	-- La casilla puede cerrar la partida (la renta arruina al último rival y Turn fija
+	-- GameOver): la fase resuelta no sobrescribe un final ya decidido.
+	if state.phase ~= "GameOver" then
+		state.phase = phase
+	end
 	return events
 end
 

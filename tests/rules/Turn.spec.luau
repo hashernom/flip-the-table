@@ -221,6 +221,21 @@ describe("Turn.finishIfLastActive", function()
 		expect(events[1].winnerId).toBe(survivor.id)
 		expect(events[1].ranking).toEqual(Score.ranking(s))
 	end)
+
+	it("no vuelve a cerrar una partida ya terminada", function()
+		local s = Fixtures.game({ players = 2 })
+		s.players[2].status = "Ghost"
+		local first: { Types.Event } = {}
+		expect(Turn.finishIfLastActive(s, first)).toBe(true)
+		expect(#first).toBe(1)
+		local again: { Types.Event } = {}
+		expect(Turn.finishIfLastActive(s, again)).toBe(true)
+		expect(#again).toBe(0)
+		local round = s.round
+		expect(Turn.next(s)).toEqual({})
+		expect(s.round).toBe(round)
+		expect(s.phase).toBe("GameOver")
+	end)
 end)
 
 describe("final de la partida por rondas", function()
@@ -272,6 +287,36 @@ describe("final de la partida por rondas", function()
 		expect(s.phase).toBe("GameOver")
 	end)
 
+	it("el ganador por rondas es el primer activo de la clasificación", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = s.players[1]
+		ghost.status = "Ghost"
+		ghost.cash = 9000
+		Fixtures.turnOf(s, s.players[#s.players].id)
+		s.round = s.maxRounds :: number
+		local events = Turn.next(s)
+		expect(s.phase).toBe("GameOver")
+		local ended = eventOf(events, "GameEnded")
+		-- R27: el espectro encabeza el patrimonio, pero no puede ganar.
+		expect(ended.ranking[1]).toBe(ghost.id)
+		expect(ended.winnerId).toBe(s.players[2].id)
+	end)
+
+	it("el único activo gana aunque también se supere la última ronda", function()
+		local s = Fixtures.game({ players = 2 })
+		local ghost = s.players[1]
+		ghost.status = "Ghost"
+		ghost.cash = 9000
+		local survivor = s.players[2]
+		Fixtures.turnOf(s, s.players[#s.players].id)
+		s.round = s.maxRounds :: number
+		local events = Turn.next(s)
+		expect(s.phase).toBe("GameOver")
+		expect(countOf(events, "GameEnded")).toBe(1)
+		-- Si mandara el final por rondas, ganaría el espectro con más patrimonio.
+		expect(eventOf(events, "GameEnded").winnerId).toBe(survivor.id)
+	end)
+
 	it("Sin Fin nunca termina por rondas", function()
 		local s = Fixtures.game({ players = 3, endMode = "Endless" })
 		local last = s.players[#s.players]
@@ -287,6 +332,34 @@ describe("final de la partida por rondas", function()
 		expect(countOf(result.events, "GameEnded")).toBe(0)
 		expect(countOf(result.events, "FinalRoundsStarted")).toBe(0)
 		expect(eventOf(result.events, "RoundStarted").round).toBe(501)
+	end)
+end)
+
+describe("final durante la resolución de la casilla", function()
+	it("no reabre la partida si la renta arruina al último rival", function()
+		local s = Fixtures.game({ players = 2 })
+		local owner, payer = s.players[1], s.players[2]
+		-- Segunda propiedad de la primera zona: desde la casilla anterior, 1+1 cae en ella.
+		local idx = Fixtures.squareOf(s, "Property") + 1
+		Fixtures.give(s, owner.id, idx)
+		Fixtures.turnOf(s, payer.id)
+		Fixtures.placeOn(s, payer.id, idx - 2)
+		payer.cash = 0
+		Fixtures.dice(s, 1, 1)
+		local result = Engine.apply(s, payer.id, { type = "Roll" })
+		if not result.ok then
+			error(result.error, 2)
+		end
+		expect(typesOf(result.events)).toEqual({
+			"DiceRolled",
+			"TokenMoved",
+			"RentPaid",
+			"BankruptcyDeclared",
+			"GameEnded",
+		})
+		expect(countOf(result.events, "GameEnded")).toBe(1)
+		expect(s.phase).toBe("GameOver")
+		expect(rejected(Engine.apply(s, owner.id, { type = "EndTurn" }))).toBe("La partida ha terminado")
 	end)
 end)
 

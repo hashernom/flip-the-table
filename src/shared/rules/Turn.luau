@@ -91,29 +91,33 @@ function Turn.isPressureRound(state: GameState): boolean
 	return state.endMode == "Endless" and state.round >= Economy.pressureFromRound
 end
 
+-- R27: gana siempre el primer jugador Active de la clasificación. Solo si no queda ninguno
+-- (un caso que no debería llegar al final) decide el primero de la clasificación.
+local function winnerOf(state: GameState, ranking: { PlayerId }): PlayerId
+	local byId = playersById(state)
+	for _, id in ranking do
+		local player = byId[id]
+		if player and player.status == "Active" then
+			return id
+		end
+	end
+	return ranking[1]
+end
+
 -- R11/R21: con un solo jugador Active la partida termina en ese instante y gana ese jugador,
 -- aunque la clasificación coloque delante a un espectro con más patrimonio. Añade el evento
--- a `events` y devuelve true si ha cerrado la partida.
+-- a `events` y devuelve true si la partida queda cerrada (también si ya lo estaba).
 function Turn.finishIfLastActive(state: GameState, events: { Event }): boolean
+	-- Idempotente: una partida terminada no vuelve a emitir GameEnded.
+	if state.phase == "GameOver" then
+		return true
+	end
 	if Turn.activeCount(state) ~= 1 then
 		return false
 	end
 	local ranking = Score.ranking(state)
-	local byId = playersById(state)
-	local winnerId: PlayerId? = nil
-	for _, id in ranking do
-		local player = byId[id]
-		if player and player.status == "Active" then
-			winnerId = id
-			break
-		end
-	end
-	if not winnerId then
-		-- Inalcanzable: activeCount ya garantizó que hay exactamente un activo.
-		error("Turn.finishIfLastActive: no se encontró el jugador activo", 2)
-	end
 	state.phase = "GameOver"
-	table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerId })
+	table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
 	return true
 end
 
@@ -133,6 +137,10 @@ local function moveCrown(state: GameState, events: { Event })
 end
 
 function Turn.next(state: GameState): { Event }
+	-- Idempotente: una partida terminada no vuelve a moverse ni a cerrarse.
+	if state.phase == "GameOver" then
+		return {}
+	end
 	dropTradesOfTurn(state)
 	local index = nextIndex(state)
 	-- Dar la vuelta al orden abre ronda; con un solo jugador presente también cuenta.
@@ -143,16 +151,16 @@ function Turn.next(state: GameState): { Event }
 	state.turnIndex = index
 
 	local events: { Event } = {}
+	-- R11 manda sobre el final por rondas: si solo queda un activo, gana ese jugador.
+	if Turn.finishIfLastActive(state, events) then
+		return events
+	end
 	local maxRounds = state.maxRounds
 	-- Rondas: la partida ha consumido su última ronda.
 	if state.endMode == "Rounds" and maxRounds ~= nil and state.round > maxRounds then
 		state.phase = "GameOver"
 		local ranking = Score.ranking(state)
-		table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = ranking[1] })
-		return events
-	end
-	-- R11: si en el cambio de turno queda un solo activo, la partida termina aquí.
-	if Turn.finishIfLastActive(state, events) then
+		table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
 		return events
 	end
 	-- La ronda 1 empieza con la partida: solo se anuncia la ronda que abre este salto.
