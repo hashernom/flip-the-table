@@ -1,6 +1,17 @@
 {
   "assets": [
     {
+      "id": "facade-reference",
+      "category": "Building",
+      "source": "art/blender/facade/build_facade.py",
+      "triangles": 2074,
+      "lods": [790],
+      "textures": 6,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/facade/build_facade.py"
+    },
+    {
       "id": "house",
       "category": "Building",
       "source": "art/blender/blockout/build_blockout.py",
