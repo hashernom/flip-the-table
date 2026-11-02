@@ -95,5 +95,7 @@ return {
 		hunterDamageMultiplier = 1.5,
 		-- Blindado: divisor del primer daño por carta de cada ronda.
 		armoredDamageDivisor = 2,
+		-- Alma en Pena: cartas de sabotaje con las que empieza el espectro al arruinarse (R-P6).
+		restlessSoulCards = 2,
 	},
 }

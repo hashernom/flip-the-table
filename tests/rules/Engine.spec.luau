@@ -601,7 +601,8 @@ end)
 
 describe("legalActions y bot en una partida completa", function()
 	it("toda acción legal se puede aplicar y el bot nunca elige una ilegal", function()
-		local s = Fixtures.game({ players = 4, seed = 7, endMode = "Endless" })
+		-- Semilla con subastas: la trayectoria se desplaza con cada consumidor nuevo de Rng (Furia).
+		local s = Fixtures.game({ players = 4, seed = 2, endMode = "Endless" })
 		local states = 0
 		local checked = 0
 		local steps = 0

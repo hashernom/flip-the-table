@@ -105,6 +105,10 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		-- El primer perk ofrecido: la lista legal ya viene en el orden de la oferta y solo trae
 		-- las acciones del jugador al que le toca elegir.
 		return firstOf(actions, "DraftPerk")
+	elseif phase == "GhostTurn" then
+		-- Turno corto del espectro (R-P43): el sabotaje es la primera acción legal y la más
+		-- simple. Embrujar queda para la heurística completa de la Tarea 10.
+		return firstOf(actions, "GhostAct")
 	elseif phase == "AwaitRoll" then
 		return firstOf(actions, "Roll")
 	elseif phase == "AwaitBuy" then

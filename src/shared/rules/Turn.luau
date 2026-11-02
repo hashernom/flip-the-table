@@ -2,6 +2,7 @@
 -- Avance del turno, rondas, Corona y final de la partida. También viven aquí la caducidad de los
 -- intercambios (R20), el movimiento de la Zona Caliente (R-P40) y la de los pactos (Tarea 8).
 local Economy = require("../config/Economy")
+local Comeback = require("./Comeback")
 local HotZone = require("./HotZone")
 local Pact = require("./Pact")
 local Perks = require("./Perks")
@@ -10,6 +11,7 @@ local Types = require("./Types")
 
 type GameState = Types.GameState
 type Event = Types.Event
+type Phase = Types.Phase
 type Player = Types.Player
 type PlayerId = Types.PlayerId
 
@@ -156,6 +158,17 @@ local function moveCrown(state: GameState, events: { Event })
 	table.insert(events, { type = "CrownMoved", from = from, to = to })
 end
 
+-- Fase con la que arranca el turno del jugador actual: un espectro no tira dados, tiene un turno
+-- corto de una sola acción (R-P43). La deciden los tres caminos que cierran un turno (EndTurn,
+-- el reloj y la propia acción de espectro), para que ninguno deje a un Ghost en AwaitRoll.
+function Turn.phaseFor(state: GameState): Phase
+	local player = state.players[state.turnIndex]
+	if player and player.status == "Ghost" then
+		return "GhostTurn"
+	end
+	return "AwaitRoll"
+end
+
 function Turn.next(state: GameState): { Event }
 	-- Idempotente: una partida terminada no vuelve a moverse ni a cerrarse.
 	if state.phase == "GameOver" then
@@ -171,6 +184,9 @@ function Turn.next(state: GameState): { Event }
 		state.round += 1
 	end
 	state.turnIndex = index
+	-- R-P43: la fase se decide aquí. Los cierres de más abajo (GameOver y PerkDraft) mandan sobre
+	-- esta lectura, así que una ronda puede abrir el borrador antes de que actúe el espectro.
+	state.phase = Turn.phaseFor(state)
 
 	local events: { Event } = {}
 	-- R11 manda sobre el final por rondas: si solo queda un activo, gana ese jugador.
@@ -186,6 +202,10 @@ function Turn.next(state: GameState): { Event }
 		local ranking = Score.ranking(state)
 		table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
 		return events
+	end
+	-- R-P43: la ronda del espectro se cuenta solo cuando su turno va a empezar de verdad.
+	if state.phase == "GhostTurn" then
+		Comeback.beginGhostTurn(state, state.players[index].id)
 	end
 	-- La ronda 1 empieza con la partida: solo se anuncia la ronda que abre este salto.
 	if not startsRound then

@@ -2,6 +2,7 @@
 -- Reglas de propiedad: renta, compra y cobro.
 local Bankruptcy = require("./Bankruptcy")
 local Board = require("./Board")
+local Comeback = require("./Comeback")
 local Economy = require("../config/Economy")
 local Pact = require("./Pact")
 local Perks = require("./Perks")
@@ -207,6 +208,11 @@ function Property.chargeRent(
 		to = ownerId,
 		amount = amount,
 	})
+	-- Tarea 9: una renta pagada por quien no lidera suma Furia. Va después del cobro, así que la
+	-- clasificación ya refleja el pago. Es el único camino de renta: el directo y el rebotado.
+	for _, event in Comeback.onRentPaid(state, payerId) do
+		table.insert(events, event)
+	end
 	return events
 end
 

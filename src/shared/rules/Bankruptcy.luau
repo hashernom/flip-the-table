@@ -2,6 +2,7 @@
 -- Bancarrota sin eliminación: cobra una deuda, vende bienes al banco si hace falta y, cuando
 -- nada alcanza, convierte al jugador en espectro sin dejar efectivo negativo ni crear dinero.
 local Board = require("./Board")
+local Comeback = require("./Comeback")
 local Economy = require("../config/Economy")
 local Pact = require("./Pact")
 local Turn = require("./Turn")
@@ -201,6 +202,11 @@ function Bankruptcy.charge(
 	local events: { Event } = {
 		{ type = "BankruptcyDeclared", playerId = payerId, creditorId = creditorId },
 	}
+	-- R-P6: Alma en Pena entrega sus 2 cartas de sabotaje al espectro recién arruinado. No suman
+	-- a player.sabotages: ese contador mide acciones de sabotaje, no cartas guardadas.
+	for _, event in Comeback.grantRestlessSoul(state, payerId) do
+		table.insert(events, event)
+	end
 	-- R-P10: los pactos del recién arruinado terminan. El socio recupera su garantía y la del
 	-- arruinado se queda en el banco. Va antes de cerrar la partida para que la clasificación
 	-- cuente el depósito devuelto al superviviente.

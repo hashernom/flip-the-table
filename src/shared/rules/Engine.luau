@@ -4,6 +4,7 @@ local Auction = require("./Auction")
 local Board = require("./Board")
 local Building = require("./Building")
 local Cards = require("./Cards")
+local Comeback = require("./Comeback")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
 local Pact = require("./Pact")
@@ -241,11 +242,29 @@ local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): 
 		pending.spy = nil
 	end
 	-- R-P28: la ronda que empieza puede abrir el borrador de perks (Turn.next); esa fase no se
-	-- pisa al cerrar el turno.
+	-- pisa al cerrar el turno. R-P43: si el siguiente es un espectro, su fase es GhostTurn.
 	if state.phase ~= "GameOver" and state.phase ~= "PerkDraft" then
-		state.phase = "AwaitRoll"
+		state.phase = Turn.phaseFor(state)
 	end
 	return events
+end
+
+-- Motivo por el que GhostAct no puede aplicarse, o nil. Comeback.ghostActReason es la única
+-- regla; el motor solo le pasa la forma mínima que entiende (kind e index).
+local function ghostActCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Comeback.ghostActReason(state, playerId, { kind = action.kind, index = action.index })
+end
+
+-- GhostAct: la única acción del turno de un espectro (R-P43). Comeback aplica el sabotaje, el
+-- embrujo o la resurrección y el motor cierra el turno con la misma salida que EndTurn: una sola
+-- acción, fase del siguiente jugador y GameOver/PerkDraft si el avance los abre.
+local function ghostAct(state: GameState, playerId: PlayerId, action: Action): Types.ApplyResult
+	local result = Comeback.ghostAct(state, playerId, { kind = action.kind, index = action.index })
+	if not result.ok then
+		return result
+	end
+	append(result.events, endTurn(state, playerId, action))
+	return result
 end
 
 -- Motivo por el que Buy no puede aplicarse, o nil. Property.canBuy es la única regla.
@@ -501,6 +520,15 @@ local function draftPerkCheck(state: GameState, playerId: PlayerId, action: Acti
 	return Perks.draftReason(state, playerId, action.perkId)
 end
 
+-- El borrador de perks cierra la fase en AwaitRoll. Si el jugador en turno es un espectro, su
+-- turno es GhostTurn (R-P43); Perks no puede require Turn (Turn ya require Perks), así que el
+-- motor ajusta la fase después de cada cierre del borrador.
+local function settleTurnPhase(state: GameState)
+	if state.phase == "AwaitRoll" then
+		state.phase = Turn.phaseFor(state)
+	end
+end
+
 -- DraftPerk: añade el perk elegido y pasa el turno al siguiente jugador del orden. La última
 -- elección cierra el borrador (Perks.draft deja la fase en AwaitRoll).
 local function draftPerk(state: GameState, playerId: PlayerId, action: Action): { Event }
@@ -508,6 +536,7 @@ local function draftPerk(state: GameState, playerId: PlayerId, action: Action): 
 	if not result.ok then
 		error(result.error, 2)
 	end
+	settleTurnPhase(state)
 	return result.events
 end
 
@@ -626,6 +655,13 @@ local rules: { [string]: ActionRule } = {
 		check = breakPactCheck,
 		handler = breakPact,
 	},
+	-- Turno de espectro (Tarea 9): una sola acción, la aplica Comeback y el turno termina.
+	GhostAct = {
+		phases = { "GhostTurn" },
+		turnOnly = true,
+		check = ghostActCheck,
+		apply = ghostAct,
+	},
 	EndTurn = { phases = { "AwaitEnd" }, turnOnly = true, handler = endTurn },
 }
 
@@ -694,6 +730,20 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 			for _, perkId in draft.offer do
 				table.insert(candidates, { type = "DraftPerk", perkId = perkId })
 			end
+		end
+	elseif phase == "GhostTurn" then
+		-- Una acción por turno: robar un sabotaje o embrujar una propiedad ajena. Las casillas se
+		-- enumeran en orden ascendente para que el bot y la simulación sean deterministas.
+		table.insert(candidates, { type = "GhostAct", kind = "Sabotage" })
+		local indices: { number } = {}
+		for index, property in state.properties do
+			if property.ownerId and property.ownerId ~= playerId then
+				table.insert(indices, index)
+			end
+		end
+		table.sort(indices)
+		for _, index in indices do
+			table.insert(candidates, { type = "GhostAct", kind = "Haunt", index = index })
 		end
 	elseif phase == "Auction" then
 		local bidAction = representativeBid(state, playerId)
@@ -834,7 +884,7 @@ local function abandonTurn(state: GameState): { Event }
 	end
 	local events = Turn.next(state)
 	if state.phase ~= "GameOver" and state.phase ~= "PerkDraft" then
-		state.phase = "AwaitRoll"
+		state.phase = Turn.phaseFor(state)
 	end
 	return events
 end
@@ -850,8 +900,18 @@ function Engine.timeout(state: GameState): { Event }
 		-- acción que quedó en suspenso. Sin ventana abierta no hace nada.
 		return resumePending(state, Reaction.close(state))
 	elseif phase == "PerkDraft" then
-		-- El reloj asigna el primer perk ofrecido al jugador al que le toca elegir.
-		return Perks.timeout(state)
+		-- El reloj asigna el primer perk ofrecido al jugador al que le toca elegir. Si la última
+		-- elección cierra el borrador, la fase vuelve al turno (GhostTurn si toca, R-P43).
+		local events = Perks.timeout(state)
+		settleTurnPhase(state)
+		return events
+	elseif phase == "GhostTurn" then
+		-- El reloj del espectro cierra su turno sin actuar: ni sabotaje ni resurrección.
+		local player = state.players[state.turnIndex]
+		if not player then
+			return {}
+		end
+		return endTurn(state, player.id, { type = "EndTurn" })
 	elseif phase == "Market" then
 		-- El reloj del Mercado es un pase: se cierra sin comprar.
 		return Squares.marketTimeout(state)
