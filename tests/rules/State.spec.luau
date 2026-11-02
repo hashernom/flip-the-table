@@ -187,6 +187,16 @@ describe("Board", function()
 		expect(Board.zoneOf(s, 1)).toBe(nil)
 	end)
 
+	it("devuelve una copia de la zona para que nadie mute el tablero", function()
+		local s = Fixtures.game({ players = 2 })
+		local zone = Board.zoneOf(s, Fixtures.squareOf(s, "Property"))
+		if not zone then
+			error("la primera propiedad debería tener zona", 2)
+		end
+		table.remove(zone, 1)
+		expect(#s.board.zones[zoneOfFirstProperty(s)]).toBe(3)
+	end)
+
 	it("reconoce una zona solo cuando está completa", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1].id, s.players[2].id

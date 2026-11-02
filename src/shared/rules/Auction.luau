@@ -68,6 +68,10 @@ function Auction.bidReason(state: GameState, playerId: PlayerId, amount: any): s
 	if player.status ~= "Active" then
 		return "Solo los jugadores activos pueden pujar"
 	end
+	-- Subir la propia puja no cambia quién gana y oculta a los demás hasta dónde llega el precio.
+	if auction.highBidder == playerId then
+		return "Ya vas ganando la subasta"
+	end
 	if type(amount) ~= "number" or amount % 1 ~= 0 then
 		return "La puja debe ser un número entero"
 	end

@@ -370,7 +370,7 @@ end)
 - [x] 1000 partidas por cada número de jugadores, de 2 a 8, terminan, en modo Rondas y en modo Sin Fin.
 - [x] En ningún momento hay efectivo negativo tras resolver una acción.
 - [x] Cada propiedad tiene un dueño como máximo y su dueño nunca es un espectro.
-- [x] Con `idle = true`, solo con tiempo agotado, la partida también termina.
+- [x] Con `idle = true`, solo con tiempo agotado, la partida también termina. (solo en Rondas; en Sin Fin no hay sumideros de dinero hasta la fase 03, ver R32)
 - [x] La misma semilla produce el mismo resultado.
 
 - [x] **Paso 1:** Escribir las pruebas con esos invariantes.

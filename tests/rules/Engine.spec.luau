@@ -432,6 +432,63 @@ describe("Engine.timeout", function()
 		expect(s.phase).toBe("AwaitRoll")
 	end)
 
+	it("en AwaitRoll cierra el turno de un jugador que abandonó y la partida sigue", function()
+		local s = Fixtures.game({ players = 3 })
+		local left = inTurn(s)
+		local expectedNext = s.players[s.turnIndex % #s.players + 1].id
+		left.status = "Left"
+		-- Sin la salida de emergencia el timeout sería un no-op y nadie más podría jugar.
+		local events = Engine.timeout(s)
+		expect((events :: any).ok).toBe(nil)
+		expect(s.players[s.turnIndex].id).toBe(expectedNext)
+		expect(s.phase).toBe("AwaitRoll")
+		-- El segundo timeout vuelve a mover la partida: tira el jugador nuevo.
+		local more = Engine.timeout(s)
+		expect(more[1].type).toBe("DiceRolled")
+		expect(more[1].playerId).toBe(expectedNext)
+		expect(s.players[s.turnIndex].id).toBe(expectedNext)
+		expect(s.phase ~= "AwaitRoll").toBe(true)
+	end)
+
+	it("en AwaitBuy cierra el turno de un jugador que abandonó y descarta la compra", function()
+		local s = Fixtures.game({ players = 3 })
+		local left = inTurn(s)
+		local index = setupAwaitBuy(s, left.id)
+		local expectedNext = s.players[s.turnIndex % #s.players + 1].id
+		left.status = "Left"
+		local events = Engine.timeout(s)
+		expect((events :: any).ok).toBe(nil)
+		expect(s.players[s.turnIndex].id).toBe(expectedNext)
+		expect(s.phase).toBe("AwaitRoll")
+		expect(pendingOf(s).index).toBe(nil)
+		expect(s.properties[index].ownerId).toBe(nil)
+	end)
+
+	it("en AwaitEnd cierra el turno de un jugador que abandonó", function()
+		local s = Fixtures.game({ players = 3 })
+		local left = inTurn(s)
+		local expectedNext = s.players[s.turnIndex % #s.players + 1].id
+		left.status = "Left"
+		s.phase = "AwaitEnd"
+		local events = Engine.timeout(s)
+		expect((events :: any).ok).toBe(nil)
+		expect(s.players[s.turnIndex].id).toBe(expectedNext)
+		expect(s.phase).toBe("AwaitRoll")
+	end)
+
+	it("cierra el turno si el defecto de la fase no produce eventos", function()
+		local s = Fixtures.game({ players = 3 })
+		local expectedNext = s.players[s.turnIndex % #s.players + 1].id
+		-- Estado corrupto: AwaitBuy sin casilla pendiente. El defecto se rechaza y la partida no
+		-- puede quedarse esperando un timeout que nunca avanza.
+		s.phase = "AwaitBuy"
+		pendingOf(s).index = nil
+		local events = Engine.timeout(s)
+		expect((events :: any).ok).toBe(nil)
+		expect(s.players[s.turnIndex].id).toBe(expectedNext)
+		expect(s.phase).toBe("AwaitRoll")
+	end)
+
 	it("no hace nada en otras fases ni con la partida terminada", function()
 		local s = Fixtures.game({ players = 2 })
 		s.phase = "Reaction"

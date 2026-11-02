@@ -16,13 +16,18 @@ function Board.square(state: GameState, index: number): Square
 	return square
 end
 
--- Zona a la que pertenece una casilla, o nil si no es una propiedad.
+-- Zona a la que pertenece una casilla, o nil si no es una propiedad. Devuelve una copia: una
+-- carta de zona de la fase 03 no puede mutar el tablero a través de la lista.
 function Board.zoneOf(state: GameState, index: number): { number }?
 	local zoneId = Board.square(state, index).zoneId
 	if not zoneId then
 		return nil
 	end
-	return state.board.zones[zoneId]
+	local indices = state.board.zones[zoneId]
+	if not indices then
+		return nil
+	end
+	return table.clone(indices)
 end
 
 function Board.ownsZone(state: GameState, playerId: PlayerId, zoneId: string): boolean

@@ -122,6 +122,11 @@ end
 -- la partida (última ronda o un solo activo): entonces la fase GameOver no se sobrescribe (R13).
 local function endTurn(state: GameState, _playerId: PlayerId, _action: Action): { Event }
 	local events = Turn.next(state)
+	local pending = state.pending
+	if pending then
+		-- La vista del turno siguiente no debe enseñar los dados del jugador anterior.
+		pending.rolled = nil
+	end
 	if state.phase ~= "GameOver" then
 		state.phase = "AwaitRoll"
 	end
@@ -347,6 +352,23 @@ local function perform(state: GameState, playerId: PlayerId, action: Action): { 
 	return result.events
 end
 
+-- Cierra el turno sin que el jugador actúe: pasa al siguiente, descarta la compra pendiente y
+-- deja la fase lista para tirar. Es la salida cuando quien está en turno ya no puede actuar
+-- (abandonó) o cuando el defecto de la fase no se puede aplicar. Sin ella, esos timeouts serían
+-- no-ops, el resto quedaría rechazado con «No es tu turno» y la partida se congelaría.
+local function abandonTurn(state: GameState): { Event }
+	local pending = state.pending
+	if pending then
+		pending.index = nil
+		pending.rolled = nil
+	end
+	local events = Turn.next(state)
+	if state.phase ~= "GameOver" then
+		state.phase = "AwaitRoll"
+	end
+	return events
+end
+
 -- Tiempo agotado: resuelve la fase en curso. Devuelve eventos, nunca un ApplyResult. En las
 -- fases sin resolución automática (incluido GameOver) devuelve {} sin tocar el estado.
 function Engine.timeout(state: GameState): { Event }
@@ -360,12 +382,24 @@ function Engine.timeout(state: GameState): { Event }
 	if not player then
 		return {}
 	end
-	if phase == "AwaitRoll" then
-		return perform(state, player.id, { type = "Roll" })
-	elseif phase == "AwaitBuy" then
-		return perform(state, player.id, { type = "DeclineBuy" })
+	-- Un jugador que abandonó no puede ejecutar el defecto de la fase: se cierra su turno.
+	if player.status == "Left" then
+		return abandonTurn(state)
 	end
-	return perform(state, player.id, { type = "EndTurn" })
+	local action: Action = { type = "Roll" }
+	if phase == "AwaitBuy" then
+		action = { type = "DeclineBuy" }
+	elseif phase == "AwaitEnd" then
+		action = { type = "EndTurn" }
+	end
+	local events = perform(state, player.id, action)
+	-- La tirada y la compra siempre emiten eventos; si no hay ninguno, apply rechazó el defecto
+	-- (por ejemplo, AwaitBuy sin casilla pendiente) y se cierra el turno para no congelar la
+	-- partida. En AwaitEnd el turno ya avanzó aunque no haya eventos que anunciar.
+	if #events > 0 or phase == "AwaitEnd" then
+		return events
+	end
+	return abandonTurn(state)
 end
 
 return Engine

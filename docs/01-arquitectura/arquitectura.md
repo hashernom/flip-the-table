@@ -182,6 +182,16 @@ View.forPlayer(state: GameState, playerId: PlayerId): PlayerView
 
 Cada carta legendaria y rara se expresa como `CardPlayed` más los eventos concretos que causa. `Scenes` asigna escena y duración por evento y por carta.
 
+### Decisiones que cambian los contratos
+
+Ajustes acordados al cerrar la subfase 02. Prevalecen sobre lo que digan los planes y las notas de trabajo.
+
+- **R5:** el tope ×4 acota solo los efectos dinámicos; la zona completa y los edificios quedan fuera.
+- **R6:** `Bot.choose` devuelve `Action?`; `nil` cuando no hay ninguna acción legal.
+- **R12:** en Sin Fin no hay rondas finales; desde la ronda 30 la Salida no paga y la renta se duplica, con el tope ×4.
+- **R27:** gana siempre el primer jugador `Active` de la clasificación; la regla del último activo manda sobre el límite de rondas.
+- **R32:** con `idle` solo se cubre el modo Rondas; en Sin Fin nadie compra y, sin sumideros de dinero hasta la fase 03, la partida no puede terminar.
+
 ## Datos iniciales
 
 Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
@@ -195,7 +205,7 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Renta con grupo completo | Base × 2 |
 | Renta con casa, edificio y rascacielos | Base × 3, × 6 y × 10 |
 | Coste por nivel de edificio | 50 % del precio |
-| Multiplicador máximo de renta | × 4, sumando todos los efectos |
+| Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Apagón y Embrujo); la zona completa y los edificios se aplican aparte |
 | Temporizador de decisión | 20 s |
 | Subasta | 15 s |
 | Voto del Tribunal | 10 s |
