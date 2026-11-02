@@ -51,7 +51,7 @@ function Harness.it(name: string, fn: () -> ())
 	table.insert(stack, name)
 	local fullName = table.concat(stack, " > ")
 	table.remove(stack)
-	local ok, err = pcall(fn)
+	local ok: boolean, err: any = (pcall :: any)(fn)
 	if ok then
 		passed += 1
 	else

@@ -56,7 +56,7 @@ function Boards.forPlayerCount(playerCount: number): SizeId
 end
 
 function Boards.get(sizeId: SizeId): Board
-	local blocks = table.clone(CENTRO)
+	local blocks: { ZoneBlock } = table.clone(CENTRO)
 	table.move(EXTRA_BLOCKS[sizeId], 1, #EXTRA_BLOCKS[sizeId], #blocks + 1, blocks)
 
 	local squares: { Square } = { { index = 1, kind = "Start", barrioId = "Centro" } }
@@ -67,12 +67,17 @@ function Boards.get(sizeId: SizeId): Board
 		local indices = {}
 		for _ = 1, PROPERTIES_PER_ZONE do
 			local index = #squares + 1
-			squares[index] =
-				{ index = index, kind = "Property", zoneId = block.zoneId, barrioId = block.barrioId, price = price }
+			squares[index] = {
+				index = index,
+				kind = "Property",
+				zoneId = block.zoneId,
+				barrioId = block.barrioId,
+				price = price,
+			}
 			table.insert(indices, index)
 		end
 		zones[block.zoneId] = indices
-		for _, kind in block.specials do
+		for _, kind: SquareKind in block.specials do
 			local index = #squares + 1
 			squares[index] = { index = index, kind = kind, barrioId = block.barrioId }
 		end

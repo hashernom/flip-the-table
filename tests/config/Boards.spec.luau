@@ -4,7 +4,7 @@ local Boards = require("../../src/shared/config/Boards")
 local Economy = require("../../src/shared/config/Economy")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
-local EXPECTED = {
+local EXPECTED: { [string]: { [string]: number } } = {
 	S = {
 		total = 32,
 		zones = 6,
@@ -75,7 +75,7 @@ describe("Boards", function()
 					counts[square.kind] = (counts[square.kind] or 0) + 1
 				end
 				expect(#board.squares).toBe(expected.total)
-				for kind, count in expected :: any do
+				for kind, count in expected do
 					if kind ~= "total" and kind ~= "zones" then
 						expect(counts[kind]).toBe(count)
 					end

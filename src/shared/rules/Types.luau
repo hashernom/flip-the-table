@@ -22,7 +22,16 @@ export type Phase =
 	| "GhostTurn"
 	| "GameOver"
 
-export type SquareKind = "Start" | "Property" | "Spin" | "Market" | "Duel" | "Portal" | "Billboard" | "Tribunal" | "Tax"
+export type SquareKind =
+	"Start"
+	| "Property"
+	| "Spin"
+	| "Market"
+	| "Duel"
+	| "Portal"
+	| "Billboard"
+	| "Tribunal"
+	| "Tax"
 
 export type Square = {
 	index: number,
