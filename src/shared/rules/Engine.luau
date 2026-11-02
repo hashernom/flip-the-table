@@ -1,5 +1,6 @@
 --!strict
 -- Punto de entrada del motor: valida la acción, la aplica y devuelve los eventos.
+local Auction = require("./Auction")
 local Board = require("./Board")
 local Movement = require("./Movement")
 local Property = require("./Property")
@@ -127,16 +128,31 @@ local function declineBuyCheck(state: GameState, _playerId: PlayerId, _action: A
 	return nil
 end
 
--- DeclineBuy: abre la subasta conservando la casilla. La Tarea 4 crea Auction y reescribirá
--- este punto para llamar a Auction.start (que además emite AuctionStarted).
+-- DeclineBuy: abre la subasta conservando la casilla. Auction.start fija la fase, pending y
+-- emite AuctionStarted; el cierre lo decide Auction.close (la Tarea 9 lo llamará desde timeout).
 local function declineBuy(state: GameState, _playerId: PlayerId, _action: Action): { Event }
 	local pending = state.pending
 	if not pending or not pending.index then
 		error("Engine.declineBuy: la fase AwaitBuy no tiene pending.index", 2)
 	end
-	pending.auction = { index = pending.index, high = 0, highBidder = nil }
-	state.phase = "Auction"
-	return {}
+	return Auction.start(state, pending.index)
+end
+
+-- Motivo por el que una puja no es legal, o nil. La regla vive en Auction y se comparte con
+-- Auction.bid para validar siempre antes de mutar.
+local function bidCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Auction.bidReason(state, playerId, action.amount)
+end
+
+-- Bid: registra la puja y deja la fase en Auction. Cualquier jugador activo puede pujar,
+-- también el que no está en turno y el que rechazó la compra. Un rechazo aquí sería un fallo
+-- de programación: bidCheck ya lo habría devuelto.
+local function bid(state: GameState, playerId: PlayerId, action: Action): { Event }
+	local result = Auction.bid(state, playerId, action.amount)
+	if not result.ok then
+		error(result.error, 2)
+	end
+	return result.events
 end
 
 -- Única fuente de verdad de fases y permisos: la Tarea 9 derivará legalActions de aquí.
@@ -145,6 +161,7 @@ local rules: { [string]: ActionRule } = {
 	Roll = { phases = { "AwaitRoll" }, turnOnly = true, handler = roll },
 	Buy = { phases = { "AwaitBuy" }, turnOnly = true, check = buyCheck, handler = buy },
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
+	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
 	EndTurn = { phases = { "AwaitEnd" }, turnOnly = true, handler = endTurn },
 }
 

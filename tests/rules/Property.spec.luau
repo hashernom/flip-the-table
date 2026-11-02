@@ -477,7 +477,7 @@ describe("DeclineBuy", function()
 		if not result.ok then
 			error(result.error, 2)
 		end
-		expect(result.events).toEqual({})
+		expect(result.events).toEqual({ { type = "AuctionStarted", index = idx } })
 		expect(s.phase).toBe("Auction")
 		expect(pendingOf(s).index).toBe(idx)
 		expect(pendingOf(s).auction).toEqual({ index = idx, high = 0 })
