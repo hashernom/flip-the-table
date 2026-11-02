@@ -32,7 +32,6 @@ return {
 	-- Sin Fin: desde esta ronda la Salida no paga y la renta se duplica.
 	pressureFromRound = 30,
 	hotZoneInterval = 3,
-	legendaryCooldownRounds = 3,
 	seconds = {
 		decision = 20,
 		auction = 15,
