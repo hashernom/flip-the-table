@@ -111,9 +111,11 @@ function Deck.handLimit(player: Types.Player): number
 	return Economy.handLimit
 end
 
--- R12: la presión de Sin Fin cierra los pagos del banco (la Salida deja de pagar desde
--- pressureFromRound). Se lee aquí sin require Turn para no cerrar el ciclo Turn → Comeback →
--- Deck; es el mismo umbral que Turn.isPressureRound.
+-- R-P53 (excepción de ficha aprobada por el responsable el 2026-11-02): en la presión de Sin Fin
+-- el bono de Coleccionista deja de pagar. La ficha dice «cobras 100 cada vez que robas y tienes la
+-- mano llena», pero ese +100 crea dinero sin fin durante la presión —tres semillas de la matriz no
+-- terminaban— y R12 solo detiene la Salida y dobla la renta. Se lee aquí sin require Turn para no
+-- cerrar el ciclo Turn → Comeback → Deck; el umbral es el mismo que Turn.isPressureRound.
 local function pressureOf(state: GameState): boolean
 	return state.endMode == "Endless" and state.round >= Economy.pressureFromRound
 end
@@ -133,9 +135,8 @@ function Deck.add(state: GameState, playerId: PlayerId, cardId: string): { Event
 	local stats = state.stats[playerId]
 	stats.cardsDrawn = (stats.cardsDrawn or 0) + 1
 	if #player.hand >= Deck.handLimit(player) then
-		-- El bono de Coleccionista es dinero del banco. En la presión de Sin Fin se apaga como la
-		-- Salida (R12): si siguiera pagando, una mano llena de cartas de reacción sostenía la
-		-- partida para siempre y dos jugadores con el perk nunca llegarían a la bancarrota.
+		-- R-P53: el bono de Coleccionista es dinero del banco y se apaga en la presión de Sin Fin
+		-- (excepción de ficha aprobada el 2026-11-02) para que la partida avance hacia un final.
 		if Perks.has(player, "Collector") and not pressureOf(state) then
 			player.cash += Economy.perks.collectorBonus
 			Perks.recordUse(state, playerId, "Collector")

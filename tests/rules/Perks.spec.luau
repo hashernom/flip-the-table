@@ -957,7 +957,7 @@ describe("Coleccionista", function()
 		expect(player.cash).toBe(Economy.startingCash)
 	end)
 
-	it("no paga el bono en la presión de Sin Fin (R12)", function()
+	it("no paga el bono en la presión de Sin Fin (R-P53)", function()
 		local s = Fixtures.game({ players = 2, endMode = "Endless" })
 		local player = s.players[1]
 		table.insert(player.perks, "Collector")
@@ -971,7 +971,7 @@ describe("Coleccionista", function()
 		local paid = Economy.startingCash + Economy.perks.collectorBonus
 		expect(player.cash).toBe(paid)
 
-		-- Desde la ronda de presión el banco cierra el grifo, como con la Salida.
+		-- Desde la ronda de presión el bono se apaga (R-P53).
 		s.round = Economy.pressureFromRound
 		Deck.draw(s, player.id)
 		expect(player.cash).toBe(paid)
