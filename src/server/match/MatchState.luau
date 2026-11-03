@@ -3,6 +3,7 @@
 -- decisión y observaciones para la telemetría. MatchService lo envuelve, le pasa `now` y difunde
 -- lo que produce; así la numeración, los plazos, las observaciones y el filtrado por jugador se
 -- prueban con Lune sin tocar Roblox (R-P5, R-P7, R-P20).
+local Perks = require("../../shared/rules/Perks")
 local Protocol = require("../../shared/net/Protocol")
 local Scenes = require("../../shared/config/Scenes")
 local Score = require("../../shared/rules/Score")
@@ -211,6 +212,33 @@ function MatchState.acceptsResync(
 		end
 	end
 	return false
+end
+
+-- Jugador al que le vence la decisión cuando el reloj cierra la fase. En el borrador elige a
+-- quien le toca (no siempre es el jugador en turno) y en la ventana de reacción contesta el
+-- elegido por la carta o la renta. El resto de fases son del jugador en turno, también las
+-- colectivas (subasta, duelo, tribunal), que se abren en su turno y se resuelven al vencer su
+-- ventana. Lo usa MatchService para avisar a la presencia del asiento que acumuló el tiempo.
+function MatchState.decidingPlayer(state: GameState): PlayerId?
+	if state.phase == "GameOver" then
+		return nil
+	end
+	if state.phase == "PerkDraft" then
+		return Perks.currentDrafter(state)
+	end
+	if state.phase == "Reaction" then
+		local pending = state.pending
+		local reaction = if pending then pending.reaction else nil
+		local eligibleId = if reaction then reaction.eligibleId else nil
+		if type(eligibleId) == "string" then
+			return eligibleId
+		end
+	end
+	local player = state.players[state.turnIndex]
+	if not player then
+		return nil
+	end
+	return player.id
 end
 
 -- Abandono de la partida (R-P8): fija el final una sola vez. Quien la llama es MatchService, que

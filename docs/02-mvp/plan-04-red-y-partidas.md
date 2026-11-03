@@ -158,17 +158,17 @@ end)
 - Produce: `PresenceRules.onLeave(seats, userId)`, `PresenceRules.onReturn(seats, userId): boolean`, `PresenceRules.isBotControlled(seats, playerId): boolean`.
 
 **Criterios de aceptación:**
-- [ ] Quien se va pasa a control de bot de inmediato; su turno no se pierde.
-- [ ] Al volver, recupera asiento, mano y control.
-- [ ] Dos tiempos agotados seguidos activan el bot; cualquier acción lo desactiva.
-- [ ] Si no queda ningún humano, la partida termina y se registra como abandonada.
+- [x] Quien se va pasa a control de bot de inmediato; su turno no se pierde.
+- [x] Al volver, recupera asiento, mano y control.
+- [x] Dos tiempos agotados seguidos activan el bot; cualquier acción lo desactiva.
+- [x] Si no queda ningún humano, la partida termina y se registra como abandonada.
 
-- [ ] **Paso 1:** Escribir pruebas para cada criterio con `PresenceRules`.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run PresenceRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar ambos módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 1:** Escribir pruebas para cada criterio con `PresenceRules`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run PresenceRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar ambos módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** En Test Server con 3 clientes, cerrar uno a mitad de turno. Esperado: el bot juega y la partida sigue.
-- [ ] **Paso 6:** Hacer commit: `feat: tomar el control con bots`.
+- [x] **Paso 6:** Hacer commit: `feat: tomar el control con bots`.
 
 ### Task 5: Party privada y partidas públicas
 

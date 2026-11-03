@@ -128,4 +128,8 @@ end
 -- MatchService y vive aquí, con el resto de tiempos.
 Scenes.heartbeatSec = 0.25
 
+-- Espera tras la última escena antes de que el bot juegue el turno de un asiento sin humano
+-- (R-P27). No se espera al plazo de decisión: un ausente no puede convertir cada turno en 20 s.
+Scenes.botDelaySec = 0.6
+
 return Scenes

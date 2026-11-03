@@ -375,6 +375,33 @@ describe("MatchState", function()
 		expect(MatchState.timeoutAdvanced(state, before, {})).toBe(true)
 	end)
 
+	it("atribuye el vencimiento al jugador que decide en la fase", function()
+		local state = Fixtures.game({ players = 3 })
+		-- En las fases de turno decide el jugador en turno.
+		expect(MatchState.decidingPlayer(state)).toBe(state.players[state.turnIndex].id)
+		local pending = state.pending
+		if not pending then
+			error("el estado de la prueba no tiene pending", 2)
+		end
+		-- En el borrador decide a quien le toca elegir, que no es el jugador en turno.
+		state.phase = "PerkDraft"
+		pending.draft = {
+			order = { state.players[2].id, state.players[1].id },
+			index = 1,
+			offer = { "Banker" },
+		}
+		expect(MatchState.decidingPlayer(state)).toBe(state.players[2].id)
+		pending.draft = nil
+		-- En la ventana de reacción contesta el elegido por la carta o la renta, no el del turno.
+		state.phase = "Reaction"
+		pending.reaction = { eligibleId = state.players[3].id }
+		expect(MatchState.decidingPlayer(state)).toBe(state.players[3].id)
+		pending.reaction = nil
+		-- Sin decisión pendiente no hay a quién atribuir el vencimiento.
+		state.phase = "GameOver"
+		expect(MatchState.decidingPlayer(state) == nil).toBeTruthy()
+	end)
+
 	it("cambia el control de bot en un solo sitio y lo registra", function()
 		local state = Fixtures.game({ players = 2 })
 		local match = MatchState.begin(0, state.phase)
