@@ -91,17 +91,17 @@ end)
 - Produce: `View.forPlayer(state, playerId): PlayerView` y `View.filterEvents(state, playerId, events): { Event }`.
 
 **Criterios de aceptación:**
-- [ ] Un jugador ve su mano y solo el número de cartas de los demás.
-- [ ] `CardDrawn` oculta el id de la carta a los demás, salvo si es legendaria y se juega.
-- [ ] Las elecciones secretas del Duelo no se revelan hasta `DuelResolved`.
-- [ ] Espía revela la mano del objetivo solo a quien jugó la carta.
-- [ ] `rng` nunca se incluye en la vista.
+- [x] Un jugador ve su mano y solo el número de cartas de los demás.
+- [x] `CardDrawn` oculta el id de la carta a los demás, salvo si es legendaria y se juega.
+- [x] Las elecciones secretas del Duelo no se revelan hasta `DuelResolved`.
+- [x] Espía revela la mano del objetivo solo a quien jugó la carta.
+- [x] `rng` nunca se incluye en la vista.
 
-- [ ] **Paso 1:** Escribir pruebas para cada criterio.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run View`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `View`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: filtrar información por jugador`.
+- [x] **Paso 1:** Escribir pruebas para cada criterio.
+- [x] **Paso 2:** Ejecutar `lune run tests/run View`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `View`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: filtrar información por jugador`.
 
 ### Task 3: Servicio de partida y reloj de escenas
 
