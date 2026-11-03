@@ -2,53 +2,21 @@
 -- Único punto de cableado del lobby: crea los remotos, valida y limita lo que llega y lo reenvía a
 -- PartyService y PublicQueue. Nada de lógica de party vive aquí. Es un Script y no un
 -- ModuleScript porque debe ejecutarse una sola vez al arrancar el servidor. El lobby es otro lugar
--- de Roblox (R-P11): este archivo no requiere nada de src/server/match.
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+-- de Roblox (R-P11): este archivo no requiere nada de src/server/match; la fábrica de remotos es
+-- `src/server/Remotes`, compartida por los dos lugares.
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local Lobby = require("../../shared/config/Lobby")
 local Places = require("../../shared/config/Places")
 local Protocol = require("../../shared/net/Protocol")
 local PartyService = require("./PartyService")
 local PartyStore = require("./PartyStore")
 local PublicQueue = require("./PublicQueue")
+local Remotes = require("../Remotes")
 local Teleport = require("./Teleport")
 
-local FOLDER_NAME = "FlipTheTableRemotes"
-
--- Mismo patrón que RemoteGateway: la carpeta y los RemoteEvent se crean si no existen, para que el
--- cliente del plan 05 los encuentre desde el primer arranque. Se repite aquí porque el lobby no
--- puede requerir módulos del lugar de partida.
-local function remotesFolder(): Folder
-	local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)
-	if existing then
-		if existing:IsA("Folder") then
-			return existing :: Folder
-		end
-		error(`Lobby: {FOLDER_NAME} existe en ReplicatedStorage y no es una carpeta`, 2)
-	end
-	local folder = Instance.new("Folder")
-	folder.Name = FOLDER_NAME
-	folder.Parent = ReplicatedStorage
-	return folder
-end
-
-local function remote(name: string): RemoteEvent
-	local parent = remotesFolder()
-	local existing = parent:FindFirstChild(name)
-	if existing then
-		if existing:IsA("RemoteEvent") then
-			return existing :: RemoteEvent
-		end
-		error(`Lobby: {FOLDER_NAME}.{name} existe y no es un RemoteEvent`, 2)
-	end
-	local event = Instance.new("RemoteEvent")
-	event.Name = name
-	event.Parent = parent
-	return event
-end
-
-local notice = remote(Protocol.REMOTES.Notice)
+local notice = Remotes.remote(Protocol.REMOTES.Notice)
 
 -- Aviso al cliente: el plan 05/09 pinta el mensaje; aquí solo viaja el texto en español y un
 -- motivo para agruparlo («Info», «Error» o «PartyCode»). Un jugador que ya se está yendo no puede
@@ -99,9 +67,10 @@ PublicQueue.configure({
 	now = nowClock,
 })
 
--- La puerta del lobby comparte el limitador de la partida: sus peticiones escriben en MemoryStore
--- y teletransportan, así que se frenan por jugador y segundo antes de validar.
-local limiter = Protocol.newLimiter()
+-- Las peticiones del lobby cuestan mucho más que una acción de la partida: crear un código son
+-- varias lecturas y una escritura en MemoryStore, y empezar una party son varios teletransportes.
+-- Se frenan con su propio ritmo (Lobby.requestsPerSecond), no con el de las acciones.
+local limiter = Protocol.newLimiter(Lobby.requestsPerSecond)
 
 local function accept(player: Player, packet: any): { [string]: any }?
 	if not limiter.allow(tostring(player.UserId), Workspace:GetServerTimeNow()) then
@@ -127,7 +96,7 @@ local function forward(label: string, handler: () -> ())
 	end
 end
 
-remote(Protocol.REMOTES.PartyCreate).OnServerEvent:Connect(function(player: Player, packet: any)
+Remotes.remote(Protocol.REMOTES.PartyCreate).OnServerEvent:Connect(function(player: Player, packet: any)
 	if accept(player, packet) == nil then
 		return
 	end
@@ -136,7 +105,7 @@ remote(Protocol.REMOTES.PartyCreate).OnServerEvent:Connect(function(player: Play
 	end)
 end)
 
-remote(Protocol.REMOTES.PartyJoin).OnServerEvent:Connect(function(player: Player, packet: any)
+Remotes.remote(Protocol.REMOTES.PartyJoin).OnServerEvent:Connect(function(player: Player, packet: any)
 	local accepted = accept(player, packet)
 	if accepted == nil then
 		return
@@ -146,7 +115,7 @@ remote(Protocol.REMOTES.PartyJoin).OnServerEvent:Connect(function(player: Player
 	end)
 end)
 
-remote(Protocol.REMOTES.PartyStart).OnServerEvent:Connect(function(player: Player, packet: any)
+Remotes.remote(Protocol.REMOTES.PartyStart).OnServerEvent:Connect(function(player: Player, packet: any)
 	local accepted = accept(player, packet)
 	if accepted == nil then
 		return
@@ -156,7 +125,7 @@ remote(Protocol.REMOTES.PartyStart).OnServerEvent:Connect(function(player: Playe
 	end)
 end)
 
-remote(Protocol.REMOTES.QueueJoin).OnServerEvent:Connect(function(player: Player, packet: any)
+Remotes.remote(Protocol.REMOTES.QueueJoin).OnServerEvent:Connect(function(player: Player, packet: any)
 	if accept(player, packet) == nil then
 		return
 	end

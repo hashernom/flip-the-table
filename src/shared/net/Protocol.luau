@@ -309,9 +309,12 @@ function Protocol.validateLobby(action: any): (boolean, string?)
 end
 
 -- Limitador deslizante: guarda los instantes de las acciones aceptadas y descarta la que haría
--- pasar de Economy.actionsPerSecond en los últimos WINDOW_SECONDS. Las descartadas no gastan
--- cupo y la ventana guarda como mucho actionsPerSecond instantes por jugador.
-function Protocol.newLimiter(): Limiter
+-- pasar del ritmo permitido en los últimos WINDOW_SECONDS. Las descartadas no gastan cupo y la
+-- ventana guarda como mucho ese ritmo de instantes por jugador. Sin `requestsPerSecond` usa el de
+-- la partida (Economy.actionsPerSecond); el lobby pasa el suyo porque cada petición suya cuesta
+-- mucho más que una acción.
+function Protocol.newLimiter(requestsPerSecond: number?): Limiter
+	local limit = requestsPerSecond or Economy.actionsPerSecond
 	local accepted: { [string]: { number } } = {}
 	return {
 		allow = function(playerId: string, now: number): boolean
@@ -324,7 +327,7 @@ function Protocol.newLimiter(): Limiter
 					end
 				end
 			end
-			if #kept >= Economy.actionsPerSecond then
+			if #kept >= limit then
 				accepted[playerId] = kept
 				return false
 			end

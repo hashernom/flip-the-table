@@ -17,6 +17,12 @@ local PURE_DIRS = { "src/shared", "tests", "tools" }
 local ROBLOX_DIRS = { "src/server", "src/client" }
 local ROBLOX_DEFINITIONS = "types/globalTypes.d.lua"
 local SOURCEMAP_PATH = "sourcemap.json"
+-- Segundo proyecto (R-P11): el lugar del lobby tiene su propia profundidad de árbol. Sin un
+-- sourcemap propio, un `require` relativo mal montado se resuelve contra el mapa del lugar de
+-- partida y el pase de tipos no ve el fallo; `rojo build` tampoco lo ve, porque solo empaqueta.
+local LOBBY_SOURCEMAP_PATH = "sourcemap-lobby.json"
+local LOBBY_PROJECT = "lobby.project.json"
+local LOBBY_DIR = "src/server/lobby"
 
 local failed = {}
 
@@ -87,6 +93,20 @@ if #robloxDirs > 0 then
 	})
 else
 	print("OK    Tipos de Roblox (luau-lsp): sin código de servidor ni cliente")
+end
+-- Pase del lobby contra SU proyecto: es donde se comprueba que `../../shared/...` resuelve con la
+-- profundidad del DataModel del lobby y no con la del lugar de partida.
+run("Mapa de Rojo (lobby)", "rojo", { "sourcemap", LOBBY_PROJECT, "--output", LOBBY_SOURCEMAP_PATH })
+if hasLuauFiles(LOBBY_DIR) then
+	run("Tipos de Roblox del lobby (luau-lsp)", "luau-lsp", {
+		"analyze",
+		"--platform=roblox",
+		`--definitions={ROBLOX_DEFINITIONS}`,
+		`--sourcemap={LOBBY_SOURCEMAP_PATH}`,
+		LOBBY_DIR,
+	})
+else
+	print("OK    Tipos de Roblox del lobby (luau-lsp): sin código de lobby")
 end
 run("Pruebas", "lune", { "run", "tests/run" })
 

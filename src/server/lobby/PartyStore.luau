@@ -3,6 +3,7 @@
 -- MemoryStoreService y otra en memoria para Studio y pruebas. La real nunca lanza hacia arriba:
 -- cada llamada va protegida y un fallo se devuelve como ausencia, para que el lobby siga
 -- funcionando en local si el servicio no está disponible (por ejemplo, en un lugar sin publicar).
+-- Un cambio de estado (disponible → caído → recuperado) se avisa una sola vez, nunca por llamada.
 local Lobby = require("../../shared/config/Lobby")
 local LobbyRules = require("./LobbyRules")
 
@@ -99,15 +100,33 @@ function PartyStore.memory(): Store
 	}
 end
 
+-- Estado del almacén compartido, para avisar solo cuando cambia. Un MemoryStore caído no puede
+-- inundar el registro con un aviso por llamada; basta con saber cuándo se cae y cuándo vuelve.
+local healthy = true
+
+local function report(available: boolean)
+	if healthy == available then
+		return
+	end
+	healthy = available
+	if available then
+		warn("PartyStore: el almacén compartido vuelve a responder; las fiestas se comparten otra vez.")
+	else
+		warn(
+			"PartyStore: el almacén compartido no responde; el lobby sigue en local y las fiestas no se comparten entre servidores."
+		)
+	end
+end
+
 -- Implementación real sobre un MemoryStoreHashMap. Un hash map es lo adecuado para buscar por
 -- clave (el código) sin orden. La caducidad del almacén es mayor que la del código para poder
 -- distinguir «caducado» de «no existe».
-local function fromService(service: MemoryStoreService): Store
+local function fromService(service: MemoryStoreService): Store?
 	local hasMap, map = pcall(function()
 		return service:GetHashMap(HASH_MAP_NAME)
 	end)
 	if not hasMap then
-		return PartyStore.memory()
+		return nil
 	end
 	return {
 		get = function(code: string): Party?
@@ -115,20 +134,24 @@ local function fromService(service: MemoryStoreService): Store
 				return map:GetAsync(code)
 			end)
 			if not ok then
+				report(false)
 				return nil
 			end
+			report(true)
 			return asParty(value)
 		end,
 		set = function(code: string, party: Party): boolean
 			local saved = pcall(function()
 				map:SetAsync(code, party, Lobby.storeExpirationSec)
 			end)
+			report(saved)
 			return saved
 		end,
 		remove = function(code: string)
-			pcall(function()
+			local removed = pcall(function()
 				map:RemoveAsync(code)
 			end)
+			report(removed)
 		end,
 		update = function(code: string, transform: Transform): (Party?, string?)
 			local reason: string? = nil
@@ -140,8 +163,10 @@ local function fromService(service: MemoryStoreService): Store
 				end, Lobby.storeExpirationSec)
 			end)
 			if not ok then
+				report(false)
 				return nil, nil
 			end
+			report(true)
 			return asParty(value), reason
 		end,
 	}
@@ -153,9 +178,14 @@ function PartyStore.memoryStore(): Store?
 		return game:GetService("MemoryStoreService") :: MemoryStoreService
 	end)
 	if not ok then
+		report(false)
 		return nil
 	end
-	return fromService(service :: MemoryStoreService)
+	local store = fromService(service :: MemoryStoreService)
+	if store == nil then
+		report(false)
+	end
+	return store
 end
 
 -- Envuelve el almacén real con un respaldo en memoria: cada escritura va a los dos y cada

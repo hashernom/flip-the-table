@@ -247,6 +247,16 @@ describe("Protocol.newLimiter", function()
 		expect(limiter.allow("P2", 1000)).toBe(true)
 	end)
 
+	it("acepta un ritmo propio: el lobby usa el suyo, más bajo que el de la partida", function()
+		local lobbyRate = 2
+		local limiter = Protocol.newLimiter(lobbyRate)
+		expect(limiter.allow("P1", 1000)).toBe(true)
+		expect(limiter.allow("P1", 1000)).toBe(true)
+		expect(limiter.allow("P1", 1000)).toBe(false)
+		expect(limiter.allow("P2", 1000)).toBe(true)
+		expect(limiter.allow("P1", 1001)).toBe(true)
+	end)
+
 	it("vuelve a permitir al cumplirse un segundo", function()
 		local limiter = Protocol.newLimiter()
 		for _ = 1, ACTIONS_PER_SECOND do

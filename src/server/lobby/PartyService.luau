@@ -221,9 +221,10 @@ function PartyService.join(player: Player, code: string): (boolean, string?)
 			return false, message
 		end
 		local targetServer = found.serverId
-		local ok, failure = LobbyRules.retry(function(): (boolean, string?)
-			return config.teleport.toServer(player, game.PlaceId, targetServer, { party = normalized })
-		end, Lobby.teleportAttempts, task.wait)
+		-- Un solo intento: reintentar aquí retendría el manejador del remoto y multiplicaría los
+		-- teletransportes. Si falla, el jugador repite la petición y se vuelve a intentar entero.
+		local ok, failure =
+			config.teleport.toServer(player, game.PlaceId, targetServer, { party = normalized })
 		if not ok then
 			local message = "No se pudo llevar al servidor de la party. Inténtalo otra vez."
 			warn(`PartyService: al llevar al servidor de la party {normalized}: {failure}`)

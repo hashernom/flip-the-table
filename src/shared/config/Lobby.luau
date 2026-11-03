@@ -18,6 +18,10 @@ return {
 	-- Intentos de reservar y teletransportar al grupo, y espera entre intentos en segundos.
 	teleportAttempts = 3,
 	teleportRetrySec = 1,
+	-- Peticiones por segundo y jugador que acepta la puerta del lobby. Es menor que las 10 acciones
+	-- de la partida porque cada petición cuesta mucho más: crear un código son varias lecturas y
+	-- una escritura en MemoryStore, y empezar una party, varios teletransportes.
+	requestsPerSecond = 2,
 	-- Caducidad de los datos de party en MemoryStore, en segundos. Algo mayor que la vida del
 	-- código para que una fiesta caducada se reconozca como caducada y no como inexistente.
 	storeExpirationSec = 900,

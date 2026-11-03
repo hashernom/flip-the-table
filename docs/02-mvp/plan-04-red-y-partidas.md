@@ -184,14 +184,19 @@ end)
 - Produce: `PublicQueue.enqueue(player: Player)`.
 
 **Criterios de aceptación:**
-- [x] Antes de programar, se confirma el uso actual de `TeleportService` y `MemoryStoreService` en la documentación oficial.
-- [x] Un código válido reúne de 2 a 8 personas; solo el anfitrión inicia y elige el modo.
-- [x] Las partidas públicas siempre usan el modo Rondas.
-- [x] Un código caducado, lleno o mal escrito muestra un mensaje claro, sin teletransportar.
-- [x] Mayúsculas, minúsculas y espacios no importan.
-- [x] Al salir el anfitrión, el siguiente toma su lugar.
-- [x] Las partidas públicas agrupan de 2 a 8 y empiezan con 4 o más tras una espera máxima de 60 s.
-- [x] Un fallo de teletransporte se reintenta y, si persiste, devuelve al lobby con aviso.
+- [ ] Antes de programar, se confirma el uso actual de `TeleportService` y `MemoryStoreService` en la documentación oficial.
+- [ ] Un código válido reúne de 2 a 8 personas; solo el anfitrión inicia y elige el modo.
+- [ ] Las partidas públicas siempre usan el modo Rondas.
+- [ ] Un código caducado, lleno o mal escrito muestra un mensaje claro, sin teletransportar.
+- [ ] Mayúsculas, minúsculas y espacios no importan.
+- [ ] Al salir el anfitrión, el siguiente toma su lugar.
+- [ ] Las partidas públicas agrupan de 2 a 8 y empiezan con 4 o más tras una espera máxima de 60 s.
+- [ ] Un fallo de teletransporte se reintenta y, si persiste, devuelve al lobby con aviso.
+
+Las casillas de criterios quedan sin marcar: el Paso 5 sigue pendiente por decisión del responsable y
+ningún `MemoryStore` ni teletransporte real se ha ejecutado todavía; marcarlas afirmaría algo no
+comprobado. El detalle y lo que debe demostrar la comprobación publicada están en
+`.superpowers/sdd/plan-04-red-y-partidas/task-5-report.md`.
 
 - [x] **Paso 1:** Escribir pruebas de `PartyCode`: longitud, alfabeto, `" ab3k9z "` se normaliza a `"AB3K9Z"`, y texto con símbolos devuelve `nil`.
 - [x] **Paso 2:** Ejecutar `lune run tests/run PartyCode`. Esperado: FAIL.

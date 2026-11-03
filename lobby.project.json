@@ -11,8 +11,14 @@
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "Lobby": {
-        "$path": "src/server/lobby"
+      "Server": {
+        "$className": "Folder",
+        "Remotes": {
+          "$path": "src/server/Remotes.luau"
+        },
+        "Lobby": {
+          "$path": "src/server/lobby"
+        }
       },
       "shared": {
         "$path": "src/shared"

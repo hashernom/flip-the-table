@@ -2,49 +2,16 @@
 -- Puerta de entrada de las acciones que envía el cliente. No confía en ningún id del paquete:
 -- usa el Player que entrega el RemoteEvent, descarta lo que no pase Protocol.validate y limita la
 -- frecuencia por jugador. El resto de la seguridad vive en el motor (Engine.apply).
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local Protocol = require("../../shared/net/Protocol")
+local Remotes = require("../Remotes")
 local Types = require("../../shared/rules/Types")
 
 type Action = Types.Action
 type OnAction = (player: Player, action: Action) -> ()
 
 local RemoteGateway = {}
-
--- Los tres RemoteEvent viven en ReplicatedStorage/FlipTheTableRemotes. El gateway los crea si no
--- existen; el cliente del plan 05 los busca en esa misma carpeta y solo escucha Batch y Resync.
-local FOLDER_NAME = "FlipTheTableRemotes"
-
-local function remotesFolder(): Folder
-	local existing = ReplicatedStorage:FindFirstChild(FOLDER_NAME)
-	if existing then
-		if existing:IsA("Folder") then
-			return existing :: Folder
-		end
-		error(`RemoteGateway: {FOLDER_NAME} existe en ReplicatedStorage y no es una carpeta`, 2)
-	end
-	local folder = Instance.new("Folder")
-	folder.Name = FOLDER_NAME
-	folder.Parent = ReplicatedStorage
-	return folder
-end
-
-local function remoteFor(name: string): RemoteEvent
-	local parent = remotesFolder()
-	local existing = parent:FindFirstChild(name)
-	if existing then
-		if existing:IsA("RemoteEvent") then
-			return existing :: RemoteEvent
-		end
-		error(`RemoteGateway: {FOLDER_NAME}.{name} existe y no es un RemoteEvent`, 2)
-	end
-	local remote = Instance.new("RemoteEvent")
-	remote.Name = name
-	remote.Parent = parent
-	return remote
-end
 
 -- Reloj del servidor para el limitador: no depende del reloj del cliente ni del de la máquina
 -- donde corre Studio. El protocolo recibe el instante por parámetro para seguir siendo puro.
@@ -55,16 +22,16 @@ end
 -- RemoteEvent del protocolo, creándolo si hace falta. Es la puerta que usan RemoteGateway.start
 -- (Action) y MatchService (Batch y Resync) para que el nombre viva solo en Protocol.REMOTES.
 function RemoteGateway.remote(name: string): RemoteEvent
-	return remoteFor(name)
+	return Remotes.remote(name)
 end
 
 function RemoteGateway.start(onAction: OnAction)
 	local limiter = Protocol.newLimiter()
-	local actionRemote = remoteFor(Protocol.REMOTES.Action)
-	-- Batch lo escribe el servidor y Resync lo conectará el servicio de partida (Tarea 3); aquí
-	-- solo se crean para que el cliente los encuentre desde el primer arranque.
-	remoteFor(Protocol.REMOTES.Batch)
-	remoteFor(Protocol.REMOTES.Resync)
+	local actionRemote = Remotes.remote(Protocol.REMOTES.Action)
+	-- Batch lo escribe el servidor y Resync lo conectará el servicio de partida; aquí solo se
+	-- crean para que el cliente los encuentre desde el primer arranque.
+	Remotes.remote(Protocol.REMOTES.Batch)
+	Remotes.remote(Protocol.REMOTES.Resync)
 
 	actionRemote.OnServerEvent:Connect(function(player: Player, packet: any)
 		-- El limitador va antes de validar: así un cliente que inunda con paquetes malformados
