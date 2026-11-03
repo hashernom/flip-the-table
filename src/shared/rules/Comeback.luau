@@ -170,12 +170,18 @@ end
 
 -- Resurrección: vuelve Active con el capital de la ficha, en la Salida y sin sabotajes guardados.
 -- comebackRounds queda con las rondas que estuvo como espectro, para el premio de la Tarea 10.
+-- Solo hay una remontada por jugador: sin este límite, un espectro siempre vuelve a los tres
+-- sabotajes y la condición de final de Sin Fin («un solo jugador activo») nunca se alcanza. La
+-- segunda bancarrota deja al jugador como espectro permanente, que sigue jugando sus turnos.
 local function revive(state: GameState, player: Player): { Event }
+	local stats = state.stats[player.id]
+	if stats.comebackRounds ~= nil then
+		return {}
+	end
 	player.status = "Active"
 	player.cash = Economy.ghost.reviveCash
 	player.position = START_INDEX
 	player.sabotages = 0
-	local stats = state.stats[player.id]
 	stats.comebackRounds = stats.ghostRounds or 1
 	return { { type = "GhostResurrected", playerId = player.id, cash = Economy.ghost.reviveCash } }
 end
@@ -188,9 +194,12 @@ function Comeback.ghostAct(state: GameState, playerId: PlayerId, action: GhostAc
 		return { ok = false, error = reason }
 	end
 	local player = playerOf(state, playerId)
+	-- Una sola remontada por jugador (ver revive). Si ya gastó la suya, sigue actuando como
+	-- espectro: sabotear y embrujar siguen siendo legales y el contador ya no resucita a nadie.
+	local canRevive = state.stats[playerId].comebackRounds == nil
 	-- Estado heredado: si ya tenía el umbral al empezar la acción, revive en vez de actuar. Es la
 	-- misma salida que aplica el reloj (R-P48).
-	if player.sabotages >= Economy.ghost.sabotagesToRevive then
+	if canRevive and player.sabotages >= Economy.ghost.sabotagesToRevive then
 		return { ok = true, events = revive(state, player) }
 	end
 	if action.kind == "Sabotage" then
@@ -200,7 +209,7 @@ function Comeback.ghostAct(state: GameState, playerId: PlayerId, action: GhostAc
 		append(events, Comeback.gainSabotage(state, playerId))
 		-- R-P48: al acumular el tercer sabotaje se resucita en la misma acción, después de
 		-- anunciar el sabotaje y su carta.
-		if player.sabotages >= Economy.ghost.sabotagesToRevive then
+		if canRevive and player.sabotages >= Economy.ghost.sabotagesToRevive then
 			append(events, revive(state, player))
 		end
 		return { ok = true, events = events }

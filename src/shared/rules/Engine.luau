@@ -4,6 +4,7 @@ local Auction = require("./Auction")
 local Board = require("./Board")
 local Building = require("./Building")
 local Cards = require("./Cards")
+local CardsConfig = require("../config/Cards")
 local Comeback = require("./Comeback")
 local Economy = require("../config/Economy")
 local Movement = require("./Movement")
@@ -696,13 +697,54 @@ local function validate(state: GameState, playerId: PlayerId, action: Action): s
 	return nil
 end
 
+-- Enumera las jugadas de carta posibles de la mano, con un candidato por objetivo razonable. El
+-- catálogo decide qué campos necesita cada carta (target), y `validate` descarta con Cards.reason
+-- los objetivos que no sirven (un espectro, una propiedad sin dueño, un pacto ajeno...). Se
+-- enumeran todos los candidatos del catálogo, no solo los obvios, para que la lista sea la misma
+-- que aceptaría Cards.play. Los índices salen del tablero y de state.pacts, que son arreglos: el
+-- orden no depende de las claves de una tabla.
+local function addCardCandidates(state: GameState, playerId: PlayerId, candidates: { Action })
+	local player = playerOf(state, playerId)
+	if not player then
+		return
+	end
+	for _, cardId in player.hand do
+		local definition = CardsConfig.byId[cardId]
+		if definition then
+			if definition.target == "None" then
+				table.insert(candidates, { type = "PlayCard", cardId = cardId })
+			elseif definition.target == "Player" then
+				for _, target in state.players do
+					if target.id ~= playerId then
+						table.insert(candidates, { type = "PlayCard", cardId = cardId, targetId = target.id })
+					end
+				end
+			elseif definition.target == "Zone" then
+				for _, zoneId in state.board.zoneOrder do
+					table.insert(candidates, { type = "PlayCard", cardId = cardId, zoneId = zoneId })
+				end
+			elseif definition.target == "Property" then
+				for _, square in state.board.squares do
+					if square.kind == "Property" then
+						table.insert(candidates, { type = "PlayCard", cardId = cardId, index = square.index })
+					end
+				end
+			elseif definition.target == "Pact" then
+				for _, pact in state.pacts do
+					table.insert(candidates, { type = "PlayCard", cardId = cardId, pactId = pact.id })
+				end
+			end
+		end
+	end
+end
+
 -- Enumera el espacio finito de acciones legales de un jugador: Roll, Buy/DeclineBuy, una puja
--- representativa, Build por casilla edificable, las de las fases nuevas (Mercado, Duelo y
--- Tribunal) y EndTurn. Los intercambios no se enumeran (su espacio es infinito) y se validan en
--- apply. Los pactos tampoco: elegir socio y duración no es un espacio finito, así que
--- ProposePact/RespondPact/BreakPact se validan en apply y el bot los cableará en la Tarea 10.
--- Los candidatos pasan por validate, la única tabla de permisos: nunca se devuelve una acción
--- que apply rechazaría (R8).
+-- representativa, Build por casilla edificable, PlayCard por carta y objetivo, las de las fases
+-- nuevas (Mercado, Duelo y Tribunal) y EndTurn. Los intercambios no se enumeran (su espacio es
+-- infinito) y se validan en apply. Los pactos tampoco: elegir socio y duración no es un espacio
+-- finito, así que ProposePact/RespondPact/BreakPact se validan en apply y el bot los cablea en la
+-- Tarea 10. Los candidatos pasan por validate, la única tabla de permisos: nunca se devuelve una
+-- acción que apply rechazaría (R8).
 function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 	local phase = state.phase
 	local candidates: { Action } = {}
@@ -719,6 +761,9 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 				table.insert(candidates, { type = "Build", index = square.index })
 			end
 		end
+		-- PlayCard se juega en las mismas fases que Roll/EndTurn y Build (Cards decide con
+		-- Cards.reason qué cartas y objetivos valen en cada una).
+		addCardCandidates(state, playerId, candidates)
 	elseif phase == "AwaitBuy" then
 		table.insert(candidates, { type = "Buy" })
 		table.insert(candidates, { type = "DeclineBuy" })

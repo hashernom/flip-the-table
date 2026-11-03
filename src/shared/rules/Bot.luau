@@ -1,6 +1,9 @@
 --!strict
--- Bot determinista: elige entre las acciones legales con una heurística simple. No usa azar
--- ni relojes; la simulación lo usará para jugar partidas completas sin humano.
+-- Bot determinista: elige entre las acciones legales con una heurística simple. No usa azar ni
+-- relojes; la simulación lo usa para jugar partidas completas sin humano. Desde la Tarea 10 usa
+-- todos los sistemas: juega cualquier carta que tenga y sea legal, propone y acepta pactos cuando
+-- puede cubrir la garantía, se queda con el primer perk del borrador y contesta Mercado, Duelo,
+-- Tribunal, reacciones y turnos de espectro.
 local Building = require("./Building")
 local Economy = require("../config/Economy")
 local Engine = require("./Engine")
@@ -10,6 +13,21 @@ type GameState = Types.GameState
 type PlayerId = Types.PlayerId
 type Player = Types.Player
 type Action = Types.Action
+
+-- Forma de la oferta de pacto guardada en pending.pactOffers (Pact no la exporta).
+type PactOffer = {
+	id: string,
+	fromId: PlayerId,
+	toId: PlayerId,
+	rounds: number,
+}
+
+-- Perk Negociador: el titular deposita la garantía reducida (mismo id que en el catálogo).
+local NEGOTIATOR_PERK = "Negotiator"
+
+-- Carta que rompe un pacto. El bot propone un pacto cuando la lleva en la mano: así la Puñalada
+-- tiene un objetivo y la mano no se llena de cartas que nunca se pueden jugar.
+local BACKSTAB_CARD = "Backstab"
 
 local Bot = {}
 
@@ -26,6 +44,17 @@ end
 local function firstOf(actions: { Action }, actionType: string): Action?
 	for _, action in actions do
 		if action.type == actionType then
+			return action
+		end
+	end
+	return nil
+end
+
+-- Primera PlayCard cuyo id esté en la lista. En AwaitRoll solo se juegan las cartas que modifican
+-- la tirada: el resto espera a AwaitEnd, donde el bot juega toda la mano legal de una vez.
+local function firstCardOf(actions: { Action }, cardIds: { string }): Action?
+	for _, action in actions do
+		if action.type == "PlayCard" and table.find(cardIds, action.cardId) then
 			return action
 		end
 	end
@@ -87,17 +116,174 @@ local function cheapestBuild(state: GameState, player: Player, actions: { Action
 	return best
 end
 
--- Acción elegida. Devuelve nil cuando no hay ninguna legal o cuando, en una subasta, no le
--- compensa pujar: el bucle de simulación cierra con Engine.timeout. Nunca inventa una acción.
--- Las acciones de pacto no entran en legalActions (elegir socio y duración no es un espacio
--- finito), así que el bot no las elige aquí; la Tarea 10 las cablea con su propia heurística.
-function Bot.choose(state: GameState, playerId: PlayerId): Action?
-	local actions = Engine.legalActions(state, playerId)
-	if #actions == 0 then
+-- Garantía que depositaría el jugador. El Negociador paga la reducida; el id se consulta sin
+-- require Perks, igual que hace Pact con sus perks.
+local function depositOf(player: Player): number
+	if table.find(player.perks, NEGOTIATOR_PERK) ~= nil then
+		return Economy.pact.negotiatorDeposit
+	end
+	return Economy.pact.deposit
+end
+
+-- ¿La oferta se puede responder en esta fase? Son las mismas de Pact.respondReason; la ventana
+-- de reacción, el Mercado, el Duelo y el Tribunal no admiten pactos.
+local function canRespondPact(phase: Types.Phase): boolean
+	return phase == "AwaitRoll" or phase == "AwaitBuy" or phase == "AwaitEnd"
+end
+
+-- Primera oferta de pacto dirigida al jugador, o nil.
+local function offerTo(state: GameState, playerId: PlayerId): PactOffer?
+	local pending = state.pending
+	local offers = pending and pending.pactOffers
+	if not offers then
 		return nil
 	end
+	for _, offer: PactOffer in offers do
+		if offer.toId == playerId then
+			return offer
+		end
+	end
+	return nil
+end
+
+-- ¿El jugador ya tiene una oferta de pacto pendiente como proponente? Evita proponer en bucle.
+local function hasOfferFrom(state: GameState, playerId: PlayerId): boolean
+	local pending = state.pending
+	local offers = pending and pending.pactOffers
+	if not offers then
+		return false
+	end
+	for _, offer: PactOffer in offers do
+		if offer.fromId == playerId then
+			return true
+		end
+	end
+	return false
+end
+
+-- Respuesta a una oferta de pacto: acepta si las dos partes pueden cubrir su garantía y rechaza
+-- en caso contrario. Rechazar no cuesta nada y libera la oferta antes de que caduque.
+local function pactResponse(state: GameState, player: Player): Action?
+	if not canRespondPact(state.phase) then
+		return nil
+	end
+	local offer = offerTo(state, player.id)
+	if not offer then
+		return nil
+	end
+	local proposer = findPlayer(state, offer.fromId)
+	local affordable = proposer ~= nil
+		and proposer.status == "Active"
+		and player.cash >= depositOf(player)
+		and proposer.cash >= depositOf(proposer)
+	return { type = "RespondPact", pactId = offer.id, accept = affordable }
+end
+
+-- Primer pacto vivo en el que participa el jugador, o nil.
+local function pactOf(state: GameState, playerId: PlayerId): Types.Pact?
+	for _, pact in state.pacts do
+		if pact.a == playerId or pact.b == playerId then
+			return pact
+		end
+	end
+	return nil
+end
+
+-- Propuesta de pacto: solo si lleva Puñalada en la mano (así el pacto tiene una salida y la carta
+-- no se queda atascada), no tiene un pacto vivo ni una oferta pendiente, y hay un rival activo
+-- que pueda cubrir su garantía. La duración es la máxima del catálogo: el pacto caduca solo.
+local function pactProposal(state: GameState, player: Player): Action?
+	if table.find(player.hand, BACKSTAB_CARD) == nil then
+		return nil
+	end
+	if state.phase ~= "AwaitRoll" and state.phase ~= "AwaitEnd" then
+		return nil
+	end
+	if state.players[state.turnIndex].id ~= player.id then
+		return nil
+	end
+	if player.status ~= "Active" then
+		return nil
+	end
+	if pactOf(state, player.id) ~= nil then
+		return nil
+	end
+	if hasOfferFrom(state, player.id) then
+		return nil
+	end
+	if player.cash < depositOf(player) + Economy.bot.bidReserve then
+		return nil
+	end
+	for _, candidate in state.players do
+		if candidate.id ~= player.id and candidate.status == "Active" then
+			if candidate.cash >= depositOf(candidate) + Economy.bot.bidReserve then
+				return {
+					type = "ProposePact",
+					toId = candidate.id,
+					rounds = Economy.pact.maxRounds,
+				}
+			end
+		end
+	end
+	return nil
+end
+
+-- Cartas que solo tienen sentido antes de tirar: modifican la tirada del turno.
+local ROLL_CARDS: { string } = { "ExtraDie", "Reverse" }
+
+-- Propiedades del jugador y si tiene alguna en la zona de la casilla. La cartera objetivo es una
+-- zona completa: al llegar al tope solo se compra donde ya se tiene presencia, para no repartir el
+-- capital en parcelas sueltas que nunca completan un grupo. No es un tope duro: las subastas
+-- pueden añadir más propiedades.
+local function ownedCount(state: GameState, playerId: PlayerId): number
+	local count = 0
+	for _, property in state.properties do
+		if property.ownerId == playerId then
+			count += 1
+		end
+	end
+	return count
+end
+
+local function ownsInZone(state: GameState, playerId: PlayerId, index: number): boolean
+	local zoneId = state.board.squares[index].zoneId
+	if not zoneId then
+		return false
+	end
+	local indices = state.board.zones[zoneId]
+	if not indices then
+		return false
+	end
+	for _, other in indices do
+		local property = state.properties[other]
+		if property and property.ownerId == playerId then
+			return true
+		end
+	end
+	return false
+end
+
+-- Acción elegida. Devuelve nil cuando no hay ninguna legal o cuando, en una subasta, no le
+-- compensa pujar: el bucle de simulación cierra con Engine.timeout. Nunca inventa una acción.
+function Bot.choose(state: GameState, playerId: PlayerId): Action?
 	local player = findPlayer(state, playerId)
 	if not player then
+		return nil
+	end
+
+	-- Los pactos no están en legalActions (su espacio no es finito): el bot los decide aquí y el
+	-- motor los valida en apply como cualquier acción.
+	local response = pactResponse(state, player)
+	if response then
+		return response
+	end
+	local proposal = pactProposal(state, player)
+	if proposal then
+		return proposal
+	end
+
+	local actions = Engine.legalActions(state, playerId)
+	if #actions == 0 then
 		return nil
 	end
 	local phase = state.phase
@@ -106,22 +292,40 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		-- las acciones del jugador al que le toca elegir.
 		return firstOf(actions, "DraftPerk")
 	elseif phase == "GhostTurn" then
-		-- Turno corto del espectro (R-P43): el sabotaje es la primera acción legal y la más
-		-- simple. Embrujar queda para la heurística completa de la Tarea 10.
+		-- Turno corto del espectro (R-P43): el sabotaje es la primera acción legal, la más simple
+		-- y la que acumula para resucitar.
 		return firstOf(actions, "GhostAct")
 	elseif phase == "AwaitRoll" then
+		-- Las cartas de tirada se juegan antes de tirar; las demás esperan a AwaitEnd.
+		local rollCard = firstCardOf(actions, ROLL_CARDS)
+		if rollCard then
+			return rollCard
+		end
 		return firstOf(actions, "Roll")
 	elseif phase == "AwaitBuy" then
 		local buy = firstOf(actions, "Buy")
 		if buy then
 			local index = pendingIndexOf(state)
 			local price = if index then priceOf(state, index) else nil
-			if price and player.cash - price > Economy.bot.buyReserve then
-				return buy
+			if price and index and player.cash - price > Economy.bot.buyReserve then
+				-- Cartera máxima: una zona completa. Al llegar al tope solo se compra en una zona
+				-- donde ya se tiene presencia; el resto se subasta.
+				local zoneId = state.board.squares[index].zoneId
+				local zoneSize = if zoneId then #state.board.zones[zoneId] else 0
+				local full = ownedCount(state, player.id) >= zoneSize
+				if not full or ownsInZone(state, player.id, index) then
+					return buy
+				end
 			end
 		end
 		return firstOf(actions, "DeclineBuy")
 	elseif phase == "AwaitEnd" then
+		-- Toda carta legal se juega al cerrar el turno: la mano queda libre para el siguiente
+		-- robo y no se llena de cartas sin salida.
+		local card = firstOf(actions, "PlayCard")
+		if card then
+			return card
+		end
 		local build = cheapestBuild(state, player, actions)
 		if build then
 			return build
@@ -142,11 +346,11 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		end
 		return nil
 	elseif phase == "Reaction" then
-		-- En la ventana el bot solo usa Escudo: cancelar una carta que le apunta es gratis. Renta
-		-- Rebotada exigiría elegir a un tercero y la respuesta simple y legal es pasar.
-		local reactAction = firstOf(actions, "React")
-		if reactAction and reactAction.cardId == "Shield" then
-			return reactAction
+		-- Con carta de reacción en la mano se usa siempre: Escudo contra una carta y Renta
+		-- Rebotada contra una renta (el primer tercero legal lo elige el motor). Sin carta, pasa.
+		local react = firstOf(actions, "React")
+		if react then
+			return react
 		end
 		return firstOf(actions, "PassReaction")
 	elseif phase == "Market" then
@@ -160,7 +364,8 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		end
 		return firstOf(actions, "MarketSkip")
 	elseif phase == "Duel" then
-		-- El primer DuelChoice es el rival cuando toca elegirlo y, después, piedra.
+		-- Primero el retador elige rival; después cada participante elige piedra (la primera
+		-- jugada del catálogo). La simulación pregunta a los dos participantes.
 		return firstOf(actions, "DuelChoice")
 	elseif phase == "Tribunal" then
 		-- La multa es la primera opción legal y el castigo por defecto del Tribunal.

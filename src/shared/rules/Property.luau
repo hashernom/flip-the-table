@@ -204,6 +204,17 @@ function Property.chargeRent(
 	-- igual sin depender de si el cobro cambia la clasificación.
 	local leaderBefore = Comeback.leaderId(state)
 	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
+	-- Contadores de los premios del final (Tarea 10). Se suman por renta cobrada, no por importe:
+	-- son recuentos de lo que pasó en la partida. El cobro ya pasó por Bankruptcy.charge, así que
+	-- un pagador arruinado también queda contado (pagó lo que pudo).
+	local payerStats = state.stats[payerId]
+	if payerStats then
+		payerStats.rentsPaid = (payerStats.rentsPaid or 0) + 1
+	end
+	local ownerStats = state.stats[ownerId]
+	if ownerStats then
+		ownerStats.rentsCollected = (ownerStats.rentsCollected or 0) + 1
+	end
 	table.insert(events, 1, {
 		type = "RentPaid",
 		index = index,

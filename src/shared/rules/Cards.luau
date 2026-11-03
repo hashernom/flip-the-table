@@ -642,6 +642,13 @@ function Cards.reason(state: GameState, playerId: PlayerId, cardId: string, args
 	if player.status == "Left" then
 		return "El jugador ha abandonado la partida"
 	end
+	-- Un espectro no juega cartas normales: su turno es GhostTurn y sus cartas de sabotaje se
+	-- usan con GhostAct. Sin esta guarda, un jugador que se arruina en su propio turno (queda en
+	-- AwaitEnd) podría jugar Ladrón de Escrituras y convertirse en dueño siendo fantasma, lo que
+	-- rompe el invariante de que ningún espectro tiene propiedades.
+	if player.status ~= "Active" then
+		return "Solo los jugadores activos pueden jugar cartas"
+	end
 	if not table.find(player.hand, cardId) then
 		return `No tienes la carta {cardId} en la mano`
 	end
