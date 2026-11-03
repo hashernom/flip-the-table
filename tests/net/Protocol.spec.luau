@@ -14,11 +14,16 @@ local expect = Harness.expect
 local ACTIONS_PER_SECOND = 10
 
 describe("Protocol.REMOTES", function()
-	it("tiene exactamente los tres remotos del contrato", function()
+	it("tiene los remotos del contrato: los tres de la partida y los del lobby (R-P29)", function()
 		expect(Protocol.REMOTES).toEqual({
 			Action = "ActionRequest",
 			Batch = "EventBatch",
 			Resync = "ResyncRequest",
+			PartyCreate = "PartyCreateRequest",
+			PartyJoin = "PartyJoinRequest",
+			PartyStart = "PartyStartRequest",
+			QueueJoin = "QueueJoinRequest",
+			Notice = "LobbyNotice",
 		})
 	end)
 end)
@@ -164,6 +169,57 @@ describe("Protocol.validate: rechaza entrada no válida", function()
 		-- Sin estado no hay fase: el motor decidirá si la puja se puede pagar o no.
 		expect((Protocol.validate({ type = "Bid", amount = 1000000 }))).toBe(true)
 		expect((Protocol.validate({ type = "Build", index = 9999 }))).toBe(true)
+	end)
+end)
+
+describe("Protocol.validateLobby", function()
+	local VALID: { any } = {
+		{ type = "PartyCreate" },
+		{ type = "PartyJoin", code = "AB3K9Z" },
+		{ type = "PartyJoin", code = " ab3k9z " },
+		{ type = "PartyStart", endMode = "Rounds" },
+		{ type = "PartyStart", endMode = "Endless" },
+		{ type = "QueueJoin" },
+	}
+
+	it("acepta las peticiones del lobby con su forma", function()
+		for _, packet in VALID do
+			expect((Protocol.validateLobby(packet))).toBe(true)
+		end
+	end)
+
+	local INVALID: { any } = {
+		1,
+		"PartyJoin",
+		{},
+		{ type = "Nope" },
+		{ type = "Roll" },
+		{ type = "PartyJoin" },
+		{ type = "PartyJoin", code = 7 },
+		{ type = "PartyJoin", code = "" },
+		{ type = "PartyJoin", code = string.rep("A", 17) },
+		{ type = "PartyJoin", code = "AB3K9Z", playerId = "1" },
+		{ type = "PartyCreate", playerId = "1" },
+		{ type = "PartyStart" },
+		{ type = "PartyStart", endMode = "Duel" },
+		{ type = "PartyStart", endMode = true },
+		{ type = "QueueJoin", playerId = "1" },
+	}
+
+	it("rechaza tipos, campos y valores que no son del lobby", function()
+		expect((Protocol.validateLobby(nil))).toBe(false)
+		for _, packet in INVALID do
+			local ok: boolean, accepted: any = pcall(function(): boolean
+				return (Protocol.validateLobby(packet))
+			end)
+			expect(ok).toBe(true)
+			expect(accepted).toBe(false)
+		end
+	end)
+
+	it("no mezcla las dos puertas: una acción de partida no entra por el lobby", function()
+		expect((Protocol.validateLobby({ type = "Roll" }))).toBe(false)
+		expect((Protocol.validate({ type = "PartyJoin", code = "AB3K9Z" }))).toBe(false)
 	end)
 end)
 

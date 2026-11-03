@@ -132,4 +132,9 @@ Scenes.heartbeatSec = 0.25
 -- (R-P27). No se espera al plazo de decisión: un ausente no puede convertir cada turno en 20 s.
 Scenes.botDelaySec = 0.6
 
+-- Espera máxima, al arrancar el lugar de partida, a que llegue el grupo que viene por
+-- teletransporte (R-P30). El servidor reservado empieza a contar cuando aparece el primer jugador
+-- y arranca antes si ya están todos los que anuncia el dato de entrada.
+Scenes.joinSec = 3
+
 return Scenes

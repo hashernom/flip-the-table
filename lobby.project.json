@@ -1,0 +1,31 @@
+{
+  "name": "flip-the-table-lobby",
+  "globIgnorePaths": ["**/.gitkeep"],
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": {
+        "$path": "src/shared"
+      }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Lobby": {
+        "$path": "src/server/lobby"
+      },
+      "shared": {
+        "$path": "src/shared"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "shared": {
+          "$path": "src/shared"
+        }
+      }
+    }
+  }
+}

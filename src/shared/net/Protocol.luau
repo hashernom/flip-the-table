@@ -11,12 +11,19 @@ export type Limiter = {
 
 local Protocol = {}
 
--- Los tres remotos de la subfase 04. El gateway los crea en ReplicatedStorage y el cliente del
--- plan 05 los busca por el mismo nombre.
+-- Los remotos de la subfase 04. El gateway del lugar de partida crea Action, Batch y Resync; el
+-- del lobby crea los cuatro de party y cola, y el aviso de vuelta. El cliente del plan 05 los
+-- busca por el mismo nombre. Los tres del contrato original no se tocan.
 Protocol.REMOTES = {
 	Action = "ActionRequest",
 	Batch = "EventBatch",
 	Resync = "ResyncRequest",
+	-- Lobby (R-P29): peticiones del cliente y aviso del servidor.
+	PartyCreate = "PartyCreateRequest",
+	PartyJoin = "PartyJoinRequest",
+	PartyStart = "PartyStartRequest",
+	QueueJoin = "QueueJoinRequest",
+	Notice = "LobbyNotice",
 }
 
 -- La ventana del limitador es un segundo por definición; el número de acciones vive en config.
@@ -197,6 +204,27 @@ local ACTION_SPECS: { [string]: ActionSpec } = {
 	EndTurn = { required = {}, fields = {} },
 }
 
+-- Un código de party puede llegar con espacios (" ab3k9z "); la forma solo acota el tamaño para
+-- que un paquete enorme no recorra tablas. La validez real la decide PartyCode.normalize en el
+-- lobby, que es quien conoce el alfabeto.
+local MAX_PARTY_CODE_LENGTH = 16
+
+local function isPartyCode(value: any): boolean
+	return type(value) == "string" and #value > 0 and #value <= MAX_PARTY_CODE_LENGTH
+end
+
+local END_MODES = { "Rounds", "Endless" }
+
+-- Peticiones del lobby (R-P29). Viven en Protocol, igual que las acciones de la partida, para que
+-- el nombre y la forma tengan una sola fuente de verdad. El lobby no las valida con
+-- Protocol.validate: un tipo de partida no debe colarse por el remoto del lobby ni al revés.
+local LOBBY_SPECS: { [string]: ActionSpec } = {
+	PartyCreate = { required = {}, fields = {} },
+	PartyJoin = { required = { "code" }, fields = { code = isPartyCode } },
+	PartyStart = { required = { "endMode" }, fields = { endMode = oneOf(END_MODES) } },
+	QueueJoin = { required = {}, fields = {} },
+}
+
 -- Reglas de forma que cruzan dos campos: no son legalidad de fase, solo aseguran que la acción
 -- lleva la información que su tipo necesita.
 local function extraShapeReason(action: any): string?
@@ -224,7 +252,13 @@ local function extraShapeReason(action: any): string?
 	return nil
 end
 
-local function validateShape(action: any): (boolean, string?)
+-- Valida la forma contra una tabla de especificaciones. `checkExtra` activa las reglas que cruzan
+-- dos campos, que solo existen para las acciones de la partida.
+local function validateWithSpecs(
+	action: any,
+	specs: { [string]: ActionSpec },
+	checkExtra: boolean
+): (boolean, string?)
 	if type(action) ~= "table" then
 		return false, "La acción no es una tabla"
 	end
@@ -232,7 +266,7 @@ local function validateShape(action: any): (boolean, string?)
 	if type(actionType) ~= "string" then
 		return false, "La acción no tiene un tipo válido"
 	end
-	local spec = ACTION_SPECS[actionType]
+	local spec = specs[actionType]
 	if not spec then
 		return false, `Acción desconocida: {actionType}`
 	end
@@ -252,17 +286,26 @@ local function validateShape(action: any): (boolean, string?)
 			return false, `El campo {key} no es válido`
 		end
 	end
-	local extra = extraShapeReason(action)
+	local extra = if checkExtra then extraShapeReason(action) else nil
 	if extra then
 		return false, extra
 	end
 	return true, nil
 end
 
+local function validateShape(action: any): (boolean, string?)
+	return validateWithSpecs(action, ACTION_SPECS, true)
+end
+
 -- ¿La acción tiene la forma del contrato? Devuelve el motivo cuando no. No decide legalidad: la
 -- fase, el turno y el efectivo siguen siendo de Engine.apply, para no duplicar reglas.
 function Protocol.validate(action: any): (boolean, string?)
 	return validateShape(action)
+end
+
+-- ¿La petición del lobby tiene la forma del contrato? Mismos mensajes que la puerta de partida.
+function Protocol.validateLobby(action: any): (boolean, string?)
+	return validateWithSpecs(action, LOBBY_SPECS, false)
 end
 
 -- Limitador deslizante: guarda los instantes de las acciones aceptadas y descarta la que haría
