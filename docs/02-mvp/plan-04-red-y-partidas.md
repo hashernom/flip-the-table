@@ -57,12 +57,12 @@
 - Produce: `RemoteGateway.start(onAction: (player: Player, action: Action) -> ())`.
 
 **Criterios de aceptación:**
-- [ ] Cualquier valor no válido se rechaza sin lanzar error: `nil`, número, tipo desconocido, campos con tipo incorrecto, importes negativos o no enteros.
-- [ ] Máximo 10 acciones por segundo por jugador; el resto se descarta.
-- [ ] Nunca se confía en un `playerId` enviado por el cliente: se usa el `Player` del remoto.
+- [x] Cualquier valor no válido se rechaza sin lanzar error: `nil`, número, tipo desconocido, campos con tipo incorrecto, importes negativos o no enteros.
+- [x] Máximo 10 acciones por segundo por jugador; el resto se descarta.
+- [x] Nunca se confía en un `playerId` enviado por el cliente: se usa el `Player` del remoto.
 
-- [ ] **Paso 0:** Añadir a `tools/check` un segundo pase de `luau-lsp analyze` para `src/server` y `src/client`, con definiciones de Roblox y `sourcemap.json`. `src/shared`, `tests` y `tools` siguen en `--platform=standard`: ese pase es lo que impide usar globales de Roblox en el motor.
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 0:** Añadir a `tools/check` un segundo pase de `luau-lsp analyze` para `src/server` y `src/client`, con definiciones de Roblox y `sourcemap.json`. `src/shared`, `tests` y `tools` siguen en `--platform=standard`: ese pase es lo que impide usar globales de Roblox en el motor.
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 for _, bad in { {}, 1, "Roll", { type = "Nope" }, { type = "Bid", amount = -5 }, { type = "Bid", amount = 1.5 } } do
@@ -75,10 +75,10 @@ it("acepta una puja válida", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Protocol`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Protocol` y `RemoteGateway`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: validar acciones del cliente`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Protocol`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Protocol` y `RemoteGateway`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: validar acciones del cliente`.
 
 ### Task 2: Vista por jugador
 

@@ -4,6 +4,9 @@
 return {
 	startingCash = 1500,
 	startBonus = 200,
+	-- Acciones por segundo y jugador que acepta `Protocol.newLimiter` en el servidor. Lo que
+	-- sobra se descarta sin tocar el motor.
+	actionsPerSecond = 10,
 	minPropertyPrice = 60,
 	maxPropertyPrice = 400,
 	priceStep = 10,
