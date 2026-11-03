@@ -67,7 +67,7 @@
 ```luau
 it("asigna tablero y rondas según jugadores", function()
     local s = Fixtures.game({ players = 8 })
-    expect(s.sizeId).toBe("L"); expect(#s.board.squares).toBe(48); expect(s.maxRounds).toBe(12)
+    expect(s.sizeId).toBe("L"); expect(#s.board.squares).toBe(56); expect(s.maxRounds).toBe(12)
 end)
 it("rechaza 9 jugadores", function()
     expect(function() Fixtures.game({ players = 9 }) end).toThrow()
@@ -198,11 +198,11 @@ end)
 
 **Criterios de aceptación:**
 - [x] Solo se construye con la zona completa.
-- [x] Niveles de 0 a 3: solar, casa, edificio y rascacielos.
-- [x] La renta usa × 3, × 6 y × 10 según el nivel.
+- [x] Niveles de 0 a 5: solar, una, dos y tres casas, hotel y rascacielos.
+- [x] La renta usa × 2, × 3, × 5, × 8 y × 12 según el nivel.
 - [x] Bajar de nivel 0 no hace nada.
 
-- [x] **Paso 1:** Escribir pruebas para: construir sin zona falla, construir con zona sube y cobra el 50 % del precio, nivel 4 falla, y renta en cada nivel.
+- [x] **Paso 1:** Escribir pruebas para: construir sin zona falla, construir con zona sube y cobra el 50 % del precio, nivel 6 falla, y renta en cada nivel.
 - [x] **Paso 2:** Ejecutar `lune run tests/run Building`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar `Building` y `Build` en `Engine`.
 - [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.

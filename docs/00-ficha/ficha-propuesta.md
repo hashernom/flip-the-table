@@ -36,7 +36,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 - **Sin movimiento libre:** como en el juego clásico, siempre estás en una casilla. Puedes mirar alrededor, pero solo avanzas con los dados.
 - **Fichas a escala de ciudad:** tu avatar se sube a su ficha, que recorre las calles hasta la casilla que marcan los dados.
 - **Casillas físicas:** cada casilla es un lugar de la calle, marcado en el suelo y reconocible.
-- **Zonas reales:** cada grupo de color es una zona de edificios, y varias zonas forman un barrio. Una propiedad pasa de solar a casa, edificio y rascacielos ante tus ojos.
+- **Zonas reales:** cada grupo de color es una zona de edificios, y varias zonas forman un barrio. Una propiedad pasa de solar a una, dos y tres casas, a hotel y a rascacielos ante tus ojos.
 - **Vista general:** con un botón, la ciudad aparece como una maqueta de lujo con el estado de la partida: dueños, dinero, posiciones y efectos activos.
 
 **Tono:** juguetón y caricaturesco, apto para todo público. El juego celebra la traición y la ruina ajena con humor, sin crueldad; los arrestos parecen de dibujos animados.
@@ -86,7 +86,7 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 | Movimiento | Dos dados | Igual |
 | Propiedades | Compra, renta y grupos de color | Igual |
 | Subastas | Si nadie compra | Rápidas, de 15 segundos |
-| Edificios | Cuatro casas y un hotel | Tres niveles: casa, edificio y rascacielos |
+| Edificios | Cuatro casas y un hotel | Tres casas, hotel y rascacielos: cinco pasos |
 | Intercambios | Libres entre jugadores | Igual, y además pactos con reglas que el juego hace cumplir |
 | Final | Queda un solo jugador | Rondas: límite de rondas y gana el mayor patrimonio, o antes si todos los rivales están en bancarrota. Sin Fin: queda un solo jugador activo, como en el clásico |
 | Bancarrota | Eliminación | Vuelves como espectro y sigues jugando |
@@ -205,13 +205,13 @@ El siguiente turno no empieza hasta que termina la escena en curso. Una escena n
 
 ### La ciudad según el tamaño de la party
 
-| Jugadores | Casillas | Barrios | Rondas |
-| --- | --- | --- | --- |
-| 2 a 4 | 32 | Centro | 20 |
-| 5 a 6 | 40 | Centro y Puerto | 15 |
-| 7 a 8 | 48 | Centro, Puerto y Zona Alta | 12 |
+| Jugadores | Casillas | Zonas | Propiedades | Barrios | Rondas |
+| --- | --- | --- | --- | --- | --- |
+| 2 a 4 | 40 | 8 | 22 | Centro y Puerto | 20 |
+| 5 a 6 | 48 | 10 | 28 | Centro, Puerto y Zona Alta | 15 |
+| 7 a 8 | 56 | 12 | 34 | Centro, Puerto, Zona Alta e Industrial | 12 |
 
-Las rondas salen de una estimación de 20 segundos por turno y buscan unos 30 minutos en todos los casos. Son un punto de partida que se ajustará en las pruebas. El juego se diseña y equilibra para 4 a 8; con 2 o 3 se puede jugar, pero queda fuera de los objetivos.
+Las rondas salen de una estimación de 20 segundos por turno y buscan unos 30 minutos en todos los casos. Son un punto de partida provisional: con los tableros de 40, 48 y 56 hay que volver a medirlas. El juego se diseña y equilibra para 4 a 8; con 2 o 3 se puede jugar, pero queda fuera de los objetivos.
 
 ### Modos de partida
 
@@ -229,13 +229,13 @@ En ambos modos, quien se arruina sigue jugando como espectro y puede resucitar, 
 
 ## Qué incluye el MVP
 
-**El MVP es una sola ciudad, terminada al máximo nivel, para 2 a 8 amigos.** Se recorta la variedad de contenido, nunca la calidad. Si hace falta, salen en este orden: el modo Sin Fin, fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas. Debe responder una pregunta: ¿un grupo de amigos pide la revancha al terminar?
+**El MVP es una sola ciudad, terminada al máximo nivel, para 2 a 8 amigos.** Se recorta la variedad de contenido, nunca la calidad. Si hace falta, salen en este orden: el modo Sin Fin, fichas, escenas de cartas comunes, perks y los tableros de 56 y 48. Debe responder una pregunta: ¿un grupo de amigos pide la revancha al terminar?
 
 | Área | Qué incluye |
 | --- | --- |
-| Mapa | Metrópolis de Noche, con 3 tamaños: 32, 40 y 48 casillas |
+| Mapa | Metrópolis de Noche, con 3 tamaños: 40, 48 y 56 casillas |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta |
-| Reglas base | Dados, compra, renta, subasta, grupos, tres niveles de edificio, intercambios y bancarrota |
+| Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), intercambios y bancarrota |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos |
 | Cartas | Las 20 de esta ficha, cada una con su escena; 5 legendarias con cinemática completa |
 | Perks | Los 12 de esta ficha, elegidos en 3 momentos de la partida |
@@ -327,6 +327,9 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | Nombre provisional y Metrópolis de Noche como primer mapa | Propuesta mía |
 | Cartas, perks, casillas, pactos, Furia y Espectros concretos | Propuesta mía |
 | Tamaños, rondas, duración y objetivos numéricos | Propuesta mía, a ajustar en pruebas |
+| Tablero base de 40 casillas con 22 propiedades y 8 zonas de 2 y 3 propiedades | Tuya |
+| Cinco pasos de construcción: tres casas, hotel y rascacielos | Tuya |
+| Nombres, colores y tramas propios para 12 zonas y 34 propiedades | Propuesta mía, aprobada por ti |
 | Sin monetización en el MVP | Propuesta mía |
 | Zonas y barrios, foco en 4 a 8 jugadores, pactos por menú, pruebas previas y orden de recortes | Propuesta mía |
 | Agentes e IA para los assets, con tu aprobación final | Tuya |
@@ -342,5 +345,6 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 ### Pendiente
 
 - [ ] Elegir el nombre definitivo y comprobar que esté disponible.
+- [ ] Re-medir las rondas con los tableros de 40, 48 y 56.
 
 Fuente de la norma de azar: [guía de experiencias de Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines), consultada el 1 de noviembre de 2026.

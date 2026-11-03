@@ -201,9 +201,10 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Efectivo inicial | 1500 |
 | Cobro por pasar la Salida | 200 |
 | Precio de propiedad por zona | De 60 a 400, creciente a lo largo de la ruta |
+| Niveles de edificio | De 0 a 5: solar, una, dos y tres casas, hotel y rascacielos |
 | Renta base | 10 % del precio |
 | Renta con grupo completo | Base × 2 |
-| Renta con casa, edificio y rascacielos | Base × 3, × 6 y × 10 |
+| Multiplicador de renta por nivel | × 2, × 3, × 5, × 8 y × 12 |
 | Coste por nivel de edificio | 50 % del precio |
 | Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Apagón y Embrujo); la zona completa y los edificios se aplican aparte |
 | Temporizador de decisión | 20 s |
@@ -221,13 +222,13 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 
 ### Composición del tablero
 
-Coincide con los 32, 40 y 48 de la ficha. Las zonas tienen 3 propiedades cada una.
+Coincide con los 40, 48 y 56 de la ficha. Las zonas tienen 2 o 3 propiedades: 2 en Cobre y Violeta, 3 en el resto. El multiplicador del nivel de edificio se aplica sobre la renta con grupo completo; los efectos dinámicos van aparte.
 
 | Tamaño | Jugadores | Barrios | Zonas | Salida | Propiedades | Giro | Mercado | Duelo | Portal | Cartelera | Tribunal | Impuesto | Total |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| S | 2 a 4 | Centro | 6 | 1 | 18 | 4 | 2 | 2 | 2 | 1 | 1 | 1 | 32 |
-| M | 5 a 6 | + Puerto (2 zonas) | 8 | 1 | 24 | 5 | 2 | 2 | 2 | 2 | 1 | 1 | 40 |
-| L | 7 a 8 | + Zona Alta (2 zonas) | 10 | 1 | 30 | 6 | 2 | 3 | 3 | 1 | 1 | 1 | 48 |
+| S | 2 a 4 | Centro y Puerto | 8 | 1 | 22 | 6 | 2 | 2 | 3 | 2 | 1 | 1 | 40 |
+| M | 5 a 6 | + Zona Alta (2 zonas) | 10 | 1 | 28 | 7 | 2 | 2 | 3 | 3 | 1 | 1 | 48 |
+| L | 7 a 8 | + Industrial (2 zonas) | 12 | 1 | 34 | 8 | 2 | 2 | 3 | 4 | 1 | 1 | 56 |
 
 ### Momentos de la partida
 

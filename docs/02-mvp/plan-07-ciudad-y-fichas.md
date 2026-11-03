@@ -32,7 +32,7 @@
 
 - Cada asset cumple el estándar de la ficha y se aprueba en el juego por una persona.
 - No hay interiores ni calles que nadie pise.
-- Una propiedad pasa de solar a casa, edificio y rascacielos.
+- Una propiedad pasa de solar a una, dos y tres casas, hotel y rascacielos.
 - Cada grupo de color es una zona de edificios, y varias zonas forman un barrio.
 - 30 FPS o más en el móvil de referencia con 8 jugadores.
 
@@ -41,7 +41,7 @@
 1. Dos zonas se confunden a simple vista: la revisión en la maqueta lo detecta. Criterio en Tarea 2.
 2. Un avatar extremo atraviesa su ficha: prueba con escalas mínima y máxima. Prueba en Tarea 5.
 3. Un edificio de nivel alto tapa la cámara de la casilla vecina. Prueba en Tarea 2.
-4. La ciudad de 48 casillas supera el presupuesto de memoria en móvil. Prueba en Tarea 7.
+4. La ciudad de 56 casillas supera el presupuesto de memoria en móvil. Prueba en Tarea 7.
 5. Un asset gris queda en el juego por descuido. Prueba en Tarea 7.
 
 ---
@@ -51,7 +51,7 @@
 **Módulos:** `config/CityLayout`, `client/world/CityBuilder`.
 
 **Archivos:**
-- Crear: `art/blender/city/centro.blend`, `art/blender/city/puerto.blend`, `art/blender/city/zona-alta.blend`
+- Crear: `art/blender/city/centro.blend`, `art/blender/city/puerto.blend`, `art/blender/city/zona-alta.blend`, `art/blender/city/industrial.blend`
 - Modificar: `src/shared/config/CityLayout.luau`, `src/client/world/CityBuilder.luau`
 
 **Interfaces:**
@@ -60,7 +60,7 @@
 
 **Criterios de aceptación:**
 - [ ] Calles, aceras, señales, farolas y fondo cumplen la guía de estilo.
-- [ ] Los 3 barrios se distinguen de un vistazo.
+- [ ] Los 4 barrios se distinguen de un vistazo.
 - [ ] El fondo es de bajo detalle y no se accede a él.
 - [ ] Las pruebas de `CityLayout` siguen pasando.
 
@@ -75,23 +75,23 @@
 **Módulos:** `client/world/BuildingView`, `art/blender/buildings`.
 
 **Archivos:**
-- Crear: `art/blender/buildings/zona-01.blend` a `zona-10.blend`
+- Crear: `art/blender/buildings/zona-01.blend` a `zona-12.blend`
 - Modificar: `src/client/world/BuildingView.luau`, `art/manifest.json`
 
 **Interfaces:**
-- Produce: `BuildingView.setLevel(index, level)` para las 30 propiedades.
+- Produce: `BuildingView.setLevel(index, level)` para las 34 propiedades.
 
 **Criterios de aceptación:**
-- [ ] 10 zonas con estilo propio; cada una tiene solar, casa, edificio y rascacielos.
+- [ ] 12 zonas con estilo propio; cada una tiene solar, casa, hotel y rascacielos.
 - [ ] El color de cada zona se reconoce desde la calle y desde la maqueta.
 - [ ] El dueño se identifica en cada propiedad, sin depender solo del color.
 - [ ] Un rascacielos no tapa la cámara de ninguna casilla; se comprueba por casilla con el nivel máximo.
 
 - [ ] **Paso 1:** Producir una zona y conseguir su aprobación antes de continuar con las demás.
-- [ ] **Paso 2:** Producir las 9 restantes y registrarlas.
-- [ ] **Paso 3:** Con un script de Studio, poner todo al nivel 3 y capturar desde cada casilla. Esperado: ninguna vista bloqueada.
+- [ ] **Paso 2:** Producir las 11 restantes y registrarlas.
+- [ ] **Paso 3:** Con un script de Studio, poner todo al nivel 5 y capturar desde cada casilla. Esperado: ninguna vista bloqueada.
 - [ ] **Paso 4:** Ejecutar `lune run tools/manifest`. Esperado: sin problemas.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir edificios de las 10 zonas`.
+- [ ] **Paso 5:** Hacer commit: `feat: añadir edificios de las 12 zonas`.
 
 ### Task 3: Casillas especiales
 
@@ -189,7 +189,7 @@
 - Crear: `docs/02-mvp/resultados/rendimiento-ciudad.md`
 
 **Criterios de aceptación:**
-- [ ] 30 FPS o más en el móvil de referencia, con 8 jugadores en la ciudad de 48 casillas.
+- [ ] 30 FPS o más en el móvil de referencia, con 8 jugadores en la ciudad de 56 casillas.
 - [ ] La memoria queda dentro del presupuesto fijado en la Puerta B.
 - [ ] `tools/manifest` falla si `src/` contiene `Part` gris marcado como temporal o un asset sin manifiesto.
 - [ ] Se ve aceptable con el nivel gráfico mínimo.

@@ -61,7 +61,7 @@
 - [ ] Define la paleta neón y oro de Metrópolis de Noche, con sus valores de color.
 - [ ] Define el tratamiento del título del juego, las fuentes y sus usos, y comprueba que existan o se puedan usar en Roblox.
 - [ ] Define la biblioteca de materiales: asfalto mojado, cristal, metal pulido, oro, neón y hormigón.
-- [ ] Define el aspecto de Centro, Puerto y Zona Alta, para que se distingan de un vistazo.
+- [ ] Define el aspecto de Centro, Puerto, Zona Alta e Industrial, para que se distingan de un vistazo.
 - [ ] Incluye la escala de las fichas respecto a calles y edificios.
 - [ ] Aclara qué evitar: el logo, el personaje y el diseño de tablero del juego original, y símbolos de casino.
 - [ ] Incluye 3 imágenes conceptuales de la ciudad, aprobadas por el responsable.
@@ -131,7 +131,7 @@ end)
 
 **Contenido de la porción:**
 
-- Una calle con una zona: 3 solares con casa, edificio y rascacielos.
+- Una calle con una zona: 2 o 3 solares, con sus versiones de una a tres casas, hotel y rascacielos.
 - La ficha taxi con un avatar montado.
 - Iluminación, reflejos, neón y sonido de ambiente.
 - Vista desde primera persona, seguimiento y maqueta.

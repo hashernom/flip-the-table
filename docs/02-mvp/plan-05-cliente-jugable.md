@@ -92,8 +92,8 @@ end)
 - Produce: `CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles`.
 
 **Criterios de aceptación:**
-- [ ] Cada tamaño tiene su ruta cerrada, con 32, 40 o 48 posiciones.
-- [ ] Centro usa las mismas posiciones lógicas en los tres tamaños, y Puerto y Zona Alta se conectan por puentes.
+- [ ] Cada tamaño tiene su ruta cerrada, con 40, 48 o 56 posiciones.
+- [ ] Centro y Puerto usan las mismas posiciones lógicas en los tres tamaños, y Zona Alta e Industrial se conectan por puentes.
 - [ ] La distancia máxima entre casillas consecutivas es de 60 studs.
 - [ ] Cada casilla es reconocible por tipo, color y etiqueta.
 

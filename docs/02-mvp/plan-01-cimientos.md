@@ -35,7 +35,7 @@
 
 1. Una misma semilla da siempre la misma partida, en Lune y en Roblox. Prueba en Tarea 3.
 2. Un fallo en una prueba hace que el comando termine con código distinto de 0. Prueba en Tarea 2.
-3. Los tableros suman exactamente 32, 40 y 48 casillas. Prueba en Tarea 4.
+3. Los tableros suman exactamente 40, 48 y 56 casillas. Prueba en Tarea 4.
 4. Un número fuera de rango en `Rng.int` falla de forma clara, sin bucle infinito. Prueba en Tarea 3.
 5. La lógica pura no puede importar APIs de Roblox por descuido. Prueba en Tarea 5.
 
@@ -154,20 +154,21 @@ end)
 - Produce: los tipos de [arquitectura](../01-arquitectura/arquitectura.md), más `Square = { index: number, kind: SquareKind, zoneId: string?, barrioId: string, price: number? }`, `Board = { sizeId: SizeId, squares: { Square }, zones: { [string]: { number } } }`, `PropertyState = { ownerId: PlayerId?, level: number }`, `Pact`, `Modifier`, `MatchStats`, `PlayerView`.
 - Produce: `SquareKind = "Start" | "Property" | "Spin" | "Market" | "Duel" | "Portal" | "Billboard" | "Tribunal" | "Tax"`.
 - Produce: `Boards.forPlayerCount(n: number): SizeId`, `Boards.get(sizeId: SizeId): Board`, `Economy` con los valores de la arquitectura.
+- Los nombres, colores, tramas y precios de zonas y propiedades están en [contenido-tablero.md](contenido-tablero.md).
 
 **Criterios de aceptación:**
 - [x] Los tres tableros cumplen la tabla de composición de la arquitectura.
 - [x] La casilla 1 siempre es `Start`.
-- [x] Toda zona tiene 3 propiedades y su precio crece a lo largo de la ruta, de 60 a 400.
-- [x] El tablero S es un prefijo lógico de los barrios: M y L añaden Puerto y Zona Alta sin renombrar zonas de Centro.
+- [x] Toda zona tiene 2 o 3 propiedades y su precio crece a lo largo de la ruta, de 60 a 400.
+- [x] El tablero S es un prefijo lógico de los barrios: M añade Zona Alta y L añade Industrial sin renombrar las zonas de Centro y Puerto.
 
 - [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 local expected = {
-    S = { total = 32, Property = 18, Spin = 4, Market = 2, Duel = 2, Portal = 2, Billboard = 1, Tribunal = 1, Tax = 1 },
-    M = { total = 40, Property = 24, Spin = 5, Market = 2, Duel = 2, Portal = 2, Billboard = 2, Tribunal = 1, Tax = 1 },
-    L = { total = 48, Property = 30, Spin = 6, Market = 2, Duel = 3, Portal = 3, Billboard = 1, Tribunal = 1, Tax = 1 },
+    S = { total = 40, Property = 22, Spin = 6, Market = 2, Duel = 2, Portal = 3, Billboard = 2, Tribunal = 1, Tax = 1 },
+    M = { total = 48, Property = 28, Spin = 7, Market = 2, Duel = 2, Portal = 3, Billboard = 3, Tribunal = 1, Tax = 1 },
+    L = { total = 56, Property = 34, Spin = 8, Market = 2, Duel = 2, Portal = 3, Billboard = 4, Tribunal = 1, Tax = 1 },
 }
 -- Para cada tamaño: contar casillas por tipo y comparar con expected.
 it("elige el tamaño según los jugadores", function()

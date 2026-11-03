@@ -16,9 +16,9 @@
 
 | Área | Qué incluye | Subfases |
 | --- | --- | --- |
-| Mapa | Metrópolis de Noche, con 3 tamaños: 32, 40 y 48 casillas | 01, 05, 07 |
+| Mapa | Metrópolis de Noche, con 3 tamaños: 40, 48 y 56 casillas | 01, 05, 07 |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta | 05, 07 |
-| Reglas base | Dados, compra, renta, subasta, grupos, tres niveles de edificio, intercambios y bancarrota | 02 |
+| Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), intercambios y bancarrota | 02 |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos | 02, 03, 04, 08, 09 |
 | Cartas | 20 cartas, cada una con su escena; 5 legendarias con cinemática completa | 03, 08 |
 | Perks | 12 perks, elegidos en 3 momentos de la partida | 03 |
@@ -101,4 +101,4 @@ Propuesta inicial, medida en al menos 20 partidas con grupos de amigos y despué
 
 ## Orden de recorte
 
-Si hace falta recortar: el modo Sin Fin, fichas, escenas de cartas comunes, perks y el tamaño de 40 casillas, en ese orden. La calidad de lo que queda no se recorta.
+Si hace falta recortar: el modo Sin Fin, fichas, escenas de cartas comunes, perks y los tableros de 56 y 48, en ese orden. La calidad de lo que queda no se recorta.
