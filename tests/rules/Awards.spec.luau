@@ -5,6 +5,7 @@
 local Awards = require("../../src/shared/rules/Awards")
 local Fixtures = require("../fixtures")
 local Harness = require("../harness")
+local Property = require("../../src/shared/rules/Property")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
@@ -97,5 +98,19 @@ describe("Awards.compute", function()
 		local second = Awards.compute(state)
 		expect(second).toEqual(first)
 		expect(state.stats).toEqual(before)
+	end)
+
+	it("VictimOfTheNight sale de una renta pagada de verdad", function()
+		local state = Fixtures.game({ players = 3 })
+		local owner = playerOf(state, 1)
+		local payer = playerOf(state, 2)
+		local index = Fixtures.squareOf(state, "Property")
+		Fixtures.give(state, owner.id, index)
+
+		Property.payRent(state, payer.id, index)
+
+		expect(Awards.compute(state)).toEqual({
+			{ id = "VictimOfTheNight", playerId = payer.id },
+		})
 	end)
 end)

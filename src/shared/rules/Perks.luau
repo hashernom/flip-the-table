@@ -61,6 +61,17 @@ function Perks.has(player: Player, perkId: string): boolean
 	return table.find(player.perks, perkId) ~= nil
 end
 
+-- Suma un uso real del perk. Lo llaman los módulos que aplican el efecto (Movement para Banquero,
+-- Property para Casero, etc.); el contador vive aparte de `stats` porque es un mapa por perk.
+function Perks.recordUse(state: GameState, playerId: PlayerId, perkId: string)
+	local uses = state.perkUses[playerId]
+	if not uses then
+		uses = {}
+		state.perkUses[playerId] = uses
+	end
+	uses[perkId] = (uses[perkId] or 0) + 1
+end
+
 -- Ronda del momento de draft: 1 al empezar la partida, 2 y 3 en la tabla de la arquitectura
 -- (floor(N / 3) + 1 y floor(2N / 3) + 1 con tope de rondas; 6 y 12 en Sin Fin). nil si el
 -- momento no existe para el modo.

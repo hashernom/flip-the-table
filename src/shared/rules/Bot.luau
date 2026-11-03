@@ -40,6 +40,16 @@ local function findPlayer(state: GameState, playerId: PlayerId): Player?
 	return nil
 end
 
+-- Posición del jugador en el orden de turno, para decisiones deterministas que varían por asiento.
+local function playerIndex(state: GameState, playerId: PlayerId): number
+	for index, player in state.players do
+		if player.id == playerId then
+			return index
+		end
+	end
+	return 1
+end
+
 -- Primera acción del tipo pedido dentro de la lista legal; nil si no hay ninguna.
 local function firstOf(actions: { Action }, actionType: string): Action?
 	for _, action in actions do
@@ -296,6 +306,12 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		-- y la que acumula para resucitar.
 		return firstOf(actions, "GhostAct")
 	elseif phase == "AwaitRoll" then
+		-- Dedos Rápidos: si hay dados retenidos, repite uno antes de mover. Así el perk se usa de
+		-- verdad en la simulación (y queda su contador).
+		local reroll = firstOf(actions, "RerollDie")
+		if reroll then
+			return reroll
+		end
 		-- Las cartas de tirada se juegan antes de tirar; las demás esperan a AwaitEnd.
 		local rollCard = firstCardOf(actions, ROLL_CARDS)
 		if rollCard then
@@ -368,8 +384,23 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		-- jugada del catálogo). La simulación pregunta a los dos participantes.
 		return firstOf(actions, "DuelChoice")
 	elseif phase == "Tribunal" then
-		-- La multa es la primera opción legal y el castigo por defecto del Tribunal.
-		return firstOf(actions, "TribunalVote")
+		-- Vota distinto según el asiento para que haya empates reales: los impares multan y los
+		-- pares quitan el turno. Es lo que permite que Abogado rompa un empate a su favor.
+		local fine: Action? = nil
+		local skip: Action? = nil
+		for _, action in actions do
+			if action.type == "TribunalVote" then
+				if action.verdict == "Fine" then
+					fine = action
+				elseif action.verdict == "SkipTurn" then
+					skip = action
+				end
+			end
+		end
+		if playerIndex(state, playerId) % 2 == 0 and skip then
+			return skip
+		end
+		return fine or firstOf(actions, "TribunalVote")
 	end
 	return nil
 end

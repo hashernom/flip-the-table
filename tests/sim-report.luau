@@ -105,9 +105,10 @@ for sizeIndex = 1, #SIZE_ORDER do
 					summary.unfinished += 1
 				end
 				addCounts(summary.cards, result.cardsPlayed)
-				addCounts(summary.perks, result.perksDrafted)
 				addCounts(allCards, result.cardsPlayed)
-				addCounts(allPerks, result.perksDrafted)
+				-- La columna de perks mide efectos aplicados de verdad, no repartos del borrador.
+				addCounts(summary.perks, result.perkUses)
+				addCounts(allPerks, result.perkUses)
 			end
 		end
 	end
@@ -179,7 +180,7 @@ for sizeIndex = 1, #SIZE_ORDER do
 		local count = summary.cards[card.id] or 0
 		print(string.format("    %-22s %-24s %6d", card.id, card.name, count))
 	end
-	print("  Perks (repartidos):")
+	print("  Perks (usos reales de cada efecto):")
 	for _, perk in PerksConfig.all do
 		local count = summary.perks[perk.id] or 0
 		print(string.format("    %-22s %-24s %6d", perk.id, perk.name, count))

@@ -517,6 +517,58 @@ describe("sabotaje", function()
 	end)
 end)
 
+describe("R-P51: una sola remontada por jugador", function()
+	it("tras resucitar, la segunda bancarrota deja un espectro permanente", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = s.players[2]
+		ghost.status = "Ghost"
+		ghost.cash = 0
+		ghost.sabotages = Economy.ghost.sabotagesToRevive
+		enterGhostTurn(s, ghost.id)
+
+		local first = Engine.apply(s, ghost.id, { type = "GhostAct", kind = "Sabotage" })
+		if not first.ok then
+			error(first.error, 2)
+		end
+		expect(ghost.status).toBe("Active")
+		expect(countOf(first.events, "GhostResurrected")).toBe(1)
+		expect(s.stats[ghost.id].comebackRounds ~= nil).toBe(true)
+
+		-- Segunda bancarrota: el estado queda como lo deja Bankruptcy.charge, pero la remontada
+		-- ya está gastada.
+		ghost.status = "Ghost"
+		ghost.cash = 0
+		ghost.sabotages = Economy.ghost.sabotagesToRevive
+		enterGhostTurn(s, ghost.id)
+		local second = Engine.apply(s, ghost.id, { type = "GhostAct", kind = "Sabotage" })
+		if not second.ok then
+			error(second.error, 2)
+		end
+		expect(countOf(second.events, "GhostActed")).toBe(1)
+		expect(countOf(second.events, "GhostResurrected")).toBe(0)
+		expect(ghost.status).toBe("Ghost")
+		expect(ghost.cash).toBe(0)
+		expect(ghost.sabotages).toBe(Economy.ghost.sabotagesToRevive + 1)
+	end)
+
+	it("el reloj de un espectro que ya resucitó termina el turno sin resucitarlo", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = s.players[2]
+		ghost.status = "Ghost"
+		ghost.cash = 0
+		ghost.sabotages = Economy.ghost.sabotagesToRevive
+		s.stats[ghost.id].comebackRounds = 1
+		enterGhostTurn(s, ghost.id)
+		local beforeTurn = s.turnIndex
+
+		local events = Engine.timeout(s)
+		expect(countOf(events, "GhostResurrected")).toBe(0)
+		expect(ghost.status).toBe("Ghost")
+		expect(ghost.cash).toBe(0)
+		expect(s.turnIndex ~= beforeTurn).toBe(true)
+	end)
+end)
+
 describe("embrujo", function()
 	it("deja la propiedad sin renta durante una ronda y la devuelve después", function()
 		local s = Fixtures.game({ players = 3 })

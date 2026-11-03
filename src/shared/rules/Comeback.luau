@@ -4,11 +4,12 @@
 -- Economy.ghost.sabotagesToRevive sabotajes resucita en la Salida con Economy.ghost.reviveCash
 -- (R-P48: en la misma acción que suma el tercero, o al agotarse el reloj si ya lo tenía).
 --
--- Dependencias: Deck, Economy, Rng, Score y Types. No require Property ni Turn para no cerrar
--- ciclos: Property llama a Comeback.onRentPaid, Turn llama a Comeback.beginGhostTurn y Engine es
--- quien cierra el turno del espectro con su propia salida (GameOver y PerkDraft).
+-- Dependencias: Deck, Economy, Perks, Rng, Score y Types. No require Property ni Turn para no
+-- cerrar ciclos: Property llama a Comeback.onRentPaid, Turn llama a Comeback.beginGhostTurn y
+-- Engine es quien cierra el turno del espectro con su propia salida (GameOver y PerkDraft).
 local Deck = require("./Deck")
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Rng = require("./Rng")
 local Score = require("./Score")
 local Types = require("./Types")
@@ -175,6 +176,7 @@ end
 -- segunda bancarrota deja al jugador como espectro permanente, que sigue jugando sus turnos.
 local function revive(state: GameState, player: Player): { Event }
 	local stats = state.stats[player.id]
+	-- R-P51: una sola remontada por jugador; sin este límite Sin Fin no termina.
 	if stats.comebackRounds ~= nil then
 		return {}
 	end
@@ -259,6 +261,7 @@ function Comeback.grantRestlessSoul(state: GameState, playerId: PlayerId): { Eve
 	if not hasRestlessSoul(playerOf(state, playerId)) then
 		return events
 	end
+	Perks.recordUse(state, playerId, RESTLESS_SOUL_PERK)
 	for _ = 1, Economy.perks.restlessSoulCards do
 		append(events, Comeback.gainSabotage(state, playerId))
 	end

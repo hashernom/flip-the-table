@@ -292,6 +292,25 @@ describe("Ladrón de Escrituras", function()
 		)
 		expect(deepCopy(s)).toEqual(before)
 	end)
+
+	it("R-P52: un espectro no puede jugar Ladrón de Escrituras", function()
+		local s = Fixtures.game({ players = 3 })
+		local ghost = inTurn(s)
+		local rival = rivalsOf(s, ghost.id)[1]
+		local index = zoneIndices(s, 1)[1]
+		Fixtures.give(s, rival.id, index)
+		Fixtures.hand(s, ghost.id, "DeedThief")
+		ghost.status = "Ghost"
+		local before = deepCopy(s)
+
+		expect(Cards.reason(s, ghost.id, "DeedThief", { index = index })).toBe(
+			"Solo los jugadores activos pueden jugar cartas"
+		)
+		expect(
+			rejected(Engine.apply(s, ghost.id, { type = "PlayCard", cardId = "DeedThief", index = index }))
+		).toBe("Solo los jugadores activos pueden jugar cartas")
+		expect(deepCopy(s)).toEqual(before)
+	end)
 end)
 
 describe("Puñalada", function()

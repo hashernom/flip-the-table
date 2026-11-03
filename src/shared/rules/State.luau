@@ -77,9 +77,11 @@ function State.create(opts: CreateOptions): Types.GameState
 
 	local players: { Types.Player } = {}
 	local stats: Types.MatchStats = {}
+	local perkUses: { [Types.PlayerId]: { [string]: number } } = {}
 	for index, id in order do
 		players[index] = newPlayer(id)
 		stats[id] = {}
+		perkUses[id] = {}
 	end
 
 	local state: Types.GameState = {
@@ -103,6 +105,7 @@ function State.create(opts: CreateOptions): Types.GameState
 		hotZoneId = nil,
 		lastLegendaryRound = nil,
 		stats = stats,
+		perkUses = perkUses,
 	}
 	-- R4/R25: la ronda 1 ya necesita portador de la Corona. En la creación todos están
 	-- Active, así que el primero de la clasificación es el primer activo.

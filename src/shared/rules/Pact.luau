@@ -4,6 +4,7 @@
 -- traidor durante Economy.pact.traitorRounds rondas (R-P1/R-P33). La carta Puñalada rompe el
 -- mismo registro sin coste, así que las dos vías dejan el estado con la misma forma.
 local Economy = require("../config/Economy")
+local Perks = require("./Perks")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -278,6 +279,13 @@ function Pact.respond(state: GameState, playerId: PlayerId, pactId: string, acce
 	local partner = playerOf(state, offer.toId)
 	local depositA = depositOf(proposer)
 	local depositB = depositOf(partner)
+	-- Negociador: la garantía reducida se aplica de verdad al formar el pacto.
+	if Perks.has(proposer, NEGOTIATOR_PERK) then
+		Perks.recordUse(state, proposer.id, NEGOTIATOR_PERK)
+	end
+	if Perks.has(partner, NEGOTIATOR_PERK) then
+		Perks.recordUse(state, partner.id, NEGOTIATOR_PERK)
+	end
 	proposer.cash -= depositA
 	partner.cash -= depositB
 	local pact: PactRecord = {

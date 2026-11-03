@@ -128,8 +128,13 @@ function Deck.add(state: GameState, playerId: PlayerId, cardId: string): { Event
 	if #player.hand >= Deck.handLimit(player) then
 		if Perks.has(player, "Collector") then
 			player.cash += Economy.perks.collectorBonus
+			Perks.recordUse(state, playerId, "Collector")
 		end
 		return { { type = "CardDiscarded", playerId = playerId, cardId = cardId } }
+	end
+	-- Contrabandista: esta carta solo cabe porque su límite de mano es mayor que el normal.
+	if #player.hand >= Economy.handLimit and Perks.has(player, "Smuggler") then
+		Perks.recordUse(state, playerId, "Smuggler")
 	end
 	table.insert(player.hand, cardId)
 	return { { type = "CardDrawn", playerId = playerId, cardId = cardId } }

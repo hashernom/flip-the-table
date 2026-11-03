@@ -197,6 +197,31 @@ describe("Engine.legalActions", function()
 		})
 	end)
 
+	it("enumera PlayCard con un objetivo válido y la acción se aplica", function()
+		local s = Fixtures.game({ players = 2 })
+		local actor = inTurn(s)
+		local other = otherThan(s, actor.id)
+		Fixtures.hand(s, actor.id, "Fine")
+
+		local found = false
+		for _, action in Engine.legalActions(s, actor.id) do
+			if action.type == "PlayCard" and action.cardId == "Fine" and action.targetId == other.id then
+				found = true
+			end
+		end
+		expect(found).toBe(true)
+
+		local result = Engine.apply(s, actor.id, {
+			type = "PlayCard",
+			cardId = "Fine",
+			targetId = other.id,
+		})
+		if not result.ok then
+			error(result.error, 2)
+		end
+		expect(other.cash).toBe(Economy.startingCash - Economy.cards.fine)
+	end)
+
 	it("no enumera Build sin zona completa ni sin efectivo", function()
 		local s = Fixtures.game({ players = 2 })
 		local actor = inTurn(s)

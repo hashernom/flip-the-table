@@ -25,6 +25,9 @@ export type PlayOptions = {
 	seed: number,
 	idle: boolean?,
 	endMode: EndMode?,
+	-- Solo pruebas: baja el tope de seguridad para comprobar que una partida que no termina
+	-- devuelve finished = false. En producción se omite y manda MAX_ACTIONS.
+	maxActions: number?,
 }
 
 export type SimResult = {
@@ -39,6 +42,8 @@ export type SimResult = {
 	cardsPlayed: { [string]: number },
 	-- Perks repartidos por id. Sale de los eventos PerkDrafted, también los del reloj.
 	perksDrafted: { [string]: number },
+	-- Usos reales de cada perk (efectos aplicados), no solo repartidos. Ver Perks.recordUse.
+	perkUses: { [string]: number },
 }
 
 -- Tope de seguridad: solo detecta una partida que no termina. Las partidas Sin Fin legítimas
@@ -139,15 +144,30 @@ function Sim.play(opts: PlayOptions): SimResult
 	local byId = playersById(state)
 
 	local context = `jugadores={table.concat(playerIds, ",")}, semilla={opts.seed}, modo={mode}`
+	local maxActions = opts.maxActions or MAX_ACTIONS
 	local counts: { [string]: number } = {}
 	local cardsPlayed: { [string]: number } = {}
 	local perksDrafted: { [string]: number } = {}
+	local perkUses: { [string]: number } = {}
 	-- Líder al empezar cada ronda: la clasificación completa, igual que la Corona.
 	local leaders: { [number]: PlayerId } = {}
 	local maxRound = 1
 	local turns = 0
 	local actions = 0
 	local winner: PlayerId? = nil
+
+	-- Suma los contadores de uso real de perks de todos los jugadores. Los escribe el motor en
+	-- state.perkUses cuando el efecto se aplica (Perks.recordUse).
+	local function collectPerkUses()
+		for _, player in state.players do
+			local uses = state.perkUses[player.id]
+			if uses then
+				for perkId, count in uses do
+					perkUses[perkId] = (perkUses[perkId] or 0) + count
+				end
+			end
+		end
+	end
 
 	-- Punto medio de las rondas jugadas: la última ronda que llegó a empezar. Si la partida
 	-- murió en la ronda 1, no hay ronda que consultar y decide la clasificación final.
@@ -162,6 +182,7 @@ function Sim.play(opts: PlayOptions): SimResult
 	local function unfinished(): SimResult
 		local half = leaderAtHalf()
 		local final = finalWinner()
+		collectPerkUses()
 		return {
 			finished = false,
 			turns = turns,
@@ -171,6 +192,7 @@ function Sim.play(opts: PlayOptions): SimResult
 			events = counts,
 			cardsPlayed = cardsPlayed,
 			perksDrafted = perksDrafted,
+			perkUses = perkUses,
 		}
 	end
 
@@ -299,7 +321,7 @@ function Sim.play(opts: PlayOptions): SimResult
 	end
 
 	while state.phase ~= "GameOver" do
-		if actions >= MAX_ACTIONS then
+		if actions >= maxActions then
 			return unfinished()
 		end
 		local phase = state.phase
@@ -312,7 +334,7 @@ function Sim.play(opts: PlayOptions): SimResult
 			-- una pasada entera sin pujas la cierra el tiempo agotado.
 			local open = true
 			while open do
-				if actions >= MAX_ACTIONS then
+				if actions >= maxActions then
 					return unfinished()
 				end
 				local anyBid = false
@@ -378,6 +400,7 @@ function Sim.play(opts: PlayOptions): SimResult
 	end
 	local half = leaderAtHalf()
 	local final = finalWinner()
+	collectPerkUses()
 	return {
 		finished = true,
 		turns = turns,
@@ -387,6 +410,7 @@ function Sim.play(opts: PlayOptions): SimResult
 		events = counts,
 		cardsPlayed = cardsPlayed,
 		perksDrafted = perksDrafted,
+		perkUses = perkUses,
 	}
 end
 

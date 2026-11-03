@@ -297,6 +297,66 @@ describe("Property.payRent", function()
 	end)
 end)
 
+describe("Property.payRent: contadores de premios", function()
+	it("suma rentsPaid y rentsCollected por una renta cobrada", function()
+		local s = Fixtures.game({ players = 2 })
+		local owner, payer = s.players[1], s.players[2]
+		local idx = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, owner.id, idx)
+
+		Property.payRent(s, payer.id, idx)
+
+		expect(s.stats[payer.id].rentsPaid).toBe(1)
+		expect(s.stats[owner.id].rentsCollected).toBe(1)
+	end)
+
+	it("no suma nada si un pacto exime de la renta", function()
+		local s = Fixtures.game({ players = 2 })
+		local owner, payer = s.players[1], s.players[2]
+		local idx = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, owner.id, idx)
+		table.insert(s.pacts, {
+			id = "P1",
+			a = owner.id,
+			b = payer.id,
+			depositA = 0,
+			depositB = 0,
+			untilRound = s.round,
+		})
+
+		expect(Property.payRent(s, payer.id, idx)).toEqual({})
+		expect(s.stats[payer.id].rentsPaid).toBe(nil)
+		expect(s.stats[owner.id].rentsCollected).toBe(nil)
+	end)
+
+	it("no suma nada si un efecto anula la renta", function()
+		local s = Fixtures.game({ players = 2 })
+		local owner, payer = s.players[1], s.players[2]
+		local idx = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, owner.id, idx)
+		addModifier(s, { kind = "Haunt", index = idx, untilRound = 99 })
+
+		expect(Property.payRent(s, payer.id, idx)).toEqual({})
+		expect(s.stats[payer.id].rentsPaid).toBe(nil)
+		expect(s.stats[owner.id].rentsCollected).toBe(nil)
+	end)
+
+	it("suma la renta aunque el pago arruine al pagador", function()
+		local s = Fixtures.game({ players = 2 })
+		local owner, payer = s.players[1], s.players[2]
+		local idx = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, owner.id, idx)
+		payer.cash = 0
+
+		Property.payRent(s, payer.id, idx)
+
+		-- El pago se cobró (con lo que había) y la bancarrota no corrompe los contadores.
+		expect(payer.status).toBe("Ghost")
+		expect(s.stats[payer.id].rentsPaid).toBe(1)
+		expect(s.stats[owner.id].rentsCollected).toBe(1)
+	end)
+end)
+
 describe("Property.canBuy", function()
 	it("acepta una propiedad libre y asequible", function()
 		local s = Fixtures.game({ players = 2 })

@@ -479,14 +479,19 @@ end
 
 -- Papeleta de un Abogado que haya votado por uno de los veredictos empatados, o nil. El perk
 -- gana los empates en los que participa su propio voto (ficha: «los empates te favorecen»).
-local function lawyerVoteFor(state: GameState, tribunal: PendingTribunal, tied: { string }): TribunalVote?
+-- Devuelve también al votante para anotar el uso real del perk.
+local function lawyerVoteFor(
+	state: GameState,
+	tribunal: PendingTribunal,
+	tied: { string }
+): (TribunalVote?, PlayerId?)
 	for _, player in state.players do
 		local vote = tribunal.votes[player.id]
 		if vote and table.find(tied, vote.verdict) and Perks.has(player, "Lawyer") then
-			return vote
+			return vote, player.id
 		end
 	end
-	return nil
+	return nil, nil
 end
 
 -- Veredicto ganador y la papeleta que lo representa. Sin votos manda la multa. En un empate
@@ -506,8 +511,9 @@ local function chooseVerdict(state: GameState, tribunal: PendingTribunal): (stri
 		end
 	end
 	if #tied > 1 then
-		local lawyer = lawyerVoteFor(state, tribunal, tied)
-		if lawyer then
+		local lawyer, lawyerId = lawyerVoteFor(state, tribunal, tied)
+		if lawyer and lawyerId then
+			Perks.recordUse(state, lawyerId, "Lawyer")
 			return lawyer.verdict, lawyer
 		end
 	end
@@ -675,8 +681,9 @@ end
 
 -- --------------------------------------------------------------------- Cartelera
 
-local function prizeAmount(player: Player, prize: SquaresConfig.BillboardPrize): number
+local function prizeAmount(state: GameState, player: Player, prize: SquaresConfig.BillboardPrize): number
 	if Perks.has(player, "Lucky") then
+		Perks.recordUse(state, player.id, "Lucky")
 		return prize.lucky
 	end
 	return prize.normal
@@ -692,10 +699,10 @@ local function billboard(state: GameState, playerId: PlayerId): { Event }
 	local amount = 0
 	local events: { Event } = {}
 	if result == "BigPrize" then
-		amount = prizeAmount(player, SquaresConfig.billboard.bigPrize)
+		amount = prizeAmount(state, player, SquaresConfig.billboard.bigPrize)
 		player.cash += amount
 	elseif result == "SmallPrize" then
-		amount = prizeAmount(player, SquaresConfig.billboard.smallPrize)
+		amount = prizeAmount(state, player, SquaresConfig.billboard.smallPrize)
 		player.cash += amount
 	elseif result == "Fine" then
 		amount = -SquaresConfig.billboard.fine

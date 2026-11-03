@@ -578,6 +578,7 @@ local function rerollDie(state: GameState, playerId: PlayerId, action: Action): 
 		pending.rerollUsed = used
 	end
 	used[playerId] = state.round
+	Perks.recordUse(state, playerId, "QuickFingers")
 	pending.rolled = { a = held.a, b = held.b }
 	return { { type = "DiceRolled", playerId = playerId, a = held.a, b = held.b } }
 end

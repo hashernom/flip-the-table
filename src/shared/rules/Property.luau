@@ -215,6 +215,12 @@ function Property.chargeRent(
 	if ownerStats then
 		ownerStats.rentsCollected = (ownerStats.rentsCollected or 0) + 1
 	end
+	-- Casero: la renta cobrada llevaba su bonus (rentFor ya lo aplicó). Se cuenta aquí, cuando el
+	-- cobro se ejecuta, para no contar simples cálculos de renta.
+	local owner = findPlayer(state, ownerId)
+	if owner and Perks.has(owner, "Landlord") then
+		Perks.recordUse(state, ownerId, "Landlord")
+	end
 	table.insert(events, 1, {
 		type = "RentPaid",
 		index = index,

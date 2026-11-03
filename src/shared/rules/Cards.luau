@@ -173,7 +173,11 @@ local function cardDamage(state: GameState, caster: Player, victim: Player, amou
 	local damage = amount
 	local leader = leaderOf(state)
 	if leader and leader.id == victim.id and Perks.has(caster, "Hunter") then
-		damage = math.floor(damage * Economy.perks.hunterDamageMultiplier)
+		local boosted = math.floor(damage * Economy.perks.hunterDamageMultiplier)
+		if boosted > damage then
+			Perks.recordUse(state, caster.id, "Hunter")
+		end
+		damage = boosted
 	end
 	if
 		victim.status == "Active"
@@ -182,6 +186,7 @@ local function cardDamage(state: GameState, caster: Player, victim: Player, amou
 	then
 		damage = math.floor(damage / Economy.perks.armoredDamageDivisor)
 		victim.damageReducedRound = state.round
+		Perks.recordUse(state, victim.id, "Armored")
 	end
 	return damage
 end

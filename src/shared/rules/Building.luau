@@ -111,6 +111,11 @@ function Building.build(state: GameState, playerId: PlayerId, index: number): Ap
 	local player = playerOf(state, playerId)
 	local property = propertyAt(state, index)
 	local from = property.level
+	-- Constructor: el coste que se cobra lleva su descuento (costAt). Se cuenta el uso real, no
+	-- las consultas de precio.
+	if Perks.has(player, "Builder") then
+		Perks.recordUse(state, playerId, "Builder")
+	end
 	player.cash -= costAt(state, playerId, index)
 	property.level = from + 1
 	return {

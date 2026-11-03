@@ -57,6 +57,7 @@ function Movement.advance(state: GameState, playerId: PlayerId, steps: number): 
 		local bonus = Economy.startBonus
 		if Perks.has(player, "Banker") then
 			bonus = math.floor(Economy.startBonus * (1 + Economy.perks.bankerStartRate))
+			Perks.recordUse(state, playerId, "Banker")
 		end
 		player.cash += bonus
 		table.insert(events, { type = "PassedStart", playerId = playerId, amount = bonus })

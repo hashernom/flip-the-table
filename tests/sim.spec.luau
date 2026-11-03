@@ -24,6 +24,7 @@ local MODES: { Types.EndMode } = { ROUNDS, ENDLESS }
 -- partidas; así cada partida se simula una sola vez.
 local usedCards: { [string]: number } = {}
 local usedPerks: { [string]: number } = {}
+local usedPerkUses: { [string]: number } = {}
 local eventCounts: { [string]: number } = {}
 
 local function addCounts(target: { [string]: number }, source: { [string]: number })
@@ -35,6 +36,7 @@ end
 local function accumulate(result: Sim.SimResult)
 	addCounts(usedCards, result.cardsPlayed)
 	addCounts(usedPerks, result.perksDrafted)
+	addCounts(usedPerkUses, result.perkUses)
 	addCounts(eventCounts, result.events)
 end
 
@@ -78,10 +80,29 @@ describe("Sim.play: resultado ampliado", function()
 		local result = playOrFail(botCase(4, 1, ROUNDS))
 		expect(type(result.cardsPlayed)).toBe("table")
 		expect(type(result.perksDrafted)).toBe("table")
+		expect(type(result.perkUses)).toBe("table")
 		expect(type(result.leaderAtHalfWon)).toBe("boolean")
 		expect(result.leaderAtHalfWon).toBe(result.winner == result.leaderAtHalf)
 		-- El contador de perks viene del borrador: en toda partida se elige al menos uno.
 		expect((result.events.PerkDrafted or 0) > 0).toBe(true)
+	end)
+end)
+
+describe("Sim.play: tope de seguridad", function()
+	it("devuelve finished = false en vez de dar la partida por terminada", function()
+		-- Tope de una acción: la partida se corta en el primer borrador y el resultado debe ser
+		-- explícitamente incompleto, para que la matriz no pueda pasar por accidente.
+		local opts: Sim.PlayOptions = {
+			players = 2,
+			seed = 1,
+			endMode = ROUNDS,
+			maxActions = 1,
+		}
+		local result = Sim.play(opts)
+		expect(result.finished).toBe(false)
+		expect(type(result.leaderAtHalfWon)).toBe("boolean")
+		expect(type(result.cardsPlayed)).toBe("table")
+		expect(type(result.perkUses)).toBe("table")
 	end)
 end)
 
@@ -111,6 +132,16 @@ describe("Sim.play: cobertura de la matriz", function()
 		local names = missing(PerksConfig.all, usedPerks)
 		if #names > 0 then
 			error(`perks que la simulación nunca repartió: {table.concat(names, ", ")}`, 2)
+		end
+		expect(#names).toBe(0)
+	end)
+
+	it("usa los 12 perks al menos una vez (efectos reales, no solo reparto)", function()
+		-- Los contadores los escribe el motor donde el efecto se aplica (Perks.recordUse). Un perk
+		-- repartido pero nunca aplicado (por ejemplo, Dedos Rápidos sin RerollDie) falla aquí.
+		local names = missing(PerksConfig.all, usedPerkUses)
+		if #names > 0 then
+			error(`perks que la simulación nunca aplicó: {table.concat(names, ", ")}`, 2)
 		end
 		expect(#names).toBe(0)
 	end)

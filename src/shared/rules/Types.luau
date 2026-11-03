@@ -109,6 +109,9 @@ export type GameState = {
 	hotZoneId: string?,
 	lastLegendaryRound: number?,
 	stats: MatchStats,
+	-- Usos reales de cada perk por jugador (Tarea 10): { [perkId]: número de veces que su efecto
+	-- se aplicó }. Es un contador aparte de `stats` porque cada entrada es un mapa, no un número.
+	perkUses: { [PlayerId]: { [string]: number } },
 }
 
 export type Action = { type: string, [string]: any }
