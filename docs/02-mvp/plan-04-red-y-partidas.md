@@ -57,12 +57,12 @@
 - Produce: `RemoteGateway.start(onAction: (player: Player, action: Action) -> ())`.
 
 **Criterios de aceptación:**
-- [ ] Cualquier valor no válido se rechaza sin lanzar error: `nil`, número, tipo desconocido, campos con tipo incorrecto, importes negativos o no enteros.
-- [ ] Máximo 10 acciones por segundo por jugador; el resto se descarta.
-- [ ] Nunca se confía en un `playerId` enviado por el cliente: se usa el `Player` del remoto.
+- [x] Cualquier valor no válido se rechaza sin lanzar error: `nil`, número, tipo desconocido, campos con tipo incorrecto, importes negativos o no enteros.
+- [x] Máximo 10 acciones por segundo por jugador; el resto se descarta.
+- [x] Nunca se confía en un `playerId` enviado por el cliente: se usa el `Player` del remoto.
 
-- [ ] **Paso 0:** Añadir a `tools/check` un segundo pase de `luau-lsp analyze` para `src/server` y `src/client`, con definiciones de Roblox y `sourcemap.json`. `src/shared`, `tests` y `tools` siguen en `--platform=standard`: ese pase es lo que impide usar globales de Roblox en el motor.
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 0:** Añadir a `tools/check` un segundo pase de `luau-lsp analyze` para `src/server` y `src/client`, con definiciones de Roblox y `sourcemap.json`. `src/shared`, `tests` y `tools` siguen en `--platform=standard`: ese pase es lo que impide usar globales de Roblox en el motor.
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 for _, bad in { {}, 1, "Roll", { type = "Nope" }, { type = "Bid", amount = -5 }, { type = "Bid", amount = 1.5 } } do
@@ -75,10 +75,10 @@ it("acepta una puja válida", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Protocol`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Protocol` y `RemoteGateway`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: validar acciones del cliente`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Protocol`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Protocol` y `RemoteGateway`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: validar acciones del cliente`.
 
 ### Task 2: Vista por jugador
 
@@ -91,17 +91,17 @@ end)
 - Produce: `View.forPlayer(state, playerId): PlayerView` y `View.filterEvents(state, playerId, events): { Event }`.
 
 **Criterios de aceptación:**
-- [ ] Un jugador ve su mano y solo el número de cartas de los demás.
-- [ ] `CardDrawn` oculta el id de la carta a los demás, salvo si es legendaria y se juega.
-- [ ] Las elecciones secretas del Duelo no se revelan hasta `DuelResolved`.
-- [ ] Espía revela la mano del objetivo solo a quien jugó la carta.
-- [ ] `rng` nunca se incluye en la vista.
+- [x] Un jugador ve su mano y solo el número de cartas de los demás.
+- [x] `CardDrawn` oculta el id de la carta a los demás, salvo si es legendaria y se juega.
+- [x] Las elecciones secretas del Duelo no se revelan hasta `DuelResolved`.
+- [x] Espía revela la mano del objetivo solo a quien jugó la carta.
+- [x] `rng` nunca se incluye en la vista.
 
-- [ ] **Paso 1:** Escribir pruebas para cada criterio.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run View`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `View`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: filtrar información por jugador`.
+- [x] **Paso 1:** Escribir pruebas para cada criterio.
+- [x] **Paso 2:** Ejecutar `lune run tests/run View`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `View`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: filtrar información por jugador`.
 
 ### Task 3: Servicio de partida y reloj de escenas
 
@@ -117,13 +117,13 @@ end)
 - Produce: `MatchService.start(players: { Player }, seed: number, endMode: EndMode)`.
 
 **Criterios de aceptación:**
-- [ ] `Scenes` da duración a cada evento de la arquitectura.
-- [ ] Comunes de 2 a 4 s; legendarias, hasta 10 s; repetidas en la misma partida, más cortas.
-- [ ] El temporizador de decisión no empieza hasta que termina la escena.
-- [ ] El servidor avanza con su reloj, sin esperar a ningún cliente.
-- [ ] `seq` crece de 1 en 1; `ResyncRequest` devuelve la vista actual.
+- [x] `Scenes` da duración a cada evento de la arquitectura.
+- [x] Comunes de 2 a 4 s; legendarias, hasta 10 s; repetidas en la misma partida, más cortas.
+- [x] El temporizador de decisión no empieza hasta que termina la escena.
+- [x] El servidor avanza con su reloj, sin esperar a ningún cliente.
+- [x] `seq` crece de 1 en 1; `ResyncRequest` devuelve la vista actual.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("encadena escenas", function()
@@ -141,11 +141,11 @@ it("ninguna legendaria supera 10 s", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run SceneClock`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Scenes`, `SceneClock` y `MatchService`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 2:** Ejecutar `lune run tests/run SceneClock`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Scenes`, `SceneClock` y `MatchService`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** En Studio, iniciar un Test Server con 2 clientes y jugar 3 turnos con un script de cliente temporal. Esperado: ambos reciben los lotes con `seq` 1, 2, 3 en orden.
-- [ ] **Paso 6:** Hacer commit: `feat: ejecutar la partida en el servidor`.
+- [x] **Paso 6:** Hacer commit: `feat: ejecutar la partida en el servidor`.
 
 ### Task 4: Presencia y bots
 
@@ -158,17 +158,17 @@ end)
 - Produce: `PresenceRules.onLeave(seats, userId)`, `PresenceRules.onReturn(seats, userId): boolean`, `PresenceRules.isBotControlled(seats, playerId): boolean`.
 
 **Criterios de aceptación:**
-- [ ] Quien se va pasa a control de bot de inmediato; su turno no se pierde.
-- [ ] Al volver, recupera asiento, mano y control.
-- [ ] Dos tiempos agotados seguidos activan el bot; cualquier acción lo desactiva.
-- [ ] Si no queda ningún humano, la partida termina y se registra como abandonada.
+- [x] Quien se va pasa a control de bot de inmediato; su turno no se pierde.
+- [x] Al volver, recupera asiento, mano y control.
+- [x] Dos tiempos agotados seguidos activan el bot; cualquier acción lo desactiva.
+- [x] Si no queda ningún humano, la partida termina y se registra como abandonada.
 
-- [ ] **Paso 1:** Escribir pruebas para cada criterio con `PresenceRules`.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run PresenceRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar ambos módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 1:** Escribir pruebas para cada criterio con `PresenceRules`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run PresenceRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar ambos módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** En Test Server con 3 clientes, cerrar uno a mitad de turno. Esperado: el bot juega y la partida sigue.
-- [ ] **Paso 6:** Hacer commit: `feat: tomar el control con bots`.
+- [x] **Paso 6:** Hacer commit: `feat: tomar el control con bots`.
 
 ### Task 5: Party privada y partidas públicas
 
@@ -193,12 +193,17 @@ end)
 - [ ] Las partidas públicas agrupan de 2 a 8 y empiezan con 4 o más tras una espera máxima de 60 s.
 - [ ] Un fallo de teletransporte se reintenta y, si persiste, devuelve al lobby con aviso.
 
-- [ ] **Paso 1:** Escribir pruebas de `PartyCode`: longitud, alfabeto, `" ab3k9z "` se normaliza a `"AB3K9Z"`, y texto con símbolos devuelve `nil`.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run PartyCode`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+Las casillas de criterios quedan sin marcar: el Paso 5 sigue pendiente por decisión del responsable y
+ningún `MemoryStore` ni teletransporte real se ha ejecutado todavía; marcarlas afirmaría algo no
+comprobado. El detalle y lo que debe demostrar la comprobación publicada están en
+`.superpowers/sdd/plan-04-red-y-partidas/task-5-report.md`.
+
+- [x] **Paso 1:** Escribir pruebas de `PartyCode`: longitud, alfabeto, `" ab3k9z "` se normaliza a `"AB3K9Z"`, y texto con símbolos devuelve `nil`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run PartyCode`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** Pedir permiso al responsable para publicar en un lugar privado de prueba, necesario porque los servidores reservados no funcionan igual en Studio. Comprobar con 2 cuentas: crear código, unirse e iniciar.
-- [ ] **Paso 6:** Hacer commit: `feat: añadir party privada y cola pública`.
+- [x] **Paso 6:** Hacer commit: `feat: añadir party privada y cola pública`.
 
 ### Task 6: Revancha
 
@@ -212,16 +217,19 @@ end)
 
 **Criterios de aceptación:**
 - [ ] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
-- [ ] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
-- [ ] Con menos de 2 personas, vuelve al lobby con aviso.
-- [ ] Quien no acepta vuelve al lobby.
-- [ ] La revancha usa otra semilla y conserva el grupo.
+      **Mitad hecha:** el servidor de la revancha está terminado y probado (`RematchService` abre la
+      votación al acabar, arranca la partida en el mismo servidor con otra semilla y devuelve al lobby
+      a quien no acepta). El botón en sí es interfaz de las subfases 05 y 08, que aún no existen.
+- [x] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
+- [x] Con menos de 2 personas, vuelve al lobby con aviso.
+- [x] Quien no acepta vuelve al lobby.
+- [x] La revancha usa otra semilla y conserva el grupo.
 
-- [ ] **Paso 1:** Escribir pruebas de `RematchRules` con 8, 2 y 1 aceptación.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run RematchRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar ambos módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir revancha`.
+- [x] **Paso 1:** Escribir pruebas de `RematchRules` con 8, 2 y 1 aceptación.
+- [x] **Paso 2:** Ejecutar `lune run tests/run RematchRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar ambos módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir revancha`.
 
 ### Task 7: Telemetría
 
@@ -235,13 +243,51 @@ end)
 - Produce: `Summary = { id, sizeId, endMode, players, durationSec, avgTurnSec, leaderAtHalfWon, finished, rematch, cardsPlayed, sceneSec }`.
 
 **Criterios de aceptación:**
-- [ ] Antes de programar, se confirma el uso actual de `AnalyticsService` en la documentación oficial.
-- [ ] Cada partida genera un resumen, también si se abandona.
-- [ ] Con los resúmenes exportados, `tools/criteria-report` calcula, solo con partidas en modo Rondas, los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
-- [ ] No se guarda ningún dato personal: el id de partida es aleatorio y no se registran nombres.
+- [x] Antes de programar, se confirma el uso actual de `AnalyticsService` en la documentación oficial.
+- [x] Cada partida genera un resumen, también si se abandona.
+- [x] Con los resúmenes exportados, `tools/criteria-report` calcula, solo con partidas en modo Rondas, los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
+- [x] No se guarda ningún dato personal: el id de partida es aleatorio y no se registran nombres.
 
-- [ ] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run MatchSummary`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los módulos.
-- [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
-- [ ] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
+- [x] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.
+- [x] **Paso 2:** Ejecutar `lune run tests/run MatchSummary`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los módulos.
+- [x] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
+      Ejecutado al cerrar la rama en `2afbf90`: código 0, con las diez comprobaciones en verde
+      (formato, lint, tipos estándar, mapa de Rojo, tipos de Roblox de la partida, mapa del lobby,
+      tipos de Roblox del lobby, pruebas, motor puro y manifiesto).
+- [x] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
+
+---
+
+## Cómo quedó
+
+Ejecutada en modo subagentes el 2026-11-03: siete tareas, cada una implementada por un subagente
+nuevo y revisada por otro, con hasta cinco rondas de corrección por tarea y una revisión final de
+toda la rama. Las casillas de arriba reflejan lo que se comprobó.
+
+**Lo que se añadió al plan, y por qué** (todo con su ruling en la arquitectura):
+
+- **Dos proyectos de Rojo.** El plan solo hablaba de `default.project.json`; hay un segundo lugar,
+  así que existe `lobby.project.json`. El trabajo de servidor destapó además que la convención de
+  `require` relativo no cruza servicios en Roblox: `src/shared` se monta también en cada servicio
+  con la clave `shared` en minúsculas, y la profundidad del DataModel tiene que igualar la del disco.
+- **Un punto de cableado por lugar.** `src/server/main.server.luau` y `src/server/lobby/main.server.luau`
+  conectan los remotos una sola vez; sin ellos nada recibía acciones ni empezaba partidas.
+- **`MatchState`, `LobbyRules`, `PresenceRules` y `RematchRules`.** Cuatro módulos puros más, para
+  que la numeración de lotes, los plazos, los asientos y los votos se puedan probar con Lune.
+- **Adaptadores de almacén y teletransporte.** `MemoryStoreService` y `TeleportService` no existen en
+  Studio, así que cada uno tiene su versión en memoria y la real.
+- **Un remoto para votar la revancha y cinco para el lobby**, en `Protocol.REMOTES` con sus validadores.
+
+**Pendiente y por qué:**
+
+- **Paso 5 de las tareas 3, 4 y 5.** El plan pide un Test Server con dos clientes, cerrar uno a mitad
+  de turno y publicar en un lugar privado con dos cuentas. Lo primero se hizo en parte: un Test Server
+  real difundió 12 a 16 lotes, tres turnos y cero rechazos, y en una prueba de tres jugadores dos
+  clientes recibieron los lotes 1, 2 y 3 en orden. Lo segundo no se hizo: los dos lugares siguen sin
+  publicar y `config/Places` vale `0`, que es exactamente el caso que el lobby trata con un aviso. El
+  responsable decidió el 2026-11-03 dejar la publicación pendiente.
+- **El botón de la revancha** es interfaz de las subfases 05 y 08. El servidor está terminado.
+- **`tests/sim-report.luau` mantiene el sesgo de contar «sin líder» como derrota** en su propio
+  informe de simulación; es un camino separado del de `MatchSummary`, que ya no lo tiene.
+

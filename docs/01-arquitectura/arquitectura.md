@@ -90,18 +90,29 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 
 ### Datos: `src/shared/config`
 
-`Economy`, `Boards`, `Cards`, `Perks`, `Squares` y `Scenes`. Todo número ajustable vive aquí, nunca en la lógica.
+`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby` y `Places`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado.
 
 ### Servidor
 
 | Módulo | Responsabilidad | Subfase |
 | --- | --- | --- |
+| `server/main.server` | Único punto de cableado del lugar de Partida: puerta, presencia, telemetría y arranque desde los datos de entrada | 04 |
+| `server/Remotes` | Fábrica compartida de `RemoteEvent` para los dos lugares | 04 |
 | `server/match/RemoteGateway` | Recibe y valida acciones; limita su frecuencia | 04 |
 | `server/match/MatchService` | Ejecuta el motor y difunde lotes de eventos | 04 |
+| `server/match/MatchState` | Parte pura: numeración, escenas, plazos, observaciones y control por bot | 04 |
 | `server/match/SceneClock` | Calcula cuándo termina cada escena, sin esperar a los clientes | 04 |
+| `server/match/PresenceRules` | Reglas puras de asiento: ida, vuelta y control por bot | 04 |
 | `server/match/PresenceService` | Desconexiones, regreso y control por bot | 04 |
+| `server/match/RematchRules` | Reglas puras de la votación de revancha | 04 |
 | `server/match/RematchService` | Revancha con el mismo grupo | 04 |
-| `server/match/Telemetry` | Resumen de cada partida para los criterios de salida | 04 |
+| `server/match/MatchSummary` | Resumen de una partida y cálculo de los criterios de salida | 04 |
+| `server/match/Telemetry` | Envía resúmenes y los exporta para `tools/criteria-report` | 04 |
+| `server/lobby/main.server` | Único punto de cableado del lugar de Lobby | 04 |
+| `server/lobby/PartyCode` | Códigos legibles y normalización | 04 |
+| `server/lobby/LobbyRules` | Reglas puras de party, cola y reintentos | 04 |
+| `server/lobby/PartyStore` | Almacén de parties: `MemoryStoreService` con reserva local | 04 |
+| `server/lobby/Teleport` | Teletransporte a servidor reservado y vuelta al lobby | 04 |
 | `server/lobby/PartyService` | Códigos de party y servidor reservado | 04 |
 | `server/lobby/PublicQueue` | Partidas públicas | 04 |
 
@@ -168,9 +179,52 @@ Bot.choose(state: GameState, playerId: PlayerId): Action?
 -- `nil` cuando no hay ninguna acción legal (p. ej. una subasta ajena sin dinero) o cuando el bot
 -- decide no pujar en una subasta; quien dirige la partida cierra entonces con Engine.timeout.
 View.forPlayer(state: GameState, playerId: PlayerId): PlayerView
+View.filterEvents(state: GameState, playerId: PlayerId, events: { Event }): { Event }
 ```
 
 `Engine.apply` valida antes de modificar nada. Si la acción es ilegal, devuelve `ok = false` y el estado queda intacto.
+
+### Red
+
+```luau
+Protocol.REMOTES = {
+    -- Partida
+    Action = "ActionRequest", Batch = "EventBatch", Resync = "ResyncRequest",
+    -- Revancha y lobby
+    Rematch = "RematchVoteRequest",
+    PartyCreate = "PartyCreateRequest", PartyJoin = "PartyJoinRequest",
+    PartyStart = "PartyStartRequest", QueueJoin = "QueueJoinRequest",
+    Notice = "LobbyNotice",
+}
+Protocol.validate(action: any): (boolean, string?)
+Protocol.validateLobby(request: any): (boolean, string?)
+Protocol.validateRematch(vote: any): (boolean, string?)
+Protocol.newLimiter(perSecond: number?): { allow: (playerId: string, now: number) -> boolean }
+-- El limitador es puro y recibe el reloj. Sin argumento usa Economy.actionsPerSecond (10); el lobby
+-- pide el suyo, más bajo, porque cada petición cuesta unidades de MemoryStore.
+
+export type Batch = { seq: number, startsAt: number, events: { Event }, view: PlayerView }
+-- Un lote por paso del motor, filtrado para cada jugador y con el mismo `seq` para todos.
+-- `seq` empieza en 1; el 0 es la vista inicial, que viaja por el canal de lotes.
+
+export type Seat = {
+    userId: number, playerId: PlayerId, seat: number,
+    connected: boolean, bot: boolean, timeouts: number,
+}
+
+export type MatchObservations = {
+    startedAt: number, endedAt: number?, turns: number, sceneSec: number,
+    leaders: { [number]: PlayerId },
+}
+
+export type Summary = {
+    id: string, sizeId: SizeId, endMode: EndMode, players: number,
+    durationSec: number, avgTurnSec: number, leaderAtHalfWon: boolean?,
+    finished: boolean, rematch: boolean, cardsPlayed: number, sceneSec: number,
+}
+-- `leaderAtHalfWon` es nil cuando no hay líder a mitad de partida observable; el criterio divide
+-- solo entre las partidas con líder conocido.
+```
 
 ### Acciones
 
@@ -191,6 +245,24 @@ Ajustes acordados al cerrar la subfase 02. Prevalecen sobre lo que digan los pla
 - **R12:** en Sin Fin no hay rondas finales; desde la ronda 30 la Salida no paga y la renta se duplica, con el tope ×4.
 - **R27:** gana siempre el primer jugador `Active` de la clasificación; la regla del último activo manda sobre el límite de rondas.
 - **R32:** con `idle` solo se cubre el modo Rondas; en Sin Fin nadie compra y, sin sumideros de dinero hasta la fase 03, la partida no puede terminar.
+
+### Decisiones que cambian los contratos: subfase 04
+
+Ajustes acordados al cerrar la subfase 04. Prevalecen sobre lo que digan los planes y las notas de trabajo.
+
+- **R-P4:** la mano que revela Espía viaja dentro de `PlayerView` y solo en la vista de quien jugó la carta; no hay evento privado nuevo. `Cards` ya la guarda en `pending.spy` y `Engine` ya la limpia.
+- **R-P17:** `src/shared` se monta **también** en cada servicio (`ServerScriptService.shared`, `StarterPlayerScripts.shared`) con la clave en minúsculas, además de `ReplicatedStorage.Shared`. Así la misma cadena relativa `require("../../shared/…")` resuelve igual en el disco, en Lune y en el DataModel. La profundidad del DataModel debe igualar la del disco: `src/server/lobby` se monta como `ServerScriptService.Server.Lobby`, no directamente bajo el servicio.
+- **R-P18:** `DuelResolved` incluye `picks` (copia de las jugadas de esa ronda) en el empate y en la resolución. Antes se borraban al resolver, así que nunca se revelaban; el criterio es «no se revelan **hasta** `DuelResolved`». La salida sin resultar (un participante se fue) no lleva jugadas.
+- **R-P19:** `CardDiscarded` oculta el id de la carta a los demás, igual que `CardDrawn`: descartar revela la mano.
+- **R-P21:** una partida por servidor. `MatchService.start` devuelve la partida y se niega mientras haya una sin terminar; una terminada se puede sustituir, que es como arranca una revancha sin teletransportar.
+- **R-P24:** los dos lugares tienen un único punto de cableado, y es un `Script`: `src/server/main.server.luau` y `src/server/lobby/main.server.luau`. Nadie más conecta remotos.
+- **R-P25:** la vista inicial viaja por el canal de lotes con `seq = 0`; `Resync` es solo petición y respuesta. Roblox garantiza el orden dentro de un remoto, no entre dos.
+- **R-P27:** el bot juega al terminar la escena más `Scenes.botDelaySec`, no al vencer el temporizador de decisión. Si `Bot.choose` devuelve `nil`, cierra `Engine.timeout`.
+- **R-P29:** los nombres de los remotos del lobby y de la revancha viven en `Protocol.REMOTES` con sus validadores, junto a los tres de la partida.
+- **R-P30:** el lugar de Partida arranca desde `Player:GetJoinData().TeleportData` (semilla, modo, código) tras esperar `Scenes.joinSec` a que llegue el grupo. Sin datos de entrada arranca en Rondas con dos o más jugadores.
+- **R-P31:** `config/Places` con `0` significa «sin publicar». Con `0` no se teletransporta y se avisa; los identificadores los rellena el responsable al publicar.
+- **Ofertas públicas:** `pending.trades` y `pending.pactOffers` son información de la mesa y viajan en la vista de todos. Lo secreto es la mano, la carta robada, las jugadas del Duelo, las papeletas del Tribunal, el Espía y el `rng`. Una negociación a la vista es lo que hace legible quién se está aliando con quién, que es de lo que vive la traición.
+- **Telemetría:** `MatchSummary.report` calcula los cuatro criterios solo con partidas en modo Rondas; la duración se mide sobre partidas de 4 a 8 jugadores, como dice la ficha, y el líder a mitad solo divide entre las partidas con líder conocido. `telemetry/` es salida de ejecución y no se versiona.
 
 ## Datos iniciales
 
@@ -292,4 +364,10 @@ Consultadas el 2026-11-01.
 - [Require por cadena en Roblox](https://devforum.roblox.com/t/introducing-require-by-string/3405078): rutas relativas.
 - [Documentación de Rojo 7](https://rojo.space/docs/v7/) y [de Lune](https://lune-org.github.io/docs/).
 
-**Sin verificar todavía:** el comportamiento exacto de `TeleportService`, `MemoryStoreService`, `AnalyticsService`, las compras en la experiencia y las capturas de pantalla. Cada tarea que los usa empieza consultando su documentación oficial.
+Consultadas el 2026-11-03, al cerrar la subfase 04.
+
+- [TeleportService](https://create.roblox.com/docs/reference/engine/classes/TeleportService) y [TeleportOptions](https://create.roblox.com/docs/reference/engine/classes/TeleportOptions): servidor reservado con un identificador propio y `TeleportInitFailed` para los reintentos.
+- [MemoryStoreService](https://create.roblox.com/docs/reference/engine/classes/MemoryStoreService) y [MemoryStoreHashMap](https://create.roblox.com/docs/reference/engine/classes/MemoryStoreHashMap): `SetAsync`/`UpdateAsync` con caducidad y los límites de peticiones, que son la razón del límite propio del lobby.
+- [AnalyticsService](https://create.roblox.com/docs/reference/engine/classes/AnalyticsService): `LogCustomEvent` exige un jugador y solo grafica tres campos propios, así que la medición de los criterios se hace con el resumen exportado, no con los gráficos.
+
+**Sin verificar todavía:** el comportamiento exacto de las compras en la experiencia y las capturas de pantalla. `TeleportService`, `MemoryStoreService` y `AnalyticsService` están confirmados en la documentación, pero sus adaptadores reales aún no se han ejecutado en un lugar publicado: los dos lugares siguen sin publicar y `config/Places` vale `0`.

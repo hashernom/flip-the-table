@@ -4,6 +4,9 @@
 return {
 	startingCash = 1500,
 	startBonus = 200,
+	-- Acciones por segundo y jugador que acepta `Protocol.newLimiter` en el servidor. Lo que
+	-- sobra se descarta sin tocar el motor.
+	actionsPerSecond = 10,
 	minPropertyPrice = 60,
 	maxPropertyPrice = 400,
 	priceStep = 10,
@@ -21,6 +24,8 @@ return {
 		buyReserve = 200,
 		buildReserve = 200,
 		bidReserve = 100,
+		-- Tiempos agotados seguidos que hacen falta para que el bot tome el control (R-P6).
+		timeoutsToControl = 2,
 	},
 	rounds = { S = 20, M = 15, L = 12 },
 	finalRoundsCount = 2,

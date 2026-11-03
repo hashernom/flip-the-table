@@ -118,15 +118,49 @@ export type Action = { type: string, [string]: any }
 export type Event = { type: string, [string]: any }
 export type ApplyResult = { ok: true, events: { Event } } | { ok: false, error: string }
 
--- Vista filtrada que recibe cada jugador. La subfase 04 fija sus campos en View.
+-- Jugador tal como lo ve un espectador concreto: los datos públicos de la mesa más la mano, que
+-- solo viaja en la vista de su dueño. En las demás, `hand` no existe y `handCount` es lo único que
+-- se sabe (View.forPlayer es el único sitio que decide).
+export type ViewPlayer = {
+	id: PlayerId,
+	isBot: boolean,
+	status: PlayerStatus,
+	cash: number,
+	position: number,
+	perks: { string },
+	fury: number,
+	sabotages: number,
+	skipTurns: number,
+	traitorUntilRound: number?,
+	damageReducedRound: number?,
+	handCount: number,
+	hand: { string }?,
+}
+
+-- Vista filtrada que recibe cada jugador. La produce View.forPlayer y es la única forma en que el
+-- estado del servidor llega al cliente: no incluye `rng`, ni manos ajenas, ni las decisiones
+-- privadas de `pending` (View las quita). El tablero no viaja: es estático y se reconstruye con
+-- config/Boards a partir de `sizeId`.
 export type PlayerView = {
 	playerId: PlayerId,
 	sizeId: SizeId,
+	endMode: EndMode,
 	round: number,
+	-- 0 en Sin Fin: «sin tope». El contrato lo fija como número, no como nil.
 	maxRounds: number,
 	phase: Phase,
 	turnIndex: number,
-	[string]: any,
+	players: { ViewPlayer },
+	properties: { [number]: PropertyState },
+	pacts: { Pact },
+	modifiers: { Modifier },
+	hotZoneId: string?,
+	stats: MatchStats,
+	-- Estado de paso ya filtrado: sin jugadas ajenas del Duelo, papeletas ajenas del Tribunal ni
+	-- la mano del Espía cuando el jugador no jugó la carta.
+	pending: any?,
+	-- Acciones legales de este jugador, calculadas por Engine.legalActions.
+	legalActions: { Action },
 }
 
 return {}

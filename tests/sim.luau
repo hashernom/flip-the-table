@@ -29,6 +29,9 @@ export type PlayOptions = {
 	-- Solo pruebas: baja el tope de seguridad para comprobar que una partida que no termina
 	-- devuelve finished = false. En producción se omite y manda MAX_ACTIONS.
 	maxActions: number?,
+	-- Solo pruebas: se llama con cada acción que el motor acepta, antes de contarla. Lo usa
+	-- Protocol.spec para comprobar que toda acción real pasa la validación de la red.
+	onAction: ((action: Action) -> ())?,
 }
 
 export type SimResult = {
@@ -274,6 +277,10 @@ function Sim.play(opts: PlayOptions): SimResult
 		actions += 1
 		if action then
 			recordCardUse(action)
+			local onAction = opts.onAction
+			if onAction then
+				onAction(action)
+			end
 		end
 		record(events)
 		checkState(state, byId, context, detail)
@@ -335,7 +342,7 @@ function Sim.play(opts: PlayOptions): SimResult
 	-- Respuesta a las ofertas de pacto vivas. El destinatario puede responder sin estar en turno
 	-- (Pact lo permite), así que la simulación se las pregunta antes de la acción del turno. Solo
 	-- hay ofertas durante las fases de turno y caducan al terminar el turno (R-P44).
-	local function respondPactOffers(): (boolean, { Event })
+	local function respondPactOffers(): (boolean, { Event }, Action?)
 		local phase = state.phase
 		if phase ~= "AwaitRoll" and phase ~= "AwaitBuy" and phase ~= "AwaitEnd" then
 			return false, {}
@@ -357,7 +364,7 @@ function Sim.play(opts: PlayOptions): SimResult
 							2
 						)
 					end
-					return true, result.events
+					return true, result.events, action
 				end
 			end
 		end
@@ -405,9 +412,9 @@ function Sim.play(opts: PlayOptions): SimResult
 				end
 			end
 		else
-			local responded, pactEvents = respondPactOffers()
+			local responded, pactEvents, pactAction = respondPactOffers()
 			if responded then
-				resolved(pactEvents, "respuesta de pacto", false)
+				resolved(pactEvents, "respuesta de pacto", false, pactAction)
 			else
 				local actor = actorForPhase()
 				if actor == nil then
