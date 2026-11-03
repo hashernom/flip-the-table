@@ -316,7 +316,8 @@ end
 
 -- Cierra la ronda cuando ya hay dos jugadas. Un empate repite con jugadas nuevas hasta el tope
 -- de rondas; después no gana nadie. El premio lo paga el banco y el perdedor retrocede sin que
--- se resuelva la casilla de destino: no hay apuesta ni cobro al perdedor.
+-- se resuelva la casilla de destino: no hay apuesta ni cobro al perdedor. R-P18: el evento de
+-- cierre publica las dos jugadas de la ronda (una copia), porque ya no son secretas.
 local function resolveDuelRound(state: GameState): { Event }
 	local duel = pendingOf(state).duel :: PendingDuel
 	local rivalId = duel.rivalId
@@ -336,9 +337,10 @@ local function resolveDuelRound(state: GameState): { Event }
 	end
 	local events: { Event } = {}
 	if challengerPick == rivalPick then
-		-- Empate: se anuncia la ronda con los dos bandos a nil. Si quedan rondas, el Duelo sigue
-		-- con jugadas nuevas; si era la última, se cierra sin premio ni retroceso.
-		table.insert(events, { type = "DuelResolved", round = duel.round })
+		-- Empate: se anuncia la ronda con los dos bandos a nil y las dos jugadas copiadas antes
+		-- de que la ronda siguiente vacíe el mapa. Si quedan rondas, el Duelo sigue con jugadas
+		-- nuevas; si era la última, se cierra sin premio ni retroceso.
+		table.insert(events, { type = "DuelResolved", round = duel.round, picks = table.clone(duel.picks) })
 		if duel.round >= SquaresConfig.duel.maxRounds then
 			pendingOf(state).duel = nil
 			if state.phase ~= "GameOver" then
@@ -359,10 +361,13 @@ local function resolveDuelRound(state: GameState): { Event }
 		winnerId, loserId = rivalId, duel.challengerId
 	end
 	playerOf(state, winnerId).cash += SquaresConfig.duel.winnerPrize
-	table.insert(
-		events,
-		{ type = "DuelResolved", winnerId = winnerId, loserId = loserId, round = duel.round }
-	)
+	table.insert(events, {
+		type = "DuelResolved",
+		winnerId = winnerId,
+		loserId = loserId,
+		round = duel.round,
+		picks = table.clone(duel.picks),
+	})
 	append(events, Movement.advance(state, loserId, -SquaresConfig.duel.loserStepsBack))
 	pendingOf(state).duel = nil
 	if state.phase ~= "GameOver" then

@@ -248,14 +248,15 @@ describe("View: Duelo", function()
 
 		local events = applyOk(state, "P2", { type = "DuelChoice", choice = "Paper" })
 		expect(pendingOf(state).duel).toBe(nil)
-		-- El motor no incluye las jugadas en DuelResolved (plan 03: { winnerId, loserId, round }):
-		-- lo que revela el cierre es el resultado, público para todos. Las jugadas nunca salieron
-		-- de la vista de quien las eligió.
+		-- R-P18: el cierre publica las dos jugadas de la ronda; ya no queda nada secreto.
 		local resolved = firstEvent(events, "DuelResolved")
 		expect(resolved.winnerId).toBe("P2")
 		expect(resolved.loserId).toBe("P1")
+		expect(resolved.picks).toEqual({ P1 = "Rock", P2 = "Paper" })
 		for _, playerId in { "P1", "P2", "P3" } do
-			expect(View.filterEvents(state, playerId, events)).toEqual(events)
+			local visible = View.filterEvents(state, playerId, events)
+			expect(visible).toEqual(events)
+			expect(firstEvent(visible, "DuelResolved").picks).toEqual({ P1 = "Rock", P2 = "Paper" })
 			expect(viewPending(View.forPlayer(state, playerId)).duel).toBe(nil)
 			expect(containsString(viewPending(View.forPlayer(state, playerId)), "Rock")).toBe(false)
 		end

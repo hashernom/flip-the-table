@@ -389,6 +389,8 @@ describe("Duelo", function()
 			winnerId = challenger.id,
 			loserId = rival.id,
 			round = 1,
+			-- R-P18: el cierre publica las dos jugadas de la ronda (copiadas del pending).
+			picks = { [challenger.id] = "Rock", [rival.id] = "Scissors" },
 		})
 		expect(events[2].type).toBe("TokenMoved")
 		expect(challenger.cash).toBe(Economy.startingCash + SquaresConfig.duel.winnerPrize)
@@ -408,24 +410,61 @@ describe("Duelo", function()
 		local rivalPosition = rival.position
 
 		local first = bothChoose(s, challenger.id, rival.id, "Rock", "Rock")
-		expect(first).toEqual({ { type = "DuelResolved", round = 1 } })
+		expect(first).toEqual({
+			{
+				type = "DuelResolved",
+				round = 1,
+				picks = { [challenger.id] = "Rock", [rival.id] = "Rock" },
+			},
+		})
 		expect(pendingOf(s).duel.round).toBe(2)
 		expect(pendingOf(s).duel.picks).toEqual({})
 		expect(s.phase).toBe("Duel")
 
 		local second = bothChoose(s, challenger.id, rival.id, "Paper", "Paper")
-		expect(second).toEqual({ { type = "DuelResolved", round = 2 } })
+		expect(second).toEqual({
+			{
+				type = "DuelResolved",
+				round = 2,
+				picks = { [challenger.id] = "Paper", [rival.id] = "Paper" },
+			},
+		})
 		expect(pendingOf(s).duel.round).toBe(3)
 		expect(s.phase).toBe("Duel")
 
 		local last = bothChoose(s, challenger.id, rival.id, "Scissors", "Scissors")
-		expect(last).toEqual({ { type = "DuelResolved", round = 3 } })
+		expect(last).toEqual({
+			{
+				type = "DuelResolved",
+				round = 3,
+				picks = { [challenger.id] = "Scissors", [rival.id] = "Scissors" },
+			},
+		})
 		expect(pendingOf(s).duel).toBe(nil)
 		expect(s.phase).toBe("AwaitEnd")
 		expect(challenger.cash).toBe(Economy.startingCash)
 		expect(rival.cash).toBe(Economy.startingCash)
 		expect(challenger.position).toBe(challengerPosition)
 		expect(rival.position).toBe(rivalPosition)
+	end)
+
+	it("un empate publica las dos jugadas en DuelResolved (R-P18)", function()
+		local s = Fixtures.game({ players = 3 })
+		local challenger = inTurn(s)
+		local rival = rivalOf(s, challenger.id)
+		landOn(s, challenger.id, Fixtures.squareOf(s, "Duel"))
+		applyOk(s, challenger.id, { type = "DuelChoice", rivalId = rival.id })
+
+		local events = bothChoose(s, challenger.id, rival.id, "Paper", "Paper")
+		expect(events).toEqual({
+			{
+				type = "DuelResolved",
+				round = 1,
+				picks = { [challenger.id] = "Paper", [rival.id] = "Paper" },
+			},
+		})
+		-- La ronda siguiente empieza con el mapa de jugadas vacío; el evento conserva las suyas.
+		expect(pendingOf(s).duel.picks).toEqual({})
 	end)
 
 	it("el reloj elige rival y jugadas al azar", function()
@@ -444,6 +483,7 @@ describe("Duelo", function()
 			winnerId = challenger.id,
 			loserId = rivals[1].id,
 			round = 1,
+			picks = { [challenger.id] = "Rock", [rivals[1].id] = "Scissors" },
 		})
 		expect(rivals[1].position).toBe(18)
 		expect(s.phase).toBe("AwaitEnd")
