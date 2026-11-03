@@ -14,11 +14,12 @@ local expect = Harness.expect
 local ACTIONS_PER_SECOND = 10
 
 describe("Protocol.REMOTES", function()
-	it("tiene los remotos del contrato: los tres de la partida y los del lobby (R-P29)", function()
+	it("tiene los remotos del contrato: los tres de la partida, la revancha y los del lobby", function()
 		expect(Protocol.REMOTES).toEqual({
 			Action = "ActionRequest",
 			Batch = "EventBatch",
 			Resync = "ResyncRequest",
+			Rematch = "RematchVoteRequest",
 			PartyCreate = "PartyCreateRequest",
 			PartyJoin = "PartyJoinRequest",
 			PartyStart = "PartyStartRequest",
@@ -220,6 +221,33 @@ describe("Protocol.validateLobby", function()
 	it("no mezcla las dos puertas: una acción de partida no entra por el lobby", function()
 		expect((Protocol.validateLobby({ type = "Roll" }))).toBe(false)
 		expect((Protocol.validate({ type = "PartyJoin", code = "AB3K9Z" }))).toBe(false)
+	end)
+end)
+
+describe("Protocol.validateRematch", function()
+	it("acepta un voto booleano: sí y no son las dos únicas papeletas", function()
+		expect((Protocol.validateRematch(true))).toBe(true)
+		expect((Protocol.validateRematch(false))).toBe(true)
+	end)
+
+	local INVALID: { any } = {
+		1,
+		0,
+		"sí",
+		{},
+		{ vote = true },
+		{ accept = true },
+	}
+
+	it("rechaza cualquier cosa que no sea un booleano, también una tabla con el voto dentro", function()
+		expect((Protocol.validateRematch(nil))).toBe(false)
+		for _, packet in INVALID do
+			local ok: boolean, accepted: any = pcall(function(): boolean
+				return (Protocol.validateRematch(packet))
+			end)
+			expect(ok).toBe(true)
+			expect(accepted).toBe(false)
+		end
 	end)
 end)
 

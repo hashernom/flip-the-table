@@ -11,13 +11,16 @@ export type Limiter = {
 
 local Protocol = {}
 
--- Los remotos de la subfase 04. El gateway del lugar de partida crea Action, Batch y Resync; el
--- del lobby crea los cuatro de party y cola, y el aviso de vuelta. El cliente del plan 05 los
--- busca por el mismo nombre. Los tres del contrato original no se tocan.
+-- Los remotos de la subfase 04. El gateway del lugar de partida crea Action, Batch y Resync, y el
+-- servicio de revancha crea Rematch; el del lobby crea los cuatro de party y cola. Notice nace en
+-- los dos lugares: el lobby lo usa para sus avisos y la revancha para los suyos. El cliente del plan
+-- 05 los busca por el mismo nombre. Los tres del contrato original no se tocan.
 Protocol.REMOTES = {
 	Action = "ActionRequest",
 	Batch = "EventBatch",
 	Resync = "ResyncRequest",
+	-- Revancha (R-P14): el cliente manda si acepta jugar otra en el mismo servidor.
+	Rematch = "RematchVoteRequest",
 	-- Lobby (R-P29): peticiones del cliente y aviso del servidor.
 	PartyCreate = "PartyCreateRequest",
 	PartyJoin = "PartyJoinRequest",
@@ -306,6 +309,16 @@ end
 -- ¿La petición del lobby tiene la forma del contrato? Mismos mensajes que la puerta de partida.
 function Protocol.validateLobby(action: any): (boolean, string?)
 	return validateWithSpecs(action, LOBBY_SPECS, false)
+end
+
+-- ¿El paquete del remoto de revancha es un voto booleano? El paquete es el booleano a secas: la
+-- identidad del votante sale del Player del remoto, nunca de un campo del paquete (contracts.md,
+-- «Identidad»). Que el votante siga en la partida terminada lo decide RematchService.
+function Protocol.validateRematch(vote: any): (boolean, string?)
+	if type(vote) ~= "boolean" then
+		return false, "El voto de revancha tiene que ser verdadero o falso"
+	end
+	return true, nil
 end
 
 -- Limitador deslizante: guarda los instantes de las acciones aceptadas y descarta la que haría

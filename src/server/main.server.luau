@@ -15,6 +15,7 @@ local Scenes = require("../shared/config/Scenes")
 local Types = require("../shared/rules/Types")
 local MatchService = require("./match/MatchService")
 local PresenceService = require("./match/PresenceService")
+local RematchService = require("./match/RematchService")
 local RemoteGateway = require("./match/RemoteGateway")
 
 type EndMode = Types.EndMode
@@ -145,6 +146,10 @@ end)
 -- La presencia registra PlayerAdded/PlayerRemoving y se engancha al arranque de cada partida;
 -- debe estar enganchada antes de que la partida empiece para tener los asientos listos.
 PresenceService.start()
+
+-- La revancha escucha su remoto de votos y vigila la partida para abrir la ventana cuando termina.
+-- Va antes de que la partida arranque: si se conectara después, se perdería el primer final.
+RematchService.start()
 
 -- Los datos de entrada llegan con el primer jugador. Se guardan una sola vez: todos los del grupo
 -- traen los mismos y mezclarlos no aporta nada.

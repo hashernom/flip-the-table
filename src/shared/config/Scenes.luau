@@ -137,4 +137,9 @@ Scenes.botDelaySec = 0.6
 -- y arranca antes si ya están todos los que anuncia el dato de entrada.
 Scenes.joinSec = 3
 
+-- Ventana de la revancha: segundos que el grupo tiene para decidir si juega otra partida en el
+-- mismo servidor cuando la anterior termina. La cuenta atrás empieza al acabar la escena final y la
+-- cierra el servicio, no la regla (contracts.md, «Revancha»).
+Scenes.rematchSec = 20
+
 return Scenes

@@ -216,17 +216,17 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - Produce: `RematchRules.resolve(votes: { [number]: boolean }, present: { number }): "Start" | "Wait" | "NotEnough"`.
 
 **Criterios de aceptación:**
-- [ ] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
-- [ ] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
-- [ ] Con menos de 2 personas, vuelve al lobby con aviso.
-- [ ] Quien no acepta vuelve al lobby.
-- [ ] La revancha usa otra semilla y conserva el grupo.
+- [x] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
+- [x] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
+- [x] Con menos de 2 personas, vuelve al lobby con aviso.
+- [x] Quien no acepta vuelve al lobby.
+- [x] La revancha usa otra semilla y conserva el grupo.
 
-- [ ] **Paso 1:** Escribir pruebas de `RematchRules` con 8, 2 y 1 aceptación.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run RematchRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar ambos módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir revancha`.
+- [x] **Paso 1:** Escribir pruebas de `RematchRules` con 8, 2 y 1 aceptación.
+- [x] **Paso 2:** Ejecutar `lune run tests/run RematchRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar ambos módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir revancha`.
 
 ### Task 7: Telemetría
 
