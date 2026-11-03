@@ -44,10 +44,11 @@ export type Match = {
 	-- Último seq difundido, para no repetir un lote en la puerta.
 	lastSeq: number,
 	heartbeat: thread?,
-	-- Hilo del turno de bot programado para después de la escena (R-P27) y su instante. Solo hay
-	-- uno por partida; se cancela al terminar, al abandonar o cuando ya no hay bot que jugar.
+	-- Hilo del turno de bot programado para después de la escena (R-P27) y el `seq` del paso para
+	-- el que se armó. Solo hay uno por partida; un paso nuevo lo rearma y se cancela al terminar,
+	-- al abandonar o cuando ya no hay bot que jugar.
 	botThread: thread?,
-	botDueAt: number?,
+	botSeq: number?,
 	-- Suscriptores avisados después de que el motor actúe (R-P28). Son listas para que la
 	-- presencia y, en la Tarea 7, la telemetría se enganchen a la vez.
 	timeoutCallbacks: { (playerId: PlayerId) -> () },
@@ -125,7 +126,7 @@ end
 local function stopBots(match: Match)
 	local thread = match.botThread
 	match.botThread = nil
-	match.botDueAt = nil
+	match.botSeq = nil
 	if thread then
 		pcall(task.cancel, thread)
 	end
@@ -190,18 +191,21 @@ local function fireTimeout(match: Match, now: number, notifyTimeout: boolean)
 	end
 end
 
--- Acción ya validada por la puerta, aplicada por la clave del motor. Es el mismo camino para una
--- persona y para un bot: valida con Engine.apply, cuenta lo rechazado sin difundir (R-P22) y
--- registra el paso. No avisa a `onAction`: el aviso es de las acciones de personas, y el bot no
--- debe desactivarse a sí mismo (R-P6).
-local function applyAction(match: Match, playerId: PlayerId, action: Action): boolean
+-- Acción aplicada por la clave del motor. Es el mismo camino para una persona y para un bot:
+-- valida con Engine.apply, registra el paso y difunde. `fromClient` distingue lo que llegó por la
+-- puerta: solo lo rechazado de un cliente se cuenta (R-P22); una jugada de bot rechazada se
+-- descarta sin contarla y el turno del bot busca otra salida. No avisa a `onAction`: el aviso es
+-- de las acciones de personas, y el bot no debe desactivarse a sí mismo (R-P6).
+local function applyAction(match: Match, playerId: PlayerId, action: Action, fromClient: boolean): boolean
 	if match.finished or MatchState.over(match.matchState) then
 		return false
 	end
 	local phaseBefore: Phase = match.state.phase
 	local result = Engine.apply(match.state, playerId, action)
 	if not result.ok then
-		match.rejectedActions += 1
+		if fromClient then
+			match.rejectedActions += 1
+		end
 		return false
 	end
 	record(match, result.events, phaseBefore, action.type, false, time())
@@ -232,31 +236,38 @@ local function pendingHuman(match: Match): boolean
 end
 
 -- Turno de bot (R-P27): se juega al terminar la escena, no al vencer el plazo de decisión. Prueba
--- a cada asiento con bot, porque la fase puede tener varios decidiendo a la vez (duelo, tribunal);
--- si ninguno elige y ya no queda persona que pueda actuar, el reloj cierra la fase, que es la
--- salida que el propio bot usa cuando no le compensa pujar.
+-- a cada asiento con bot, porque la fase puede tener varios decidiendo a la vez (duelo, tribunal).
+-- Si ninguno aplica —porque no le compensa pujar o porque el motor rechazó la jugada— y ya no
+-- queda persona que pueda actuar, el reloj cierra la fase: un bot que se rindió no puede dejar la
+-- mesa esperando el plazo entero. Si una persona sigue decidiendo, no se le roba la decisión.
 local function playBot(match: Match)
 	if match.finished then
 		return
 	end
+	local rejected = false
 	for _, player in match.state.players do
 		if player.isBot then
 			local action = Bot.choose(match.state, player.id)
 			if action then
-				applyAction(match, player.id, action)
-				return
+				if applyAction(match, player.id, action, false) then
+					return
+				end
+				rejected = true
 			end
 		end
 	end
-	if pendingHuman(match) or not pendingBot(match) then
+	if pendingHuman(match) then
 		return
 	end
-	fireTimeout(match, time(), false)
+	if rejected or pendingBot(match) then
+		fireTimeout(match, time(), false)
+	end
 end
 
 -- Programa el turno del bot para cuando acabe la escena del paso en curso (R-P27). Un solo hilo
--- por partida: se conserva el que venza antes y se recalcula si la escena o la decisión pendiente
--- cambian. Sin bot pendiente no hay hilo.
+-- por partida y ligado al `seq` del paso: mientras la partida siga en el mismo paso se conserva y,
+-- en cuanto hay un paso nuevo, se rearma para la escena nueva (si la escena se alargó, el hilo
+-- viejo no puede disparar a mitad de ella). Sin bot pendiente no hay hilo.
 kickBots = function(match: Match)
 	if match.finished then
 		stopBots(match)
@@ -266,16 +277,16 @@ kickBots = function(match: Match)
 		stopBots(match)
 		return
 	end
-	local now = time()
-	local dueAt = math.max(match.matchState.sceneEndsAt + Scenes.botDelaySec, now)
-	if match.botThread and match.botDueAt and match.botDueAt <= dueAt then
+	if match.botThread and match.botSeq == match.matchState.seq then
 		return
 	end
 	stopBots(match)
-	match.botDueAt = dueAt
-	match.botThread = task.delay(dueAt - now, function()
+	local now = time()
+	local delay = math.max(match.matchState.sceneEndsAt + Scenes.botDelaySec - now, 0)
+	match.botSeq = match.matchState.seq
+	match.botThread = task.delay(delay, function()
 		match.botThread = nil
-		match.botDueAt = nil
+		match.botSeq = nil
 		playBot(match)
 	end)
 end
@@ -350,7 +361,7 @@ end
 -- control (R-P28): una acción humana es la única que desactiva un bot.
 Match.submit = function(self: Match, player: Player, action: Action)
 	local playerId = playerIdOf(player)
-	if applyAction(self, playerId, action) then
+	if applyAction(self, playerId, action, true) then
 		notify(self.actionCallbacks, playerId)
 	end
 end
@@ -438,7 +449,7 @@ local function newMatch(state: GameState, players: { [PlayerId]: Player }, seed:
 		lastSeq = 0,
 		heartbeat = nil,
 		botThread = nil,
-		botDueAt = nil,
+		botSeq = nil,
 		timeoutCallbacks = {},
 		actionCallbacks = {},
 		abandonCallback = nil,

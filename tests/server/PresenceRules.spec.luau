@@ -172,6 +172,23 @@ describe("PresenceRules", function()
 			expect(seatOf(other, 202).bot).toBe(true)
 		end)
 
+		it("un tiempo agotado de un asiento ausente no suma a su racha", function()
+			local seats = threeSeats()
+			local away = seatOf(seats, 202)
+			away.connected = false
+			away.bot = true
+			away.timeouts = 1
+			local before = copySeats(seats)
+			local timedOut = PresenceRules.onTimeout(seats, "202")
+			local value = seatOf(timedOut, 202)
+			expect(value.timeouts).toBe(1)
+			expect(value.bot).toBe(true)
+			expect(value.connected).toBe(false)
+			expect(seatOf(timedOut, 101)).toEqual(before[1])
+			expect(seatOf(timedOut, 303)).toEqual(before[3])
+			expect(seats).toEqual(before)
+		end)
+
 		it("no muta la lista que recibe", function()
 			local seats = threeSeats()
 			local before = copySeats(seats)

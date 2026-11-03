@@ -89,15 +89,19 @@ function PresenceRules.onReturn(seats: { Seat }, userId: number): (boolean, { Se
 end
 
 -- Un tiempo agotado del asiento. Al llegar al umbral (dos seguidos) el bot toma el control; un
--- tiempo suelto no basta y los de otro asiento no cuentan.
+-- tiempo suelto no basta y los de otro asiento no cuentan. Un asiento ausente no suma: lo juega un
+-- bot y no tiene decisiones propias que vencer, así que su racha ya quedó cerrada al irse
+-- (onLeave) y el atribuible de una fase colectiva no puede reencenderla desde fuera.
 function PresenceRules.onTimeout(seats: { Seat }, playerId: string): { Seat }
 	local copy = copySeats(seats)
 	local index = indexOfPlayerId(copy, playerId)
 	if index then
 		local value = copy[index]
-		value.timeouts += 1
-		if value.timeouts >= Economy.bot.timeoutsToControl then
-			value.bot = true
+		if value.connected then
+			value.timeouts += 1
+			if value.timeouts >= Economy.bot.timeoutsToControl then
+				value.bot = true
+			end
 		end
 	end
 	return copy
