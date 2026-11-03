@@ -151,7 +151,8 @@ function MatchState.batch(state: GameState, step: Step, playerId: PlayerId): Bat
 end
 
 -- Resincronización: la vista actual del jugador con el `seq` vigente, sin consumir un número
--- nuevo. Es lo que responde a ResyncRequest y lo que se envía al empezar la partida (seq 0).
+-- nuevo. Es lo que responde a ResyncRequest y lo que se envía al empezar la partida. `seq = 0`
+-- significa «todavía no hay ningún lote»; el cliente no debe tratarlo como error.
 function MatchState.resync(match: MatchState, state: GameState, playerId: PlayerId, now: number): Batch
 	return {
 		seq = match.seq,
