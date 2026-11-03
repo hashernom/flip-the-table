@@ -16,6 +16,12 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
   ids en `art/asset-ids.json`.
 - **Manifiesto con presupuestos** (`art/manifest.json` + `tools/manifest.luau`), comprobado por
   `lune run tools/check`.
+- **Identidad visual elegida**: dirección A, *Señalética*. Tres direcciones comparadas en
+  `art/identidad/tres-direcciones.md` (2026-11-02) y guía completa en `art/guia-de-estilo.md`.
+- **Sistema de componentes**: escritura de propiedad A2, carta de giro con sellos por calidad y dorso
+  único. Láminas en `art/identidad/direccion-a-componentes.png` y `direccion-a-giro.png`.
+- **Tres conceptos de barrio aprobados** (2026-11-02): cortes a escala real de Centro, Puerto y Zona
+  Alta en `art/identidad/concepto-*.png`.
 
 ## Decidido y no se reabre sin motivo
 
@@ -23,15 +29,18 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 - Luz: día, `LightingStyle = Realistic`, `ClockTime` 9,4, `Ambient` 44/48/60. Ver `art/luz.md`.
 - Manhattan de día con la Zona Alta de cristal y oro. **Sin neón nocturno.**
 - **Sin NPCs**: la ciudad se lee como maqueta de lujo, que es la fantasía del juego.
+- Identidad **A · Señalética** y su paleta, tipografía y componentes: `art/guia-de-estilo.md`.
 - La ficha manda: `docs/00-ficha/ficha-propuesta.md`.
 
 ## Lo que falta
 
-1. **Tres direcciones visuales** para que el responsable elija (subfase 06, Tarea 1, Paso 1). Es el
-   siguiente paso y no está hecho.
-2. La guía de estilo (`art/guia-de-estilo.md`), con paleta, tipografía, logo e intención de barrio.
+1. **Alinear ficha y motor con la escalera de cinco pasos** (solar → 3 casas → hotel → rascacielos).
+   El motor sigue en `maxBuildingLevel = 3` con multiplicadores `{3, 6, 10}` y la ficha todavía dice
+   «tres niveles». La tarjeta ya dibuja los cinco pasos. Bloquea la implementación de la interfaz.
+2. Verificar los albedos de `art/guia-de-estilo.md` §2.2 en el juego, con la luz real, antes de
+   modelar fachadas.
 3. Tres fachadas más, una por receta, para cerrar una hilera entera con mallas reales.
-4. Puerto y Zona Alta: hoy solo existe el blockout de Centro.
+4. Puerto y Zona Alta: existen en concepto, no en el juego.
 5. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
    inventar.
 
@@ -53,4 +62,5 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 1. `PRODUCT.md`, este archivo y `docs/00-ficha/ficha-propuesta.md`.
 2. `art/luz.md` y `art/escala.md` para no repetir decisiones ya tomadas.
 3. `art/PIPELINE.md` si hay que tocar assets.
-4. El siguiente paso concreto está en «Lo que falta», punto 1.
+4. rt/guia-de-estilo.md es la fuente de la identidad: paleta, tipografía, componentes y barrios.
+5. El siguiente paso concreto está en «Lo que falta», punto 1.

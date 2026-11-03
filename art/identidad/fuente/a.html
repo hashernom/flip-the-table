@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección A — Señalética</title>
+<style>
+  @font-face{font-family:'Luckiest';src:url('fonts/LuckiestGuy-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Oswald';src:url('fonts/Oswald.ttf') format('truetype');font-weight:200 700;font-display:block}
+  @font-face{font-family:'SourceSans';src:url('fonts/SourceSans3.ttf') format('truetype');font-weight:200 900;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{
+    background:#23272C;color:#EDE5D3;
+    font-family:'SourceSans',sans-serif;
+    padding:0 76px;
+    position:relative;overflow:hidden;
+  }
+  .curb{position:absolute;top:0;left:0;right:0;height:14px;background:#F5C518;z-index:3}
+  .curb::after{content:"";position:absolute;inset:0;
+    background:repeating-linear-gradient(90deg,transparent 0 104px,#23272C 104px 120px);opacity:.22}
+
+  header{display:flex;align-items:flex-start;gap:34px;padding-top:64px}
+  .shield{flex:none;width:118px;height:118px;background:#F5C518;color:#23272C;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald';font-weight:600;font-size:74px;line-height:1;
+    border:3px solid #EDE5D3;border-radius:5px}
+  .titles{flex:none;padding-top:2px}
+  h1{font-family:'Oswald';font-weight:600;font-size:90px;line-height:.92;letter-spacing:.015em}
+  .idea{margin-top:15px;font-size:21px;line-height:1.45;max-width:620px;color:#C9C3B7}
+  .idea b{color:#F5C518;font-weight:700}
+
+  .blade{margin-left:auto;flex:none;width:500px;background:#EDE5D3;border:3px solid #23272C;
+    border-radius:7px;padding:18px 24px 18px;position:relative}
+  .blade::before,.blade::after{content:"";position:absolute;width:8px;height:8px;border-radius:50%;background:#23272C;opacity:.32;top:8px}
+  .blade::before{left:8px}.blade::after{right:8px}
+  .blade .word{font-family:'Luckiest';font-size:42px;line-height:1.06;color:#23272C}
+  .blade .sub{margin-top:7px;font-family:'Oswald';font-weight:500;font-size:14px;letter-spacing:.22em;color:#7A5A14}
+  .iconrow{display:flex;align-items:center;gap:10px;margin-top:12px}
+  .iconbox{width:46px;height:46px;background:#F5C518;border-radius:4px;display:flex;align-items:center;justify-content:center;
+    font-family:'Luckiest';font-size:28px;color:#23272C;line-height:1}
+  .iconrow span{font-family:'Oswald';font-weight:400;font-size:12px;letter-spacing:.16em;color:#23272C;opacity:.55}
+
+  .seclabel{display:flex;align-items:baseline;gap:14px;margin-top:38px}
+  .seclabel h2{font-family:'Oswald';font-weight:500;font-size:14px;letter-spacing:.26em;color:#8A8E95;text-transform:uppercase}
+  .seclabel .rule{flex:1;height:1px;background:#3A4046}
+  .seclabel .note{font-family:'SourceSans';font-size:13px;color:#8A8E95}
+
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:15px;margin-top:16px}
+  .plate{border:2px solid #3B4249;border-radius:6px;position:relative;height:204px;
+    display:flex;flex-direction:column;justify-content:flex-end;padding:14px 15px}
+  .plate .role{position:absolute;top:11px;left:14px;font-family:'Oswald';font-weight:500;font-size:11px;
+    letter-spacing:.2em;text-transform:uppercase}
+  .plate .name{font-family:'Oswald';font-weight:600;font-size:22px;line-height:1.05}
+  .plate .hex{font-family:'Oswald';font-weight:400;font-size:15px;letter-spacing:.05em;margin-top:6px}
+  .plate .rgb{font-family:'SourceSans';font-size:11.5px;margin-top:3px;opacity:.78}
+  .plate .rbx{font-family:'SourceSans';font-size:10.5px;margin-top:1px;opacity:.6}
+  .dark{color:#23272C}.light{color:#EDE5D3}
+  .ban::after{content:"";position:absolute;inset:0;border-radius:4px;background-image:linear-gradient(to top right,transparent calc(50% - 1.5px),rgba(237,229,211,.82) calc(50% - 1.5px),rgba(237,229,211,.82) calc(50% + 1.5px),transparent calc(50% + 1.5px));background-size:100% 68%;background-position:bottom left;background-repeat:no-repeat}
+  .ban .x{position:absolute;top:9px;right:11px;font-family:'Oswald';font-size:12px;letter-spacing:.16em;color:#EDE5D3}
+
+  .law{margin-top:14px;font-family:'Oswald';font-weight:300;font-size:17px;letter-spacing:.015em;color:#A8ABB1}
+  .law b{font-weight:500;color:#F5C518}
+
+  .types{display:grid;grid-template-columns:1.08fr 1fr 1.15fr;gap:52px;margin-top:18px}
+  .spec .face{font-family:'Oswald';font-weight:500;font-size:12.5px;letter-spacing:.2em;color:#8A8E95;text-transform:uppercase}
+  .spec .enum{font-family:'SourceSans';font-size:11.5px;color:#6E747B;margin-top:3px}
+  .sample{margin-top:12px;border-top:2px solid #3B4249;padding-top:14px}
+  .big-luckiest{font-family:'Luckiest';font-size:72px;line-height:.96;color:#F5C518}
+  .oswald-line{font-family:'Oswald';font-weight:600;font-size:42px;line-height:1;letter-spacing:.06em}
+  .oswald-small{font-family:'Oswald';font-weight:400;font-size:18px;letter-spacing:.2em;color:#A8ABB1;margin-top:8px}
+  .body-copy{font-family:'SourceSans';font-size:16px;line-height:1.5;color:#C9C3B7}
+  .body-copy b{color:#EDE5D3;font-weight:700}
+  .why{margin-top:10px;font-family:'SourceSans';font-size:13px;line-height:1.45;color:#7E848B}
+
+  .applied{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:15px;margin-top:14px}
+  .specimen{background:#1B1F23;border:1px solid #3B4249;border-radius:6px;padding:18px;position:relative;min-height:300px;display:flex;flex-direction:column;justify-content:center}
+  .specimen .cap{position:absolute;top:11px;left:14px;font-family:'Oswald';font-weight:500;font-size:10px;
+    letter-spacing:.22em;color:#6E747B;text-transform:uppercase}
+  .tile{background:#2C3237;border-left:7px solid #F5C518;padding:11px 14px}
+  .tile .n{font-family:'Oswald';font-weight:600;font-size:23px;letter-spacing:.05em}
+  .tile .p{font-family:'Oswald';font-weight:400;font-size:13px;letter-spacing:.18em;color:#A8ABB1;margin-top:3px}
+  .hud{display:flex;align-items:center;gap:11px}
+  .dot{width:17px;height:17px;border-radius:50%;background:#F5C518;flex:none}
+  .hud .who{font-family:'Oswald';font-weight:500;font-size:15px;letter-spacing:.14em}
+  .hud .money{margin-left:auto;font-family:'SourceSans';font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;color:#F5C518}
+  .hudbar{margin-top:10px;height:2px;background:#3B4249;position:relative}
+  .hudbar::after{content:"";position:absolute;left:0;top:0;height:2px;width:34%;background:#F5C518}
+  .btn{align-self:flex-start;display:inline-block;background:#F5C518;color:#23272C;
+    font-family:'Luckiest';font-size:34px;line-height:1;padding:13px 24px 10px;border-radius:4px;border:2px solid #23272C;
+    box-shadow:inset 0 0 0 2px #EDC64B}
+  .kbd{font-family:'Oswald';font-weight:400;font-size:11px;letter-spacing:.16em;color:#6E747B;margin-top:11px}
+
+  footer{position:absolute;left:76px;right:76px;bottom:26px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:300;font-size:12px;letter-spacing:.14em;color:#6E747B;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <div class="curb"></div>
+
+  <header>
+    <div class="shield">A</div>
+    <div class="titles">
+      <h1>SEÑALÉTICA</h1>
+      <p class="idea">La ciudad te habla con su propia señalética: esmalte, pintura de tráfico y toldos.
+      <b>Nada que parezca un tablero.</b></p>
+    </div>
+    <div class="blade">
+      <div class="word">FLIP THE<br>TABLE</div>
+      <div class="sub">METRÓPOLIS · MAPA 01</div>
+      <div class="iconrow"><div class="iconbox">F</div><span>A TAMAÑO ICONO</span></div>
+    </div>
+  </header>
+
+  <div class="seclabel">
+    <h2>Paleta</h2><div class="rule"></div>
+    <div class="note">hex · Color3.fromRGB · papel</div>
+  </div>
+
+  <div class="palette">
+    <div class="plate" style="background:#23272C;border-color:#4A5158">
+      <div class="role light" style="opacity:.6">Base</div>
+      <div class="name light">Asfalto</div><div class="hex light">#23272C</div>
+      <div class="rgb light">35, 39, 44</div><div class="rbx light">RGB(35,39,44)</div>
+    </div>
+    <div class="plate" style="background:#EDE5D3">
+      <div class="role dark" style="opacity:.55">Base</div>
+      <div class="name dark">Caliza</div><div class="hex dark">#EDE5D3</div>
+      <div class="rgb dark">237, 229, 211</div><div class="rbx dark">RGB(237,229,211)</div>
+    </div>
+    <div class="plate" style="background:#F5C518">
+      <div class="role dark" style="opacity:.55">Acento</div>
+      <div class="name dark">Amarillo taxi</div><div class="hex dark">#F5C518</div>
+      <div class="rgb dark">245, 197, 24</div><div class="rbx dark">RGB(245,197,24)</div>
+    </div>
+    <div class="plate" style="background:#C4382B">
+      <div class="role light" style="opacity:.7">Acento</div>
+      <div class="name light">Rojo señal</div><div class="hex light">#C4382B</div>
+      <div class="rgb light">196, 56, 43</div><div class="rbx light">RGB(196,56,43)</div>
+    </div>
+    <div class="plate" style="background:#E07A3C">
+      <div class="role dark" style="opacity:.55">Aviso</div>
+      <div class="name dark">Naranja obra</div><div class="hex dark">#E07A3C</div>
+      <div class="rgb dark">224, 122, 60</div><div class="rbx dark">RGB(224,122,60)</div>
+    </div>
+    <div class="plate ban" style="background:#1F5B45">
+      <div class="role light" style="opacity:.72">Prohibido</div>
+      <div class="x">✕</div>
+      <div class="name light">Verde fieltro</div><div class="hex light">#1F5B45</div>
+      <div class="rgb light">31, 91, 69</div><div class="rbx light">mesa de casino</div>
+    </div>
+  </div>
+
+  <div class="law">Ley de la paleta: <b>un solo amarillo por pantalla</b> — es el turno, la ficha y la casilla activa. El rojo aparece únicamente cuando alguien pierde algo.</div>
+
+  <div class="seclabel">
+    <h2>Tipografía</h2><div class="rule"></div>
+    <div class="note">tres voces, todas integradas en Roblox</div>
+  </div>
+
+  <div class="types">
+    <div class="spec">
+      <div class="face">Grito del jugador</div>
+      <div class="enum">Luckiest Guy · Enum.Font.LuckiestGuy (32)</div>
+      <div class="sample"><div class="big-luckiest">TIRAR</div></div>
+      <div class="why">Solo para el verbo: TIRAR, COMPRAR, PAGAR, ROBAR. Nunca en párrafos ni por debajo de 28 px.</div>
+    </div>
+    <div class="spec">
+      <div class="face">Titular de vía</div>
+      <div class="enum">Oswald · Enum.Font.Oswald (36)</div>
+      <div class="sample">
+        <div class="oswald-line">AV. CENTRAL</div>
+        <div class="oswald-small">N.º 42 · CENTRO</div>
+      </div>
+      <div class="why">Mayúsculas con tracking +0,10 em. Nombres de barrio, casillas, cifras y etiquetas de HUD.</div>
+    </div>
+    <div class="spec">
+      <div class="face">Texto</div>
+      <div class="enum">Source Sans · Enum.Font.SourceSans (3)</div>
+      <div class="sample"><p class="body-copy">Compras <b>Av. Central 42</b> por 340. Tres rivales pujan y el reloj baja: te quedan <b>15 segundos</b> para decidir.</p></div>
+      <div class="why">16 px, cifras tabulares, interlineado 1,5. Todo lo que hay que leer rápido mientras la ficha avanza.</div>
+    </div>
+  </div>
+
+  <div class="seclabel">
+    <h2>En la calle</h2><div class="rule"></div>
+    <div class="note">la misma lámina aplicada a una casilla, al HUD y a un botón</div>
+  </div>
+
+  <div class="applied">
+    <div class="specimen">
+      <div class="cap">Casilla</div>
+      <div class="tile">
+        <div class="n">AV. CENTRAL 42</div>
+        <div class="p">CENTRO · 340</div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="cap">HUD del jugador</div>
+      <div class="hud"><div class="dot"></div><div class="who">SANTI</div><div class="money">1.240</div></div>
+      <div class="hudbar"></div>
+    </div>
+    <div class="specimen">
+      <div class="cap">Acción</div>
+      <div class="btn">TIRAR</div>
+      <div class="kbd">ESPACIO · TOCAR</div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Propuesta de dirección · sin aprobar</span>
+    <span>Flip the Table · nombre provisional</span>
+  </footer>
+</body>
+</html>

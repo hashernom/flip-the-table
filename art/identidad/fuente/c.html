@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección C — Cómic</title>
+<style>
+  @font-face{font-family:'Bangers';src:url('fonts/Bangers-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Nunito';src:url('fonts/Nunito.ttf') format('truetype');font-weight:200 1000;font-display:block}
+  @font-face{font-family:'Hand';src:url('fonts/PatrickHand-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{
+    background:#F2E8D5;color:#191512;
+    background-image:radial-gradient(circle,rgba(25,21,18,.12) .9px,transparent 1.1px);
+    background-size:7px 7px;
+    font-family:'Nunito',sans-serif;padding:0 70px;position:relative;overflow:hidden;
+  }
+  .sheet{position:absolute;inset:0;box-shadow:inset 0 0 0 1px rgba(25,21,18,.12)}
+
+  header{display:flex;align-items:flex-end;gap:28px;padding-top:62px;position:relative;z-index:2}
+  .num{width:92px;height:92px;border:4px solid #191512;background:#F0B429;display:flex;align-items:center;justify-content:center;
+    font-family:'Bangers';font-size:62px;line-height:1;color:#191512;flex:none;transform:rotate(-3deg)}
+  h1{font-family:'Bangers';font-size:120px;line-height:.86;letter-spacing:.02em;color:#191512;
+    text-shadow:7px 7px 0 #D0402F}
+  .idea{margin-top:12px;font-family:'Nunito';font-weight:600;font-size:19px;line-height:1.45;max-width:740px;color:#3A2D24}
+  .idea b{background:#F0B429;box-shadow:0 0 0 3px #F0B429;color:#191512}
+
+  .bubble{margin-left:auto;flex:none;width:408px;position:relative;margin-bottom:2px}
+  .bubble .box{background:#F2E8D5;border:4px solid #191512;border-radius:20px;padding:18px 22px 16px;transform:rotate(-1.2deg)}
+  .bubble .box .word{font-family:'Bangers';font-size:48px;line-height:.98;letter-spacing:.03em;color:#191512}
+  .bubble .box .sub{font-family:'Hand';font-size:18px;color:#4A3A2E;margin-top:7px}
+  .bubble .tail{width:24px;height:24px;background:#F2E8D5;border-left:4px solid #191512;border-bottom:4px solid #191512;
+    margin-left:58px;margin-top:-12px;transform:rotate(-16deg)}
+
+  .seclabel{display:flex;align-items:center;gap:14px;margin-top:36px;position:relative;z-index:2}
+  .seclabel h2{font-family:'Bangers';font-size:25px;letter-spacing:.08em;color:#191512}
+  .seclabel .rule{flex:1;height:3px;background:#191512}
+  .seclabel .note{font-family:'Hand';font-size:17px;color:#6B5644}
+
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-top:15px;position:relative;z-index:2}
+  .chip{position:relative;height:192px;border:4px solid #191512;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 12px 13px}
+  .chip .role{position:absolute;top:9px;left:11px;font-family:'Bangers';font-size:16px;letter-spacing:.1em}
+  .chip .name{font-family:'Bangers';font-size:26px;line-height:1;letter-spacing:.02em}
+  .chip .hex{font-family:'Nunito';font-weight:800;font-size:11.5px;letter-spacing:.04em;margin-top:5px}
+  .chip .rgb{font-family:'Nunito';font-weight:600;font-size:10px;margin-top:2px;opacity:.88}
+  .chip .rbx{font-family:'Nunito';font-weight:600;font-size:9px;margin-top:1px;opacity:.72}
+  .dk{color:#191512}.lt{color:#F2E8D5}
+  .ban::after{content:"";position:absolute;inset:0;background-image:linear-gradient(to top right,transparent calc(50% - 2px),#D0402F calc(50% - 2px),#D0402F calc(50% + 2px),transparent calc(50% + 2px));background-size:100% 68%;background-position:bottom left;background-repeat:no-repeat}
+  .ban .x{position:absolute;top:7px;right:11px;font-family:'Bangers';font-size:21px;color:#D0402F}
+
+  .law{margin-top:12px;font-family:'Nunito';font-weight:700;font-size:15.5px;color:#3A2D24;position:relative;z-index:2}
+  .law b{background:#F0B429;box-shadow:0 0 0 2px #F0B429}
+
+  .types{display:grid;grid-template-columns:1fr 1.05fr 1.2fr;gap:22px;margin-top:22px;position:relative;z-index:2}
+  .col{border:4px solid #191512;background:rgba(242,232,213,.9);padding:15px 17px 16px;position:relative}
+  .col .tag{position:absolute;top:-15px;left:13px;background:#191512;color:#F2E8D5;font-family:'Bangers';font-size:14px;letter-spacing:.12em;padding:3px 9px 2px}
+  .enum{font-family:'Nunito';font-weight:700;font-size:10px;color:#6B5644;margin-top:7px}
+  .sample{margin-top:9px;border-top:3px solid #191512;padding-top:11px}
+  .big-bangers{font-family:'Bangers';font-size:56px;line-height:.95;letter-spacing:.03em;color:#191512;text-shadow:4px 4px 0 #F0B429}
+  .hand-line{font-family:'Hand';font-size:32px;line-height:1.1;color:#191512}
+  .body-copy{font-family:'Nunito';font-weight:500;font-size:15px;line-height:1.5;color:#33261D}
+  .body-copy b{font-weight:900;color:#191512;box-shadow:inset 0 -9px 0 rgba(240,180,41,.78)}
+  .why{margin-top:9px;font-family:'Nunito';font-weight:600;font-size:11px;line-height:1.45;color:#6B5644}
+
+  .applied{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:22px;margin-top:12px;position:relative;z-index:2}
+  .specimen{border:4px solid #191512;background:rgba(242,232,213,.9);padding:16px 17px;min-height:330px;
+    display:flex;flex-direction:column;justify-content:center;position:relative}
+  .specimen .cap{position:absolute;top:-15px;left:13px;background:#D0402F;color:#F2E8D5;font-family:'Bangers';font-size:13px;letter-spacing:.12em;padding:3px 9px 2px}
+  .tile{display:flex;align-items:baseline;gap:12px;border-bottom:4px solid #191512;padding-bottom:8px}
+  .tile .n{font-family:'Bangers';font-size:30px;letter-spacing:.03em;line-height:1}
+  .tile .p{font-family:'Nunito';font-weight:900;font-size:24px;margin-left:auto;font-variant-numeric:tabular-nums}
+  .hud-money{font-family:'Nunito';font-weight:900;font-size:46px;line-height:1;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .hud-who{font-family:'Bangers';font-size:17px;letter-spacing:.1em;color:#6B5644;margin-top:6px}
+  .btn{display:inline-block;background:#F0B429;border:4px solid #191512;padding:9px 20px 6px;
+    font-family:'Bangers';font-size:32px;line-height:1;letter-spacing:.06em;color:#191512;box-shadow:5px 5px 0 #191512}
+  .kbd{font-family:'Nunito';font-weight:800;font-size:10px;letter-spacing:.16em;color:#6B5644;margin-top:11px}
+
+  footer{position:absolute;left:70px;right:70px;bottom:24px;display:flex;justify-content:space-between;
+    font-family:'Nunito';font-weight:800;font-size:10.5px;letter-spacing:.14em;color:#7A6555;text-transform:uppercase;z-index:2}
+</style>
+</head>
+<body>
+  <div class="sheet"></div>
+
+  <header>
+    <div class="num">C</div>
+    <div>
+      <h1>CÓMIC</h1>
+      <p class="idea">La ciudad se dibuja: tinta, trama y bocadillo. <b>Cada regla es una viñeta</b> y cada traición pide su onomatopeya.</p>
+    </div>
+    <div class="bubble">
+      <div class="box">
+        <div class="word">FLIP THE<br>TABLE</div>
+        <div class="sub">Metrópolis · Mapa 01</div>
+      </div>
+      <div class="tail"></div>
+    </div>
+  </header>
+
+  <div class="seclabel"><h2>Paleta</h2><div class="rule"></div><div class="note">hex · Color3.fromRGB · papel de cada tinta</div></div>
+
+  <div class="palette">
+    <div class="chip" style="background:#F2E8D5">
+      <div class="role dk" style="opacity:.6">Base</div>
+      <div class="name dk">Papel</div><div class="hex dk">#F2E8D5</div>
+      <div class="rgb dk">242, 232, 213</div><div class="rbx dk">RGB(242,232,213)</div>
+    </div>
+    <div class="chip" style="background:#191512">
+      <div class="role lt" style="opacity:.7">Base</div>
+      <div class="name lt">Tinta</div><div class="hex lt">#191512</div>
+      <div class="rgb lt">25, 21, 18</div><div class="rbx lt">RGB(25,21,18)</div>
+    </div>
+    <div class="chip" style="background:#D0402F">
+      <div class="role lt" style="opacity:.8">Aviso</div>
+      <div class="name lt">Rojo tinta</div><div class="hex lt">#D0402F</div>
+      <div class="rgb lt">208, 64, 47</div><div class="rbx lt">RGB(208,64,47)</div>
+    </div>
+    <div class="chip" style="background:#2A5F8F">
+      <div class="role lt" style="opacity:.8">Acento</div>
+      <div class="name lt">Azul tinta</div><div class="hex lt">#2A5F8F</div>
+      <div class="rgb lt">42, 95, 143</div><div class="rbx lt">RGB(42,95,143)</div>
+    </div>
+    <div class="chip" style="background:#F0B429">
+      <div class="role dk" style="opacity:.6">Acento</div>
+      <div class="name dk">Amarillo trama</div><div class="hex dk">#F0B429</div>
+      <div class="rgb dk">240, 180, 41</div><div class="rbx dk">RGB(240,180,41)</div>
+    </div>
+    <div class="chip ban" style="background:#1F5B45">
+      <div class="role lt" style="opacity:.85">Prohibido</div>
+      <div class="x">✕</div>
+      <div class="name lt">Verde fieltro</div><div class="hex lt">#1F5B45</div>
+      <div class="rgb lt">31, 91, 69</div><div class="rbx lt">mesa de casino</div>
+    </div>
+  </div>
+
+  <p class="law">Ley de la paleta: <b>dos tintas por pieza</b>, nunca tres. El rojo solo tacha, avisa o celebra una ruina; el amarillo es dinero y nada más.</p>
+
+  <div class="seclabel"><h2>Tipografía</h2><div class="rule"></div><div class="note">tres voces, todas integradas en Roblox</div></div>
+
+  <div class="types">
+    <div class="col">
+      <div class="tag">GRITO</div>
+      <div class="enum">Bangers · Enum.Font.Bangers (22)</div>
+      <div class="sample"><div class="big-bangers">¡BANCARROTA!</div></div>
+      <div class="why">Títulos de escena y resultados. Interletra cerrada, dos tintas: relleno y desplazamiento de 4 px. Nunca en párrafo.</div>
+    </div>
+    <div class="col">
+      <div class="tag">ROTULADO A MANO</div>
+      <div class="enum">Patrick Hand · Enum.Font.PatrickHand (37)</div>
+      <div class="sample"><div class="hand-line">Av. Central 42<br>— en venta —</div></div>
+      <div class="why">Solo dentro del mundo: rótulos de solar, notas del tutorial, el cartel que cuelga el dueño. Nunca en el HUD.</div>
+    </div>
+    <div class="col">
+      <div class="tag">TEXTO</div>
+      <div class="enum">Nunito · Enum.Font.Nunito (35)</div>
+      <div class="sample"><p class="body-copy">Compras <b>Av. Central 42</b> por 340. Tres rivales pujan y el reloj baja: te quedan <b>15 segundos</b> para decidir.</p></div>
+      <div class="why">15 px con interlineado 1,5. La letra redonda aguanta el movimiento de la ficha sin pelearse con la tinta.</div>
+    </div>
+  </div>
+
+  <div class="seclabel"><h2>En la viñeta</h2><div class="rule"></div><div class="note">la misma tinta aplicada a una casilla, al HUD y a un botón</div></div>
+
+  <div class="applied">
+    <div class="specimen">
+      <div class="cap">CASILLA</div>
+      <div class="tile"><div class="n">AV. CENTRAL 42</div><div class="p">340</div></div>
+    </div>
+    <div class="specimen">
+      <div class="cap">HUD</div>
+      <div class="hud-money">1.240</div>
+      <div class="hud-who">SANTI · CENTRO</div>
+    </div>
+    <div class="specimen">
+      <div class="cap">ACCIÓN</div>
+      <div><span class="btn">TIRAR</span></div>
+      <div class="kbd">ESPACIO · TOCAR</div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Propuesta de dirección · sin aprobar</span>
+    <span>Flip the Table · nombre provisional</span>
+  </footer>
+</body>
+</html>
