@@ -251,7 +251,10 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - [x] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.
 - [x] **Paso 2:** Ejecutar `lune run tests/run MatchSummary`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar los módulos.
-- [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
+- [x] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
+      Ejecutado al cerrar la rama en `2afbf90`: código 0, con las diez comprobaciones en verde
+      (formato, lint, tipos estándar, mapa de Rojo, tipos de Roblox de la partida, mapa del lobby,
+      tipos de Roblox del lobby, pruebas, motor puro y manifiesto).
 - [x] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
 
 ---
