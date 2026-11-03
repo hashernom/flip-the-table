@@ -131,11 +131,11 @@ end
 print("Informe de la simulación — Flip the Table, plan 03 (premios y dinámicas)")
 print(
 	string.format(
-		"Muestra: %d semillas × %d tamaños × %d recuentos de jugadores × 2 modos = %d partidas (la matriz completa tiene %d).",
+		"Muestra: %d semillas × %d recuentos de jugadores × 2 modos = %d partidas, repartidas en %d tamaños (la matriz completa tiene %d).",
 		SEED_COUNT,
-		#SIZE_ORDER,
 		#PLAYER_COUNTS,
 		totalMatches,
+		#SIZE_ORDER,
 		#PLAYER_COUNTS * 2 * 1000
 	)
 )
