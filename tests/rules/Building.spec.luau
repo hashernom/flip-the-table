@@ -85,8 +85,10 @@ describe("Building.build", function()
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")
 		local zone = zoneOf(s, idx)
-		Fixtures.give(s, a.id, zone[1])
-		Fixtures.give(s, a.id, zone[2])
+		-- Se entregan todas las propiedades de la zona menos la última.
+		for position = 1, #zone - 1 do
+			Fixtures.give(s, a.id, zone[position])
+		end
 		expect(rejected(Building.build(s, a.id, idx))).toBe("Necesitas la zona completa para construir")
 		expect(levelOf(s, idx)).toBe(0)
 		expect(a.cash).toBe(Economy.startingCash)
@@ -197,7 +199,7 @@ describe("Building.lower", function()
 end)
 
 describe("renta por nivel de edificio", function()
-	it("aplica × 3, × 6 y × 10 con la zona completa", function()
+	it("aplica la escalera × 2, × 3, × 5, × 8 y × 12 con la zona completa", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")

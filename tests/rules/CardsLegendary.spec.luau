@@ -117,11 +117,11 @@ describe("Huracán", function()
 		local a = inTurn(s)
 		local rival = s.players[2]
 		local ghost = s.players[3]
-		local zone = zoneIndices(s, 1)
+		local zone = zoneIndices(s, 2)
 		local terrace = zone[1]
 		local tower = zone[2]
 		local rivalSquare = zone[3]
-		local ghostSquare = zoneIndices(s, 2)[1]
+		local ghostSquare = zoneIndices(s, 3)[1]
 		Fixtures.give(s, a.id, terrace)
 		Fixtures.give(s, a.id, tower)
 		Fixtures.give(s, rival.id, rivalSquare)
@@ -341,8 +341,8 @@ describe("Terremoto", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = inTurn(s)
 		local owner = s.players[2]
-		local zone = zoneIndices(s, 1)
-		local other = zoneIndices(s, 2)[1]
+		local zone = zoneIndices(s, 2)
+		local other = zoneIndices(s, 3)[1]
 		Fixtures.give(s, owner.id, zone[1])
 		Fixtures.give(s, owner.id, zone[2])
 		s.properties[zone[1]].level = 2
@@ -351,7 +351,7 @@ describe("Terremoto", function()
 		s.properties[other].level = 3
 		Fixtures.hand(s, a.id, "Earthquake")
 
-		local events = playCard(s, a.id, "Earthquake", { zoneId = zoneIdOf(s, 1) })
+		local events = playCard(s, a.id, "Earthquake", { zoneId = zoneIdOf(s, 2) })
 
 		local expected: { Types.Event } = {
 			{ type = "CardPlayed", playerId = a.id, cardId = "Earthquake" },
@@ -544,7 +544,7 @@ describe("límites de las legendarias", function()
 		for _, cardId in cardIds do
 			local s = Fixtures.game({ players = 4, seed = 5 })
 			local a = inTurn(s)
-			local zone = zoneIndices(s, 1)
+			local zone = zoneIndices(s, 2)
 			local leader = s.players[3]
 			for _, player in s.players do
 				player.cash = 0
@@ -558,7 +558,7 @@ describe("límites de las legendarias", function()
 			Fixtures.hand(s, a.id, cardId)
 			local action: Types.Action = { type = "PlayCard", cardId = cardId }
 			if cardId == "Earthquake" then
-				action.zoneId = zoneIdOf(s, 1)
+				action.zoneId = zoneIdOf(s, 2)
 			elseif cardId == "CrownStrike" then
 				action.targetId = leader.id
 			end

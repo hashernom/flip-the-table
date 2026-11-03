@@ -8,15 +8,26 @@ local Score = require("../../src/shared/rules/Score")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
--- Primera casilla de propiedad con el precio indicado. Los tableros pequeños siempre tienen
--- las zonas básicas, así que 60, 130, 200, 260, 330 y 400 existen en cualquier tamaño.
-local function squareOfPrice(state: Types.GameState, price: number): number
+-- n-ésima propiedad de la ruta. Las pruebas fijan su precio para no depender de la tabla de
+-- precios de cada tamaño (la misma zona cuesta distinto en S, M y L).
+local function propertyAt(state: Types.GameState, position: number): number
+	local count = 0
 	for _, square in state.board.squares do
-		if square.kind == "Property" and square.price == price then
-			return square.index
+		if square.kind == "Property" then
+			count += 1
+			if count == position then
+				return square.index
+			end
 		end
 	end
-	error(`no hay ninguna propiedad de precio {price}`, 2)
+	error(`el tablero no tiene {position} propiedades`, 2)
+end
+
+-- Propiedad con el precio indicado, fijado en el tablero por la prueba.
+local function propertyWithPrice(state: Types.GameState, position: number, price: number): number
+	local index = propertyAt(state, position)
+	state.board.squares[index].price = price
+	return index
 end
 
 local function priceOf(state: Types.GameState, index: number): number
@@ -70,7 +81,7 @@ describe("Bankruptcy.charge", function()
 		-- A con 50 y una propiedad de 200 debe 100: vende, paga y sigue Active con 50.
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 200)
+		local idx = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, a.id, idx)
 		a.cash = 50
 		local events = Bankruptcy.charge(s, a.id, 100, b.id)
@@ -84,7 +95,7 @@ describe("Bankruptcy.charge", function()
 	it("paga sin vender si el efectivo alcanza", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 60)
+		local idx = propertyWithPrice(s, 1, 60)
 		Fixtures.give(s, a.id, idx)
 		a.cash = 500
 		expect(Bankruptcy.charge(s, a.id, 100, b.id)).toEqual({})
@@ -107,8 +118,8 @@ describe("Bankruptcy.charge", function()
 	it("vende edificios antes que propiedades", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local withBuilding = squareOfPrice(s, 200)
-		local bare = squareOfPrice(s, 60)
+		local withBuilding = propertyWithPrice(s, 1, 200)
+		local bare = propertyWithPrice(s, 2, 60)
 		Fixtures.give(s, a.id, withBuilding)
 		Fixtures.give(s, a.id, bare)
 		s.properties[withBuilding].level = 1
@@ -127,10 +138,8 @@ describe("Bankruptcy.charge", function()
 		local a, b = s.players[1], s.players[2]
 		-- Se cruzan los precios para que el edificio barato quede en el índice mayor: así la
 		-- prueba distingue vender por valor de vender por orden de casilla.
-		local cheap = squareOfPrice(s, 200)
-		local expensive = squareOfPrice(s, 60)
-		s.board.squares[cheap].price = 60
-		s.board.squares[expensive].price = 200
+		local cheap = propertyWithPrice(s, 2, 60)
+		local expensive = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, a.id, cheap)
 		Fixtures.give(s, a.id, expensive)
 		s.properties[cheap].level = 1
@@ -149,10 +158,8 @@ describe("Bankruptcy.charge", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
 		-- Igual que con los edificios: el precio barato va al índice mayor.
-		local cheap = squareOfPrice(s, 200)
-		local expensive = squareOfPrice(s, 60)
-		s.board.squares[cheap].price = 60
-		s.board.squares[expensive].price = 200
+		local cheap = propertyWithPrice(s, 2, 60)
+		local expensive = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, a.id, cheap)
 		Fixtures.give(s, a.id, expensive)
 		a.cash = 0
@@ -166,7 +173,7 @@ describe("Bankruptcy.charge", function()
 	it("cobra solo lo disponible y deja al jugador como espectro", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 60)
+		local idx = propertyWithPrice(s, 1, 60)
 		Fixtures.give(s, a.id, idx)
 		s.properties[idx].level = 2
 		a.cash = 100
@@ -242,8 +249,8 @@ describe("Bankruptcy.charge", function()
 	it("devuelve todas las propiedades del espectro al banco", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
-		local first = squareOfPrice(s, 60)
-		local second = squareOfPrice(s, 130)
+		local first = propertyAt(s, 1)
+		local second = propertyAt(s, 2)
 		Fixtures.give(s, a.id, first)
 		Fixtures.give(s, a.id, second)
 		a.cash = 0
@@ -260,7 +267,7 @@ describe("Property.payRent con bancarrota", function()
 	it("emite RentPaid y después BankruptcyDeclared cuando no alcanza", function()
 		local s = Fixtures.game({ players = 2 })
 		local owner, payer = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 200)
+		local idx = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, owner.id, idx)
 		payer.cash = 5
 		local rent = Property.rentFor(s, idx)
@@ -280,8 +287,8 @@ describe("Property.payRent con bancarrota", function()
 	it("vende bienes para pagar la renta", function()
 		local s = Fixtures.game({ players = 2 })
 		local owner, payer = s.players[1], s.players[2]
-		local rented = squareOfPrice(s, 200)
-		local asset = squareOfPrice(s, 60)
+		local rented = propertyWithPrice(s, 1, 200)
+		local asset = propertyWithPrice(s, 2, 60)
 		Fixtures.give(s, owner.id, rented)
 		Fixtures.give(s, payer.id, asset)
 		payer.cash = 0
@@ -301,7 +308,7 @@ describe("Score.netWorth", function()
 	it("suma el efectivo y el precio de las propiedades", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 60)
+		local idx = propertyWithPrice(s, 1, 60)
 		Fixtures.give(s, a.id, idx)
 		expect(Score.netWorth(s, a.id)).toBe(Economy.startingCash + priceOf(s, idx))
 		expect(Score.netWorth(s, b.id)).toBe(Economy.startingCash)
@@ -310,7 +317,7 @@ describe("Score.netWorth", function()
 	it("incluye los edificios", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
-		local idx = squareOfPrice(s, 200)
+		local idx = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, a.id, idx)
 		s.properties[idx].level = Economy.maxBuildingLevel
 		expect(Score.netWorth(s, a.id)).toBe(
@@ -321,7 +328,7 @@ describe("Score.netWorth", function()
 	it("no cuenta las propiedades ajenas", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
-		local idx = squareOfPrice(s, 60)
+		local idx = propertyWithPrice(s, 1, 60)
 		Fixtures.give(s, b.id, idx)
 		expect(Score.netWorth(s, a.id)).toBe(Economy.startingCash)
 		expect(Score.netWorth(s, b.id)).toBe(Economy.startingCash + priceOf(s, idx))
@@ -339,8 +346,8 @@ describe("Score.ranking", function()
 	it("ordena por patrimonio de mayor a menor", function()
 		local s = Fixtures.game({ players = 3 })
 		local first, second, third = s.players[1], s.players[2], s.players[3]
-		Fixtures.give(s, first.id, squareOfPrice(s, 200))
-		Fixtures.give(s, second.id, squareOfPrice(s, 60))
+		Fixtures.give(s, first.id, propertyWithPrice(s, 1, 200))
+		Fixtures.give(s, second.id, propertyWithPrice(s, 2, 60))
 		-- first: 1500 + 200; second: 1500 + 60; third: 1500.
 		expect(Score.ranking(s)).toEqual({ first.id, second.id, third.id })
 	end)
@@ -349,7 +356,7 @@ describe("Score.ranking", function()
 		local s = Fixtures.game({ players = 2 })
 		local first, second = s.players[1], s.players[2]
 		first.cash = 0
-		Fixtures.give(s, first.id, squareOfPrice(s, 60)) -- patrimonio 60
+		Fixtures.give(s, first.id, propertyWithPrice(s, 1, 60)) -- patrimonio 60
 		second.cash = 60 -- patrimonio 60, pero más efectivo
 		expect(Score.ranking(s)).toEqual({ second.id, first.id })
 	end)

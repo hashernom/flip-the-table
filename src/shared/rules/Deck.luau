@@ -111,6 +111,13 @@ function Deck.handLimit(player: Types.Player): number
 	return Economy.handLimit
 end
 
+-- R12: la presión de Sin Fin cierra los pagos del banco (la Salida deja de pagar desde
+-- pressureFromRound). Se lee aquí sin require Turn para no cerrar el ciclo Turn → Comeback →
+-- Deck; es el mismo umbral que Turn.isPressureRound.
+local function pressureOf(state: GameState): boolean
+	return state.endMode == "Endless" and state.round >= Economy.pressureFromRound
+end
+
 -- Entrega una carta ya elegida: la mete en la mano o la descarta si no cabe, marca la ronda de la
 -- última legendaria, suma el robo a stats.cardsDrawn y emite CardDrawn o CardDiscarded. Es el
 -- único camino para dar una carta: Deck.draw y el Mercado Negro (Squares) comparten estas reglas.
@@ -126,7 +133,10 @@ function Deck.add(state: GameState, playerId: PlayerId, cardId: string): { Event
 	local stats = state.stats[playerId]
 	stats.cardsDrawn = (stats.cardsDrawn or 0) + 1
 	if #player.hand >= Deck.handLimit(player) then
-		if Perks.has(player, "Collector") then
+		-- El bono de Coleccionista es dinero del banco. En la presión de Sin Fin se apaga como la
+		-- Salida (R12): si siguiera pagando, una mano llena de cartas de reacción sostenía la
+		-- partida para siempre y dos jugadores con el perk nunca llegarían a la bancarrota.
+		if Perks.has(player, "Collector") and not pressureOf(state) then
 			player.cash += Economy.perks.collectorBonus
 			Perks.recordUse(state, playerId, "Collector")
 		end

@@ -189,12 +189,11 @@ describe("Engine.legalActions", function()
 		local idx = Fixtures.squareOf(s, "Property")
 		giveZone(s, actor.id, idx)
 		local zone = zoneOf(s, idx)
-		expect(Engine.legalActions(s, actor.id)).toEqual({
-			{ type = "Roll" },
-			{ type = "Build", index = zone[1] },
-			{ type = "Build", index = zone[2] },
-			{ type = "Build", index = zone[3] },
-		})
+		local expected: { Types.Action } = { { type = "Roll" } }
+		for _, member in zone do
+			table.insert(expected, { type = "Build", index = member })
+		end
+		expect(Engine.legalActions(s, actor.id)).toEqual(expected)
 	end)
 
 	it("enumera PlayCard con un objetivo válido y la acción se aplica", function()
@@ -227,10 +226,11 @@ describe("Engine.legalActions", function()
 		local actor = inTurn(s)
 		local idx = Fixtures.squareOf(s, "Property")
 		local zone = zoneOf(s, idx)
-		Fixtures.give(s, actor.id, zone[1])
-		Fixtures.give(s, actor.id, zone[2])
+		for position = 1, #zone - 1 do
+			Fixtures.give(s, actor.id, zone[position])
+		end
 		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
-		Fixtures.give(s, actor.id, zone[3])
+		Fixtures.give(s, actor.id, zone[#zone])
 		actor.cash = Building.costOf(s, actor.id, zone[1]) - 1
 		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
 	end)
@@ -319,12 +319,11 @@ describe("Engine.legalActions", function()
 		giveZone(s, actor.id, idx)
 		s.phase = "AwaitEnd"
 		local zone = zoneOf(s, idx)
-		expect(Engine.legalActions(s, actor.id)).toEqual({
-			{ type = "EndTurn" },
-			{ type = "Build", index = zone[1] },
-			{ type = "Build", index = zone[2] },
-			{ type = "Build", index = zone[3] },
-		})
+		local expected: { Types.Action } = { { type = "EndTurn" } }
+		for _, member in zone do
+			table.insert(expected, { type = "Build", index = member })
+		end
+		expect(Engine.legalActions(s, actor.id)).toEqual(expected)
 	end)
 
 	it("no enumera ofertas de intercambio aunque haya alguna viva", function()

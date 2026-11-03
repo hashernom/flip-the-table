@@ -193,7 +193,7 @@ describe("Ladrón de Escrituras", function()
 		local s = Fixtures.game({ players = 2 })
 		local thief = inTurn(s)
 		local rival = rivalsOf(s, thief.id)[1]
-		local idx = zoneIndices(s, 1)[3]
+		local idx = zoneIndices(s, 2)[3]
 		Fixtures.give(s, rival.id, idx)
 		Fixtures.hand(s, thief.id, "DeedThief")
 
@@ -255,7 +255,7 @@ describe("Ladrón de Escrituras", function()
 		local s = Fixtures.game({ players = 2 })
 		local thief = inTurn(s)
 		local rival = rivalsOf(s, thief.id)[1]
-		local zone = zoneIndices(s, 1)
+		local zone = zoneIndices(s, 2)
 		Fixtures.give(s, thief.id, zone[1])
 		Fixtures.give(s, thief.id, zone[2])
 		Fixtures.give(s, rival.id, zone[3])
@@ -271,7 +271,7 @@ describe("Ladrón de Escrituras", function()
 		local s = Fixtures.game({ players = 3 })
 		local thief = inTurn(s)
 		local others = rivalsOf(s, thief.id)
-		local zone = zoneIndices(s, 1)
+		local zone = zoneIndices(s, 2)
 		local free, own, left = zone[1], zone[2], zone[3]
 		Fixtures.give(s, thief.id, own)
 		Fixtures.give(s, others[1].id, left)
@@ -422,7 +422,7 @@ describe("Demolición", function()
 		local s = Fixtures.game({ players = 2 })
 		local caster = inTurn(s)
 		local rival = rivalsOf(s, caster.id)[1]
-		local zone = zoneIndices(s, 1)
+		local zone = zoneIndices(s, 2)
 		local own, free, bare = zone[1], zone[2], zone[3]
 		Fixtures.give(s, caster.id, own)
 		s.properties[own].level = 1

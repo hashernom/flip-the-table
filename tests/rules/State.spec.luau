@@ -49,7 +49,7 @@ describe("State.create", function()
 	it("asigna tablero y rondas según jugadores", function()
 		local s = Fixtures.game({ players = 8 })
 		expect(s.sizeId).toBe("L")
-		expect(#s.board.squares).toBe(48)
+		expect(#s.board.squares).toBe(56)
 		expect(s.maxRounds).toBe(12)
 	end)
 
@@ -155,7 +155,7 @@ describe("State.create", function()
 				expect(s.properties[square.index]).toEqual({ level = 0 })
 			end
 		end
-		expect(properties).toBe(24)
+		expect(properties).toBe(28)
 	end)
 
 	it("baraja el orden de turnos con la semilla", function()
@@ -218,7 +218,7 @@ describe("Board", function()
 			error("la primera propiedad debería tener zona", 2)
 		end
 		table.remove(zone, 1)
-		expect(#s.board.zones[zoneOfFirstProperty(s)]).toBe(3)
+		expect(#s.board.zones[zoneOfFirstProperty(s)]).toBe(2)
 	end)
 
 	it("reconoce una zona solo cuando está completa", function()
@@ -230,10 +230,12 @@ describe("Board", function()
 			error("la primera propiedad debería tener zona", 2)
 		end
 		expect(Board.ownsZone(s, a, zoneId)).toBe(false)
-		Fixtures.give(s, a, zone[1])
-		Fixtures.give(s, a, zone[2])
-		expect(Board.ownsZone(s, a, zoneId)).toBe(false)
-		Fixtures.give(s, a, zone[3])
+		-- La zona tiene 2 o 3 propiedades: todas menos la última no la completan.
+		for position = 1, #zone - 1 do
+			Fixtures.give(s, a, zone[position])
+			expect(Board.ownsZone(s, a, zoneId)).toBe(false)
+		end
+		Fixtures.give(s, a, zone[#zone])
 		expect(Board.ownsZone(s, a, zoneId)).toBe(true)
 		expect(Board.ownsZone(s, b, zoneId)).toBe(false)
 		expect(Board.ownsZone(s, a, "no-existe")).toBe(false)

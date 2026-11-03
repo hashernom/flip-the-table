@@ -677,8 +677,10 @@ describe("Dedos Rápidos", function()
 		table.insert(second.perks, "QuickFingers")
 
 		-- Primer jugador: turno completo con su repetición. Se coloca para que la tirada acabe en
-		-- el Impuesto: una casilla que cierra el turno sin abrir otra fase (Tarea 7).
-		Fixtures.placeOn(s, first.id, 28)
+		-- el Impuesto: una casilla que cierra el turno sin abrir otra fase (Tarea 7). Con el dado
+		-- repetido, el movimiento es 6 + 4 = 10.
+		local taxIndex = Fixtures.squareOf(s, "Tax")
+		Fixtures.placeOn(s, first.id, (taxIndex - 10 - 1) % #s.board.squares + 1)
 		Fixtures.dice(s, 3, 4)
 		Engine.apply(s, first.id, { type = "Roll" })
 		Rng.force(s.rng, { 6 })
@@ -953,5 +955,25 @@ describe("Coleccionista", function()
 		local events = Deck.draw(s, player.id)
 		expect(events[1].type).toBe("CardDrawn")
 		expect(player.cash).toBe(Economy.startingCash)
+	end)
+
+	it("no paga el bono en la presión de Sin Fin (R12)", function()
+		local s = Fixtures.game({ players = 2, endMode = "Endless" })
+		local player = s.players[1]
+		table.insert(player.perks, "Collector")
+		for _, cardId in { "Shield", "ExtraDie", "Reverse" } do
+			Fixtures.hand(s, player.id, cardId)
+		end
+
+		-- Antes de la presión el banco sigue pagando el bono.
+		s.round = Economy.pressureFromRound - 1
+		Deck.draw(s, player.id)
+		local paid = Economy.startingCash + Economy.perks.collectorBonus
+		expect(player.cash).toBe(paid)
+
+		-- Desde la ronda de presión el banco cierra el grifo, como con la Salida.
+		s.round = Economy.pressureFromRound
+		Deck.draw(s, player.id)
+		expect(player.cash).toBe(paid)
 	end)
 end)

@@ -33,7 +33,7 @@ describe("Roll", function()
 	it("paga 200 al pasar por la Salida", function()
 		local s = Fixtures.game({ players = 4 })
 		local id = s.players[s.turnIndex].id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		Fixtures.dice(s, 1, 2)
 		Engine.apply(s, id, { type = "Roll" })
 		expect(s.players[s.turnIndex].cash).toBe(1700)
@@ -58,7 +58,7 @@ describe("Roll", function()
 	it("emite el movimiento antes de pagar la Salida", function()
 		local s = Fixtures.game({ players = 4 })
 		local id = inTurn(s).id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		Fixtures.dice(s, 1, 2)
 		local result = Engine.apply(s, id, { type = "Roll" })
 		if not result.ok then
@@ -147,14 +147,15 @@ describe("Movement.advance", function()
 	it("describe la ruta que recorre", function()
 		local s = Fixtures.game({ players = 2 })
 		local id = s.players[1].id
-		Fixtures.placeOn(s, id, 31)
+		local size = #s.board.squares
+		Fixtures.placeOn(s, id, size - 1)
 		local events = Movement.advance(s, id, 3)
 		expect(events[1]).toEqual({
 			type = "TokenMoved",
 			playerId = id,
-			from = 31,
+			from = size - 1,
 			to = 2,
-			path = { 32, 1, 2 },
+			path = { size, 1, 2 },
 		})
 		expect(s.players[1].position).toBe(2)
 	end)
@@ -162,7 +163,7 @@ describe("Movement.advance", function()
 	it("paga al pasar por la Salida", function()
 		local s = Fixtures.game({ players = 2 })
 		local id = s.players[1].id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		local events = Movement.advance(s, id, 3)
 		expect(s.players[1].cash).toBe(Economy.startingCash + Economy.startBonus)
 		expect(events[2]).toEqual({ type = "PassedStart", playerId = id, amount = Economy.startBonus })
@@ -171,7 +172,7 @@ describe("Movement.advance", function()
 	it("paga al caer en la Salida", function()
 		local s = Fixtures.game({ players = 2 })
 		local id = s.players[1].id
-		Fixtures.placeOn(s, id, 30)
+		Fixtures.placeOn(s, id, #s.board.squares - 2)
 		Movement.advance(s, id, 3)
 		expect(s.players[1].position).toBe(1)
 		expect(s.players[1].cash).toBe(Economy.startingCash + Economy.startBonus)
@@ -273,8 +274,10 @@ describe("EndTurn", function()
 	it("cierra el turno después de moverse", function()
 		local s = Fixtures.game({ players = 2 })
 		local id = inTurn(s).id
-		-- 1+3 desde la Salida cae en el Spin: una casilla especial también cierra en AwaitEnd.
-		Fixtures.dice(s, 1, 3)
+		-- La tirada cae en el Giro: una casilla especial también cierra en AwaitEnd.
+		local spin = Fixtures.squareOf(s, "Spin")
+		Fixtures.placeOn(s, id, (spin - 3) % #s.board.squares + 1)
+		Fixtures.dice(s, 1, 1)
 		expect(Engine.apply(s, id, { type = "Roll" }).ok).toBe(true)
 		expect(s.phase).toBe("AwaitEnd")
 		expect(Engine.apply(s, id, { type = "EndTurn" }).ok).toBe(true)

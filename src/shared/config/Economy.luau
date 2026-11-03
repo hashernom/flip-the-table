@@ -9,10 +9,11 @@ return {
 	priceStep = 10,
 	baseRentRate = 0.1,
 	completeZoneRentMultiplier = 2,
-	buildingRentMultiplier = { 3, 6, 10 },
+	-- Multiplicador de renta de los niveles 1 a 5: una, dos y tres casas, hotel y rascacielos.
+	buildingRentMultiplier = { 2, 3, 5, 8, 12 },
 	buildingCostRate = 0.5,
 	maxRentMultiplier = 4,
-	maxBuildingLevel = 3,
+	maxBuildingLevel = 5,
 	-- Puja representativa que enumera Engine.legalActions: min(alta + paso, efectivo).
 	auctionBidStep = 10,
 	-- Reservas del bot: efectivo que debe quedarle tras pagar para decidir actuar.

@@ -454,9 +454,24 @@ describe("Empujón", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = inTurn(s)
 		local target = rivalsOf(s, a.id)[1]
-		local destination = 1 + Economy.cards.shoveSteps
+		-- Destino: la primera propiedad libre que no cruce la Salida desde su origen.
+		local destination = 0
+		for _, square in s.board.squares do
+			if square.kind == "Property" and square.index > Economy.cards.shoveSteps then
+				destination = square.index
+				break
+			end
+		end
+		if destination == 0 then
+			error("el tablero no tiene una propiedad después del empujón", 2)
+		end
+		local from = destination - Economy.cards.shoveSteps
+		local path: { number } = {}
+		for step = 1, Economy.cards.shoveSteps do
+			path[step] = from + step
+		end
 		Fixtures.hand(s, a.id, "Shove")
-		Fixtures.placeOn(s, target.id, 1)
+		Fixtures.placeOn(s, target.id, from)
 		local events = playCard(s, a.id, "Shove", target.id)
 		expect(#events).toBe(2)
 		expect(events[1]).toEqual({
@@ -468,9 +483,9 @@ describe("Empujón", function()
 		expect(events[2]).toEqual({
 			type = "TokenMoved",
 			playerId = target.id,
-			from = 1,
+			from = from,
 			to = destination,
-			path = { 2, 3, 4 },
+			path = path,
 		})
 		expect(target.position).toBe(destination)
 		expect(target.cash).toBe(Economy.startingCash)
@@ -479,7 +494,7 @@ describe("Empujón", function()
 		expect(a.hand).toEqual({})
 		expect(s.phase).toBe("AwaitRoll")
 		expect(pendingOf(s).index).toBe(nil)
-		-- La casilla 4 está libre: si el destino se resolviera, abriría AwaitBuy.
+		-- La casilla destino está libre: si el destino se resolviera, abriría AwaitBuy.
 		expect(s.properties[destination].ownerId).toBe(nil)
 	end)
 

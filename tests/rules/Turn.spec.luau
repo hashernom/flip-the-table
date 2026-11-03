@@ -495,7 +495,7 @@ describe("Salida en la presión de Sin Fin", function()
 	it("no paga la Salida al pasar por ella", function()
 		local s = pressureGame()
 		local id = s.players[1].id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		local events = Movement.advance(s, id, 3)
 		expect(s.players[1].position).toBe(2)
 		expect(s.players[1].cash).toBe(Economy.startingCash)
@@ -516,7 +516,7 @@ describe("Salida en la presión de Sin Fin", function()
 		local s = Fixtures.game({ players = 2, endMode = "Endless" })
 		s.round = Economy.pressureFromRound - 1
 		local id = s.players[1].id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		local events = Movement.advance(s, id, 3)
 		expect(s.players[1].cash).toBe(Economy.startingCash + Economy.startBonus)
 		expect(countOf(events, "PassedStart")).toBe(1)
@@ -525,7 +525,7 @@ describe("Salida en la presión de Sin Fin", function()
 	it("tampoco paga al pasar por la Salida con un Roll", function()
 		local s = pressureGame()
 		local id = inTurn(s).id
-		Fixtures.placeOn(s, id, 31)
+		Fixtures.placeOn(s, id, #s.board.squares - 1)
 		Fixtures.dice(s, 1, 2)
 		local result = Engine.apply(s, id, { type = "Roll" })
 		if not result.ok then

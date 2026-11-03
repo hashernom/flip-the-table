@@ -29,6 +29,17 @@ local function priceOf(state: Types.GameState, index: number): number
 	return price
 end
 
+-- Primera propiedad del tablero con el precio indicado. La escalera de la arquitectura solo usa
+-- los extremos de la tabla (60 y 400), que existen en cualquier tamaño.
+local function propertyOfPrice(state: Types.GameState, price: number): number
+	for _, square in state.board.squares do
+		if square.kind == "Property" and square.price == price then
+			return square.index
+		end
+	end
+	error(`no hay ninguna propiedad de precio {price}`, 2)
+end
+
 local function zoneOf(state: Types.GameState, index: number): { number }
 	local zone = Board.zoneOf(state, index)
 	if not zone then
@@ -98,10 +109,12 @@ describe("Property.rentFor", function()
 		local idx = Fixtures.squareOf(s, "Property")
 		local zone = zoneOf(s, idx)
 		local base = math.floor(priceOf(s, idx) * Economy.baseRentRate)
-		Fixtures.give(s, a.id, zone[1])
-		Fixtures.give(s, a.id, zone[2])
+		-- La zona tiene 2 o 3 propiedades: se entregan todas menos la última.
+		for position = 1, #zone - 1 do
+			Fixtures.give(s, a.id, zone[position])
+		end
 		expect(Property.rentFor(s, idx)).toBe(base)
-		Fixtures.give(s, a.id, zone[3])
+		Fixtures.give(s, a.id, zone[#zone])
 		expect(Property.rentFor(s, idx)).toBe(base * Economy.completeZoneRentMultiplier)
 	end)
 
@@ -110,9 +123,10 @@ describe("Property.rentFor", function()
 		local a, b = s.players[1], s.players[2]
 		local idx = Fixtures.squareOf(s, "Property")
 		local zone = zoneOf(s, idx)
-		Fixtures.give(s, a.id, zone[1])
-		Fixtures.give(s, a.id, zone[2])
-		Fixtures.give(s, b.id, zone[3])
+		for position = 1, #zone - 1 do
+			Fixtures.give(s, a.id, zone[position])
+		end
+		Fixtures.give(s, b.id, zone[#zone])
 		expect(Property.rentFor(s, idx)).toBe(math.floor(priceOf(s, idx) * Economy.baseRentRate))
 	end)
 
@@ -134,6 +148,40 @@ describe("Property.rentFor", function()
 			Property.rentFor(s, Fixtures.squareOf(s, "Start"))
 		end).toThrow()
 	end)
+end)
+
+-- Escalera literal de docs/02-mvp/contenido-tablero.md: renta con el precio 60 y 400 en cada
+-- nivel, con la zona completa (columna «Renta en 60/400») y sin ella (la mitad, porque la zona
+-- aporta el × 2 de la arquitectura).
+type LadderStep = { level: number, zone: { [number]: number }, bare: { [number]: number } }
+
+local LADDER: { LadderStep } = {
+	{ level = 0, zone = { [60] = 12, [400] = 80 }, bare = { [60] = 6, [400] = 40 } },
+	{ level = 1, zone = { [60] = 24, [400] = 160 }, bare = { [60] = 12, [400] = 80 } },
+	{ level = 2, zone = { [60] = 36, [400] = 240 }, bare = { [60] = 18, [400] = 120 } },
+	{ level = 3, zone = { [60] = 60, [400] = 400 }, bare = { [60] = 30, [400] = 200 } },
+	{ level = 4, zone = { [60] = 96, [400] = 640 }, bare = { [60] = 48, [400] = 320 } },
+	{ level = 5, zone = { [60] = 144, [400] = 960 }, bare = { [60] = 72, [400] = 480 } },
+}
+
+describe("Property.rentFor: escalera de la arquitectura", function()
+	for _, step in LADDER do
+		it(`nivel {step.level}`, function()
+			local s = Fixtures.game({ players = 2 })
+			local owner = s.players[1]
+			for _, price in { 60, 400 } do
+				local idx = propertyOfPrice(s, price)
+				s.properties[idx].level = step.level
+				-- Sin zona completa, la renta es la mitad de la columna de la arquitectura.
+				expect(Property.rentFor(s, idx)).toBe(step.bare[price])
+				-- Con las 2 o 3 propiedades de la zona, se aplica el × 2.
+				for _, member in zoneOf(s, idx) do
+					Fixtures.give(s, owner.id, member)
+				end
+				expect(Property.rentFor(s, idx)).toBe(step.zone[price])
+			end
+		end)
+	end
 end)
 
 describe("Property.rentMultiplier", function()
