@@ -23,7 +23,7 @@ local path = process.args[1] or DEFAULT_PATH
 if not fs.isFile(path) then
 	print(`No hay resúmenes exportados en {path}.`)
 	print(
-		"Cada partida deja una línea «[telemetry] [...]» en la salida del servidor; guarda la última como JSON."
+		"Cada partida deja una etiqueta y, debajo, el arreglo JSON desnudo; guarda esa última línea como JSON."
 	)
 	process.exit(1)
 end

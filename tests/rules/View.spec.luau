@@ -1,7 +1,8 @@
 --!strict
 -- Pruebas de la vista por jugador: qué puede ver cada uno y qué no sale nunca del servidor. Cubre
 -- las manos ajenas, los ids de las cartas robadas, las jugadas del Duelo, las papeletas del
--- Tribunal, la revelación del Espía, el generador de azar y la inmutabilidad de los eventos.
+-- Tribunal, la revelación del Espía, el generador de azar, las ofertas públicas y la inmutabilidad
+-- de los eventos.
 local Deck = require("../../src/shared/rules/Deck")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
@@ -157,6 +158,20 @@ local function firstPropertyIndex(state: GameState): number
 		end
 	end
 	error("el tablero no tiene propiedades", 2)
+end
+
+-- Las primeras `count` casillas de propiedad, en orden de tablero.
+local function propertySquares(state: GameState, count: number): { number }
+	local squares: { number } = {}
+	for _, square in state.board.squares do
+		if square.kind == "Property" then
+			table.insert(squares, square.index)
+			if #squares == count then
+				return squares
+			end
+		end
+	end
+	error(`el tablero no tiene {count} propiedades`, 2)
 end
 
 describe("View.forPlayer: manos", function()
@@ -425,5 +440,87 @@ describe("View.forPlayer: contrato", function()
 		expect(function()
 			View.forPlayer(state, "Fantasma")
 		end).toThrow()
+	end)
+end)
+
+-- El responsable dictaminó que las ofertas son información de mesa: la negociación se ve, y eso es
+-- lo que hace legible una alianza y jugosa una traición. Estas pruebas fijan la decisión con estados
+-- reales: las ofertas viajan enteras a cualquier jugador y los secretos del mismo estado no.
+describe("View: ofertas públicas", function()
+	it("muestra a un tercero el intercambio entero y calla mano, Espía y papeleta", function()
+		local state = Fixtures.game({ players = 3 })
+		Fixtures.turnOf(state, "P1")
+		local squares = propertySquares(state, 2)
+		local mine, theirs = squares[1], squares[2]
+		Fixtures.give(state, "P1", mine)
+		Fixtures.give(state, "P2", theirs)
+		Fixtures.hand(state, "P1", "Spy")
+		Fixtures.hand(state, "P1", "Reverse")
+		Fixtures.hand(state, "P2", "Hurricane")
+
+		-- Los secretos existen de verdad en este estado antes de mirar la vista.
+		applyOk(state, "P1", { type = "PlayCard", cardId = "Spy", targetId = "P2" })
+		expect(pendingOf(state).spy.hand).toEqual({ "Hurricane" })
+
+		local round, turnIndex = state.round, state.turnIndex
+		applyOk(state, "P1", {
+			type = "ProposeTrade",
+			offer = {
+				toId = "P2",
+				giveCash = 200,
+				wantCash = 50,
+				giveSquares = { mine },
+				wantSquares = { theirs },
+			},
+		})
+		-- La tirada que abre el Tribunal deja la oferta pendiente; la papeleta es el secreto que no
+		-- viaja.
+		openTribunal(state, "P1")
+		applyOk(state, "P2", { type = "TribunalVote", verdict = "Fine" })
+		expect(pendingOf(state).tribunal.votes.P2.verdict).toBe("Fine")
+
+		local view = View.forPlayer(state, "P3")
+		local pending = viewPending(view)
+		-- La oferta entera: los dos lados, el efectivo y las casillas.
+		expect(pending.trades).toEqual({
+			{
+				id = "T1",
+				fromId = "P1",
+				toId = "P2",
+				giveCash = 200,
+				wantCash = 50,
+				giveSquares = { mine },
+				wantSquares = { theirs },
+				round = round,
+				turnIndex = turnIndex,
+			},
+		})
+		-- Los secretos del mismo estado siguen fuera.
+		expect(playerView(view, "P1").hand).toBe(nil)
+		expect(playerView(view, "P2").hand).toBe(nil)
+		expect(containsString(view, "Hurricane")).toBe(false)
+		expect(pending.spy).toBe(nil)
+		expect(pending.tribunal.votes).toEqual({})
+	end)
+
+	it("muestra a un tercero el pacto entero y calla las jugadas del Duelo", function()
+		local state = Fixtures.game({ players = 3 })
+		Fixtures.turnOf(state, "P1")
+		local round, turnIndex = state.round, state.turnIndex
+		applyOk(state, "P1", { type = "ProposePact", toId = "P2", rounds = 3 })
+		-- La oferta sobrevive a la tirada: el Duelo abre con el pacto todavía pendiente.
+		openDuel(state, "P1", "P2")
+		applyOk(state, "P1", { type = "DuelChoice", choice = "Rock" })
+		expect(pendingOf(state).duel.picks.P1).toBe("Rock")
+
+		local view = View.forPlayer(state, "P3")
+		local pending = viewPending(view)
+		-- La oferta entera: proponente, socio y rondas. «P1» es la id de la oferta, no un jugador.
+		expect(pending.pactOffers).toEqual({
+			{ id = "P1", fromId = "P1", toId = "P2", rounds = 3, round = round, turnIndex = turnIndex },
+		})
+		-- La jugada del Duelo sigue siendo secreta, a cualquier profundidad.
+		expect(pending.duel.picks).toEqual({})
+		expect(containsString(view, "Rock")).toBe(false)
 	end)
 end)
