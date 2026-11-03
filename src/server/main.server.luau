@@ -17,6 +17,7 @@ local MatchService = require("./match/MatchService")
 local PresenceService = require("./match/PresenceService")
 local RematchService = require("./match/RematchService")
 local RemoteGateway = require("./match/RemoteGateway")
+local Telemetry = require("./match/Telemetry")
 
 type EndMode = Types.EndMode
 
@@ -146,6 +147,10 @@ end)
 -- La presencia registra PlayerAdded/PlayerRemoving y se engancha al arranque de cada partida;
 -- debe estar enganchada antes de que la partida empiece para tener los asientos listos.
 PresenceService.start()
+
+-- La telemetría se engancha al arranque y al abandono antes de que exista la primera partida: cada
+-- partida, también la abandonada, deja su resumen para los criterios de salida (Tarea 7).
+Telemetry.start()
 
 -- La revancha escucha su remoto de votos y vigila la partida para abrir la ventana cuando termina.
 -- Va antes de que la partida arranque: si se conectara después, se perdería el primer final.

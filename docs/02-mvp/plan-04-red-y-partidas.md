@@ -240,13 +240,13 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - Produce: `Summary = { id, sizeId, endMode, players, durationSec, avgTurnSec, leaderAtHalfWon, finished, rematch, cardsPlayed, sceneSec }`.
 
 **Criterios de aceptación:**
-- [ ] Antes de programar, se confirma el uso actual de `AnalyticsService` en la documentación oficial.
-- [ ] Cada partida genera un resumen, también si se abandona.
-- [ ] Con los resúmenes exportados, `tools/criteria-report` calcula, solo con partidas en modo Rondas, los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
-- [ ] No se guarda ningún dato personal: el id de partida es aleatorio y no se registran nombres.
+- [x] Antes de programar, se confirma el uso actual de `AnalyticsService` en la documentación oficial.
+- [x] Cada partida genera un resumen, también si se abandona.
+- [x] Con los resúmenes exportados, `tools/criteria-report` calcula, solo con partidas en modo Rondas, los 4 criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida.
+- [x] No se guarda ningún dato personal: el id de partida es aleatorio y no se registran nombres.
 
-- [ ] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run MatchSummary`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los módulos.
+- [x] **Paso 1:** Escribir pruebas de `MatchSummary` y del cálculo del informe con resúmenes de ejemplo.
+- [x] **Paso 2:** Ejecutar `lune run tests/run MatchSummary`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los módulos.
 - [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
-- [ ] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
+- [x] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
