@@ -190,9 +190,11 @@ View.filterEvents(state: GameState, playerId: PlayerId, events: { Event }): { Ev
 Protocol.REMOTES = {
     -- Partida
     Action = "ActionRequest", Batch = "EventBatch", Resync = "ResyncRequest",
-    -- Lobby y revancha
-    PartyCreate = "PartyCreate", PartyJoin = "PartyJoin", PartyStart = "PartyStart",
-    QueueJoin = "QueueJoin", Notice = "Notice", Rematch = "RematchVote",
+    -- Revancha y lobby
+    Rematch = "RematchVoteRequest",
+    PartyCreate = "PartyCreateRequest", PartyJoin = "PartyJoinRequest",
+    PartyStart = "PartyStartRequest", QueueJoin = "QueueJoinRequest",
+    Notice = "LobbyNotice",
 }
 Protocol.validate(action: any): (boolean, string?)
 Protocol.validateLobby(request: any): (boolean, string?)
@@ -259,6 +261,7 @@ Ajustes acordados al cerrar la subfase 04. Prevalecen sobre lo que digan los pla
 - **R-P29:** los nombres de los remotos del lobby y de la revancha viven en `Protocol.REMOTES` con sus validadores, junto a los tres de la partida.
 - **R-P30:** el lugar de Partida arranca desde `Player:GetJoinData().TeleportData` (semilla, modo, código) tras esperar `Scenes.joinSec` a que llegue el grupo. Sin datos de entrada arranca en Rondas con dos o más jugadores.
 - **R-P31:** `config/Places` con `0` significa «sin publicar». Con `0` no se teletransporta y se avisa; los identificadores los rellena el responsable al publicar.
+- **Ofertas públicas:** `pending.trades` y `pending.pactOffers` son información de la mesa y viajan en la vista de todos. Lo secreto es la mano, la carta robada, las jugadas del Duelo, las papeletas del Tribunal, el Espía y el `rng`. Una negociación a la vista es lo que hace legible quién se está aliando con quién, que es de lo que vive la traición.
 - **Telemetría:** `MatchSummary.report` calcula los cuatro criterios solo con partidas en modo Rondas; la duración se mide sobre partidas de 4 a 8 jugadores, como dice la ficha, y el líder a mitad solo divide entre las partidas con líder conocido. `telemetry/` es salida de ejecución y no se versiona.
 
 ## Datos iniciales
