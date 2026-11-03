@@ -117,13 +117,13 @@ end)
 - Produce: `MatchService.start(players: { Player }, seed: number, endMode: EndMode)`.
 
 **Criterios de aceptación:**
-- [ ] `Scenes` da duración a cada evento de la arquitectura.
-- [ ] Comunes de 2 a 4 s; legendarias, hasta 10 s; repetidas en la misma partida, más cortas.
-- [ ] El temporizador de decisión no empieza hasta que termina la escena.
-- [ ] El servidor avanza con su reloj, sin esperar a ningún cliente.
-- [ ] `seq` crece de 1 en 1; `ResyncRequest` devuelve la vista actual.
+- [x] `Scenes` da duración a cada evento de la arquitectura.
+- [x] Comunes de 2 a 4 s; legendarias, hasta 10 s; repetidas en la misma partida, más cortas.
+- [x] El temporizador de decisión no empieza hasta que termina la escena.
+- [x] El servidor avanza con su reloj, sin esperar a ningún cliente.
+- [x] `seq` crece de 1 en 1; `ResyncRequest` devuelve la vista actual.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("encadena escenas", function()
@@ -141,11 +141,11 @@ it("ninguna legendaria supera 10 s", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run SceneClock`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `Scenes`, `SceneClock` y `MatchService`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 2:** Ejecutar `lune run tests/run SceneClock`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `Scenes`, `SceneClock` y `MatchService`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** En Studio, iniciar un Test Server con 2 clientes y jugar 3 turnos con un script de cliente temporal. Esperado: ambos reciben los lotes con `seq` 1, 2, 3 en orden.
-- [ ] **Paso 6:** Hacer commit: `feat: ejecutar la partida en el servidor`.
+- [x] **Paso 6:** Hacer commit: `feat: ejecutar la partida en el servidor`.
 
 ### Task 4: Presencia y bots
 

@@ -52,6 +52,12 @@ local function now(): number
 	return Workspace:GetServerTimeNow()
 end
 
+-- RemoteEvent del protocolo, creándolo si hace falta. Es la puerta que usan RemoteGateway.start
+-- (Action) y MatchService (Batch y Resync) para que el nombre viva solo en Protocol.REMOTES.
+function RemoteGateway.remote(name: string): RemoteEvent
+	return remoteFor(name)
+end
+
 function RemoteGateway.start(onAction: OnAction)
 	local limiter = Protocol.newLimiter()
 	local actionRemote = remoteFor(Protocol.REMOTES.Action)
