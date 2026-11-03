@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección A — Giro y sellos</title>
+<style>
+  @font-face{font-family:'Luckiest';src:url('fonts/LuckiestGuy-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Oswald';src:url('fonts/Oswald.ttf') format('truetype');font-weight:200 700;font-display:block}
+  @font-face{font-family:'SourceSans';src:url('fonts/SourceSans3.ttf') format('truetype');font-weight:200 900;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{background:#23272C;color:#EDE5D3;font-family:'SourceSans',sans-serif;padding:0 76px;position:relative;overflow:hidden}
+  .curb{position:absolute;top:0;left:0;right:0;height:14px;background:#F5C518;z-index:3}
+  .curb::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 104px,#23272C 104px 120px);opacity:.22}
+
+  header{display:flex;align-items:flex-end;gap:24px;padding-top:54px}
+  .tag{flex:none;width:74px;height:74px;background:#F5C518;color:#23272C;display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald';font-weight:600;font-size:42px;line-height:1;border:3px solid #EDE5D3;border-radius:5px}
+  h1{font-family:'Oswald';font-weight:600;font-size:50px;line-height:1;letter-spacing:.03em}
+  .sub{margin-top:10px;font-size:17px;line-height:1.45;max-width:880px;color:#C9C3B7}
+  .sub b{color:#F5C518;font-weight:700}
+  .rule-line{margin-left:auto;text-align:right;font-family:'Oswald';font-weight:300;font-size:12.5px;letter-spacing:.16em;color:#8A8E95;line-height:1.95;text-transform:uppercase}
+
+  .row{display:flex;gap:64px;margin-top:34px;align-items:flex-start}
+
+  /* ---------- carta de giro ---------- */
+  .giro{width:380px;height:570px;background:#EDE5D3;border:3px solid #23272C;border-radius:8px;overflow:hidden;
+    position:relative;box-shadow:0 12px 26px rgba(0,0,0,.38);flex:none}
+  .g-top{padding:16px 20px 0;display:flex;justify-content:space-between;align-items:flex-start}
+  .g-aviso{font-family:'Oswald';font-weight:600;font-size:10px;letter-spacing:.3em;color:#23272C;padding-top:6px}
+  .g-title{font-family:'Luckiest';font-size:56px;line-height:.9;color:#23272C;margin:12px 20px 0}
+  .g-art{margin-top:14px;height:272px;border-top:2px solid #23272C;border-bottom:2px solid #23272C;position:relative;overflow:hidden}
+  .g-art svg{display:block;width:100%;height:100%}
+  .g-rule{margin:14px 20px 0;padding:11px 14px;border:2px solid rgba(35,39,44,.3);border-radius:4px}
+  .g-rule p{font-family:'SourceSans';font-size:13.5px;line-height:1.45;color:#3F444A}
+  .g-rule p b{font-weight:700;color:#23272C}
+  .g-meta{display:flex;justify-content:space-between;margin:12px 20px 0;font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.2em;color:#6E747B;text-transform:uppercase}
+  .g-foot{position:absolute;left:20px;right:20px;bottom:14px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.22em;color:#5E646B;text-transform:uppercase}
+
+  /* ---------- sellos ---------- */
+  .st{display:inline-block;font-family:'Oswald';font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+    line-height:1;padding:.36em .8em .32em;border-radius:.24em;white-space:nowrap}
+  .st.com{font-size:9.5px;color:#23272C;border:.18em solid #23272C;transform:rotate(0deg)}
+  .st.rar{font-size:9.5px;color:#2C5C8A;border:.3em double #2C5C8A;transform:rotate(-4deg)}
+  .st.leg{font-size:9.5px;color:#EDE5D3;background:#C4382B;border:.2em solid #C4382B;
+    box-shadow:inset 0 0 0 .1em rgba(237,229,211,.9);transform:rotate(-7deg)}
+
+  .panel{flex:1;display:flex;flex-direction:column;gap:0}
+  .panel h2{font-family:'Oswald';font-weight:500;font-size:14px;letter-spacing:.26em;color:#8A8E95;text-transform:uppercase}
+  .panel .lead{margin-top:10px;font-family:'SourceSans';font-size:14px;line-height:1.5;color:#A8ABB1;max-width:820px}
+  .panel .lead b{color:#EDE5D3;font-weight:700}
+
+  .srow{display:flex;align-items:center;gap:34px;padding:44px 0;border-bottom:1px solid #3A4046}
+  .srow:first-of-type{margin-top:26px;border-top:1px solid #3A4046}
+  .sbox{width:400px;height:104px;flex:none;display:flex;align-items:center;justify-content:center;background:#EDE5D3;border-radius:6px}
+  .sinfo{flex:1}
+  .sinfo h3{font-family:'Oswald';font-weight:600;font-size:17px;letter-spacing:.16em;text-transform:uppercase}
+  .sinfo h3 small{font-family:'SourceSans';font-weight:400;font-size:12px;letter-spacing:.04em;color:#8A8E95;text-transform:none;margin-left:10px}
+  .sinfo p{margin-top:7px;font-family:'SourceSans';font-size:13px;line-height:1.55;color:#A8ABB1;max-width:660px}
+  .sinfo p b{color:#EDE5D3;font-weight:700}
+  .usage{font-family:'Oswald';font-weight:400;font-size:10px;letter-spacing:.2em;color:#6E747B;text-transform:uppercase;margin-top:8px}
+
+  .real{display:flex;align-items:center;justify-content:space-between;margin-top:36px;background:#EDE5D3;border-radius:6px;padding:24px 34px}
+  .real-l h3{font-family:'Oswald';font-weight:500;font-size:11px;letter-spacing:.24em;color:#5E646B;text-transform:uppercase}
+  .real-l p{margin-top:7px;font-family:'SourceSans';font-size:12.5px;line-height:1.5;color:#3F444A;max-width:560px}
+  .real-l p b{font-weight:700;color:#23272C}
+  .real-s{display:flex;gap:30px;align-items:center;padding-right:10px}
+  .notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:30px}
+  .note{background:#1B1F23;border:1px solid #3B4249;border-radius:6px;padding:15px 18px 17px}
+  .note h4{font-family:'Oswald';font-weight:500;font-size:11px;letter-spacing:.24em;color:#F5C518;text-transform:uppercase}
+  .note h4.alt{color:#8A8E95}
+  .note p{margin-top:8px;font-family:'SourceSans';font-size:12.5px;line-height:1.5;color:#C9C3B7}
+  .note p b{font-weight:700;color:#EDE5D3}
+
+  footer{position:absolute;left:76px;right:76px;bottom:22px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:300;font-size:12px;letter-spacing:.14em;color:#6E747B;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <div class="curb"></div>
+
+  <header>
+    <div class="tag">A</div>
+    <div>
+      <h1>GIRO Y SELLOS</h1>
+      <p class="sub">La carta de giro usa el hueco: el dibujo ocupa una banda a sangre y la regla va en un
+      recuadro, como un aviso. <b>La calidad no cambia el color de la carta: cambia el sello.</b></p>
+    </div>
+    <div class="rule-line">380 × 570 px · relación 2:3<br>sello a tamaño real: 9,5 px</div>
+  </header>
+
+  <div class="row">
+    <div class="giro">
+      <div class="g-top">
+        <div class="g-aviso">AVISO</div>
+        <div class="st leg">LEGENDARIA</div>
+      </div>
+      <div class="g-title">HURACÁN</div>
+      <div class="g-art">
+        <svg viewBox="0 0 330 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+          <g fill="none" stroke="#23272C" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 261.0 92.0 L 260.0 101.0 L 258.1 109.8 L 255.4 118.3 L 251.9 126.4 L 247.8 134.2 L 242.9 141.4 L 237.4 148.2 L 231.4 154.3 L 224.8 159.8 L 217.8 164.6 L 210.4 168.7 L 202.7 172.1 L 194.8 174.7 L 186.7 176.6 L 178.6 177.6 L 170.4 177.9 L 162.3 177.4 L 154.4 176.1 L 146.6 174.2 L 139.2 171.5 L 132.1 168.1 L 125.3 164.1 L 119.1 159.6 L 113.3 154.5 L 108.1 148.9 L 103.5 142.9 L 99.5 136.5 L 96.1 129.9 L 93.4 123.0 L 91.4 115.9 L 90.1 108.7 L 89.5 101.5 L 89.5 94.4 L 90.3 87.3 L 91.7 80.4 L 93.7 73.7 L 96.3 67.3 L 99.5 61.2 L 103.2 55.5 L 107.4 50.2 L 112.1 45.4 L 117.2 41.0 L 122.5 37.3 L 128.2 34.0 L 134.1 31.4 L 140.2 29.3 L 146.4 27.9 L 152.6 27.0 L 158.8 26.7 L 165.0 27.1 L 171.1 28.0 L 176.9 29.4 L 182.6 31.4 L 188.0 33.9 L 193.1 36.9 L 197.8 40.3 L 202.1 44.1 L 206.0 48.3 L 209.5 52.8 L 212.5 57.5 L 215.0 62.4 L 217.0 67.5 L 218.5 72.7 L 219.5 78.0 L 219.9 83.3 L 219.9 88.5 L 219.3 93.7 L 218.3 98.7 L 216.8 103.6 L 214.9 108.2 L 212.6 112.6 L 209.9 116.7 L 206.9 120.5 L 203.5 123.9 L 199.9 126.9 L 196.1 129.6 L 192.1 131.8 L 187.9 133.6 L 183.6 135.0 L 179.3 136.0 L 175.0 136.6 L 170.6 136.7 L 166.4 136.4 L 162.2 135.7 L 158.2 134.6 L 154.4 133.2 L 150.8 131.5 L 147.4 129.4 L 144.3 127.0 L 141.4 124.4 L 138.9 121.6 L 136.7 118.6 L 134.8 115.4 L 133.3 112.1 L 132.1 108.8 L 131.2 105.4 L 130.7 102.0 L 130.5 98.6 L 130.7 95.2 L 131.1 92.0 L 131.9 88.9 L 133.0 85.9 L 134.3 83.1 L 135.8 80.5 L 137.6 78.0 L 139.6 75.9 L 141.7 73.9 L 143.9 72.2 L 146.3 70.8 L 148.8 69.6 L 151.2 68.7 L 153.8 68.1 L 156.3 67.7 L 158.7 67.6 L 161.2 67.8 L 163.5 68.1 L 165.7 68.7 L 167.8 69.5 L 169.8 70.5 L 171.6 71.6 L 173.3 72.9 L 174.7 74.3 L 176.0 75.8 L 177.1 77.4 L 178.0 79.0 L 178.6 80.7 L 179.1 82.4 L 179.4 84.1 L 179.5 85.7 L 179.5 87.3 L 179.2 88.8 L 178.9 90.2 L 178.3 91.6 L 177.7 92.8 L 177.0 93.9 L 176.1 94.9 L 175.2 95.7 L 174.3 96.4 L 173.3 96.9 L 172.3 97.3" stroke-width="5"/>
+            <path d="M 87.0 92.0 L 87.7 86.1 L 88.8 80.3 L 90.4 74.6 L 92.4 69.1 L 94.8 63.8 L 97.6 58.8 L 100.7 54.0 L 104.2 49.5 L 108.0 45.2 L 112.0 41.4 L 116.4 37.8 L 120.9 34.6 L 125.7 31.8 L 130.6 29.4 L 135.7 27.4 L 140.8 25.8 L 146.1 24.6 L 151.4 23.8 L 156.7 23.5 L 161.9 23.5 L 167.1 23.9 L 172.3 24.8 L 177.3 26.0 L 182.2 27.6 L 186.9 29.5 L 191.4 31.8 L 195.7 34.4 L 199.7 37.3 L 203.5 40.5 L 207.0 43.9 L 210.2 47.6 L 213.1 51.5 L 215.7 55.5 L 217.9 59.7 L 219.8 64.1 L 221.3 68.5 L 222.5 73.0 L 223.3 77.6 L 223.8 82.1 L 223.9 86.7 L 223.7 91.2 L 223.1 95.7 L 222.2 100.0 L 220.9 104.2 L 219.4 108.3 L 217.5 112.3 L 215.4 116.0 L 213.0 119.5 L 210.4 122.9 L 207.6 125.9 L 204.5 128.8 L 201.3 131.3 L 197.9 133.6 L 194.3 135.6 L 190.7 137.3 L 187.0 138.7 L 183.2 139.8 L 179.4 140.6 L 175.5 141.1 L 171.7 141.3 L 167.9 141.2 L 164.1 140.8 L 160.5 140.1 L 156.9 139.1 L 153.4 137.9 L 150.1 136.5 L 146.9 134.8 L 144.0 132.8 L 141.2 130.7 L 138.5 128.4 L 136.2 125.9 L 134.0 123.3 L 132.0 120.5 L 130.3 117.7 L 128.9 114.7 L 127.7 111.6 L 126.7 108.6 L 126.0 105.4 L 125.6 102.3 L 125.4 99.2 L 125.4 96.1 L 125.7 93.1 L 126.2 90.1 L 126.9 87.2 L 127.8 84.4 L 129.0 81.7 L 130.3 79.2 L 131.8 76.8 L 133.5 74.5 L 135.3 72.4 L 137.3 70.5 L 139.3 68.8 L 141.5 67.2 L 143.8 65.9 L 146.1 64.7 L 148.5 63.7 L 150.9 63.0 L 153.3 62.4 L 155.7 62.1 L 158.1 61.9 L 160.5 61.9 L 162.9 62.2 L 165.1 62.6 L 167.3 63.1 L 169.5 63.9 L 171.5 64.7 L 173.4 65.8 L 175.2 66.9 L 176.9 68.2 L 178.4 69.6 L 179.8 71.0 L 181.1 72.6 L 182.2 74.2 L 183.1 75.9 L 183.9 77.6 L 184.6 79.3 L 185.1 81.1 L 185.4 82.8 L 185.6 84.6 L 185.7 86.3 L 185.6 88.0 L 185.3 89.6 L 185.0 91.2 L 184.5 92.7 L 184.0 94.1 L 183.3 95.5 L 182.5 96.7 L 181.6 97.9 L 180.7 99.0 L 179.7 99.9 L 178.7 100.8 L 177.6 101.5 L 176.5 102.1 L 175.3 102.6 L 174.2 103.0 L 173.1 103.3 L 171.9 103.5 L 170.8 103.6 L 169.7 103.5 L 168.7 103.4" stroke-width="3" opacity=".55"/>
+          </g>
+          <circle cx="165" cy="92" r="9" fill="#EDE5D3" stroke="#23272C" stroke-width="4"/>
+          <g stroke="#C4382B" stroke-width="3" stroke-linecap="round">
+            <path d="M28 34 L 62 34"/>
+            <path d="M28 34 L 28 60"/>
+          </g>
+          <g fill="#23272C" opacity=".55">
+            <rect x="286" y="150" width="14" height="5"/>
+            <rect x="306" y="164" width="8" height="4"/>
+            <rect x="40" y="168" width="18" height="5"/>
+          </g>
+          <g fill="#C4382B">
+            <rect x="252" y="176" width="9" height="5"/>
+          </g>
+        </svg>
+      </div>
+      <div class="g-rule"><p>Todas las propiedades vuelven al banco. Sus dueños cobran <b>la mitad de su valor</b>.</p></div>
+      <div class="g-meta"><span>Afecta · todas las propiedades</span><span>Escena · 8 s</span></div>
+      <div class="g-foot"><span>Carta de giro</span><span>1 de 20</span></div>
+    </div>
+
+    <div class="panel">
+      <h2>La calidad se ve en el sello</h2>
+      <p class="lead">Tres sellos, una sola carta: el mismo papel, la misma tipografía y el mismo color.
+      Lo que cambia es el <b>peso de la tinta</b> —de contorno fino a bloque rojo— y el ángulo. Nadie tiene
+      que leer para saber que le acaban de robar.</p>
+
+      <div class="srow">
+        <div class="sbox"><div class="st leg" style="font-size:19px">LEGENDARIA</div></div>
+        <div class="sinfo">
+          <h3>Legendaria <small>5 de las 20 cartas</small></h3>
+          <p>Sello <b>sólido en rojo señal</b>, filete interior caliza y giro de −7°. Es el único rojo de la
+          carta y el único caso en que el rojo cubre algo.</p>
+          <div class="usage">Bloque rojo · filete claro · −7°</div>
+        </div>
+      </div>
+
+      <div class="srow">
+        <div class="sbox"><div class="st rar" style="font-size:19px">RARA</div></div>
+        <div class="sinfo">
+          <h3>Rara <small>7 de las 20 cartas</small></h3>
+          <p>Sello de <b>doble filete en azul marino</b> y giro de −4°. Sin relleno: se lee como un timbre,
+          no como una alarma.</p>
+          <div class="usage">Doble filete azul · −4°</div>
+        </div>
+      </div>
+
+      <div class="srow">
+        <div class="sbox"><div class="st com" style="font-size:19px">COMÚN</div></div>
+        <div class="sinfo">
+          <h3>Común <small>8 de las 20 cartas</small></h3>
+          <p>Sello de <b>contorno fino en asfalto</b>, recto. Es el caso base: sin acento, sin giro, sin relleno.</p>
+          <div class="usage">Contorno simple · 0°</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="real">
+    <div class="real-l">
+      <h3>A tamaño real, en la mano</h3>
+      <p>El sello se lee sin abrir la carta y sin leer la palabra: la forma del borde ya dice si es
+      <b>común, rara o legendaria</b>. La escala es la misma en las tres; cambia el peso.</p>
+    </div>
+    <div class="real-s">
+      <div class="st com">COMÚN</div>
+      <div class="st rar">RARA</div>
+      <div class="st leg">LEGENDARIA</div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h4>Qué se arregló</h4>
+      <p>El dibujo del huracán es una <b>espiral real con ojo y escombros</b>, no una curva suelta. Entra en una
+      banda a sangre, así que ya no flota: ocupa el hueco entre el título y la regla, y la regla se lee en un
+      recuadro en vez de suelta sobre el papel.</p>
+    </div>
+    <div class="note">
+      <h4 class="alt">Regla del sello</h4>
+      <p>El sello se coloca siempre arriba a la derecha y <b>nunca cambia de sitio</b>: la mano se ordena sola
+      porque la vista aprende dónde mirar. El tamaño real son <b>9,5 px</b>; lo que crece es el peso, no el área.</p>
+    </div>
+  </div>
+
+  <footer>
+    <span>Dirección A · carta de giro · sin aprobar</span>
+    <span>Flip the Table · nombre provisional</span>
+  </footer>
+</body>
+</html>

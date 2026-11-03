@@ -206,7 +206,7 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Renta con grupo completo | Base × 2 |
 | Multiplicador de renta por nivel | × 2, × 3, × 5, × 8 y × 12 |
 | Coste por nivel de edificio | 50 % del precio |
-| Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Apagón y Embrujo); la zona completa y los edificios se aplican aparte |
+| Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Huelga y Embrujo); la zona completa y los edificios se aplican aparte |
 | Temporizador de decisión | 20 s |
 | Subasta | 15 s |
 | Voto del Tribunal | 10 s |

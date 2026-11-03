@@ -136,7 +136,7 @@ end)
 - Crear: `src/client/scenes/cards/` con una escena por cada carta rara y común, 15 en total.
 
 **Criterios de aceptación:**
-- [ ] Apagón: las luces y el neón de la zona se apagan de golpe.
+- [ ] Huelga: los locales bajan las persianas y la zona se queda en silencio.
 - [ ] Demolición: una bola de demolición golpea el edificio rival.
 - [ ] Inflación: los precios de los carteles suben y vuelan billetes.
 - [ ] Multa: un policía entrega el parte.

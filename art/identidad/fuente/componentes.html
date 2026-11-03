@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección A — Componentes aprobados</title>
+<style>
+  @font-face{font-family:'Luckiest';src:url('fonts/LuckiestGuy-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Oswald';src:url('fonts/Oswald.ttf') format('truetype');font-weight:200 700;font-display:block}
+  @font-face{font-family:'SourceSans';src:url('fonts/SourceSans3.ttf') format('truetype');font-weight:200 900;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{background:#23272C;color:#EDE5D3;font-family:'SourceSans',sans-serif;padding:0 76px;position:relative;overflow:hidden}
+  .curb{position:absolute;top:0;left:0;right:0;height:14px;background:#F5C518;z-index:3}
+  .curb::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 104px,#23272C 104px 120px);opacity:.22}
+
+  header{display:flex;align-items:flex-end;gap:24px;padding-top:56px}
+  .tag{flex:none;width:74px;height:74px;background:#F5C518;color:#23272C;display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald';font-weight:600;font-size:42px;line-height:1;border:3px solid #EDE5D3;border-radius:5px}
+  h1{font-family:'Oswald';font-weight:600;font-size:50px;line-height:1;letter-spacing:.03em}
+  .sub{margin-top:10px;font-size:17px;line-height:1.45;max-width:920px;color:#C9C3B7}
+  .sub b{color:#F5C518;font-weight:700}
+  .rule-line{margin-left:auto;text-align:right;font-family:'Oswald';font-weight:300;font-size:12.5px;letter-spacing:.16em;color:#8A8E95;line-height:1.95;text-transform:uppercase}
+
+  .row{display:flex;gap:74px;margin-top:38px;align-items:flex-start}
+  .slot{display:flex;flex-direction:column;gap:13px}
+  .cap{font-family:'Oswald';font-weight:500;font-size:12px;letter-spacing:.2em;color:#8A8E95;text-transform:uppercase}
+  .cap span{color:#F5C518}
+  .cap em{font-style:normal;color:#6E747B}
+
+  .card{width:380px;height:570px;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 12px 26px rgba(0,0,0,.38)}
+
+  /* escritura A2 */
+  .a2{background:#EDE5D3;border:3px solid #23272C}
+  .a2 .block{background:#C4382B;height:128px;position:relative;padding:0 20px;display:flex;flex-direction:column;justify-content:flex-end}
+  .a2 .block .zone{position:absolute;top:16px;left:20px;font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:rgba(237,229,211,.9)}
+  .a2 .block .sym{position:absolute;top:13px;right:18px;opacity:.9}
+  .a2 .block .name{font-family:'Oswald';font-weight:600;font-size:31px;line-height:1.02;letter-spacing:.04em;color:#EDE5D3;padding-bottom:18px}
+  .a2 .bar{background:#23272C;display:flex;align-items:center;justify-content:space-between;padding:9px 20px}
+  .a2 .bar .lab{font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:#8A8E95}
+  .a2 .bar .val{font-family:'Oswald';font-weight:600;font-size:33px;line-height:1;color:#EDE5D3;font-variant-numeric:tabular-nums}
+  .a2 .rents{padding:10px 20px 0}
+  .a2 .r{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid rgba(35,39,44,.12);position:relative}
+  .a2 .r .k{font-family:'SourceSans';font-size:12.5px;color:#3F444A}
+  .a2 .r .k b{font-weight:700;color:#23272C}
+  .a2 .r .v{font-family:'Oswald';font-weight:500;font-size:15.5px;color:#23272C;font-variant-numeric:tabular-nums}
+  .a2 .r.house{padding-left:13px}
+  .a2 .r.house::before{content:"";position:absolute;left:0;top:7px;bottom:7px;width:2px;background:rgba(196,56,43,.5)}
+  .a2 .r.top{border-bottom:2px solid #23272C}
+  .a2 .r.top .k b{color:#C4382B}
+  .a2 .build{margin:10px 20px 0;border:1.5px solid rgba(35,39,44,.3);border-radius:4px;padding:8px 10px;display:flex;justify-content:space-between}
+  .a2 .build .bk{font-family:'Oswald';font-weight:500;font-size:8.5px;letter-spacing:.2em;color:#5E646B}
+  .a2 .build .bv{font-family:'Oswald';font-weight:500;font-size:14px;color:#23272C;font-variant-numeric:tabular-nums}
+  .a2 .build .cell{display:flex;flex-direction:column;gap:3px;align-items:center}
+  .a2 .rnotes{margin:10px 20px 0;border:1.5px solid rgba(35,39,44,.3);border-radius:4px;padding:4px 12px}
+  .a2 .rn{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(35,39,44,.1)}
+  .a2 .rn:last-child{border-bottom:0}
+  .a2 .rk{font-family:'SourceSans';font-size:10.5px;color:#5E646B}
+  .a2 .rv{font-family:'Oswald';font-weight:600;font-size:13px;color:#C4382B;font-variant-numeric:tabular-nums}  .a2 .hot2{padding:10px 20px 0;font-family:'SourceSans';font-size:11.5px;color:#5E646B}
+  .a2 .hot2 b{font-weight:700;color:#C4382B}
+  .a2 .foot{position:absolute;left:0;right:0;bottom:0;height:38px;background:#23272C;color:#8A8E95;
+    display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+    font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase}
+
+  /* giro */
+  .giro{background:#EDE5D3;border:3px solid #23272C}
+  .g-top{padding:16px 20px 0;display:flex;justify-content:space-between;align-items:flex-start}
+  .g-aviso{font-family:'Oswald';font-weight:600;font-size:10px;letter-spacing:.3em;color:#23272C;padding-top:6px}
+  .g-title{font-family:'Luckiest';font-size:56px;line-height:.9;color:#23272C;margin:12px 20px 0}
+  .g-art{margin-top:14px;height:272px;border-top:2px solid #23272C;border-bottom:2px solid #23272C;position:relative;overflow:hidden}
+  .g-art svg{display:block;width:100%;height:100%}
+  .g-rule{margin:14px 20px 0;padding:11px 14px;border:2px solid rgba(35,39,44,.3);border-radius:4px}
+  .g-rule p{font-family:'SourceSans';font-size:13.5px;line-height:1.45;color:#3F444A}
+  .g-rule p b{font-weight:700;color:#23272C}
+  .g-meta{display:flex;justify-content:space-between;margin:12px 20px 0;font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.2em;color:#6E747B;text-transform:uppercase}
+  .g-foot{position:absolute;left:20px;right:20px;bottom:14px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.22em;color:#5E646B;text-transform:uppercase}
+
+  /* dorso */
+  .back{background:#23272C;border:3px solid #23272C;display:flex;align-items:center;justify-content:center}
+  .back .fr{position:absolute;inset:15px;border:1px solid rgba(237,229,211,.32)}
+  .back .fr2{position:absolute;inset:21px;border:1px solid rgba(237,229,211,.12)}
+  .back .corner{position:absolute;width:14px;height:14px;border:2px solid rgba(237,229,211,.35)}
+  .back .c1{top:15px;left:15px;border-right:0;border-bottom:0}
+  .back .c2{top:15px;right:15px;border-left:0;border-bottom:0}
+  .back .c3{bottom:15px;left:15px;border-right:0;border-top:0}
+  .back .c4{bottom:15px;right:15px;border-left:0;border-top:0}
+  .back .plate{background:#EDE5D3;width:252px;padding:22px 0 20px;text-align:center;border-radius:4px;position:relative;z-index:2}
+  .back .plate .word{font-family:'Luckiest';font-size:31px;line-height:1.06;color:#23272C}
+  .back .plate .met{margin-top:10px;font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:#7A5A14}
+  .back .seal{position:absolute;right:48px;bottom:112px;z-index:3;width:46px;height:46px;border:1.5px solid rgba(196,56,43,.8);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-9deg);
+    font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:.08em;color:rgba(196,56,43,.85)}
+  .back .under{position:absolute;bottom:52px;left:0;right:0;text-align:center;z-index:2}
+  .back .under .rule{width:56px;height:2px;background:#C4382B;margin:0 auto 12px}
+  .back .under .t{font-family:'Oswald';font-weight:400;font-size:9px;letter-spacing:.26em;color:#8A8E95;text-transform:uppercase}
+
+  /* sello */
+  .st{display:inline-block;font-family:'Oswald';font-weight:600;letter-spacing:.2em;text-transform:uppercase;
+    line-height:1;padding:.36em .8em .32em;border-radius:.24em;white-space:nowrap}
+  .st.com{font-size:11.5px;color:#23272C;border:.18em solid #23272C}
+  .st.rar{font-size:11.5px;color:#2C5C8A;border:.3em double #2C5C8A;transform:rotate(-4deg)}
+  .st.leg{font-size:11.5px;color:#EDE5D3;background:#C4382B;border:.2em solid #C4382B;
+    box-shadow:inset 0 0 0 .1em rgba(237,229,211,.9);transform:rotate(-7deg)}
+
+  /* pie compartido */
+  .shared{margin-top:34px;border-top:1px solid #3A4046;padding-top:22px;display:flex;gap:56px}
+  .sh{flex:1}
+  .sh h4{font-family:'Oswald';font-weight:500;font-size:11px;letter-spacing:.24em;color:#F5C518;text-transform:uppercase}
+  .sh p{margin-top:8px;font-family:'SourceSans';font-size:12.5px;line-height:1.55;color:#A8ABB1}
+  .sh p b{color:#EDE5D3;font-weight:700}
+  .stampsline{display:flex;gap:26px;align-items:center;margin-top:12px;background:#EDE5D3;border-radius:6px;padding:14px 20px;width:max-content}
+
+  .zones{margin-top:30px}
+  .zl{display:flex;align-items:baseline;gap:14px}
+  .zl h3{font-family:'Oswald';font-weight:500;font-size:12px;letter-spacing:.24em;color:#8A8E95;text-transform:uppercase}
+  .zl .ln{flex:1;height:1px;background:#3A4046}
+  .zl .nt{font-family:'SourceSans';font-size:12.5px;color:#8A8E95}
+  .zrow{display:flex;gap:14px;margin-top:12px}
+  .zc{flex:1;background:#1B1F23;border:1px solid #3B4249;border-radius:6px;overflow:hidden;padding-bottom:10px}
+  .zc .sw{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 15px}
+  .zc .nm{font-family:'Oswald';font-weight:600;font-size:16px;letter-spacing:.05em;padding:9px 15px 0}
+  .zc .hx{font-family:'SourceSans';font-size:10.5px;color:#8A8E95;padding:3px 15px 0}
+  .zc .bar{font-family:'Oswald';font-weight:400;font-size:9px;letter-spacing:.2em;color:#6E747B;padding:4px 15px 0;text-transform:uppercase}
+  footer{position:absolute;left:76px;right:76px;bottom:22px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:300;font-size:12px;letter-spacing:.14em;color:#6E747B;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <div class="curb"></div>
+
+  <header>
+    <div class="tag">A</div>
+    <div>
+      <h1>COMPONENTES</h1>
+      <p class="sub">Las tres piezas aprobadas el 2026-11-02: <b>escritura A2</b>, <b>carta de giro</b> y
+      <b>dorso</b>. Estructura de juego de mesa en el idioma de la calle, sin marca ajena.</p>
+    </div>
+    <div class="rule-line">380 × 570 px · relación 2:3<br>se escala con <i>UIScale</i></div>
+  </header>
+
+  <div class="row">
+    <div class="slot">
+      <div class="card a2">
+        <div class="block">
+          <div class="zone">CENTRO · ZONA 2</div>
+          <svg class="sym" width="17" height="17" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" fill="none" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div class="name">AV. CENTRAL<br>42</div>
+        </div>
+        <div class="bar"><div class="lab">PRECIO</div><div class="val">340</div></div>
+        <div class="rents">
+          <div class="r"><div class="k">Solar sin construir</div><div class="v">34</div></div>
+          <div class="r house"><div class="k">1 casa</div><div class="v">120</div></div>
+          <div class="r house"><div class="k">2 casas</div><div class="v">260</div></div>
+          <div class="r house"><div class="k">3 casas</div><div class="v">420</div></div>
+          <div class="r"><div class="k"><b>Hotel</b></div><div class="v">780</div></div>
+          <div class="r top"><div class="k"><b>Rascacielos</b></div><div class="v">1.100</div></div>
+        </div>
+        <div class="rnotes">
+          <div class="rn"><div class="rk">Zona completa del dueño</div><div class="rv">×2</div></div>
+          <div class="rn"><div class="rk">Casilla en Zona Caliente</div><div class="rv">×2</div></div>
+        </div>
+        <div class="foot"><span>Escritura</span><span>M-02 · 42</span></div>
+      </div>
+      <div class="cap">01 · <span>Escritura</span> <em>· A2</em></div>
+    </div>
+
+    <div class="slot">
+      <div class="card giro">
+        <div class="g-top">
+          <div class="g-aviso">AVISO</div>
+          <div class="st leg">LEGENDARIA</div>
+        </div>
+        <div class="g-title">HURACÁN</div>
+        <div class="g-art">
+          <svg viewBox="0 0 330 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <g fill="none" stroke="#23272C" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M 261.0 92.0 L 260.0 101.0 L 258.1 109.8 L 255.4 118.3 L 251.9 126.4 L 247.8 134.2 L 242.9 141.4 L 237.4 148.2 L 231.4 154.3 L 224.8 159.8 L 217.8 164.6 L 210.4 168.7 L 202.7 172.1 L 194.8 174.7 L 186.7 176.6 L 178.6 177.6 L 170.4 177.9 L 162.3 177.4 L 154.4 176.1 L 146.6 174.2 L 139.2 171.5 L 132.1 168.1 L 125.3 164.1 L 119.1 159.6 L 113.3 154.5 L 108.1 148.9 L 103.5 142.9 L 99.5 136.5 L 96.1 129.9 L 93.4 123.0 L 91.4 115.9 L 90.1 108.7 L 89.5 101.5 L 89.5 94.4 L 90.3 87.3 L 91.7 80.4 L 93.7 73.7 L 96.3 67.3 L 99.5 61.2 L 103.2 55.5 L 107.4 50.2 L 112.1 45.4 L 117.2 41.0 L 122.5 37.3 L 128.2 34.0 L 134.1 31.4 L 140.2 29.3 L 146.4 27.9 L 152.6 27.0 L 158.8 26.7 L 165.0 27.1 L 171.1 28.0 L 176.9 29.4 L 182.6 31.4 L 188.0 33.9 L 193.1 36.9 L 197.8 40.3 L 202.1 44.1 L 206.0 48.3 L 209.5 52.8 L 212.5 57.5 L 215.0 62.4 L 217.0 67.5 L 218.5 72.7 L 219.5 78.0 L 219.9 83.3 L 219.9 88.5 L 219.3 93.7 L 218.3 98.7 L 216.8 103.6 L 214.9 108.2 L 212.6 112.6 L 209.9 116.7 L 206.9 120.5 L 203.5 123.9 L 199.9 126.9 L 196.1 129.6 L 192.1 131.8 L 187.9 133.6 L 183.6 135.0 L 179.3 136.0 L 175.0 136.6 L 170.6 136.7 L 166.4 136.4 L 162.2 135.7 L 158.2 134.6 L 154.4 133.2 L 150.8 131.5 L 147.4 129.4 L 144.3 127.0 L 141.4 124.4 L 138.9 121.6 L 136.7 118.6 L 134.8 115.4 L 133.3 112.1 L 132.1 108.8 L 131.2 105.4 L 130.7 102.0 L 130.5 98.6 L 130.7 95.2 L 131.1 92.0 L 131.9 88.9 L 133.0 85.9 L 134.3 83.1 L 135.8 80.5 L 137.6 78.0 L 139.6 75.9 L 141.7 73.9 L 143.9 72.2 L 146.3 70.8 L 148.8 69.6 L 151.2 68.7 L 153.8 68.1 L 156.3 67.7 L 158.7 67.6 L 161.2 67.8 L 163.5 68.1 L 165.7 68.7 L 167.8 69.5 L 169.8 70.5 L 171.6 71.6 L 173.3 72.9 L 174.7 74.3 L 176.0 75.8 L 177.1 77.4 L 178.0 79.0 L 178.6 80.7 L 179.1 82.4 L 179.4 84.1 L 179.5 85.7 L 179.5 87.3 L 179.2 88.8 L 178.9 90.2 L 178.3 91.6 L 177.7 92.8 L 177.0 93.9 L 176.1 94.9 L 175.2 95.7 L 174.3 96.4 L 173.3 96.9 L 172.3 97.3" stroke-width="5"/>
+              <path d="M 87.0 92.0 L 87.7 86.1 L 88.8 80.3 L 90.4 74.6 L 92.4 69.1 L 94.8 63.8 L 97.6 58.8 L 100.7 54.0 L 104.2 49.5 L 108.0 45.2 L 112.0 41.4 L 116.4 37.8 L 120.9 34.6 L 125.7 31.8 L 130.6 29.4 L 135.7 27.4 L 140.8 25.8 L 146.1 24.6 L 151.4 23.8 L 156.7 23.5 L 161.9 23.5 L 167.1 23.9 L 172.3 24.8 L 177.3 26.0 L 182.2 27.6 L 186.9 29.5 L 191.4 31.8 L 195.7 34.4 L 199.7 37.3 L 203.5 40.5 L 207.0 43.9 L 210.2 47.6 L 213.1 51.5 L 215.7 55.5 L 217.9 59.7 L 219.8 64.1 L 221.3 68.5 L 222.5 73.0 L 223.3 77.6 L 223.8 82.1 L 223.9 86.7 L 223.7 91.2 L 223.1 95.7 L 222.2 100.0 L 220.9 104.2 L 219.4 108.3 L 217.5 112.3 L 215.4 116.0 L 213.0 119.5 L 210.4 122.9 L 207.6 125.9 L 204.5 128.8 L 201.3 131.3 L 197.9 133.6 L 194.3 135.6 L 190.7 137.3 L 187.0 138.7 L 183.2 139.8 L 179.4 140.6 L 175.5 141.1 L 171.7 141.3 L 167.9 141.2 L 164.1 140.8 L 160.5 140.1 L 156.9 139.1 L 153.4 137.9 L 150.1 136.5 L 146.9 134.8 L 144.0 132.8 L 141.2 130.7 L 138.5 128.4 L 136.2 125.9 L 134.0 123.3 L 132.0 120.5 L 130.3 117.7 L 128.9 114.7 L 127.7 111.6 L 126.7 108.6 L 126.0 105.4 L 125.6 102.3 L 125.4 99.2 L 125.4 96.1 L 125.7 93.1 L 126.2 90.1 L 126.9 87.2 L 127.8 84.4 L 129.0 81.7 L 130.3 79.2 L 131.8 76.8 L 133.5 74.5 L 135.3 72.4 L 137.3 70.5 L 139.3 68.8 L 141.5 67.2 L 143.8 65.9 L 146.1 64.7 L 148.5 63.7 L 150.9 63.0 L 153.3 62.4 L 155.7 62.1 L 158.1 61.9 L 160.5 61.9 L 162.9 62.2 L 165.1 62.6 L 167.3 63.1 L 169.5 63.9 L 171.5 64.7 L 173.4 65.8 L 175.2 66.9 L 176.9 68.2 L 178.4 69.6 L 179.8 71.0 L 181.1 72.6 L 182.2 74.2 L 183.1 75.9 L 183.9 77.6 L 184.6 79.3 L 185.1 81.1 L 185.4 82.8 L 185.6 84.6 L 185.7 86.3 L 185.6 88.0 L 185.3 89.6 L 185.0 91.2 L 184.5 92.7 L 184.0 94.1 L 183.3 95.5 L 182.5 96.7 L 181.6 97.9 L 180.7 99.0 L 179.7 99.9 L 178.7 100.8 L 177.6 101.5 L 176.5 102.1 L 175.3 102.6 L 174.2 103.0 L 173.1 103.3 L 171.9 103.5 L 170.8 103.6 L 169.7 103.5 L 168.7 103.4" stroke-width="3" opacity=".55"/>
+            </g>
+            <circle cx="165" cy="92" r="9" fill="#EDE5D3" stroke="#23272C" stroke-width="4"/>
+            <g stroke="#C4382B" stroke-width="3" stroke-linecap="round">
+              <path d="M28 34 L 62 34"/>
+              <path d="M28 34 L 28 60"/>
+            </g>
+            <g fill="#23272C" opacity=".55">
+              <rect x="286" y="150" width="14" height="5"/>
+              <rect x="306" y="164" width="8" height="4"/>
+              <rect x="40" y="168" width="18" height="5"/>
+            </g>
+            <g fill="#C4382B"><rect x="252" y="176" width="9" height="5"/></g>
+          </svg>
+        </div>
+        <div class="g-rule"><p>Todas las propiedades vuelven al banco. Sus dueños cobran <b>la mitad de su valor</b>.</p></div>
+        <div class="g-meta"><span>Afecta · todas las propiedades</span><span>Escena · 8 s</span></div>
+        <div class="g-foot"><span>Carta de giro</span><span>1 de 20</span></div>
+      </div>
+      <div class="cap">02 · <span>Carta de giro</span> <em>· legendaria</em></div>
+    </div>
+
+    <div class="slot">
+      <div class="card back">
+        <div class="fr"></div><div class="fr2"></div>
+        <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+        <div class="seal">M</div>
+        <div class="plate">
+          <div class="word">FLIP THE<br>TABLE</div>
+          <div class="met">METRÓPOLIS · MAPA 01</div>
+        </div>
+        <div class="under">
+          <div class="rule"></div>
+          <div class="t">20 cartas de giro</div>
+        </div>
+      </div>
+      <div class="cap">03 · <span>Dorso</span> <em>· único</em></div>
+    </div>
+  </div>
+
+  <div class="shared">
+    <div class="sh">
+      <h4>Una sola retícula</h4>
+      <p>Las tres piezas comparten tamaño, borde de 3 px, papel caliza y asfalto en el pie. Una carta y
+      una escritura se pueden mirar juntas sin que ninguna parezca de otro juego.</p>
+    </div>
+    <div class="sh">
+      <h4>Una sola regla de color</h4>
+      <p>El color de zona ocupa el <b>bloque de la escritura</b>; el rojo solo aparece cuando algo se
+      pierde o se sella; el amarillo no entra en las cartas —es del HUD y del turno—.</p>
+    </div>
+    <div class="sh">
+      <h4>La calidad, en el sello</h4>
+      <p>Siempre arriba a la derecha, siempre 11,5 px. Cambia el peso de la tinta, no el color de la carta.</p>
+      <div class="stampsline">
+        <div class="st com">COMÚN</div>
+        <div class="st rar">RARA</div>
+        <div class="st leg">LEGENDARIA</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="zones">
+    <div class="zl"><h3>Zona</h3><div class="ln"></div><div class="nt">color + símbolo + nombre: nunca solo color</div></div>
+    <div class="zrow">
+      <div class="zc">
+        <div class="sw" style="background:#C4382B">
+          <svg width="22" height="22" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" fill="none" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div style="font-family:'Oswald';font-size:9.5px;letter-spacing:.2em;color:rgba(237,229,211,.85)">ZONA 2</div>
+        </div>
+        <div class="nm">Ladrillo</div><div class="hx">#C4382B · RGB(196,56,43)</div><div class="bar">Centro</div>
+      </div>
+      <div class="zc">
+        <div class="sw" style="background:#3E8FC4">
+          <svg width="22" height="22" viewBox="0 0 26 26"><polygon points="13,3 24,23 2,23" fill="none" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div style="font-family:'Oswald';font-size:9.5px;letter-spacing:.2em;color:rgba(237,229,211,.85)">ZONA 7</div>
+        </div>
+        <div class="nm">Cielo</div><div class="hx">#3E8FC4 · RGB(62,143,196)</div><div class="bar">Puerto</div>
+      </div>
+      <div class="zc">
+        <div class="sw" style="background:#E0A93B">
+          <svg width="22" height="22" viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#23272C" stroke-width="3"/></svg>
+          <div style="font-family:'Oswald';font-size:9.5px;letter-spacing:.2em;color:rgba(35,39,44,.8)">ZONA 9</div>
+        </div>
+        <div class="nm">Trigo</div><div class="hx">#E0A93B · RGB(224,169,59)</div><div class="bar">Zona Alta</div>
+      </div>
+      <div class="zc">
+        <div class="sw" style="background:#1F5B45">
+          <svg width="22" height="22" viewBox="0 0 26 26"><path d="M4 22 L22 4" stroke="#EDE5D3" stroke-width="3"/><path d="M4 4 L22 22" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div style="font-family:'Oswald';font-size:9.5px;letter-spacing:.2em;color:rgba(237,229,211,.85)">PROHIBIDO</div>
+        </div>
+        <div class="nm">Verde fieltro</div><div class="hx">#1F5B45 · mesa de casino</div><div class="bar">Nunca, en ninguna pieza</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <span>Dirección A · componentes aprobados</span>
+    <span>Flip the Table · nombre provisional</span>
+  </footer>
+</body>
+</html>

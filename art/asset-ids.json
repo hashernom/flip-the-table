@@ -1,0 +1,61 @@
+{
+  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02. Las texturas CC0 salen de art/generators/fetch_cc0.ps1, la skybox de art/generators/pbr_assets.py y los modelos de art/blender/facade/build_facade.py subidos por Open Cloud. Si un asset se borra, se regenera, se sube y se actualiza este archivo.",
+  "skybox": {
+    "front": "rbxassetid://130728511009606",
+    "back": "rbxassetid://80764594111224",
+    "left": "rbxassetid://119522021872772",
+    "right": "rbxassetid://110426578506982",
+    "up": "rbxassetid://113330714001871",
+    "down": "rbxassetid://91237438205488"
+  },
+  "models": {
+    "facade_wall": "rbxassetid://70698494343538",
+    "facade_trim": "rbxassetid://103873536836124",
+    "facade_glass": "rbxassetid://109039875989083",
+    "nota": "Subidos por Open Cloud con content-type model/fbx. Llegan sin texturas: el material se aplica en Studio con MaterialVariant."
+  },
+  "cc0": {
+    "brick_red": {
+      "color": "rbxassetid://71677364092938",
+      "normal": "rbxassetid://132924241608465",
+      "roughness": "rbxassetid://104748136545976",
+      "fuente": "ambientCG Bricks097, CC0"
+    },
+    "brick_warm": {
+      "color": "rbxassetid://70949398469969",
+      "normal": "rbxassetid://95950472085988",
+      "roughness": "rbxassetid://115976051933338",
+      "fuente": "ambientCG Bricks042, CC0"
+    },
+    "concrete": {
+      "color": "rbxassetid://111200245070453",
+      "normal": "rbxassetid://137076655980555",
+      "roughness": "rbxassetid://79369376727167",
+      "fuente": "ambientCG Concrete034, CC0"
+    },
+    "asphalt": {
+      "color": "rbxassetid://127396582316127",
+      "normal": "rbxassetid://89752594019417",
+      "roughness": "rbxassetid://137425056226224",
+      "fuente": "ambientCG Asphalt012, CC0"
+    }
+  },
+  "procedural": {
+    "limestone": {
+      "albedo": "rbxassetid://114375194063151",
+      "roughness": "rbxassetid://128913742934911",
+      "normal": "rbxassetid://130288238810852",
+      "nota": "Textura generada por código. Sustituible por CC0 cuando se decida el estilo de la Zona Alta."
+    }
+  },
+  "obsoletos_2026_11_02": {
+    "_nota": "Sustituidos al rehacer el cielo y el ladrillo. Se pueden borrar de la cuenta.",
+    "ids": [
+      "rbxassetid://91487453005421",
+      "rbxassetid://139623111065709",
+      "rbxassetid://134844213584077",
+      "rbxassetid://98940203231630",
+      "rbxassetid://117145705650698"
+    ]
+  }
+}

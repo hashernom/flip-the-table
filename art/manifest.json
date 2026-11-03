@@ -1,0 +1,81 @@
+{
+  "assets": [
+    {
+      "id": "facade-reference",
+      "category": "Building",
+      "source": "art/blender/facade/build_facade.py",
+      "triangles": 2074,
+      "lods": [
+        790
+      ],
+      "textures": 6,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/facade/build_facade.py",
+      "assetId": "rbxassetid://70698494343538"
+    },
+    {
+      "id": "house",
+      "category": "Building",
+      "source": "art/blender/blockout/build_blockout.py",
+      "triangles": 324,
+      "lods": [
+        162
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    },
+    {
+      "id": "office",
+      "category": "Building",
+      "source": "art/blender/blockout/build_blockout.py",
+      "triangles": 308,
+      "lods": [
+        154
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    },
+    {
+      "id": "skyscraper",
+      "category": "Building",
+      "source": "art/blender/blockout/build_blockout.py",
+      "triangles": 660,
+      "lods": [
+        330
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    },
+    {
+      "id": "taxi-token",
+      "category": "Token",
+      "source": "art/blender/blockout/build_blockout.py",
+      "triangles": 892,
+      "lods": [
+        446
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    },
+    {
+      "id": "city-backdrop",
+      "category": "CityBackdrop",
+      "source": "art/blender/blockout/build_blockout.py",
+      "triangles": 60,
+      "lods": [],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    }
+  ]
+}

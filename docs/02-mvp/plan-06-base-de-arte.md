@@ -41,7 +41,7 @@
 1. Se marca como aprobado un asset sin revisión en el juego: el manifiesto lo rechaza. Prueba en Tarea 2.
 2. Un asset supera su presupuesto de triángulos: la comprobación falla y lo nombra. Prueba en Tarea 2.
 3. Un asset generado con IA recuerda a una marca existente: la revisión lo detecta. Criterio en Tarea 2.
-4. Los materiales se ven bien de noche pero no con calidad gráfica baja en móvil. Prueba en Tarea 3.
+4. Los materiales se ven bien con calidad gráfica alta pero se apagan con la mínima en móvil. Prueba en Tarea 3.
 5. Un asset no tiene versión de menor detalle: la comprobación falla. Prueba en Tarea 2.
 
 ---
@@ -58,9 +58,9 @@
 
 **Criterios de aceptación:**
 - [ ] La identidad visual (logo y títulos, fuentes, colores y jerarquía) se desarrolla siguiendo la skill `impeccable`.
-- [ ] Define la paleta neón y oro de Metrópolis de Noche, con sus valores de color.
+- [ ] Define la paleta de Metrópolis con luz de día, con sus valores de color: piedra caliza, ladrillo, cristal azul y oro.
 - [ ] Define el tratamiento del título del juego, las fuentes y sus usos, y comprueba que existan o se puedan usar en Roblox.
-- [ ] Define la biblioteca de materiales: asfalto mojado, cristal, metal pulido, oro, neón y hormigón.
+- [ ] Define la biblioteca de materiales: asfalto seco, caliza, ladrillo, cristal, acero pulido, oro y agua.
 - [ ] Define el aspecto de Centro, Puerto, Zona Alta e Industrial, para que se distingan de un vistazo.
 - [ ] Incluye la escala de las fichas respecto a calles y edificios.
 - [ ] Aclara qué evitar: el logo, el personaje y el diseño de tablero del juego original, y símbolos de casino.
@@ -133,7 +133,7 @@ end)
 
 - Una calle con una zona: 2 o 3 solares, con sus versiones de una a tres casas, hotel y rascacielos.
 - La ficha taxi con un avatar montado.
-- Iluminación, reflejos, neón y sonido de ambiente.
+- Luz de día, sombras duras, reflejos de cristal y sonido de ambiente.
 - Vista desde primera persona, seguimiento y maqueta.
 - La escena completa del arresto, con policías y patrulla.
 

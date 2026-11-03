@@ -1,0 +1,11 @@
+{
+  "triangles": 2074,
+  "lod_triangles": 790,
+  "dimensions": {
+    "width": 20.0,
+    "height": 25.0,
+    "depth": 3.0
+  },
+  "windows": 12,
+  "floors": 4
+}

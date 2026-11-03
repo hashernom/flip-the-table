@@ -41,7 +41,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 
 **Tono:** juguetón y caricaturesco, apto para todo público. El juego celebra la traición y la ruina ajena con humor, sin crueldad; los arrestos parecen de dibujos animados.
 
-**Mapa del MVP: Metrópolis de Noche.** Una ciudad con neón y oro, elegida porque es el tema que mejor luce brillos, reflejos y efectos.
+**Mapa del MVP: Metrópolis.** Una ciudad de día, con sol y sombras duras: Centro y Puerto con la densidad de Manhattan, y la Zona Alta con torres de cristal y oro. Se descarta la ciudad nocturna de neón: los visuales son el punto fuerte del juego y la luz de día no deja esconder detalle barato.
 
 ### Toda regla importante es una escena
 
@@ -54,7 +54,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 | Terremoto | Las calles se agrietan y los edificios de una zona se derrumban un nivel |
 | Mundo al Revés | La ciudad gira en el aire y cada ficha cae en una casilla distinta |
 | Revolución | Una multitud toma las calles y camiones blindados cambian el dinero de manos |
-| Apagón | Las luces y el neón de una zona se apagan de golpe |
+| Huelga | Los locales bajan las persianas, se apagan los carteles y la zona se queda en silencio |
 | Demolición | Una bola de demolición golpea el edificio rival |
 | Construir | Llega una grúa y el edificio crece a toda velocidad |
 | Bancarrota | Una grúa se lleva tu ficha y tu avatar se vuelve espectro |
@@ -121,7 +121,7 @@ Caes en una casilla Giro, robas una carta y la guardas; tu mano tiene un máximo
 | Terremoto | Legendaria | Todos los edificios de una zona bajan un nivel |
 | Golpe a la Corona | Legendaria | El líder pierde 25 % de su efectivo, repartido entre los demás |
 | Inflación | Rara | Todas las rentas se duplican durante 2 rondas |
-| Apagón | Rara | Una zona no cobra renta durante 2 rondas |
+| Huelga | Rara | Una zona no cobra renta durante 2 rondas |
 | Renta Rebotada | Rara | Reacción: la próxima renta que te cobren la paga otro jugador que elijas |
 | Ladrón de Escrituras | Rara | Robas una propiedad sin edificios que no complete un grupo |
 | Puñalada | Rara | Rompes un pacto tuyo sin coste y te quedas con la garantía |
@@ -233,7 +233,7 @@ En ambos modos, quien se arruina sigue jugando como espectro y puede resucitar, 
 
 | Área | Qué incluye |
 | --- | --- |
-| Mapa | Metrópolis de Noche, con 3 tamaños: 40, 48 y 56 casillas |
+| Mapa | Metrópolis, con 3 tamaños: 40, 48 y 56 casillas |
 | Vistas | Primera persona, cámara compartida de turno y vista general en maqueta |
 | Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), intercambios y bancarrota |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos |
@@ -324,7 +324,8 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | Todo el grupo ve turnos y eventos, como en Mario Party | Tuya |
 | Assets propios y pulidos en Blender o similar | Tuya |
 | Construcción con agentes | Tuya |
-| Nombre provisional y Metrópolis de Noche como primer mapa | Propuesta mía |
+| Nombre provisional y Metrópolis como primer mapa | Propuesta mía |
+| Metrópolis de día, sin neón: Centro y Puerto estilo Manhattan, Zona Alta de cristal y oro | Tuya |
 | Cartas, perks, casillas, pactos, Furia y Espectros concretos | Propuesta mía |
 | Tamaños, rondas, duración y objetivos numéricos | Propuesta mía, a ajustar en pruebas |
 | Tablero base de 40 casillas con 22 propiedades y 8 zonas de 2 y 3 propiedades | Tuya |
@@ -346,5 +347,6 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 
 - [ ] Elegir el nombre definitivo y comprobar que esté disponible.
 - [ ] Re-medir las rondas con los tableros de 40, 48 y 56.
+- [ ] Renombrar el id `Blackout` del motor a `Strike`: la ficción de la carta pasa a Huelga.
 
 Fuente de la norma de azar: [guía de experiencias de Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines), consultada el 1 de noviembre de 2026.

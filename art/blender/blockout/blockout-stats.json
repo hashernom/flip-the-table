@@ -1,0 +1,151 @@
+{
+  "scale": {
+    "unit": "stud",
+    "floor": 7.0,
+    "street_width": 34.0,
+    "sidewalk": 7.0,
+    "lot_front": 18.0,
+    "lot_depth": 22.0,
+    "token_base_diameter": 6.0,
+    "token_height": 9.0,
+    "avatar_height": 6.0,
+    "first_person_eye": 14.1,
+    "floors": {
+      "house": 2,
+      "office": 5,
+      "skyscraper": 12
+    }
+  },
+  "assets": {
+    "house": {
+      "id": "house",
+      "triangles": 324,
+      "dimensions_studs": {
+        "x": 15.0,
+        "y": 17.0,
+        "z": 15.2
+      },
+      "materials": [
+        "clay_tile",
+        "gold",
+        "plaster"
+      ],
+      "position": {
+        "x": -18.0,
+        "y": 35.0,
+        "z": 0.0
+      },
+      "lod_triangles": 162,
+      "lod_meshes": [
+        "house_LOD1"
+      ]
+    },
+    "office": {
+      "id": "office",
+      "triangles": 308,
+      "dimensions_studs": {
+        "x": 15.0,
+        "y": 18.3,
+        "z": 36.5
+      },
+      "materials": [
+        "concrete",
+        "glass",
+        "metal_polished"
+      ],
+      "position": {
+        "x": 0.0,
+        "y": 35.0,
+        "z": 0.0
+      },
+      "lod_triangles": 154,
+      "lod_meshes": [
+        "office_LOD1"
+      ]
+    },
+    "skyscraper": {
+      "id": "skyscraper",
+      "triangles": 660,
+      "dimensions_studs": {
+        "x": 18.0,
+        "y": 22.25,
+        "z": 92.0
+      },
+      "materials": [
+        "concrete",
+        "glass",
+        "gold",
+        "neon_cyan"
+      ],
+      "position": {
+        "x": 18.0,
+        "y": 35.0,
+        "z": 0.0
+      },
+      "lod_triangles": 330,
+      "lod_meshes": [
+        "skyscraper_LOD1"
+      ]
+    },
+    "taxi-token": {
+      "id": "taxi-token",
+      "triangles": 892,
+      "dimensions_studs": {
+        "x": 6.0,
+        "y": 6.0,
+        "z": 9.0
+      },
+      "materials": [
+        "glass",
+        "gold",
+        "neon_cyan",
+        "taxi_paint"
+      ],
+      "position": {
+        "x": -40.0,
+        "y": 0.0,
+        "z": 0.25
+      },
+      "lod_triangles": 446,
+      "lod_meshes": [
+        "taxi-token_LOD1"
+      ]
+    },
+    "street": {
+      "id": "street",
+      "triangles": 192,
+      "dimensions_studs": {
+        "x": 200.0,
+        "y": 48.0,
+        "z": 0.8
+      },
+      "materials": [
+        "asphalt_wet",
+        "gold",
+        "sidewalk"
+      ],
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    },
+    "city-backdrop": {
+      "id": "city-backdrop",
+      "triangles": 60,
+      "dimensions_studs": {
+        "x": 166.0,
+        "y": 32.0,
+        "z": 52.0
+      },
+      "materials": [
+        "backdrop"
+      ],
+      "position": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+      }
+    }
+  }
+}

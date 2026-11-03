@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección A — Escrituras y dorso</title>
+<style>
+  @font-face{font-family:'Luckiest';src:url('fonts/LuckiestGuy-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Oswald';src:url('fonts/Oswald.ttf') format('truetype');font-weight:200 700;font-display:block}
+  @font-face{font-family:'SourceSans';src:url('fonts/SourceSans3.ttf') format('truetype');font-weight:200 900;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{background:#23272C;color:#EDE5D3;font-family:'SourceSans',sans-serif;padding:0 76px;position:relative;overflow:hidden}
+  .curb{position:absolute;top:0;left:0;right:0;height:14px;background:#F5C518;z-index:3}
+  .curb::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0 104px,#23272C 104px 120px);opacity:.22}
+
+  header{display:flex;align-items:flex-end;gap:24px;padding-top:54px}
+  .tag{flex:none;width:74px;height:74px;background:#F5C518;color:#23272C;display:flex;align-items:center;justify-content:center;
+    font-family:'Oswald';font-weight:600;font-size:42px;line-height:1;border:3px solid #EDE5D3;border-radius:5px}
+  h1{font-family:'Oswald';font-weight:600;font-size:50px;line-height:1;letter-spacing:.03em}
+  .sub{margin-top:10px;font-size:17px;line-height:1.45;max-width:900px;color:#C9C3B7}
+  .sub b{color:#F5C518;font-weight:700}
+  .rule-line{margin-left:auto;text-align:right;font-family:'Oswald';font-weight:300;font-size:12.5px;letter-spacing:.16em;color:#8A8E95;line-height:1.95;text-transform:uppercase}
+
+  .row{display:flex;gap:54px;margin-top:36px;align-items:flex-start}
+  .slot{display:flex;flex-direction:column;gap:12px}
+  .cap{font-family:'Oswald';font-weight:500;font-size:12px;letter-spacing:.2em;color:#8A8E95;text-transform:uppercase}
+  .cap span{color:#F5C518}
+  .cap em{font-style:normal;color:#6E747B}
+
+  .card{width:380px;height:570px;border-radius:8px;overflow:hidden;position:relative;box-shadow:0 12px 26px rgba(0,0,0,.38)}
+
+  /* ---------- A1: la actual ---------- */
+  .a1{background:#EDE5D3;border:3px solid #23272C}
+  .a1 .head{background:#23272C;color:#EDE5D3;padding:14px 18px 15px}
+  .a1 .head .name{font-family:'Oswald';font-weight:600;font-size:26px;line-height:1.04;letter-spacing:.05em}
+  .a1 .head .zone{margin-top:7px;font-family:'Oswald';font-weight:400;font-size:10.5px;letter-spacing:.22em;color:#F5C518}
+  .a1 .band{height:20px;background:#C4382B;display:flex;align-items:center;justify-content:space-between;padding:0 16px}
+  .a1 .band .zt{font-family:'Oswald';font-weight:500;font-size:9px;letter-spacing:.26em;color:rgba(255,255,255,.85)}
+  .a1 .price{display:flex;align-items:baseline;justify-content:space-between;padding:17px 18px 12px;border-bottom:1px solid rgba(35,39,44,.22)}
+  .a1 .price .lab{font-family:'Oswald';font-weight:500;font-size:10px;letter-spacing:.22em;color:#5E646B;text-transform:uppercase}
+  .a1 .price .val{font-family:'Oswald';font-weight:600;font-size:40px;line-height:.85;color:#23272C;font-variant-numeric:tabular-nums}
+  .a1 .rents{padding:4px 18px}
+  .a1 .r{display:flex;justify-content:space-between;align-items:baseline;padding:7.5px 0;border-bottom:1px solid rgba(35,39,44,.1)}
+  .a1 .r:last-child{border-bottom:0}
+  .a1 .r .k{font-family:'SourceSans';font-size:13.5px;color:#3F444A}
+  .a1 .r .k b{font-weight:700;color:#23272C}
+  .a1 .r .v{font-family:'Oswald';font-weight:500;font-size:16.5px;color:#23272C;font-variant-numeric:tabular-nums}
+  .a1 .r.top .k b{color:#C4382B}
+  .a1 .hot{padding:8px 18px 0;font-family:'SourceSans';font-size:11.5px;color:#5E646B}
+  .a1 .hot b{font-weight:700;color:#C4382B}
+  .a1 .seal{position:absolute;right:20px;bottom:70px;transform:rotate(-6deg);border:2px solid rgba(35,39,44,.32);
+    border-radius:4px;padding:5px 9px;font-family:'Oswald';font-weight:600;font-size:8.5px;letter-spacing:.18em;
+    color:rgba(35,39,44,.42);text-transform:uppercase}
+  .a1 .foot{position:absolute;left:0;right:0;bottom:0;height:36px;background:#23272C;color:#8A8E95;
+    display:flex;align-items:center;justify-content:space-between;padding:0 18px;
+    font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase}
+
+  /* ---------- A2: propuesta nueva ---------- */
+  .a2{background:#EDE5D3;border:3px solid #23272C}
+  .a2 .block{background:#C4382B;height:150px;position:relative;padding:0 20px;display:flex;flex-direction:column;justify-content:flex-end}
+  .a2 .block .zone{position:absolute;top:16px;left:20px;font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:rgba(237,229,211,.9)}
+  .a2 .block .sym{position:absolute;top:13px;right:18px;opacity:.9}
+  .a2 .block .name{font-family:'Oswald';font-weight:600;font-size:31px;line-height:1.02;letter-spacing:.04em;color:#EDE5D3;padding-bottom:18px}
+  .a2 .bar{background:#23272C;display:flex;align-items:center;justify-content:space-between;padding:9px 20px}
+  .a2 .bar .lab{font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:#8A8E95}
+  .a2 .bar .val{font-family:'Oswald';font-weight:600;font-size:33px;line-height:1;color:#EDE5D3;font-variant-numeric:tabular-nums}
+  .a2 .rents{padding:10px 20px 0}
+  .a2 .r{display:flex;justify-content:space-between;align-items:baseline;padding:8px 0;border-bottom:1px solid rgba(35,39,44,.12)}
+  .a2 .r .k{font-family:'SourceSans';font-size:13.5px;color:#3F444A}
+  .a2 .r .k b{font-weight:700;color:#23272C}
+  .a2 .r .v{font-family:'Oswald';font-weight:500;font-size:17px;color:#23272C;font-variant-numeric:tabular-nums}
+  .a2 .r.top{border-bottom:2px solid #23272C}
+  .a2 .r.top .k b{color:#C4382B}
+  .a2 .build{margin:12px 20px 0;border:1.5px solid rgba(35,39,44,.3);border-radius:4px;padding:8px 10px;display:flex;justify-content:space-between}
+  .a2 .build .bk{font-family:'Oswald';font-weight:500;font-size:8.5px;letter-spacing:.2em;color:#5E646B}
+  .a2 .build .bv{font-family:'Oswald';font-weight:500;font-size:14px;color:#23272C;font-variant-numeric:tabular-nums}
+  .a2 .build .cell{display:flex;flex-direction:column;gap:3px;align-items:center}
+  .a2 .foot{position:absolute;left:0;right:0;bottom:0;height:38px;background:#23272C;color:#8A8E95;
+    display:flex;align-items:center;justify-content:space-between;padding:0 20px;
+    font-family:'Oswald';font-weight:400;font-size:8.5px;letter-spacing:.22em;text-transform:uppercase}
+
+  /* ---------- dorso ---------- */
+  .back{background:#23272C;border:3px solid #23272C;display:flex;align-items:center;justify-content:center}
+  .back .fr{position:absolute;inset:15px;border:1px solid rgba(237,229,211,.32)}
+  .back .fr2{position:absolute;inset:21px;border:1px solid rgba(237,229,211,.12)}
+  .back .corner{position:absolute;width:14px;height:14px;border:2px solid rgba(237,229,211,.35)}
+  .back .c1{top:15px;left:15px;border-right:0;border-bottom:0}
+  .back .c2{top:15px;right:15px;border-left:0;border-bottom:0}
+  .back .c3{bottom:15px;left:15px;border-right:0;border-top:0}
+  .back .c4{bottom:15px;right:15px;border-left:0;border-top:0}
+  .back .plate{background:#EDE5D3;width:252px;padding:22px 0 20px;text-align:center;border-radius:4px;position:relative;z-index:2}
+  .back .plate .word{font-family:'Luckiest';font-size:31px;line-height:1.06;color:#23272C}
+  .back .plate .met{margin-top:10px;font-family:'Oswald';font-weight:500;font-size:9.5px;letter-spacing:.26em;color:#7A5A14}
+  .back .under{position:absolute;bottom:52px;left:0;right:0;text-align:center;z-index:2}
+  .back .under .rule{width:56px;height:2px;background:#C4382B;margin:0 auto 12px}
+  .back .under .t{font-family:'Oswald';font-weight:400;font-size:9px;letter-spacing:.26em;color:#8A8E95;text-transform:uppercase}
+
+  /* ---------- notas ---------- */
+  .notes{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-top:34px}
+  .note{background:#1B1F23;border:1px solid #3B4249;border-radius:6px;padding:16px 18px 18px}
+  .note h4{font-family:'Oswald';font-weight:500;font-size:11px;letter-spacing:.24em;color:#F5C518;text-transform:uppercase}
+  .note h4.alt{color:#8A8E95}
+  .note p{margin-top:9px;font-family:'SourceSans';font-size:12.5px;line-height:1.55;color:#C9C3B7}
+  .note p b{font-weight:700;color:#EDE5D3}
+
+  .a2 .hot2{padding:10px 20px 0;font-family:'SourceSans';font-size:11.5px;color:#5E646B}
+  .a2 .hot2 b{font-weight:700;color:#C4382B}
+  .back .seal{position:absolute;right:48px;bottom:112px;z-index:3;width:46px;height:46px;border:1.5px solid rgba(196,56,43,.8);
+    border-radius:50%;display:flex;align-items:center;justify-content:center;transform:rotate(-9deg);
+    font-family:'Oswald';font-weight:600;font-size:14px;letter-spacing:.08em;color:rgba(196,56,43,.85)}
+  .hand{display:flex;gap:56px;align-items:flex-start;margin-top:30px;border-top:1px solid #3A4046;padding-top:24px}
+  .hand-l{width:470px;flex:none}
+  .hand-l h3{font-family:'Oswald';font-weight:500;font-size:12px;letter-spacing:.24em;color:#F5C518;text-transform:uppercase}
+  .hand-l p{margin-top:9px;font-family:'SourceSans';font-size:12.5px;line-height:1.55;color:#A8ABB1}
+  .hand-l p b{color:#EDE5D3;font-weight:700}
+  .minis{display:flex;gap:16px}
+  .mini{width:152px;height:154px;background:#EDE5D3;border:2px solid #23272C;border-radius:5px;overflow:hidden;
+    display:flex;flex-direction:column;box-shadow:0 8px 18px rgba(0,0,0,.3)}
+  .mini .mb{height:64px;padding:0 11px;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
+  .mini .mb svg{position:absolute;top:9px;right:9px;opacity:.85}
+  .mini .mn{font-family:'Oswald';font-weight:600;font-size:15px;line-height:1.02;color:#EDE5D3;padding-bottom:9px;letter-spacing:.02em}
+  .mini .mp{font-family:'Oswald';font-weight:600;font-size:24px;color:#23272C;padding:10px 11px 0;font-variant-numeric:tabular-nums}
+  .mini .mr{margin-top:auto;border-top:1px solid rgba(35,39,44,.22);padding:7px 11px;display:flex;justify-content:space-between;
+    font-family:'SourceSans';font-size:8px;color:#5E646B;text-transform:uppercase;letter-spacing:.06em}
+  footer{position:absolute;left:76px;right:76px;bottom:22px;display:flex;justify-content:space-between;
+    font-family:'Oswald';font-weight:300;font-size:12px;letter-spacing:.14em;color:#6E747B;text-transform:uppercase}
+</style>
+</head>
+<body>
+  <div class="curb"></div>
+
+  <header>
+    <div class="tag">A</div>
+    <div>
+      <h1>ESCRITURAS Y DORSO</h1>
+      <p class="sub">Dos formas de la misma escritura y un dorso que ya no mezcla amarillo con gris:
+      <b>el amarillo deja de decorar y vuelve a señalar</b>. El dorso se resuelve con el par que sí
+      funciona en esta identidad —asfalto, caliza y un filete rojo—.</p>
+    </div>
+    <div class="rule-line">380 × 570 px · relación 2:3<br>se escala con <i>UIScale</i></div>
+  </header>
+
+  <div class="row">
+    <div class="slot">
+      <div class="card a1">
+        <div class="head">
+          <div class="name">AV. CENTRAL<br>42</div>
+          <div class="zone">CENTRO · ZONA 2</div>
+        </div>
+        <div class="band">
+          <svg width="10" height="10" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" fill="none" stroke="#fff" stroke-width="4"/></svg>
+          <div class="zt">LADRILLO</div>
+        </div>
+        <div class="price"><div class="lab">Precio</div><div class="val">340</div></div>
+        <div class="rents">
+          <div class="r"><div class="k">Solar sin construir</div><div class="v">34</div></div>
+          <div class="r"><div class="k">Con <b>casa</b></div><div class="v">120</div></div>
+          <div class="r"><div class="k">Con <b>edificio</b></div><div class="v">420</div></div>
+          <div class="r top"><div class="k">Con <b>rascacielos</b></div><div class="v">1.100</div></div>
+        </div>
+        <div class="hot">Si la casilla es <b>Zona Caliente</b>, la renta se duplica.</div>
+        <div class="seal">Registrada · Centro</div>
+        <div class="foot"><span>Escritura</span><span>M-02 · 42</span></div>
+      </div>
+      <div class="cap">A1 · <span>la actual</span> <em>· la franja fina</em></div>
+    </div>
+
+    <div class="slot">
+      <div class="card a2">
+        <div class="block">
+          <div class="zone">CENTRO · ZONA 2</div>
+          <svg class="sym" width="17" height="17" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" fill="none" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div class="name">AV. CENTRAL<br>42</div>
+        </div>
+        <div class="bar"><div class="lab">PRECIO</div><div class="val">340</div></div>
+        <div class="rents">
+          <div class="r"><div class="k">Solar sin construir</div><div class="v">34</div></div>
+          <div class="r"><div class="k">Con <b>casa</b></div><div class="v">120</div></div>
+          <div class="r"><div class="k">Con <b>edificio</b></div><div class="v">420</div></div>
+          <div class="r top"><div class="k">Con <b>rascacielos</b></div><div class="v">1.100</div></div>
+        </div>
+        <div class="build">
+          <div class="cell"><div class="bk">CASA</div><div class="bv">120</div></div>
+          <div class="cell"><div class="bk">EDIFICIO</div><div class="bv">340</div></div>
+          <div class="cell"><div class="bk">TORRE</div><div class="bv">800</div></div>
+        </div>
+        <div class="hot2">Si la casilla es <b>Zona Caliente</b>, la renta se duplica.</div>
+        <div class="foot"><span>Escritura</span><span>M-02 · 42</span></div>
+      </div>
+      <div class="cap">A2 · <span>propuesta</span> <em>· bloque de color a sangre</em></div>
+    </div>
+
+    <div class="slot">
+      <div class="card back">
+        <div class="fr"></div><div class="fr2"></div>
+        <div class="corner c1"></div><div class="corner c2"></div><div class="corner c3"></div><div class="corner c4"></div>
+        <div class="seal">M</div>
+        <div class="plate">
+          <div class="word">FLIP THE<br>TABLE</div>
+          <div class="met">METRÓPOLIS · MAPA 01</div>
+        </div>
+        <div class="under">
+          <div class="rule"></div>
+          <div class="t">20 cartas de giro</div>
+        </div>
+      </div>
+      <div class="cap">D · <span>dorso nuevo</span> <em>· sin amarillo</em></div>
+    </div>
+  </div>
+
+  <div class="hand">
+    <div class="hand-l">
+      <h3>La misma escritura, tres barrios</h3>
+      <p>El bloque de color cambia con la zona y el resto no se mueve: nombre, precio y tabla están
+      siempre en el mismo sitio. Es lo que <b>una franja de 20 px no consigue</b> — a tamaño de mano,
+      la franja desaparece y el bloque se ve.</p>
+    </div>
+    <div class="minis">
+      <div class="mini">
+        <div class="mb" style="background:#C4382B">
+          <svg width="13" height="13" viewBox="0 0 26 26"><rect x="3" y="3" width="20" height="20" fill="none" stroke="#EDE5D3" stroke-width="4"/></svg>
+          <div class="mn">AV. CENTRAL</div>
+        </div>
+        <div class="mp">340</div>
+        <div class="mr"><span>Centro</span><span>Z2</span></div>
+      </div>
+      <div class="mini">
+        <div class="mb" style="background:#3E8FC4">
+          <svg width="13" height="13" viewBox="0 0 26 26"><polygon points="13,3 24,23 2,23" fill="none" stroke="#EDE5D3" stroke-width="3"/></svg>
+          <div class="mn">MUELLE 7</div>
+        </div>
+        <div class="mp">420</div>
+        <div class="mr"><span>Puerto</span><span>Z7</span></div>
+      </div>
+      <div class="mini">
+        <div class="mb" style="background:#E0A93B">
+          <svg width="13" height="13" viewBox="0 0 26 26"><circle cx="13" cy="13" r="10" fill="none" stroke="#23272C" stroke-width="3"/></svg>
+          <div class="mn">TORRE ORO</div>
+        </div>
+        <div class="mp">560</div>
+        <div class="mr"><span>Zona Alta</span><span>Z9</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="notes">
+    <div class="note">
+      <h4>Qué cambia en A2</h4>
+      <p>El color de la zona pasa de <b>franja de 20 px a bloque de 150</b>: se ve desde lejos y ordena la mano. Debajo, la <b>barra de precio</b> en asfalto, y una fila nueva con el <b>coste de construir</b> cada nivel, que es lo que se consulta a mitad de partida.</p>
+    </div>
+    <div class="note">
+      <h4 class="alt">Por qué el dorso cambia</h4>
+      <p>El amarillo estaba decorando, y en esta identidad el amarillo solo señala lo que el jugador puede hacer. El dorso vuelve al par que ya funciona —<b>asfalto y caliza</b>— con un <b>filete rojo</b> y marco de documento. Sigue sin delatar qué carta es.</p>
+    </div>
+    <div class="note">
+      <h4 class="alt">Cómo se elige</h4>
+      <p><b>A2</b> lee como carta de mesa al primer golpe de vista, que es lo que pediste. <b>A1</b> lee como señal de calle: más sobria y más rara dentro del género. Las dos usan la misma tipografía y la misma tabla: cambiar de una a otra no obliga a rehacer nada más.</p>
+    </div>
+  </div>
+
+  <footer>
+    <span>Dirección A · escrituras · sin aprobar</span>
+    <span>Flip the Table · nombre provisional</span>
+  </footer>
+</body>
+</html>

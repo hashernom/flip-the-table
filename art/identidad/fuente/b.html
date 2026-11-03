@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Dirección B — Maqueta</title>
+<style>
+  @font-face{font-family:'Michroma';src:url('fonts/Michroma-Regular.ttf') format('truetype');font-weight:400;font-display:block}
+  @font-face{font-family:'Merri';src:url('fonts/Merriweather.ttf') format('truetype');font-weight:300 900;font-stretch:50% 200%;font-display:block}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:2000px;height:1300px}
+  body{background:#E7E4DA;color:#33383D;font-family:'Merri',serif;padding:0 76px;position:relative;overflow:hidden}
+  .brass{position:absolute;top:0;left:0;right:0;height:10px;background:#B08A3E;z-index:3}
+
+  header{display:flex;align-items:flex-end;gap:32px;padding-top:66px;position:relative;z-index:2}
+  .num{width:72px;height:72px;border:1px solid #B08A3E;display:flex;align-items:center;justify-content:center;
+    font-family:'Michroma';font-size:32px;color:#B08A3E;flex:none}
+  h1{font-family:'Michroma';font-weight:400;font-size:64px;letter-spacing:.055em;line-height:1}
+  .idea{margin-top:16px;font-size:18px;line-height:1.55;max-width:660px;color:#5C6167;font-weight:300}
+  .idea b{font-weight:600;color:#33383D}
+
+  .panel{position:absolute;top:0;right:0;width:536px;height:1300px;background:#33383D;color:#E7E4DA;
+    padding:84px 52px 44px;display:flex;flex-direction:column;z-index:2}
+  .panel .kicker{font-family:'Michroma';font-size:11px;letter-spacing:.3em;color:#B08A3E}
+  .plaque{margin-top:22px;border:1px solid #B08A3E;padding:26px 22px 24px}
+  .plaque .word{font-family:'Michroma';font-size:32px;line-height:1.3;letter-spacing:.1em;color:#E7E4DA}
+  .plaque .sub{margin-top:14px;padding-top:12px;border-top:1px solid rgba(176,138,62,.45);
+    font-family:'Merri';font-size:12px;letter-spacing:.16em;color:#B08A3E;text-transform:uppercase}
+  .avoid{margin-top:34px;padding-top:20px;border-top:1px solid rgba(176,138,62,.45)}
+  .avoid h3{font-family:'Michroma';font-size:10px;letter-spacing:.26em;color:#B08A3E;text-transform:uppercase}
+  .avoid p{font-family:'Merri';font-size:12px;line-height:1.75;color:#9AA0A6;font-weight:300;margin-top:12px}
+  .avoid p b{font-weight:600;color:#E7E4DA}
+  .plan{display:flex;align-items:center;gap:14px;margin-top:auto}
+  .plan .cap{font-family:'Merri';font-size:11px;letter-spacing:.14em;color:#9AA0A6;text-transform:uppercase;line-height:1.7}
+  .panel .foot{margin-top:18px;font-family:'Merri';font-size:11.5px;line-height:1.6;color:#8C9299;font-weight:300}
+
+  .main{width:1300px;position:relative;z-index:2}
+  .seclabel{display:flex;align-items:baseline;gap:16px;margin-top:44px}
+  .seclabel h2{font-family:'Michroma';font-size:11.5px;letter-spacing:.26em;color:#7D8288;text-transform:uppercase}
+  .seclabel .rule{flex:1;height:1px;background:#C6C2B6}
+  .seclabel .note{font-family:'Merri';font-size:11.5px;color:#8A8F95;letter-spacing:.03em}
+
+  .palette{display:grid;grid-template-columns:repeat(6,1fr);gap:13px;margin-top:18px}
+  .chip{position:relative;height:190px;display:flex;flex-direction:column;justify-content:flex-end;padding:12px 11px 13px;border:1px solid #CFCBBF}
+  .chip .role{position:absolute;top:10px;left:11px;font-family:'Michroma';font-size:8.5px;letter-spacing:.22em;text-transform:uppercase}
+  .chip .name{font-family:'Merri';font-weight:700;font-size:14.5px;line-height:1.2}
+  .chip .hex{font-family:'Michroma';font-size:10.5px;letter-spacing:.06em;margin-top:6px}
+  .chip .rgb{font-family:'Merri';font-size:9.5px;margin-top:3px;opacity:.84}
+  .chip .rbx{font-family:'Merri';font-size:9px;margin-top:1px;opacity:.68}
+  .dk{color:#33383D}.lt{color:#E7E4DA}
+  .ban::after{content:"";position:absolute;inset:0;background-image:linear-gradient(to top right,transparent calc(50% - 1px),rgba(176,138,62,.95) calc(50% - 1px),rgba(176,138,62,.95) calc(50% + 1px),transparent calc(50% + 1px));background-size:100% 68%;background-position:bottom left;background-repeat:no-repeat}
+  .ban .x{position:absolute;top:8px;right:10px;font-family:'Michroma';font-size:10px;color:#B08A3E}
+
+  .note-line{margin-top:14px;font-family:'Merri';font-size:13.5px;line-height:1.6;color:#5C6167;font-weight:300;max-width:1200px}
+  .note-line b{font-weight:700;color:#33383D}
+
+  .types{display:grid;grid-template-columns:1fr 1.05fr 1.2fr;gap:40px;margin-top:18px}
+  .face{font-family:'Michroma';font-size:9.5px;letter-spacing:.24em;color:#7D8288;text-transform:uppercase}
+  .enum{font-family:'Merri';font-size:10.5px;color:#8A8F95;margin-top:5px}
+  .sample{margin-top:11px;border-top:2px solid #33383D;padding-top:13px}
+  .big-mich{font-family:'Michroma';font-size:36px;letter-spacing:.1em;line-height:1.15}
+  .merri-line{font-family:'Merri';font-weight:400;font-size:23px;line-height:1.35}
+  .merri-line i{font-style:italic;color:#8A6A2A}
+  .body-copy{font-family:'Merri';font-weight:300;font-size:14.5px;line-height:1.6;color:#4A4F55}
+  .body-copy b{font-weight:700;color:#33383D}
+  .tabnum{font-family:'Merri';font-weight:600;font-size:14.5px;font-variant-numeric:tabular-nums}
+  .why{margin-top:9px;font-family:'Merri';font-size:11px;line-height:1.5;color:#8A8F95;font-weight:300}
+
+  .applied{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:13px;margin-top:14px}
+  .specimen{background:#DDDAD0;border:1px solid #C6C2B6;padding:16px;position:relative;min-height:330px;
+    display:flex;flex-direction:column;justify-content:center}
+  .specimen .cap{position:absolute;top:11px;left:13px;font-family:'Michroma';font-size:8.5px;letter-spacing:.22em;color:#8A8F95;text-transform:uppercase}
+  .tile{background:#33383D;padding:13px 15px;display:flex;align-items:baseline;gap:12px}
+  .tile .n{font-family:'Michroma';font-size:14px;letter-spacing:.08em;color:#E7E4DA}
+  .tile .p{font-family:'Merri';font-weight:600;font-size:15px;color:#B08A3E;margin-left:auto;font-variant-numeric:tabular-nums}
+  .hud-money{font-family:'Merri';font-weight:600;font-size:40px;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.01em}
+  .hud-who{font-family:'Michroma';font-size:10px;letter-spacing:.24em;color:#7D8288;margin-top:8px}
+  .btn{align-self:flex-start;display:inline-block;border:1px solid #B08A3E;padding:12px 22px;font-family:'Michroma';font-size:15px;
+    letter-spacing:.18em;color:#33383D;background:transparent}
+  .kbd{font-family:'Merri';font-size:10px;letter-spacing:.14em;color:#8A8F95;margin-top:9px;text-transform:uppercase}
+
+  footer{position:absolute;left:76px;bottom:26px;font-family:'Merri';font-size:10.5px;letter-spacing:.16em;color:#9A9E96;text-transform:uppercase;z-index:2}
+</style>
+</head>
+<body>
+  <div class="brass"></div>
+
+  <div class="main">
+    <header>
+      <div class="num">B</div>
+      <div>
+        <h1>MAQUETA</h1>
+        <p class="idea">La ciudad se presenta como la pieza de un museo: yeso, latón y plano.
+        <b>La identidad es la cartela, no el cartel.</b></p>
+      </div>
+    </header>
+
+    <div class="seclabel"><h2>Paleta</h2><div class="rule"></div><div class="note">hex · Color3.fromRGB · papel</div></div>
+
+    <div class="palette">
+      <div class="chip" style="background:#E7E4DA">
+        <div class="role dk" style="opacity:.55">Base</div>
+        <div class="name dk">Yeso</div><div class="hex dk">#E7E4DA</div>
+        <div class="rgb dk">231, 228, 218</div><div class="rbx dk">RGB(231,228,218)</div>
+      </div>
+      <div class="chip" style="background:#33383D;border-color:#33383D">
+        <div class="role lt" style="opacity:.62">Base</div>
+        <div class="name lt">Grafito</div><div class="hex lt">#33383D</div>
+        <div class="rgb lt">51, 56, 61</div><div class="rbx lt">RGB(51,56,61)</div>
+      </div>
+      <div class="chip" style="background:#B08A3E">
+        <div class="role dk" style="opacity:.62">Acento</div>
+        <div class="name dk">Latón</div><div class="hex dk">#B08A3E</div>
+        <div class="rgb dk">176, 138, 62</div><div class="rbx dk">RGB(176,138,62)</div>
+      </div>
+      <div class="chip" style="background:#24476B">
+        <div class="role lt" style="opacity:.68">Acento</div>
+        <div class="name lt">Azul plano</div><div class="hex lt">#24476B</div>
+        <div class="rgb lt">36, 71, 107</div><div class="rbx lt">RGB(36,71,107)</div>
+      </div>
+      <div class="chip" style="background:#A33A2F">
+        <div class="role lt" style="opacity:.72">Aviso</div>
+        <div class="name lt">Carmesí</div><div class="hex lt">#A33A2F</div>
+        <div class="rgb lt">163, 58, 47</div><div class="rbx lt">RGB(163,58,47)</div>
+      </div>
+      <div class="chip ban" style="background:#1F5B45;border-color:#1F5B45">
+        <div class="role lt" style="opacity:.75">Prohibido</div>
+        <div class="x">✕</div>
+        <div class="name lt">Verde fieltro</div><div class="hex lt">#1F5B45</div>
+        <div class="rgb lt">31, 91, 69</div><div class="rbx lt">mesa de casino</div>
+      </div>
+    </div>
+
+    <p class="note-line">Ley de la paleta: <b>el latón nunca cubre un área</b> — vive en filetes, cifras y nombres propios.
+    El <b>azul plano</b> es el único color que dibuja: el recorrido, la planta y el tablero.</p>
+
+    <div class="seclabel"><h2>Tipografía</h2><div class="rule"></div><div class="note">dos voces, ambas integradas en Roblox</div></div>
+
+    <div class="types">
+      <div class="spec">
+        <div class="face">Cartela</div>
+        <div class="enum">Michroma · Enum.Font.Michroma (34)</div>
+        <div class="sample"><div class="big-mich">ZONA<br>ALTA</div></div>
+        <div class="why">Mayúsculas con tracking +0,18 em. Nombres de barrio, títulos de escena y la propia cartela.</div>
+      </div>
+      <div class="spec">
+        <div class="face">Rótulo y cifra</div>
+        <div class="enum">Merriweather · Enum.Font.Merriweather (33)</div>
+        <div class="sample">
+          <div class="merri-line">Av. Central 42<br><i>en venta</i></div>
+          <div class="tabnum" style="margin-top:9px">340 · 1.120 · 12.400</div>
+        </div>
+        <div class="why">Cifras tabulares: el dinero se alinea en columna o no se lee. Cursiva solo para el estado de un solar.</div>
+      </div>
+      <div class="spec">
+        <div class="face">Texto</div>
+        <div class="enum">Merriweather Light · Enum.Font.Merriweather (33)</div>
+        <div class="sample"><p class="body-copy">Compras <b>Av. Central 42</b> por 340. Tres rivales pujan y el reloj baja: te quedan <b>15 segundos</b> para decidir.</p></div>
+        <div class="why">14,5 px con interlineado 1,6. La lectura larga va en serif porque el juego se lee como un catálogo.</div>
+      </div>
+    </div>
+
+    <div class="seclabel"><h2>En el juego</h2><div class="rule"></div><div class="note">la misma cartela aplicada a una casilla, al dinero y a un botón</div></div>
+
+    <div class="applied">
+      <div class="specimen">
+        <div class="cap">Casilla</div>
+        <div class="tile"><div class="n">AV. CENTRAL 42</div><div class="p">340</div></div>
+      </div>
+      <div class="specimen">
+        <div class="cap">HUD</div>
+        <div class="hud-money">1.240</div>
+        <div class="hud-who">SANTI · CENTRO</div>
+      </div>
+      <div class="specimen">
+        <div class="cap">Acción</div>
+        <div class="btn">TIRAR</div>
+        <div class="kbd">ESPACIO · TOCAR</div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>Propuesta de dirección · sin aprobar · Flip the Table es un nombre provisional</footer>
+
+  <aside class="panel">
+    <div class="kicker">Logotipo</div>
+    <div class="plaque">
+      <div class="word">FLIP THE<br>TABLE</div>
+      <div class="sub">Metrópolis · Mapa 01</div>
+    </div>
+    <div class="avoid">
+      <h3>Qué evitar</h3>
+      <p><b>Degradado o brillo en el latón</b>, que lo vuelve bisutería. <b>Un nombre grande</b>: la cartela es pequeña por definición. <b>Un dado, una ficha o un tablero dibujado</b>: aquí no se juega sobre nada.</p>
+    </div>
+    <div class="plan">
+      <svg width="84" height="84" viewBox="0 0 86 86" aria-hidden="true">
+        <rect x="4" y="4" width="78" height="78" fill="none" stroke="#B08A3E" stroke-width="2"/>
+        <rect x="4" y="4" width="62" height="24" fill="none" stroke="#B08A3E" stroke-width="1" opacity=".5"/>
+        <rect x="4" y="54" width="34" height="28" fill="none" stroke="#B08A3E" stroke-width="1" opacity=".5"/>
+        <rect x="52" y="54" width="30" height="28" fill="none" stroke="#B08A3E" stroke-width="1" opacity=".5"/>
+      </svg>
+      <div class="cap">A tamaño<br>icono: planta<br>de manzana</div>
+    </div>
+    <p class="foot">El nombre entra en cartela mientras quepa en dos líneas de 14 caracteres como máximo.</p>
+  </aside>
+</body>
+</html>
