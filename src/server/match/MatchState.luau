@@ -3,6 +3,7 @@
 -- decisión y observaciones para la telemetría. MatchService lo envuelve, le pasa `now` y difunde
 -- lo que produce; así la numeración, los plazos, las observaciones y el filtrado por jugador se
 -- prueban con Lune sin tocar Roblox (R-P5, R-P7, R-P20).
+local Protocol = require("../../shared/net/Protocol")
 local Scenes = require("../../shared/config/Scenes")
 local Score = require("../../shared/rules/Score")
 local Types = require("../../shared/rules/Types")
@@ -46,6 +47,14 @@ export type Step = {
 	decisionDeadline: number,
 }
 
+-- Foto mínima del avance de la partida antes de tirar del reloj. Si después del tiempo agotado no
+-- cambió nada y el motor no emitió eventos, el reloj no puede sacar la partida de donde está.
+export type Snapshot = {
+	phase: Phase,
+	round: number,
+	turnIndex: number,
+}
+
 export type MatchState = {
 	-- Último lote emitido. Empieza en 0 y crece de uno en uno con cada paso aceptado. El primer
 	-- lote lleva seq 1; el resync antes de cualquier paso devuelve 0, que significa «sin lotes».
@@ -57,6 +66,9 @@ export type MatchState = {
 	-- Control por bot que pidió el servicio de presencia (R-P6). Se registra aquí y el estado del
 	-- motor se toca en un solo sitio: MatchState.setBotControlled.
 	bots: { [PlayerId]: boolean },
+	-- Limitador de las peticiones de resincronización de esta partida. Sin él, un cliente que
+	-- reintenta construiría una vista completa por paquete y frenaría el latido de todos.
+	resyncLimiter: Protocol.Limiter,
 }
 
 local MatchState = {}
@@ -77,6 +89,7 @@ function MatchState.begin(startedAt: number, phase: Phase): MatchState
 			leaders = {},
 		},
 		bots = {},
+		resyncLimiter = Protocol.newLimiter(),
 	}
 end
 
@@ -94,6 +107,24 @@ function MatchState.endsTurn(actionType: string?, phaseBefore: Phase, fromClock:
 		return actionType == "EndTurn" or actionType == "GhostAct"
 	end
 	return fromClock and (phaseBefore == "AwaitEnd" or phaseBefore == "GhostTurn")
+end
+
+-- Foto mínima del avance de la partida, tomada antes de tirar del reloj.
+function MatchState.snapshot(state: GameState): Snapshot
+	return { phase = state.phase, round = state.round, turnIndex = state.turnIndex }
+end
+
+-- ¿El tiempo agotado sacó a la partida de donde estaba? Si no emitió eventos y la fase, la ronda y
+-- el turno siguen igual, el reloj no puede avanzar: hay que abandonar en vez de rearmar el mismo
+-- plazo y quemar `seq` con lotes vacíos cada período de decisión.
+function MatchState.timeoutAdvanced(state: GameState, before: Snapshot, events: { Event }): boolean
+	if #events > 0 then
+		return true
+	end
+	if state.phase ~= before.phase or state.round ~= before.round then
+		return true
+	end
+	return state.turnIndex ~= before.turnIndex
 end
 
 -- Registra un paso aceptado del motor: numera el lote, programa sus escenas, fija el plazo de
@@ -160,6 +191,26 @@ function MatchState.resync(match: MatchState, state: GameState, playerId: Player
 		events = {},
 		view = View.forPlayer(state, playerId),
 	}
+end
+
+-- ¿Se atiende una petición de resincronización? El limitador de la partida se consulta antes de
+-- construir la vista (lo caro) y después se exige que el jugador siga en la mesa. Lo descartado no
+-- gasta cupo y no avisa: es el mismo trato silencioso que R-P22 da a lo rechazado.
+function MatchState.acceptsResync(
+	match: MatchState,
+	state: GameState,
+	playerId: PlayerId,
+	now: number
+): boolean
+	if not match.resyncLimiter.allow(playerId, now) then
+		return false
+	end
+	for _, player in state.players do
+		if player.id == playerId then
+			return true
+		end
+	end
+	return false
 end
 
 -- Abandono de la partida (R-P8): fija el final una sola vez. Quien la llama es MatchService, que

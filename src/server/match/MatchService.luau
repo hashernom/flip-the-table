@@ -107,36 +107,58 @@ local function record(
 end
 
 -- Tiempo agotado: el reloj del servidor resuelve la fase. Un partido ya cerrado o en GameOver no
--- vuelve a disparar (el defecto de la subfase 02).
+-- vuelve a disparar (el defecto de la subfase 02). Si el tic no emitió eventos ni movió fase,
+-- ronda o turno, el reloj no puede avanzar: se abandona con un motivo claro en vez de rearmar el
+-- mismo plazo y quemar `seq` con lotes vacíos.
 local function fireTimeout(match: Match, now: number)
 	if match.finished or match.state.phase == "GameOver" or MatchState.over(match.matchState) then
 		match.finished = true
 		return
 	end
 	local phaseBefore: Phase = match.state.phase
+	local before = MatchState.snapshot(match.state)
 	local events = Engine.timeout(match.state)
+	if not MatchState.timeoutAdvanced(match.state, before, events) then
+		local reason = `el reloj no pudo avanzar la fase {before.phase}`
+		warn(`MatchService: {reason}`)
+		match:abandon(reason)
+		return
+	end
 	record(match, events, phaseBefore, nil, true, now)
 end
 
 -- Latido de la partida. Es el del servidor y no el de ningún cliente: cuando vence el plazo llama
 -- a Engine.timeout y difunde el lote. Se detiene solo al terminar o abandonar la partida, así que
--- tres partidas seguidas no acumulan latidos.
+-- tres partidas seguidas no acumulan latidos. Un tic que falle no mata el hilo: se avisa una sola
+-- vez por partida y se sigue esperando, para que un fallo puntual no deje el servidor sin reloj ni
+-- sin poder alojar otra partida.
 local function heartbeat(match: Match)
+	local warned = false
 	while not match.finished do
-		local now = time()
-		local deadline = match.matchState.decisionDeadline
-		if now >= deadline then
-			fireTimeout(match, now)
-		else
-			task.wait(math.min(Scenes.heartbeatSec, deadline - now))
+		local ok, err = pcall(function()
+			local now = time()
+			local deadline = match.matchState.decisionDeadline
+			if now >= deadline then
+				fireTimeout(match, now)
+			else
+				task.wait(math.min(Scenes.heartbeatSec, deadline - now))
+			end
+		end)
+		if not ok then
+			if not warned then
+				warned = true
+				warn(`MatchService: el latido falló; la partida sigue: {err}`)
+			end
+			task.wait(Scenes.heartbeatSec)
 		end
 	end
 end
 
--- Vista inicial de cada jugador por el canal de resincronización: es la vista actual con el seq
--- vigente (0 antes del primer lote), no un lote nuevo. El cliente del plan 05 escucha ese remoto.
+-- Vista inicial de cada jugador por el canal de lotes (R-P25): es un lote con `seq = 0`, «todavía
+-- no hay lotes», no un lote nuevo. Va por EventBatch para que el cliente tenga un solo orden de
+-- entrega; Resync queda para la petición y su respuesta.
 local function sendInitial(match: Match, now: number)
-	local remote = RemoteGateway.remote(Protocol.REMOTES.Resync)
+	local remote = RemoteGateway.remote(Protocol.REMOTES.Batch)
 	for _, statePlayer in match.state.players do
 		local player = match.players[statePlayer.id]
 		if player then
@@ -147,7 +169,8 @@ local function sendInitial(match: Match, now: number)
 end
 
 -- El canal de resincronización se conecta una sola vez por servidor y busca la partida vigente;
--- así cambiar de partida no deja conexiones viejas escuchando.
+-- así cambiar de partida no deja conexiones viejas escuchando. El limitador de la partida se
+-- consulta antes de construir la vista: un cliente que reintenta no puede frenar el latido.
 local resyncConnected = false
 local function ensureResync()
 	if resyncConnected then
@@ -160,7 +183,7 @@ local function ensureResync()
 			return
 		end
 		local playerId = playerIdOf(player)
-		if not match.players[playerId] then
+		if not MatchState.acceptsResync(match.matchState, match.state, playerId, time()) then
 			return
 		end
 		local batch = MatchState.resync(match.matchState, match.state, playerId, time())
@@ -250,12 +273,14 @@ function MatchService.start(players: { Player }, seed: number, endMode: EndMode)
 	-- State.create valida de 2 a 8 jugadores, ids repetidos y el modo de partida.
 	local state = State.create({ playerIds = playerIds, seed = seed, endMode = endMode })
 	local match = newMatch(state, byId, seed, now)
-	current = match
+	-- `current` se publica al final: si el arranque falla (remotos, vista inicial o latido), el
+	-- servidor no queda con una partida actual a medias que bloquee la siguiente.
 	ensureResync()
 	sendInitial(match, now)
 	match.heartbeat = task.spawn(function()
 		heartbeat(match)
 	end)
+	current = match
 	return match
 end
 

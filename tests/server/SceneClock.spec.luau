@@ -342,6 +342,39 @@ describe("MatchState", function()
 		expect(MatchState.over(match)).toBe(true)
 	end)
 
+	it("limita el resync por partida y exige seguir en la mesa", function()
+		local state = Fixtures.game({ players = 2 })
+		local match = MatchState.begin(0, state.phase)
+		local member = state.players[1].id
+		for _ = 1, Economy.actionsPerSecond do
+			expect(MatchState.acceptsResync(match, state, member, 100)).toBe(true)
+		end
+		-- La siguiente del mismo segundo se descarta sin construir la vista ni avisar.
+		expect(MatchState.acceptsResync(match, state, member, 100)).toBe(false)
+		-- Un jugador ajeno a la partida no pasa, ni siquiera con cupo libre.
+		expect(MatchState.acceptsResync(match, state, "Fantasma", 200)).toBe(false)
+		-- La ventana se desliza: al segundo siguiente vuelve a aceptarse.
+		expect(MatchState.acceptsResync(match, state, member, 200)).toBe(true)
+	end)
+
+	it("decide si el reloj avanzó o hay que abandonar la partida", function()
+		local state = Fixtures.game({ players = 2 })
+		local before = MatchState.snapshot(state)
+		-- Sin eventos y sin mover fase, ronda ni turno: el reloj no avanzó.
+		expect(MatchState.timeoutAdvanced(state, before, {})).toBe(false)
+		-- Con eventos, aunque la foto no cambie, el tic hizo algo.
+		expect(MatchState.timeoutAdvanced(state, before, { { type = "DiceRolled" } })).toBe(true)
+		-- Cambiar de fase, de turno o de ronda también es avanzar.
+		state.phase = "AwaitEnd"
+		expect(MatchState.timeoutAdvanced(state, before, {})).toBe(true)
+		before = MatchState.snapshot(state)
+		state.turnIndex = 2
+		expect(MatchState.timeoutAdvanced(state, before, {})).toBe(true)
+		before = MatchState.snapshot(state)
+		state.round = 3
+		expect(MatchState.timeoutAdvanced(state, before, {})).toBe(true)
+	end)
+
 	it("cambia el control de bot en un solo sitio y lo registra", function()
 		local state = Fixtures.game({ players = 2 })
 		local match = MatchState.begin(0, state.phase)

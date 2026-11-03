@@ -94,7 +94,9 @@ local function cardDuration(cardId: any): number
 	if not card then
 		return BASE_DURATION.CardPlayed
 	end
-	return CARD_DURATION[card.rarity]
+	-- Una rareza desconocida (dato roto o futura) no debe romper el latido: cae en la base de
+	-- CardPlayed, igual que una carta desconocida.
+	return CARD_DURATION[card.rarity] or BASE_DURATION.CardPlayed
 end
 
 -- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto ese
