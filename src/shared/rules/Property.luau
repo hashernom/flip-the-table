@@ -42,8 +42,9 @@ local function propertyAt(state: GameState, index: number): Types.PropertyState
 	return property
 end
 
--- Multiplicador de los efectos dinámicos, acotado al máximo de Economy. No incluye la
--- zona completa ni los edificios: eso es estructura, no efecto.
+-- Multiplicador de renta: los efectos dinámicos acotados a Economy.maxRentMultiplier y, por
+-- encima, el bonus del perk Casero (R-P54). No incluye la zona completa ni los edificios: eso es
+-- estructura, no efecto.
 function Property.rentMultiplier(state: GameState, index: number): number
 	local square = Board.square(state, index)
 	local multiplier = 1
@@ -75,17 +76,19 @@ function Property.rentMultiplier(state: GameState, index: number): number
 			end
 		end
 	end
-	-- Casero: las rentas del dueño suben un 15 %. Es un efecto dinámico, así que entra en el tope
-	-- de Economy.maxRentMultiplier (R5).
+	-- Casero: las rentas del dueño suben un 15 %. R-P54: es un perk, no un efecto del calendario,
+	-- así que se aplica después del tope dinámico de Economy.maxRentMultiplier (R5 acota efectos) y
+	-- sigue valiendo cuando Zona Caliente y rondas finales ya llegaron al máximo.
 	local property = state.properties[index]
 	local ownerId = if property then property.ownerId else nil
+	local perkMultiplier = 1
 	if ownerId then
 		local owner = findPlayer(state, ownerId)
 		if owner and Perks.has(owner, "Landlord") then
-			multiplier *= 1 + Economy.perks.landlordRentRate
+			perkMultiplier = 1 + Economy.perks.landlordRentRate
 		end
 	end
-	return math.min(multiplier, Economy.maxRentMultiplier)
+	return math.min(multiplier, Economy.maxRentMultiplier) * perkMultiplier
 end
 
 -- Renta completa de una casilla para su dueño, redondeada hacia abajo.
@@ -238,8 +241,9 @@ end
 
 -- Cobra la renta de una casilla pisada. R9: un espectro no paga ni cobra renta. La deuda se
 -- resuelve con Bankruptcy.charge: si el pagador no puede cubrirla, vende bienes o queda Ghost.
--- Tarea 5: si el pagador lleva Renta Rebotada se abre la ventana y el cobro queda en suspenso
--- hasta que la ventana decida; sin la carta se cobra en el acto.
+-- Tarea 5: si el pagador lleva Renta Rebotada y hay un tercero legal a quien rebotarla se abre la
+-- ventana y el cobro queda en suspenso hasta que la ventana decida; sin la carta (o sin tercero,
+-- que es el caso de 2 jugadores) se cobra en el acto.
 function Property.payRent(state: GameState, payerId: PlayerId, index: number): { Event }
 	local ownerId = propertyAt(state, index).ownerId
 	if not ownerId or ownerId == payerId then

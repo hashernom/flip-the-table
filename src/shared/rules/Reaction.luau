@@ -5,7 +5,9 @@
 --
 -- Contrato con los llamadores (Cards y Property):
 --   * Reaction.open(state, trigger, then) solo abre la ventana cuando el jugador elegido está
---     Active y lleva la carta de reacción. Si la abre, deja state.phase = "Reaction" y
+--     Active y lleva la carta de reacción. Para una renta exige además un tercero legal al que
+--     rebotarla (ni el pagador ni el dueño sirven): sin él no hay ventana y la renta se cobra en
+--     el acto, como si el pagador no llevara la carta. Si la abre, deja state.phase = "Reaction" y
 --     pending.reaction = { trigger, then, eligibleId, phase }; si no la abre, no toca nada. En los
 --     dos casos devuelve {}.
 --   * El llamador detecta la ventana con state.phase == "Reaction": si la fase no cambió, aplica
@@ -122,6 +124,17 @@ local function bounceReason(state: GameState, payerId: PlayerId, trigger: RentTr
 	return nil
 end
 
+-- ¿Hay algún tercero legal al que desviar la renta? Es la misma regla que aplica bounceReason al
+-- objetivo: ni el pagador, ni el dueño, ni un jugador que ya no está activo.
+local function hasBounceTarget(state: GameState, payerId: PlayerId, ownerId: PlayerId): boolean
+	for _, player in state.players do
+		if player.id ~= payerId and player.id ~= ownerId and player.status == "Active" then
+			return true
+		end
+	end
+	return false
+end
+
 -- Abre la ventana si el jugador elegido puede responder; si no, no toca el estado. Devuelve
 -- siempre {}: el llamador detecta la ventana con state.phase == "Reaction" (ver cabecera).
 function Reaction.open(state: GameState, trigger: ReactionTrigger, continuation: PendingAction): { Event }
@@ -144,6 +157,11 @@ function Reaction.open(state: GameState, trigger: ReactionTrigger, continuation:
 		return {}
 	end
 	if not table.find(eligible.hand, reactionCardId) then
+		return {}
+	end
+	-- Renta Rebotada necesita a quién rebotar: sin un tercero legal la ventana sería un pase de
+	-- 5 s en cada renta (en 2 jugadores, siempre), así que no se abre y el llamador cobra en el acto.
+	if trigger.kind == "Rent" and not hasBounceTarget(state, trigger.payerId, trigger.ownerId) then
 		return {}
 	end
 	pending.reaction = {

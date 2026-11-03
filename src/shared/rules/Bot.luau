@@ -1,9 +1,10 @@
 --!strict
 -- Bot determinista: elige entre las acciones legales con una heurística simple. No usa azar ni
 -- relojes; la simulación lo usa para jugar partidas completas sin humano. Desde la Tarea 10 usa
--- todos los sistemas: juega cualquier carta que tenga y sea legal, propone y acepta pactos cuando
--- puede cubrir la garantía, se queda con el primer perk del borrador y contesta Mercado, Duelo,
--- Tribunal, reacciones y turnos de espectro.
+-- todos los sistemas: juega cualquier carta que tenga y sea legal (salvo la Puñalada, que guarda
+-- hasta que toca traicionar), propone un pacto por partida y acepta los que puede cubrir, se queda
+-- con el primer perk del borrador y contesta Mercado, Duelo, Tribunal, reacciones y turnos de
+-- espectro.
 local Building = require("./Building")
 local Economy = require("../config/Economy")
 local Engine = require("./Engine")
@@ -25,9 +26,14 @@ type PactOffer = {
 -- Perk Negociador: el titular deposita la garantía reducida (mismo id que en el catálogo).
 local NEGOTIATOR_PERK = "Negotiator"
 
--- Carta que rompe un pacto. El bot propone un pacto cuando la lleva en la mano: así la Puñalada
--- tiene un objetivo y la mano no se llena de cartas que nunca se pueden jugar.
+-- Carta que rompe un pacto. El bot la guarda: no traiciona en cuanto forma el pacto (ver
+-- shouldBackstab), así el ciclo de vida del pacto llega a jugarse.
 local BACKSTAB_CARD = "Backstab"
+
+-- Jugadas del Duelo en el orden del catálogo (config/Squares.duelChoices). El bot varía la
+-- jugada por asiento: si todos lanzaran la primera del catálogo, todo Duelo serían tres empates y
+-- la casilla nunca pagaría su premio.
+local DUEL_CHOICES: { string } = { "Rock", "Paper", "Scissors" }
 
 local Bot = {}
 
@@ -199,13 +205,44 @@ local function pactOf(state: GameState, playerId: PlayerId): Types.Pact?
 	return nil
 end
 
--- Propuesta de pacto: solo si lleva Puñalada en la mano (así el pacto tiene una salida y la carta
--- no se queda atascada), no tiene un pacto vivo ni una oferta pendiente, y hay un rival activo
--- que pueda cubrir su garantía. La duración es la máxima del catálogo: el pacto caduca solo.
-local function pactProposal(state: GameState, player: Player): Action?
-	if table.find(player.hand, BACKSTAB_CARD) == nil then
-		return nil
+-- Pacto con ese id, o nil. Lo usa la elección de cartas para saber si la Puñalada ya toca.
+local function pactById(state: GameState, pactId: string): Types.Pact?
+	for _, pact in state.pacts do
+		if pact.id == pactId then
+			return pact
+		end
 	end
+	return nil
+end
+
+-- ¿Toca traicionar? El bot no rompe el pacto en cuanto lo forma: si jugara la Puñalada siempre,
+-- PactBroken igualaría a PactFormed y la caducidad con la garantía devuelta (PactEnded) no
+-- llegaría a jugarse nunca. Traiciona en las últimas rondas del pacto o si su asiento es par; el
+-- resto de las veces la guarda y deja que el pacto caduque.
+local function shouldBackstab(state: GameState, player: Player, pact: Types.Pact): boolean
+	if pact.untilRound <= state.round + 1 then
+		return true
+	end
+	return playerIndex(state, player.id) % 2 == 0
+end
+
+-- Pactos que el jugador ha formado en la partida. El bot propone uno como mucho por partida: así
+-- el ciclo de vida se juega (formación, exención de renta y caducidad) sin convertir Sin Fin en una
+-- tregua permanente. Medido: sin este tope, seis semillas de la matriz no terminaban (hasta 594 000
+-- turnos) porque casi ninguna renta llegaba a cobrarse y nadie se arruinaba.
+local function formedPacts(state: GameState, playerId: PlayerId): number
+	local stats = state.stats[playerId]
+	if not stats then
+		return 0
+	end
+	return stats.pactsFormed or 0
+end
+
+-- Propuesta de pacto: sin pacto vivo, sin una oferta pendiente, sin haber pactado antes en la
+-- partida y con un rival activo que pueda cubrir su garantía. No hace falta llevar Puñalada: el
+-- pacto también sirve para eximir la renta entre socios y el bot lo deja caducar. La duración es la
+-- máxima del catálogo: caduca solo.
+local function pactProposal(state: GameState, player: Player): Action?
 	if state.phase ~= "AwaitRoll" and state.phase ~= "AwaitEnd" then
 		return nil
 	end
@@ -216,6 +253,9 @@ local function pactProposal(state: GameState, player: Player): Action?
 		return nil
 	end
 	if pactOf(state, player.id) ~= nil then
+		return nil
+	end
+	if formedPacts(state, player.id) > 0 then
 		return nil
 	end
 	if hasOfferFrom(state, player.id) then
@@ -233,6 +273,23 @@ local function pactProposal(state: GameState, player: Player): Action?
 					rounds = Economy.pact.maxRounds,
 				}
 			end
+		end
+	end
+	return nil
+end
+
+-- Primera carta jugable al cerrar el turno, saltándose la Puñalada mientras el pacto siga
+-- teniendo recorrido: la carta se queda en la mano y se juega cuando toca traicionar.
+local function firstEndCard(state: GameState, player: Player, actions: { Action }): Action?
+	for _, action in actions do
+		if action.type == "PlayCard" then
+			if action.cardId == BACKSTAB_CARD then
+				local pact = if action.pactId then pactById(state, action.pactId) else nil
+				if pact and not shouldBackstab(state, player, pact) then
+					continue
+				end
+			end
+			return action
 		end
 	end
 	return nil
@@ -337,8 +394,9 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		return firstOf(actions, "DeclineBuy")
 	elseif phase == "AwaitEnd" then
 		-- Toda carta legal se juega al cerrar el turno: la mano queda libre para el siguiente
-		-- robo y no se llena de cartas sin salida.
-		local card = firstOf(actions, "PlayCard")
+		-- robo y no se llena de cartas sin salida. La Puñalada es la excepción: solo se juega
+		-- cuando el pacto ya está cerca de caducar o el asiento lo pide (shouldBackstab).
+		local card = firstEndCard(state, player, actions)
 		if card then
 			return card
 		end
@@ -380,8 +438,16 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		end
 		return firstOf(actions, "MarketSkip")
 	elseif phase == "Duel" then
-		-- Primero el retador elige rival; después cada participante elige piedra (la primera
-		-- jugada del catálogo). La simulación pregunta a los dos participantes.
+		-- Primero el retador elige rival (la primera acción legal, que es la primera de la lista);
+		-- después cada participante elige su jugada. La jugada varía por asiento: si todos
+		-- lanzaran la primera del catálogo, cada Duelo serían tres empates y el premio de +150 y
+		-- el retroceso de 2 no se jugarían nunca.
+		local choice = DUEL_CHOICES[(playerIndex(state, playerId) % #DUEL_CHOICES) + 1]
+		for _, action in actions do
+			if action.type == "DuelChoice" and action.choice == choice then
+				return action
+			end
+		end
 		return firstOf(actions, "DuelChoice")
 	elseif phase == "Tribunal" then
 		-- Vota distinto según el asiento para que haya empates reales: los impares multan y los

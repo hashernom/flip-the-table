@@ -189,6 +189,30 @@ describe("Property.rentFor en la presión de Sin Fin", function()
 	end)
 end)
 
+describe("modificadores caducados", function()
+	it("se podan al empezar la ronda y los vivos se quedan", function()
+		local s = Fixtures.game({ players = 3 })
+		local idx = Fixtures.squareOf(s, "Property")
+		addModifier(s, { kind = "Inflation", untilRound = 1 })
+		addModifier(s, { kind = "Haunt", index = idx, untilRound = 5 })
+		expect(#s.modifiers).toBe(2)
+
+		Fixtures.turnOf(s, s.players[#s.players].id)
+		Turn.next(s)
+		expect(s.round).toBe(2)
+		expect(#s.modifiers).toBe(1)
+		expect(s.modifiers[1].kind).toBe("Haunt")
+		expect(s.modifiers[1].untilRound).toBe(5)
+
+		-- untilRound es la última ronda activa: al entrar en la 6, el Haunt también se poda.
+		s.round = 5
+		Fixtures.turnOf(s, s.players[#s.players].id)
+		Turn.next(s)
+		expect(s.round).toBe(6)
+		expect(s.modifiers).toEqual({})
+	end)
+end)
+
 describe("Turn.activeCount", function()
 	it("cuenta solo a los jugadores activos", function()
 		local s = Fixtures.game({ players = 4 })

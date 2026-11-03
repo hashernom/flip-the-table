@@ -287,6 +287,24 @@ describe("Renta Rebotada", function()
 		expect(Property.rentFor(s, index)).toBe(amount)
 	end)
 
+	it("en 2 jugadores no hay ventana: cobra en el acto y la carta se queda", function()
+		local s = Fixtures.game({ players = 2 })
+		local payer = inTurn(s)
+		local owner = others(s, payer.id)[1]
+		Fixtures.hand(s, payer.id, "BounceRent")
+
+		-- Sin un tercero legal a quien rebotar la renta, la ventana sería un pase de 5 s en cada
+		-- renta para siempre. No se abre: el cobro ocurre en el acto.
+		local index, amount = rentWindow(s, owner.id, payer.id)
+		expect(reactionOf(s)).toBe(nil)
+		expect(s.phase).toBe("AwaitEnd")
+		expect(payer.cash).toBe(Economy.startingCash - amount)
+		expect(owner.cash).toBe(Economy.startingCash + amount)
+		expect(Property.rentFor(s, index)).toBe(amount)
+		-- La carta sigue en la mano: no se gastó en una ventana que no existió.
+		expect(payer.hand).toEqual({ "BounceRent" })
+	end)
+
 	it("una reacción no abre otra ventana aunque el tercero también tenga la carta", function()
 		local s = Fixtures.game({ players = 3 })
 		local payer = inTurn(s)
@@ -399,7 +417,8 @@ describe("ventana de reacción", function()
 	end)
 
 	it("el tiempo agotado de una renta se comporta como pasar", function()
-		local s = Fixtures.game({ players = 2 })
+		-- Tres jugadores: la ventana de renta solo se abre si hay un tercero legal (Fix 2).
+		local s = Fixtures.game({ players = 3 })
 		local payer = inTurn(s)
 		local owner = others(s, payer.id)[1]
 		Fixtures.hand(s, payer.id, "BounceRent")

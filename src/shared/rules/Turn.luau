@@ -38,6 +38,17 @@ local function dropTradesOfTurn(state: GameState)
 	end
 end
 
+-- Los modificadores de renta caducan por ronda: untilRound es su última ronda activa. Se podan al
+-- empezar la ronda para que state.modifiers no crezca sin fin en una partida Sin Fin (cada renta
+-- recorre el arreglo entero) ni un Haunt viejo siga en el registro.
+local function pruneModifiers(state: GameState)
+	for index = #state.modifiers, 1, -1 do
+		if state.modifiers[index].untilRound < state.round then
+			table.remove(state.modifiers, index)
+		end
+	end
+end
+
 -- Siguiente jugador que sigue en la partida. Un jugador con skipTurns > 0 pierde el turno: se
 -- descuenta la marca y se sigue buscando (Tribunal: «perder 1 turno»). Solo se examinan los demás:
 -- al jugador en turno no se le consume una marca por volver a sí mismo (perdería el turno sin que
@@ -182,6 +193,8 @@ function Turn.next(state: GameState): { Event }
 	local startsRound = index <= state.turnIndex
 	if startsRound then
 		state.round += 1
+		-- Los modificadores de la ronda anterior que ya caducaron no llegan a la nueva.
+		pruneModifiers(state)
 	end
 	state.turnIndex = index
 	-- R-P43: la fase se decide aquí. Los cierres de más abajo (GameOver y PerkDraft) mandan sobre

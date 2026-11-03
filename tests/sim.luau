@@ -9,6 +9,7 @@
 local Bot = require("../src/shared/rules/Bot")
 local Economy = require("../src/shared/config/Economy")
 local Engine = require("../src/shared/rules/Engine")
+local Pact = require("../src/shared/rules/Pact")
 local Score = require("../src/shared/rules/Score")
 local State = require("../src/shared/rules/State")
 local Types = require("../src/shared/rules/Types")
@@ -44,6 +45,11 @@ export type SimResult = {
 	perksDrafted: { [string]: number },
 	-- Usos reales de cada perk (efectos aplicados), no solo repartidos. Ver Perks.recordUse.
 	perkUses: { [string]: number },
+	-- Duelos resueltos con ganador: los empates de las tres rondas no pagan premio ni retroceso.
+	duelsWon: number,
+	-- Rentas que un pacto eximió de cobrar. El motor no emite ningún evento cuando la exención
+	-- aplica, así que se cuentan al resolver la tirada que deja al jugador en la casilla del socio.
+	rentsExempted: number,
 }
 
 -- Tope de seguridad: solo detecta una partida que no termina. Las partidas Sin Fin legítimas
@@ -149,6 +155,8 @@ function Sim.play(opts: PlayOptions): SimResult
 	local cardsPlayed: { [string]: number } = {}
 	local perksDrafted: { [string]: number } = {}
 	local perkUses: { [string]: number } = {}
+	local duelsWon = 0
+	local rentsExempted = 0
 	-- Líder al empezar cada ronda: la clasificación completa, igual que la Corona.
 	local leaders: { [number]: PlayerId } = {}
 	local maxRound = 1
@@ -193,6 +201,8 @@ function Sim.play(opts: PlayOptions): SimResult
 			cardsPlayed = cardsPlayed,
 			perksDrafted = perksDrafted,
 			perkUses = perkUses,
+			duelsWon = duelsWon,
+			rentsExempted = rentsExempted,
 		}
 	end
 
@@ -208,6 +218,11 @@ function Sim.play(opts: PlayOptions): SimResult
 			elseif event.type == "PerkDrafted" then
 				local perkId: string = event.perkId
 				perksDrafted[perkId] = (perksDrafted[perkId] or 0) + 1
+			elseif event.type == "DuelResolved" then
+				-- Solo los Duelos con ganador pagan el premio y mueven al perdedor.
+				if event.winnerId ~= nil then
+					duelsWon += 1
+				end
 			end
 		end
 	end
@@ -223,6 +238,35 @@ function Sim.play(opts: PlayOptions): SimResult
 			return
 		end
 		cardsPlayed[cardId] = (cardsPlayed[cardId] or 0) + 1
+	end
+
+	-- Renta que un pacto eximió de cobrar. El motor sale de Property.payRent sin emitir ningún
+	-- evento, así que no hay forma de verlo en la lista de eventos: se cuenta al resolver la
+	-- tirada, cuando ya se sabe en qué casilla quedó el jugador. Una ventana de reacción abierta
+	-- queda fuera: el cobro sigue en suspenso y lo decidirá la reacción.
+	local function countExemptedRent(actor: PlayerId)
+		if state.phase == "Reaction" then
+			return
+		end
+		local player = playerOf(state, actor)
+		if not player or player.status ~= "Active" then
+			return
+		end
+		local property = state.properties[player.position]
+		if not property then
+			return
+		end
+		local ownerId = property.ownerId
+		if not ownerId or ownerId == actor then
+			return
+		end
+		local owner = playerOf(state, ownerId)
+		if not owner or owner.status ~= "Active" then
+			return
+		end
+		if Pact.exemptsRent(state, actor, ownerId) then
+			rentsExempted += 1
+		end
 	end
 
 	-- Resuelve una acción o un tiempo agotado: cuenta, anota eventos y comprueba invariantes.
@@ -379,6 +423,10 @@ function Sim.play(opts: PlayOptions): SimResult
 								2
 							)
 						end
+						-- El motor no anuncia la renta que un pacto exime: se cuenta aquí.
+						if action.type == "Roll" then
+							countExemptedRent(actor)
+						end
 						-- GhostAct cierra el turno igual que EndTurn (R-P43): cuenta como límite.
 						local endedTurn = action.type == "EndTurn" or action.type == "GhostAct"
 						resolved(result.events, `{action.type} de {actor}`, endedTurn, action)
@@ -411,6 +459,8 @@ function Sim.play(opts: PlayOptions): SimResult
 		cardsPlayed = cardsPlayed,
 		perksDrafted = perksDrafted,
 		perkUses = perkUses,
+		duelsWon = duelsWon,
+		rentsExempted = rentsExempted,
 	}
 end
 

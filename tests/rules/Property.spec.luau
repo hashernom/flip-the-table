@@ -266,6 +266,23 @@ describe("Property.rentMultiplier", function()
 			math.floor(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
 		)
 	end)
+
+	it("el Casero suma su 15 % por encima del tope (R-P54)", function()
+		local s = Fixtures.game({ players = 8 })
+		local owner = s.players[1]
+		local idx = Fixtures.squareOf(s, "Property")
+		Fixtures.give(s, owner.id, idx)
+		-- Rondas finales ×2 y Zona Caliente ×2 ya llenan el tope de ×4.
+		s.round = s.maxRounds :: number
+		s.hotZoneId = zoneIdOf(s, idx)
+		expect(Property.rentMultiplier(s, idx)).toBe(Economy.maxRentMultiplier)
+
+		-- El perk se aplica después del tope: no se pierde cuando los efectos ya llegaron a ×4.
+		table.insert(owner.perks, "Landlord")
+		local boosted = Economy.maxRentMultiplier * (1 + Economy.perks.landlordRentRate)
+		expect(Property.rentMultiplier(s, idx)).toBe(boosted)
+		expect(Property.rentFor(s, idx)).toBe(math.floor(priceOf(s, idx) * Economy.baseRentRate * boosted))
+	end)
 end)
 
 describe("Property.payRent", function()

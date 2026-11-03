@@ -26,6 +26,9 @@ local usedCards: { [string]: number } = {}
 local usedPerks: { [string]: number } = {}
 local usedPerkUses: { [string]: number } = {}
 local eventCounts: { [string]: number } = {}
+-- Observables que no dejan evento propio: Duelos con ganador y rentas eximidas por un pacto.
+local duelsWon = 0
+local rentsExempted = 0
 
 local function addCounts(target: { [string]: number }, source: { [string]: number })
 	for key, count in source do
@@ -38,6 +41,8 @@ local function accumulate(result: Sim.SimResult)
 	addCounts(usedPerks, result.perksDrafted)
 	addCounts(usedPerkUses, result.perkUses)
 	addCounts(eventCounts, result.events)
+	duelsWon += result.duelsWon
+	rentsExempted += result.rentsExempted
 end
 
 -- Opciones con tipo explícito: un literal de tabla ensancha los textos y dejaría de encajar con
@@ -158,6 +163,11 @@ describe("Sim.play: cobertura de la matriz", function()
 		expect((eventCounts.GhostActed or 0) > 0).toBe(true)
 		expect((eventCounts.GhostResurrected or 0) > 0).toBe(true)
 		expect((eventCounts.PactFormed or 0) > 0).toBe(true)
+		-- Fix 1: el Duelo reparte su premio; el bot ya no empata las tres rondas siempre.
+		expect(duelsWon > 0).toBe(true)
+		-- Fix 3: el ciclo de vida del pacto se juega: caduca (PactEnded) y exime rentas.
+		expect((eventCounts.PactEnded or 0) > 0).toBe(true)
+		expect(rentsExempted > 0).toBe(true)
 	end)
 end)
 

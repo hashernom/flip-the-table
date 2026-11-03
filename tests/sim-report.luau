@@ -3,8 +3,8 @@
 --
 -- Juega una muestra de la matriz (no las 14 000 partidas) y resume, por tamaño de tablero, la
 -- tasa de victoria del líder a mitad de partida, los turnos medios y el uso de cada carta y cada
--- perk. Es el documento que lee el responsable: imprime también las cartas y perks con cero usos
--- para que una regresión de cobertura se vea de un vistazo.
+-- perk. Es el documento que lee el responsable y también una puerta: si una carta o un perk quedan
+-- sin usar, el comando falla con la lista de los que faltan.
 local Boards = require("../src/shared/config/Boards")
 local CardsConfig = require("../src/shared/config/Cards")
 local PerksConfig = require("../src/shared/config/Perks")
@@ -131,8 +131,9 @@ end
 print("Informe de la simulación — Flip the Table, plan 03 (premios y dinámicas)")
 print(
 	string.format(
-		"Muestra: %d semillas × %d tamaños × 2 modos = %d partidas (la matriz completa tiene %d).",
+		"Muestra: %d semillas × %d tamaños × %d recuentos de jugadores × 2 modos = %d partidas (la matriz completa tiene %d).",
 		SEED_COUNT,
+		#SIZE_ORDER,
 		#PLAYER_COUNTS,
 		totalMatches,
 		#PLAYER_COUNTS * 2 * 1000
@@ -195,8 +196,21 @@ else
 		print(`Cartas sin usar en la muestra: {table.concat(zeroCards, ", ")}`)
 	end
 	if #zeroPerks > 0 then
-		print(`Perks sin repartir en la muestra: {table.concat(zeroPerks, ", ")}`)
+		print(`Perks sin aplicar en la muestra: {table.concat(zeroPerks, ", ")}`)
 	end
+end
+
+-- La cobertura es una puerta, no solo una columna del informe: una carta o un perk sin usar es
+-- una regresión y el comando que nombra el plan debe fallar. Sin ceros, el comando sale con 0.
+local uncovered: { string } = {}
+for _, cardId in zeroCards do
+	table.insert(uncovered, `carta {cardId}`)
+end
+for _, perkId in zeroPerks do
+	table.insert(uncovered, `perk {perkId}`)
+end
+if #uncovered > 0 then
+	error(`Cobertura incompleta en la muestra: {table.concat(uncovered, ", ")}`, 2)
 end
 
 -- Un tope de seguridad alcanzado invalida el informe: la matriz tampoco pasaría. Falla con un

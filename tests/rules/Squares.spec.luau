@@ -54,6 +54,16 @@ local function activeRivals(state: GameState, playerId: PlayerId): { Player }
 	return rivals
 end
 
+-- Asiento del jugador en el orden de turno (1-based), para calcular lo que elige el bot.
+local function seatOf(state: GameState, playerId: PlayerId): number
+	for index, player in state.players do
+		if player.id == playerId then
+			return index
+		end
+	end
+	error(`no existe el jugador {playerId}`, 2)
+end
+
 -- Copia profunda: los rechazos se comprueban contra el estado entero.
 local function deepCopy<T>(value: T): T
 	if type(value) ~= "table" then
@@ -493,12 +503,20 @@ describe("Duelo", function()
 		expect(Engine.legalActions(s, rival.id)).toEqual(choices)
 		expectLegal(s, challenger.id)
 		expectLegal(s, rival.id)
-		expect(Bot.choose(s, challenger.id)).toEqual(choices[1])
-		expect(Bot.choose(s, rival.id)).toEqual(choices[1])
+		-- Fix 1: la jugada del bot varía por asiento; si todos lanzaran la primera del catálogo
+		-- cada Duelo serían tres empates. Con asientos distintos eligen jugadas distintas.
+		local challengerPick = Bot.choose(s, challenger.id) :: Types.Action
+		local rivalPick = Bot.choose(s, rival.id) :: Types.Action
+		expect(challengerPick).toEqual(choices[(seatOf(s, challenger.id) % #choices) + 1])
+		expect(rivalPick).toEqual(choices[(seatOf(s, rival.id) % #choices) + 1])
+		expect(challengerPick.choice ~= rivalPick.choice).toBe(true)
 
-		applyOk(s, rival.id, choices[2])
+		applyOk(s, rival.id, rivalPick)
 		expect(Engine.legalActions(s, rival.id)).toEqual({})
 		expect(Engine.legalActions(s, challenger.id)).toEqual(choices)
+		-- Con jugadas distintas la ronda se resuelve con ganador, no con otro empate.
+		local resolved = firstEvent(applyOk(s, challenger.id, challengerPick), "DuelResolved")
+		expect(resolved.winnerId ~= nil).toBe(true)
 	end)
 end)
 

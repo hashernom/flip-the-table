@@ -7,6 +7,7 @@ local Building = require("../../src/shared/rules/Building")
 local Economy = require("../../src/shared/config/Economy")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
+local Turn = require("../../src/shared/rules/Turn")
 local Types = require("../../src/shared/rules/Types")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
@@ -235,12 +236,16 @@ describe("Engine.legalActions", function()
 		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
 	end)
 
-	it("un espectro en turno solo puede tirar", function()
+	it("un espectro en turno no tira dados: su turno es GhostTurn (R-P43)", function()
 		local s = Fixtures.game({ players = 2 })
 		local actor = inTurn(s)
 		giveZone(s, actor.id, Fixtures.squareOf(s, "Property"))
 		actor.status = "Ghost"
-		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
+		-- R-P43: Turn.phaseFor ya no deja a un espectro en AwaitRoll; su turno es la acción corta
+		-- de espectro, así que no hay tirada que enumerar aunque tenga propiedades que construir.
+		s.phase = Turn.phaseFor(s)
+		expect(s.phase).toBe("GhostTurn")
+		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "GhostAct", kind = "Sabotage" } })
 	end)
 
 	it("no enumera nada para quien no está en turno", function()
@@ -538,6 +543,8 @@ describe("Bot.choose", function()
 		local s = Fixtures.game({ players = 2 })
 		local actor = inTurn(s)
 		giveZone(s, actor.id, Fixtures.squareOf(s, "Property"))
+		-- Sin rival que pueda cubrir la garantía no hay propuesta de pacto (Fix 3): el bot tira.
+		otherThan(s, actor.id).cash = 0
 		expect(Bot.choose(s, actor.id)).toEqual({ type = "Roll" })
 	end)
 
@@ -572,6 +579,8 @@ describe("Bot.choose", function()
 		local pricey = Building.costOf(s, actor.id, second)
 		expect(cheap < pricey).toBe(true)
 		actor.cash = cheap + Economy.bot.buildReserve + 1
+		-- Sin rival que pueda cubrir la garantía no hay propuesta de pacto (Fix 3).
+		otherThan(s, actor.id).cash = 0
 		expect(Bot.choose(s, actor.id)).toEqual({ type = "Build", index = first })
 	end)
 
@@ -582,6 +591,8 @@ describe("Bot.choose", function()
 		giveZone(s, actor.id, idx)
 		s.phase = "AwaitEnd"
 		actor.cash = Building.costOf(s, actor.id, idx) + Economy.bot.buildReserve
+		-- Sin rival que pueda cubrir la garantía no hay propuesta de pacto (Fix 3).
+		otherThan(s, actor.id).cash = 0
 		expect(Bot.choose(s, actor.id)).toEqual({ type = "EndTurn" })
 	end)
 
