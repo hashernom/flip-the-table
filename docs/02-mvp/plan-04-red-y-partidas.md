@@ -216,7 +216,10 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - Produce: `RematchRules.resolve(votes: { [number]: boolean }, present: { number }): "Start" | "Wait" | "NotEnough"`.
 
 **Criterios de aceptación:**
-- [x] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
+- [ ] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
+      **Mitad hecha:** el servidor de la revancha está terminado y probado (`RematchService` abre la
+      votación al acabar, arranca la partida en el mismo servidor con otra semilla y devuelve al lobby
+      a quien no acepta). El botón en sí es interfaz de las subfases 05 y 08, que aún no existen.
 - [x] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
 - [x] Con menos de 2 personas, vuelve al lobby con aviso.
 - [x] Quien no acepta vuelve al lobby.
@@ -250,3 +253,38 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - [x] **Paso 3:** Implementar los módulos.
 - [ ] **Paso 4:** Ejecutar `lune run tools/check`. Esperado: código 0.
 - [x] **Paso 5:** Hacer commit: `feat: medir criterios de salida`.
+
+---
+
+## Cómo quedó
+
+Ejecutada en modo subagentes el 2026-11-03: siete tareas, cada una implementada por un subagente
+nuevo y revisada por otro, con hasta cinco rondas de corrección por tarea y una revisión final de
+toda la rama. Las casillas de arriba reflejan lo que se comprobó.
+
+**Lo que se añadió al plan, y por qué** (todo con su ruling en la arquitectura):
+
+- **Dos proyectos de Rojo.** El plan solo hablaba de `default.project.json`; hay un segundo lugar,
+  así que existe `lobby.project.json`. El trabajo de servidor destapó además que la convención de
+  `require` relativo no cruza servicios en Roblox: `src/shared` se monta también en cada servicio
+  con la clave `shared` en minúsculas, y la profundidad del DataModel tiene que igualar la del disco.
+- **Un punto de cableado por lugar.** `src/server/main.server.luau` y `src/server/lobby/main.server.luau`
+  conectan los remotos una sola vez; sin ellos nada recibía acciones ni empezaba partidas.
+- **`MatchState`, `LobbyRules`, `PresenceRules` y `RematchRules`.** Cuatro módulos puros más, para
+  que la numeración de lotes, los plazos, los asientos y los votos se puedan probar con Lune.
+- **Adaptadores de almacén y teletransporte.** `MemoryStoreService` y `TeleportService` no existen en
+  Studio, así que cada uno tiene su versión en memoria y la real.
+- **Un remoto para votar la revancha y cinco para el lobby**, en `Protocol.REMOTES` con sus validadores.
+
+**Pendiente y por qué:**
+
+- **Paso 5 de las tareas 3, 4 y 5.** El plan pide un Test Server con dos clientes, cerrar uno a mitad
+  de turno y publicar en un lugar privado con dos cuentas. Lo primero se hizo en parte: un Test Server
+  real difundió 12 a 16 lotes, tres turnos y cero rechazos, y en una prueba de tres jugadores dos
+  clientes recibieron los lotes 1, 2 y 3 en orden. Lo segundo no se hizo: los dos lugares siguen sin
+  publicar y `config/Places` vale `0`, que es exactamente el caso que el lobby trata con un aviso. El
+  responsable decidió el 2026-11-03 dejar la publicación pendiente.
+- **El botón de la revancha** es interfaz de las subfases 05 y 08. El servidor está terminado.
+- **`tests/sim-report.luau` mantiene el sesgo de contar «sin líder» como derrota** en su propio
+  informe de simulación; es un camino separado del de `MatchSummary`, que ya no lo tiene.
+

@@ -16,3 +16,6 @@ srv*.log
 .codex/
 .impeccable/config.local.json
 .impeccable/hook.cache.json
+
+# Resumenes de partida exportados por la telemetria: salida de ejecucion, no fuente
+telemetry/

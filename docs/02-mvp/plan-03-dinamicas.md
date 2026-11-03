@@ -243,7 +243,7 @@ end)
 
 **Interfaces:**
 - Produce: `Squares.resolve(state, playerId, index): { Event }`.
-- Eventos: `CardDrawn`, `MarketBought`, `DuelResolved { winnerId, loserId, round }`, `PortalUsed { from, to, toll }`, `BillboardResult { playerId, result, amount }`, `PlayerArrested { playerId }`, `TribunalVerdict { playerId, verdict, targetId?, votes }`.
+- Eventos: `CardDrawn`, `MarketBought`, `DuelResolved { winnerId?, loserId?, round, picks }` (el campo `picks`, añadido al cerrar la subfase 04 con el ruling R-P18, lleva las jugadas de esa ronda; la salida sin resultar no lo incluye), `PortalUsed { from, to, toll }`, `BillboardResult { playerId, result, amount }`, `PlayerArrested { playerId }`, `TribunalVerdict { playerId, verdict, targetId?, votes }`.
 
 **Criterios de aceptación:**
 - [x] Giro roba una carta.
