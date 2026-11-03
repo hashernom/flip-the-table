@@ -27,6 +27,11 @@ export type Observations = {
 
 -- Resumen de una partida. Es exactamente la forma del plan, sin campos añadidos: el abandono no se
 -- guarda, se deduce de `finished`.
+--
+-- `leaderAtHalfWon` es verdadero si el líder de la ronda central ganó, falso si perdió y `nil` si no
+-- se pudo observar (una quiebra temprana que cierra la partida antes de la mitad, o un resumen
+-- construido sin observaciones). Un cero silencioso no es una derrota: el informe solo cuenta los
+-- casos observados y publica el tamaño de esa muestra.
 export type Summary = {
 	id: string,
 	sizeId: SizeId,
@@ -34,17 +39,19 @@ export type Summary = {
 	players: number,
 	durationSec: number,
 	avgTurnSec: number,
-	leaderAtHalfWon: boolean,
+	leaderAtHalfWon: boolean?,
 	finished: boolean,
 	rematch: boolean,
 	cardsPlayed: number,
 	sceneSec: number,
 }
 
--- Informe de los cuatro criterios medibles de la ficha, calculado solo con partidas en modo Rondas
--- (los objetivos de duración y de líder a mitad se miden en ese modo). Las tasas son fracciones de
--- 0 a 1; el tamaño de cada muestra va al lado para que el informe pueda decir con cuántos datos
--- cuenta (plan 10).
+-- Informe de los cuatro criterios medibles de la ficha, calculado solo con partidas en modo Rondas.
+-- Las tasas son fracciones de 0 a 1; el tamaño de cada muestra va al lado para que el informe diga
+-- con cuántos datos cuenta, en vez de presentar un cero por falta de datos como una derrota.
+--
+--   · `durationSamples`: partidas terminadas de 4 a 8 jugadores (alcance de la ficha).
+--   · `leaderSamples`: partidas terminadas con líder a mitad observado (`leaderAtHalfWon` no nil).
 export type Report = {
 	matches: number,
 	ignored: number,
@@ -61,6 +68,11 @@ export type Report = {
 }
 
 local MatchSummary = {}
+
+-- Alcance del criterio de duración de la ficha: «Las partidas de 4 a 8 jugadores en modo Rondas
+-- duran de 25 a 35 minutos» (y deja 2–3 jugadores fuera de los objetivos). No es un valor de juego
+-- que se ajuste jugando, sino el recorte con el que se mide; el mínimo de la partida sigue en 2.
+local DURATION_MIN_PLAYERS = 4
 
 -- 62 bits de azar en 16 dígitos hexadecimales. No se usa el reloj ni nada del servidor: el id no
 -- puede identificar a una persona ni servir para correlacionar partidas entre servidores.
@@ -114,8 +126,9 @@ end
 
 -- Resumen de una partida terminada o abandonada. Con cinco argumentos deduce del estado final lo
 -- que sí es deducible (`players`, `sizeId`, `endMode`, `finished`, `rematch`, `cardsPlayed` y la
--- duración) y deja en cero lo que no se puede saber sin observaciones (`avgTurnSec`, `sceneSec` y
--- `leaderAtHalfWon`); con el sexto argumento las rellena (R-P7).
+-- duración) y deja en cero `avgTurnSec` y `sceneSec`; `leaderAtHalfWon` queda nil porque no hay
+-- forma de saberlo. Con el sexto argumento rellena turnos y escena y, si la ronda central está
+-- anotada, también el líder (R-P7).
 --
 -- `finished` es verdadero solo si el motor llegó a `GameOver` y la partida no se abandonó: un
 -- abandono interrumpe la partida y no cuenta como final.
@@ -130,7 +143,7 @@ function MatchSummary.fromState(
 	local durationSec = math.max(0, endedAt - startedAt)
 	local avgTurnSec = 0
 	local sceneSec = 0
-	local leaderAtHalfWon = false
+	local leaderAtHalfWon: boolean? = nil
 	if observations ~= nil then
 		if observations.turns > 0 then
 			avgTurnSec = durationSec / observations.turns
@@ -160,18 +173,22 @@ end
 --
 --   · partidas terminadas: terminadas / iniciadas;
 --   · segunda partida: revanchas / primeras partidas (R-P16, sin identificador de grupo);
---   · duración: media de las partidas terminadas, que son las que tienen una duración completa;
---   · líder a mitad: partidas terminadas en las que ganó el líder de la ronda central.
+--   · duración: media de las partidas terminadas de 4 a 8 jugadores, el alcance de la ficha;
+--   · líder a mitad: partidas terminadas con líder observado en las que ganó ese líder.
 --
 -- Una lista vacía devuelve ceros, sin dividir por cero. Las partidas Sin Fin se cuentan en
--- `ignored` y no entran en ninguna de las cuatro cuentas.
+-- `ignored` y no entran en ninguna de las cuatro cuentas. Un `leaderAtHalfWon` nil (no observado)
+-- suma en partidas terminadas pero no en el denominador del líder: no se puede contar como derrota
+-- lo que no se midió.
 function MatchSummary.report(summaries: { Summary }): Report
 	local matches = 0
 	local ignored = 0
 	local finished = 0
 	local firstMatches = 0
 	local rematches = 0
+	local durationSamples = 0
 	local durationTotal = 0
+	local leaderSamples = 0
 	local leadersWon = 0
 	for _, summary in summaries do
 		if summary.endMode ~= "Rounds" then
@@ -185,9 +202,16 @@ function MatchSummary.report(summaries: { Summary }): Report
 			end
 			if summary.finished then
 				finished += 1
-				durationTotal += summary.durationSec
-				if summary.leaderAtHalfWon then
-					leadersWon += 1
+				if summary.players >= DURATION_MIN_PLAYERS then
+					durationSamples += 1
+					durationTotal += summary.durationSec
+				end
+				local leaderAtHalfWon = summary.leaderAtHalfWon
+				if leaderAtHalfWon ~= nil then
+					leaderSamples += 1
+					if leaderAtHalfWon then
+						leadersWon += 1
+					end
 				end
 			end
 		end
@@ -200,11 +224,11 @@ function MatchSummary.report(summaries: { Summary }): Report
 		firstMatches = firstMatches,
 		rematches = rematches,
 		rematchRate = if firstMatches > 0 then rematches / firstMatches else 0,
-		durationSamples = finished,
-		averageDurationSec = if finished > 0 then durationTotal / finished else 0,
-		leaderSamples = finished,
+		durationSamples = durationSamples,
+		averageDurationSec = if durationSamples > 0 then durationTotal / durationSamples else 0,
+		leaderSamples = leaderSamples,
 		leadersWon = leadersWon,
-		leaderAtHalfRate = if finished > 0 then leadersWon / finished else 0,
+		leaderAtHalfRate = if leaderSamples > 0 then leadersWon / leaderSamples else 0,
 	}
 end
 

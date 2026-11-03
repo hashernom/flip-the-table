@@ -97,6 +97,15 @@ local function summaryOf(overrides: { [string]: any }): Summary
 	return summary
 end
 
+-- Resumen sin líder a mitad observable: el campo no viaja, como cuando una quiebra temprana cierra
+-- la partida antes de la ronda central o cuando se resume sin observaciones.
+local function summaryWithoutLeader(overrides: { [string]: any }): Summary
+	local summary = summaryOf(overrides)
+	local raw: any = summary
+	raw.leaderAtHalfWon = nil
+	return summary
+end
+
 local function keysOf(summary: Summary): { string }
 	local keys: { string } = {}
 	for key in summary :: { [string]: any } do
@@ -118,10 +127,11 @@ describe("MatchSummary.fromState", function()
 		expect(summary.rematch).toBe(false)
 		expect(summary.durationSec).toBe(endedAt)
 		expect(summary.cardsPlayed).toBe(0)
-		-- Sin observaciones no se puede adivinar: se deja en cero, nunca en un valor inventado.
+		-- Sin observaciones no se puede adivinar: se deja en cero, nunca en un valor inventado. El
+		-- líder a mitad queda desconocido (nil), no «perdido».
 		expect(summary.avgTurnSec).toBe(0)
 		expect(summary.sceneSec).toBe(0)
-		expect(summary.leaderAtHalfWon).toBe(false)
+		expect(summary.leaderAtHalfWon == nil).toBe(true)
 	end)
 
 	it("con observaciones rellena turnos, escena y líder a mitad", function()
@@ -173,13 +183,20 @@ describe("MatchSummary.fromState", function()
 		expect(summary.avgTurnSec).toBe(10)
 		expect(summary.sceneSec).toBe(observations.sceneSec)
 		expect(summary.sceneSec > 0).toBe(true)
-		-- Solo se jugó la ronda 2, así que no hay ronda 1 que consultar: no se inventa un ganador.
-		expect(summary.leaderAtHalfWon).toBe(false)
+		-- Solo se jugó la ronda 2, así que no hay ronda 1 que consultar: el líder queda desconocido,
+		-- no se inventa un ganador ni una derrota.
+		expect(summary.leaderAtHalfWon == nil).toBe(true)
 	end)
 
 	it("el resumen tiene exactamente los campos del contrato", function()
 		local state = Fixtures.game({ players = 2 })
-		local summary = MatchSummary.fromState(state, 0, 10, false, false)
+		-- Con la ronda central observada, los once campos del plan están presentes.
+		local observations: Observations = {
+			turns = 1,
+			sceneSec = 0,
+			leaders = { [1] = state.players[1].id, [2] = state.players[2].id },
+		}
+		local summary = MatchSummary.fromState(state, 0, 10, false, false, observations)
 		expect(keysOf(summary)).toEqual({
 			"avgTurnSec",
 			"cardsPlayed",
@@ -193,6 +210,10 @@ describe("MatchSummary.fromState", function()
 			"sceneSec",
 			"sizeId",
 		})
+		-- Sin observaciones el líder no se conoce y su campo no viaja: el contrato no gana un campo
+		-- nuevo para marcar «sin datos».
+		local unknown = MatchSummary.fromState(state, 0, 10, false, false)
+		expect(unknown.leaderAtHalfWon == nil).toBe(true)
 	end)
 
 	it("finished solo es verdadero con GameOver", function()
@@ -298,10 +319,12 @@ describe("MatchSummary.fromState", function()
 		expect(MatchSummary.fromState(state, 0, 10, false, false, observations).leaderAtHalfWon).toBe(true)
 	end)
 
-	it("sin líder en la ronda central no se inventa una victoria", function()
+	it("sin líder en la ronda central el resultado queda desconocido", function()
 		local state = Fixtures.game({ players = 2 })
 		local observations: Observations = { turns = 0, sceneSec = 0, leaders = {} }
-		expect(MatchSummary.fromState(state, 0, 10, false, false, observations).leaderAtHalfWon).toBe(false)
+		expect(MatchSummary.fromState(state, 0, 10, false, false, observations).leaderAtHalfWon == nil).toBe(
+			true
+		)
 	end)
 
 	it("suma las cartas jugadas por todos los jugadores", function()
@@ -341,6 +364,8 @@ describe("MatchSummary.fromState", function()
 		expect(abandoned.durationSec).toBe(60.5)
 		expect(abandoned.avgTurnSec).toBe(60.5 / 7)
 		expect(abandoned.sceneSec).toBe(12.5)
+		-- La única observación es de la ronda 2, así que la ronda central (1) no se conoce.
+		expect(abandoned.leaderAtHalfWon == nil).toBe(true)
 		-- Y el informe lo ve: suma en el total de partidas y no en las terminadas.
 		local report = MatchSummary.report({ abandoned })
 		expect(report.matches).toBe(1)
@@ -391,6 +416,20 @@ describe("MatchSummary.report", function()
 		expect(report.ignored).toBe(0)
 	end)
 
+	it("mide la duración solo con las partidas de 4 a 8 jugadores", function()
+		-- La ficha acota el criterio de duración a 4–8 jugadores y deja 2–3 fuera de los objetivos.
+		local summaries = {
+			summaryOf({ players = 3, durationSec = 600 }),
+			summaryOf({ players = 4, durationSec = 1200 }),
+			summaryOf({ players = 8, durationSec = 1800 }),
+		}
+		local report = MatchSummary.report(summaries)
+		expect(report.finished).toBe(3)
+		expect(report.finishedRate).toBe(1)
+		expect(report.durationSamples).toBe(2)
+		expect(report.averageDurationSec).toBe(1500)
+	end)
+
 	it("dos de cinco líderes a mitad ganaron: 0.4", function()
 		local summaries = {
 			summaryOf({ leaderAtHalfWon = true }),
@@ -403,6 +442,27 @@ describe("MatchSummary.report", function()
 		expect(report.leaderSamples).toBe(5)
 		expect(report.leadersWon).toBe(2)
 		expect(report.leaderAtHalfRate).toBe(0.4)
+	end)
+
+	it("solo cuenta los líderes observados en el denominador", function()
+		local summaries = {
+			summaryOf({ leaderAtHalfWon = true }),
+			summaryOf({ leaderAtHalfWon = false }),
+			summaryWithoutLeader({}),
+			summaryWithoutLeader({}),
+			summaryOf({ finished = false, leaderAtHalfWon = true }),
+		}
+		local report = MatchSummary.report(summaries)
+		-- Las dos sin líder y la no terminada siguen contando como partidas, pero no como muestra
+		-- del criterio: no se puede contar como derrota lo que no se midió.
+		expect(report.matches).toBe(5)
+		expect(report.finished).toBe(4)
+		expect(report.finishedRate).toBe(4 / 5)
+		expect(report.leaderSamples).toBe(2)
+		expect(report.leadersWon).toBe(1)
+		expect(report.leaderAtHalfRate).toBe(0.5)
+		-- Sin ningún líder observado no hay tasa ni división por cero.
+		expect(MatchSummary.report({ summaryWithoutLeader({}) }).leaderAtHalfRate).toBe(0)
 	end)
 
 	it("ignora las partidas Sin Fin por completo", function()

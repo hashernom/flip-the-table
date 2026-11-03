@@ -1,9 +1,11 @@
 --!nocheck
 -- Informe de los criterios de salida de la ficha. Uso: lune run tools/criteria-report [ruta.json]
 --
--- Lee el JSON exportado por la telemetría del servidor (la última línea `[telemetry] [...]` de la
--- salida del servidor) y calcula, solo con partidas en modo Rondas, los cuatro criterios
--- medibles: partidas terminadas, segunda partida, duración y líder a mitad de partida. El cálculo
+-- Lee el JSON exportado por la telemetría del servidor (la última línea de la salida del servidor,
+-- que es un arreglo JSON desnudo, sin prefijo) y calcula, solo con partidas en modo Rondas, los
+-- cuatro criterios medibles: partidas terminadas, segunda partida, duración y líder a mitad de
+-- partida. La duración se mide solo con partidas de 4 a 8 jugadores (alcance de la ficha) y el
+-- líder solo con las que tienen líder conocido; cada línea dice el tamaño de su muestra. El cálculo
 -- vive en `MatchSummary.report`, que es puro y se prueba con Lune (R-P15); esta herramienta solo lee
 -- e imprime.
 --
@@ -103,11 +105,11 @@ print(
 	)
 )
 if report.durationSamples == 0 then
-	print("Duración media:      sin datos (ninguna partida terminada).")
+	print("Duración media:      sin datos (ninguna partida terminada de 4 a 8 jugadores).")
 else
 	print(
 		string.format(
-			"Duración media:      %.1f min (%.0f s) en %s.",
+			"Duración media:      %.1f min (%.0f s) en %s de 4 a 8 jugadores.",
 			report.averageDurationSec / 60,
 			report.averageDurationSec,
 			plural(report.durationSamples, "partida terminada", "partidas terminadas")
@@ -115,11 +117,11 @@ else
 	)
 end
 if report.leaderSamples == 0 then
-	print("Líder a mitad:       sin datos (ninguna partida terminada).")
+	print("Líder a mitad:       sin datos (ninguna partida terminada con líder conocido).")
 else
 	print(
 		string.format(
-			"Líder a mitad:       %s (%d de %d partidas terminadas).",
+			"Líder a mitad:       %s (%d de %d partidas con líder conocido).",
 			percentage(report.leadersWon, report.leaderSamples),
 			report.leadersWon,
 			report.leaderSamples

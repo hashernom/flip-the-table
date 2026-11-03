@@ -3,9 +3,9 @@
 -- medir los criterios de salida de la ficha. El resumen se construye con `MatchSummary`, que es puro,
 -- y se publica de dos formas:
 --
---   · una línea `[telemetry] [...]` por partida en la salida del servidor, con la lista de resúmenes
---     en JSON: la última línea es el archivo que lee `tools/criteria-report` (Roblox no deja escribir
---     ficheros desde el servidor);
+--   · una línea de etiqueta y, debajo, el JSON desnudo con la lista de resúmenes: la última línea es
+--     el archivo que lee `tools/criteria-report`, sin quitarle ningún prefijo (Roblox no deja
+--     escribir ficheros desde el servidor);
 --   · un evento `MatchSummary` de `AnalyticsService`, atribuido a un jugador presente, con la
 --     duración como valor y el tamaño y el modo como campos de desglose.
 --
@@ -110,17 +110,18 @@ local function send(summary: Summary, player: Player?)
 	end
 end
 
--- Deja los resúmenes donde la herramienta pueda leerlos: una línea JSON por partida con la lista
--- completa, para que la última línea de la salida sea un arreglo válido y se pueda guardar tal cual
--- como `telemetry/summaries.json`. `HttpService` no necesita HTTP habilitado para codificar, y si
--- fallara, los resúmenes en memoria siguen ahí.
+-- Deja los resúmenes donde la herramienta pueda leerlos: la etiqueta va en su propia línea y debajo
+-- va el JSON desnudo de la lista completa. La última línea de la salida es un arreglo JSON válido y
+-- se guarda tal cual como `telemetry/summaries.json`, sin editar nada. `HttpService` no necesita HTTP
+-- habilitado para codificar, y si fallara, los resúmenes en memoria siguen ahí.
 local function publish(summary: Summary)
 	table.insert(summaries, summary)
 	local ok: boolean, encoded: any = pcall(function()
 		return HttpService:JSONEncode(summaries)
 	end)
 	if ok then
-		print(`[telemetry] {encoded}`)
+		print("Telemetry: resúmenes de este servidor (la línea siguiente es el JSON):")
+		print(encoded)
 	else
 		degrade(`no se pudo codificar el resumen: {encoded}`)
 	end
