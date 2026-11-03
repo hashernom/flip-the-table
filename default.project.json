@@ -13,6 +13,9 @@
       "$className": "ServerScriptService",
       "Server": {
         "$path": "src/server"
+      },
+      "shared": {
+        "$path": "src/shared"
       }
     },
     "StarterPlayer": {
@@ -21,6 +24,9 @@
         "$className": "StarterPlayerScripts",
         "Client": {
           "$path": "src/client"
+        },
+        "shared": {
+          "$path": "src/shared"
         }
       }
     }

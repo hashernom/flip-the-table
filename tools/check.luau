@@ -66,11 +66,10 @@ run("Formato (StyLua)", "stylua", { "--check", table.unpack(CODE_DIRS) })
 run("Lint (Selene)", "selene", CODE_DIRS)
 run("Tipos (luau-lsp)", "luau-lsp", { "analyze", "--platform=standard", table.unpack(PURE_DIRS) })
 -- Paso 0 del plan 04: el servidor y el cliente usan globals de Roblox, así que se analizan aparte
--- con las definiciones del repositorio. El pase estándar de arriba no cambia. El sourcemap se
--- genera para el editor, pero no se pasa a luau-lsp: con --sourcemap, luau-lsp 1.70.1 resuelve los
--- require relativos contra el DataModel y `../../shared` no puede cruzar de ServerScriptService a
--- ReplicatedStorage (types/README.md lo explica). Sin él los resuelve por ruta de archivo, igual
--- que Lune, y las definiciones de Roblox siguen cargadas.
+-- con las definiciones del repositorio y el sourcemap de Rojo. default.project.json monta
+-- src/shared como `shared` (minúsculas) bajo ServerScriptService y StarterPlayerScripts, además de
+-- ReplicatedStorage.Shared: así la misma ruta `../../shared/...` resuelve igual en disco, en Lune y
+-- en el DataModel (R-P17). El pase estándar de arriba no cambia.
 run("Mapa de Rojo", "rojo", { "sourcemap", "default.project.json", "--output", SOURCEMAP_PATH })
 local robloxDirs = {}
 for _, dir in ROBLOX_DIRS do
@@ -83,6 +82,7 @@ if #robloxDirs > 0 then
 		"analyze",
 		"--platform=roblox",
 		`--definitions={ROBLOX_DEFINITIONS}`,
+		`--sourcemap={SOURCEMAP_PATH}`,
 		table.unpack(robloxDirs),
 	})
 else

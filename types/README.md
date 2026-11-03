@@ -20,25 +20,24 @@ Está versionado porque `luau-lsp` no descarga definiciones por su cuenta. Sin e
 
 ## Cómo se usa
 
-`tools/check` genera `sourcemap.json` con Rojo para el editor y ejecuta un segundo pase:
+`tools/check` genera `sourcemap.json` con Rojo y ejecuta un segundo pase:
 
 ```
 rojo sourcemap default.project.json --output sourcemap.json
-luau-lsp analyze --platform=roblox --definitions=types/globalTypes.d.lua <carpetas>
+luau-lsp analyze --platform=roblox --definitions=types/globalTypes.d.lua --sourcemap=sourcemap.json <carpetas>
 ```
 
 Las carpetas son `src/server` y `src/client`, filtradas a las que contienen al menos un `.luau`.
 `src/client` está vacío hasta el plan 05 y `luau-lsp` sale con código 1 si una ruta no aporta
 ficheros. `sourcemap.json` está en `.gitignore`; este archivo, no.
 
-El pase **no** lleva `--sourcemap`. Con `--sourcemap`, `luau-lsp` 1.70.1 resuelve los `require`
-relativos contra el DataModel y no contra el sistema de archivos: `../../shared/net/Protocol` desde
-`game/ServerScriptService/Server/match` se busca como `game/ServerScriptService/shared/...` y falla,
-porque `src/shared` vive en ReplicatedStorage y una ruta relativa no cruza de servicio. Sin
-`--sourcemap`, los resuelve por ruta de archivo igual que Lune, y el análisis sigue usando las
-definiciones de Roblox, que es lo que este pase comprueba. Cuando el proyecto decida cómo cruzar
-servicios (duplicar `shared` en cada lugar o usar `@game/ReplicatedStorage/...`), se podrá volver a
-pasar el sourcemap.
+El sourcemap funciona porque `default.project.json` monta `src/shared` como **`shared` en
+minúsculas** bajo `ServerScriptService` y bajo `StarterPlayer.StarterPlayerScripts`, además de
+`ReplicatedStorage.Shared` (R-P17). Así la misma ruta relativa `../../shared/...` resuelve igual en
+disco (Lune), en el DataModel del servidor (`ServerScriptService.shared...`) y en el del cliente
+(`StarterPlayerScripts.shared...`). Sin ese montaje, `luau-lsp` busca
+`game/ServerScriptService/shared/...` y falla, porque una ruta relativa no cruza de servicio.
+`lobby.project.json` (Tarea 5) tiene que repetir el mismo montaje.
 
 El pase estándar para `src/shared`, `tests` y `tools` no cambia y sigue siendo el que impide usar
 globales de Roblox en el motor.
