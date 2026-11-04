@@ -58,6 +58,7 @@ local function boot()
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
+	local NoticeRules = require("./ui/NoticeRules")
 	local SocialRules = require("./ui/SocialRules")
 	local ViewText = require("./ui/ViewText")
 
@@ -441,7 +442,12 @@ local function boot()
 	local noticeRemote = remotes:WaitForChild(Protocol.REMOTES.Notice, REMOTE_WAIT_SEC)
 	if noticeRemote and noticeRemote:IsA("RemoteEvent") then
 		(noticeRemote :: RemoteEvent).OnClientEvent:Connect(function(notice: any)
-			if type(notice) == "table" and type(notice.message) == "string" then
+			-- R-P48: se enruta por `kind`. El rechazo de una acción es un aviso breve de la barra; los
+			-- avisos de revancha y de lobby siguen yendo al panel de revancha.
+			local route = NoticeRules.route(notice)
+			if route == "Toast" then
+				hud.setToast(notice.message)
+			elseif route == "Panel" then
 				rematchMenu.setNotice(notice.message)
 				lobbyMenu.setVisible(false)
 			end

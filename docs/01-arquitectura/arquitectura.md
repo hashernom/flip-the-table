@@ -198,7 +198,7 @@ Protocol.REMOTES = {
     Rematch = "RematchVoteRequest",
     PartyCreate = "PartyCreateRequest", PartyJoin = "PartyJoinRequest",
     PartyStart = "PartyStartRequest", QueueJoin = "QueueJoinRequest",
-    Notice = "LobbyNotice",
+    Notice = "LobbyNotice",  -- { kind: Protocol.NOTICE_KINDS, message: string }
     -- Emotes (subfase 05): petición del cliente y reenvío del servidor por el mismo remoto.
     Emote = "EmoteRequest",
 }
@@ -299,6 +299,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P45 (eventos):** `RentPaid.amount` es lo que cobra el dueño, y `GameEnded` lleva `awards` con el resultado de `Awards.compute`.
 - **R-P46 (presencia):** el reloj de una subasta, un Duelo o un Tribunal no cuenta como tiempo agotado de nadie.
 - **R-P47 (avatares):** las fichas son locales de cada cliente y la soldadura de un avatar no se replica, así que cada cliente sube también a los demás jugadores a su copia de la ficha.
+- **R-P48 (acciones rechazadas):** `Match.submit` devuelve el motivo del motor cuando rechaza una acción que llegó a tiempo. Un clic durante la escena o con la partida acabada se descarta sin motivo (R-P39) y no avisa. `MatchService.submit` manda el motivo a ese jugador, en español, por `LobbyNotice` con `kind = "ActionRejected"`. Los demás `kind` (`Info`, `Error`, `PartyCode`, en `Protocol.NOTICE_KINDS`) siguen yendo al panel de revancha: el cliente enruta por `kind` (`client/ui/NoticeRules`) y enseña el rechazo como un aviso breve en la barra.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales

@@ -7,6 +7,7 @@
 -- enseñan la misma cuenta atrás aunque uno vaya un poco por detrás.
 local ActionMenuRules = require("./ActionMenuRules")
 local Theme = require("./Theme")
+local Ui = require("../../shared/config/Ui")
 
 export type Handles = {
 	gui: ScreenGui,
@@ -16,6 +17,8 @@ export type Handles = {
 	setDeadline: (deadline: number?) -> (),
 	-- Rótulo de la escena en curso. Vacío lo esconde.
 	setBanner: (text: string) -> (),
+	-- Aviso breve (una acción rechazada). Se esconde solo a los `Ui.toastSeconds`.
+	setToast: (text: string) -> (),
 	onOverview: (callback: () -> ()) -> (),
 	onEmote: (callback: (emote: string) -> ()) -> (),
 	destroy: (() -> ())?,
@@ -155,6 +158,31 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	banner.Parent = gui
 	Theme.corner(banner)
 
+	-- Aviso breve de la barra: el motivo de una acción rechazada, que el jugador debe leer sin que
+	-- le tape la mesa ni le robe el foco.
+	local toast = Instance.new("TextLabel")
+	toast.Name = "Toast"
+	toast.AnchorPoint = Vector2.new(0.5, 0)
+	toast.Position = UDim2.new(0.5, 0, 0, 140)
+	toast.Size = UDim2.fromScale(0.9, 0)
+	toast.AutomaticSize = Enum.AutomaticSize.Y
+	toast.BackgroundColor3 = Theme.danger
+	toast.BackgroundTransparency = 0.1
+	toast.BorderSizePixel = 0
+	toast.Font = Theme.fontBold
+	toast.TextSize = 16
+	toast.TextWrapped = true
+	toast.TextColor3 = Theme.text
+	toast.Text = ""
+	toast.Visible = false
+	toast.Parent = gui
+	Theme.corner(toast)
+	Theme.padding(toast, 6)
+	local toastLimit = Instance.new("UISizeConstraint")
+	toastLimit.MaxSize = Vector2.new(Ui.maxPanelWidth, math.huge)
+	toastLimit.Parent = toast
+	local toastToken = 0
+
 	-- Emotes: una fila corta que se abre y se cierra con el botón de la barra.
 	local emoteBar = Instance.new("Frame")
 	emoteBar.Name = "Emotes"
@@ -214,6 +242,20 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		setBanner = function(text: string)
 			banner.Text = text
 			banner.Visible = text ~= ""
+		end,
+		setToast = function(text: string)
+			toastToken += 1
+			local mine = toastToken
+			toast.Text = text
+			toast.Visible = text ~= ""
+			if text ~= "" then
+				-- Un aviso nuevo reinicia la cuenta: el viejo no puede esconder al reciente.
+				task.delay(Ui.toastSeconds, function()
+					if toastToken == mine then
+						toast.Visible = false
+					end
+				end)
+			end
 		end,
 		onOverview = function(callback: () -> ())
 			overviewButton.MouseButton1Click:Connect(callback)
