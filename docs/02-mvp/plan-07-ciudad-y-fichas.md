@@ -32,6 +32,7 @@
 
 - Cada asset cumple el estándar de la ficha y se aprueba en el juego por una persona.
 - No hay interiores ni calles que nadie pise.
+- Toda la ciudad sigue [la visión visual](../../art/vision-visual.md): calle de asfalto y casillas pintadas, sin baldosas ni tablero.
 - Cada propiedad es un edificio real y propio. Sus cinco niveles añaden marcadores y pequeños cambios de fachada y altura, sin sustituirlo.
 - Cada grupo de color es una zona de edificios, y varias zonas forman un barrio.
 - 30 FPS o más en el móvil de referencia con 8 jugadores.
@@ -108,7 +109,7 @@
 - [ ] La Zona Caliente brilla sobre la zona activa y se distingue sin depender solo del color.
 
 - [ ] **Paso 1:** Modelar y registrar los assets.
-- [ ] **Paso 2:** Capturar cada casilla desde primera persona y desde la maqueta.
+- [ ] **Paso 2:** Capturar cada casilla desde el plano del turno y desde la maqueta.
 - [ ] **Paso 3:** Obtener la aprobación del responsable.
 - [ ] **Paso 4:** Hacer commit: `feat: añadir casillas especiales`.
 

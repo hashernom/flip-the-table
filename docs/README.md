@@ -5,9 +5,10 @@ Punto de entrada a toda la documentación del proyecto: qué se construye y en q
 ## Cómo leer esto
 
 1. **Ficha general:** [00-ficha/ficha-propuesta.md](00-ficha/ficha-propuesta.md). Qué es el juego. Si un plan la contradice, manda la ficha.
-2. **Arquitectura:** [01-arquitectura/arquitectura.md](01-arquitectura/arquitectura.md). Stack, módulos y contratos que comparten todos los planes.
-3. **Una carpeta por fase:** cada una tiene su ficha (qué y por qué) y su plan (cómo, tarea por tarea).
-4. **Contenido del tablero:** [zonas, colores y propiedades](02-mvp/contenido-tablero.md). Nombres y precios de las 12 zonas y las 34 propiedades.
+2. **Visión visual:** [art/vision-visual.md](../art/vision-visual.md). Cómo debe verse la ciudad, en palabras: léela antes de tocar arte, ciudad o escenas.
+3. **Arquitectura:** [01-arquitectura/arquitectura.md](01-arquitectura/arquitectura.md). Stack, módulos y contratos que comparten todos los planes.
+4. **Una carpeta por fase:** cada una tiene su ficha (qué y por qué) y su plan (cómo, tarea por tarea).
+5. **Contenido del tablero:** [zonas, colores y propiedades](02-mvp/contenido-tablero.md). Nombres y precios de las 12 zonas y las 34 propiedades.
 
 Cada tarea de cada plan indica sus módulos, sus interfaces, sus criterios de aceptación y sus pasos.
 

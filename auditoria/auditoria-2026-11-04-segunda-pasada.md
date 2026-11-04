@@ -11,7 +11,7 @@ Cómo se comprobó cada hallazgo:
 
 ## Cómo retomar
 
-**Orden decidido por el responsable (2026-11-04):** primero una sesión para cerrar lo que falta de menús y HUD; después, el plan 06. Basta con este documento para empezar: no hace falta repetir la auditoría.
+**Actualización (2026-11-04):** menús y HUD ya están cerrados, y el plan 06 está en curso. **Para retomar, empieza por el apartado «Estado» del [plan 06](../docs/02-mvp/plan-06-base-de-arte.md).** Las tablas de abajo quedan como registro de lo que se pidió, con los pendientes en «Estado de las correcciones».
 
 **Al empezar la sesión:**
 1. Lee `docs/instrucciones-de-sesion.md` y las decisiones R-P38 a R-P47 de `docs/01-arquitectura/arquitectura.md`.
@@ -105,7 +105,7 @@ Si cambias de equipo, esto no está en git:
 
 **Cómo se comprobó:** B1, B3, B7, I1, I7 y M18, en Studio. I8 y el paquete de I6 solo tienen comprobación de tipos, porque necesitan un lugar publicado. El resto, con pruebas de Lune.
 
-**Cerrado en la rama `plan-06-base-de-arte`, sin integrar en `main`:** B4, B5, B6, B8, I13, M12, M13, M14, M17, el «Extra», I4 e I5, y `PerkMenu` y `VoteMenu` retirados con el visto bueno del responsable. Las pruebas de Lune los cubren. En Studio (2026-11-04), una partida de 2 clientes, jugada por un script que manda acciones legales por el remoto real, llegó al final: perks, nombres, HUD, colores y sitio de las fichas, dueños, edificios hasta el nivel 5, aviso de rechazo, ronda 20/20, podio y botones de revancha. **Sin comprobar:** clics reales, control de puja, diálogo de tratos, aspecto de los paneles, móvil y votación de revancha, porque bajo Vinegar las ventanas de cliente salían como cuadros negros y el 3D salía negro en las capturas.
+**Cerrado en la rama `plan-06-base-de-arte`, sin integrar en `main`:** B4, B5, B6, B8, I13, M12, M13, M14, M17, el «Extra», I4 e I5, y `PerkMenu` y `VoteMenu` retirados con el visto bueno del responsable. Las pruebas de Lune los cubren. En Studio (2026-11-04), una partida de 2 clientes, jugada por un script que manda acciones legales por el remoto real, llegó al final: perks, nombres, HUD, colores y sitio de las fichas, dueños, edificios hasta el nivel 5, aviso de rechazo, ronda 20/20, podio y botones de revancha. **Sin comprobar:** clics reales, control de puja, diálogo de tratos, aspecto de los paneles, móvil y votación de revancha, porque bajo Vinegar las ventanas de cliente salían como cuadros negros.
 
 **Hallazgo nuevo, corregido (R-P49):** un `RemoteEvent` convierte a texto las claves de `view.properties` (`string:2`), comprobado en Studio. Lune no podía detectarlo; lo arregla `client/state/ViewWire`.
 

@@ -15,4 +15,9 @@ return {
 	maxPanelHeightFraction = 0.6,
 	-- Ancho máximo, en píxeles, de los paneles y los modales; en pantallas estrechas mandan los 90 %.
 	maxPanelWidth = 460,
+	-- Minimapa: lado como fracción de la altura de la pantalla, con un tope en píxeles, y distancia
+	-- desde arriba para no pisar la barra.
+	miniMapHeightFraction = 0.27,
+	miniMapMaxSize = 220,
+	miniMapTop = 70,
 }

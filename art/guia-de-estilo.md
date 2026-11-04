@@ -12,6 +12,8 @@ que la ficha y el motor todavía no conocen la escalera de cinco pasos.
 
 ## 1. La idea
 
+Cómo se traduce esta identidad en la ciudad, en [vision-visual.md](vision-visual.md).
+
 **La ciudad te habla con su propia señalética.** La identidad no inventa un lenguaje gráfico: adopta
 el que ya existe en una avenida de Manhattan —placas esmaltadas, franjas de calzada, toldos, librea
 del taxi— y lo ordena. Es una identidad de *señal*, no de tablero: si algo parece impreso sobre un
@@ -214,10 +216,11 @@ Detalle en [`identidad/direccion-a-giro.png`](identidad/direccion-a-giro.png).
 
 ### 5.4 Casilla de calle
 
-La casilla se marca en el suelo con una **barra pintada** de 7 studs de ancho y 34 de largo, en
-amarillo cuando está activa y en el color de la zona cuando no. El nombre va en una placa caliza
-adosada a la acera, en Oswald mayúsculas. El símbolo de zona se pinta al inicio de la barra, para
-quien no distingue el color. La barra no tapa el paso de cebra ni la señalización de tráfico.
+La casilla se pinta sobre el asfalto, en el carril junto a su edificio: un rectángulo de **30 de largo
+por 16 de fondo** con filete claro, en el color de la zona, o con el filete en amarillo cuando está
+activa. El nombre va en una placa caliza adosada a la acera, en Oswald mayúsculas. El símbolo de zona
+se pinta dentro, para quien no distingue el color. La pintura no tapa el paso de cebra ni la
+señalización de tráfico. La idea completa está en [vision-visual.md](vision-visual.md).
 
 ## 6. Biblioteca de materiales
 

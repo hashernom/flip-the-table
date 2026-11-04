@@ -24,6 +24,8 @@ Un juego de mesa multijugador donde **cada regla importante ocurre como una esce
 ciudad viva: no se juega sobre un tablero, se juega dentro de él. Si caes en la cárcel, llega la
 policía; si sale un huracán, entra un huracán.
 
+El aspecto concreto está en `art/vision-visual.md`: una calle de asfalto con casillas pintadas y un edificio real por propiedad.
+
 Existe para dar a un grupo de amigos la tensión de un juego de mesa clásico con el espectáculo de
 un videojuego moderno, sin apuestas y sin ventajas de pago.
 

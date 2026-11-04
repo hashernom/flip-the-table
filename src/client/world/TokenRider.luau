@@ -13,7 +13,7 @@ local CityLayout = require("../../shared/config/CityLayout")
 
 type SizeId = CityLayout.SizeId
 
-local BODY_SIZE = Vector3.new(9, 6, 15)
+local BODY_SIZE = Vector3.new(6, 9, 6)
 local SEAT_THICKNESS = 0.6
 local BODY_COLOR = Color3.fromRGB(96, 100, 106)
 local SEAT_COLOR = Color3.fromRGB(58, 62, 68)

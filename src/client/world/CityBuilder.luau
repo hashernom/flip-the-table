@@ -1,6 +1,7 @@
 --!strict
--- Construye la ciudad gris provisional de un tamaño. Es arte temporal: piezas planas, colores
--- planos y rótulos, nada que se publique como versión pública. Todas las posiciones, los barrios y
+-- Construye la ciudad gris provisional de un tamaño: calle de asfalto, aceras, casillas pintadas y
+-- rótulos (art/vision-visual.md). Es arte temporal: piezas planas y colores planos, nada que se publique
+-- como versión pública. Todas las posiciones, los barrios y
 -- las etiquetas salen de `CityLayout` y `Strings`, que son puros y están probados con Lune; aquí
 -- solo se convierten en `Instance`.
 --
@@ -16,7 +17,7 @@ export type CityHandles = {
 	model: Model,
 	-- Tamaño del tablero con el que se construyó: lo usan las fichas para saber a qué ruta pertenecen.
 	sizeId: SizeId,
-	-- Marcador de cada casilla, por número de casilla del tablero.
+	-- Pintura de cada casilla, por número de casilla del tablero.
 	squares: { [number]: BasePart },
 	-- Carpeta donde `TokenRider` deja las fichas.
 	tokens: Folder,
@@ -31,8 +32,10 @@ export type CityHandles = {
 	destroy: () -> (),
 }
 
-local GREY = Color3.fromRGB(120, 124, 130)
 local DARK_GREY = Color3.fromRGB(52, 56, 62)
+local ASPHALT = Color3.fromRGB(74, 78, 84)
+local PAVEMENT = Color3.fromRGB(163, 156, 142)
+local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 local POST_HEIGHT = 12
@@ -146,36 +149,85 @@ local function makeBridges(model: Model, sizeId: SizeId)
 				midpoint,
 				midpoint + Vector3.new(math.sin(bridge.facing), 0, math.cos(bridge.facing))
 			),
-			Color = GREY,
+			Color = ASPHALT,
 			CanCollide = true,
 		})
 		plank.Parent = model
 	end
 end
 
--- Una casilla: baldosa con el color de la calle, poste del tipo y rótulo con su nombre.
+-- La calle: un tramo de asfalto por lado del anillo, con su acera a cada lado. Va por piezas largas, no
+-- por casilla: así el asfalto se lee continuo, que es lo que hace que parezca una calle y no un tablero.
+local function makeStreet(model: Model, sizeId: SizeId)
+	local span = CityLayout.spanFor(sizeId)
+	local street = CityLayout.STREET_WIDTH_STUDS
+	local walk = CityLayout.SIDEWALK_STUDS
+	local walkOffset = street / 2 + walk / 2
+	-- Cada lado: su eje y hacia dónde queda el exterior del anillo.
+	local sides = {
+		{ center = Vector3.new(span / 2, 0, 0), along = Vector3.xAxis, out = -Vector3.zAxis },
+		{ center = Vector3.new(span, 0, span / 2), along = Vector3.zAxis, out = Vector3.xAxis },
+		{ center = Vector3.new(span / 2, 0, span), along = Vector3.xAxis, out = Vector3.zAxis },
+		{ center = Vector3.new(0, 0, span / 2), along = Vector3.zAxis, out = -Vector3.xAxis },
+	}
+	local function strip(
+		name: string,
+		center: Vector3,
+		along: Vector3,
+		length: number,
+		width: number,
+		color: Color3
+	)
+		local size = if along == Vector3.xAxis
+			then Vector3.new(length, TILE_HEIGHT, width)
+			else Vector3.new(width, TILE_HEIGHT, length)
+		local part = makePart({ Name = name, Size = size, Color = color, CanCollide = true })
+		part.CFrame = CFrame.new(center)
+		part.Parent = model
+	end
+	for order, side in sides do
+		local road = side.center + Vector3.new(0, -TILE_HEIGHT / 2, 0)
+		strip(`Street{order}`, road, side.along, span + street, street, ASPHALT)
+		local curb = Vector3.new(0, TILE_HEIGHT / 2, 0)
+		strip(
+			`WalkOut{order}`,
+			side.center + side.out * walkOffset + curb,
+			side.along,
+			span + street + walk * 2,
+			walk,
+			PAVEMENT
+		)
+		strip(
+			`WalkIn{order}`,
+			side.center - side.out * walkOffset + curb,
+			side.along,
+			span - street - walk * 2,
+			walk,
+			PAVEMENT
+		)
+	end
+end
+
+-- Una casilla: pintura del color de su calle sobre el asfalto, y en la acera el poste con su nombre.
 local function makeSquare(model: Model, slot: CityLayout.Slot): Part
-	local position = Vector3.new(slot.position.x, 0, slot.position.z)
+	local center = CityLayout.slotCenter(slot)
+	local position = Vector3.new(center.x, PAINT_HEIGHT / 2, center.z)
 	local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
 	local color = Color3.fromHex(Strings.colorFor(toSquare(slot)))
 
 	local tile = makePart({
 		Name = `Square{slot.index}`,
-		Size = Vector3.new(
-			CityLayout.SQUARE_SPACING_STUDS - 4,
-			TILE_HEIGHT,
-			CityLayout.SQUARE_SPACING_STUDS - 4
-		),
+		Size = Vector3.new(CityLayout.SLOT_DEPTH_STUDS, PAINT_HEIGHT, CityLayout.SLOT_LENGTH_STUDS),
 		CFrame = CFrame.lookAt(position, position + forward),
 		Color = color,
-		CanCollide = true,
 	})
 	tile.Parent = model
 
+	local sign = CityLayout.signCenter(slot)
 	local post = makePart({
 		Name = "Marker",
 		Size = Vector3.new(2, POST_HEIGHT, 2),
-		CFrame = CFrame.new(position + Vector3.new(0, POST_HEIGHT / 2, 0)),
+		CFrame = CFrame.new(sign.x, POST_HEIGHT / 2, sign.z),
 		Color = color,
 	})
 	post.Parent = tile
@@ -198,6 +250,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	model.Name = `City_{sizeId}`
 
 	makeGround(model, sizeId)
+	makeStreet(model, sizeId)
 	makeBridges(model, sizeId)
 
 	local squares: { [number]: BasePart } = {}

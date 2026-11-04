@@ -12,7 +12,7 @@ blender --background --factory-startup --python art/blender/blockout/build_block
 
 | Qué | Studs | Referencia |
 | --- | --- | --- |
-| Avatar | 6 | Unos 1,70 m. Es la unidad de todo lo demás |
+| Avatar | 6 | Unos 1,70 m. Es la unidad de todo lo demás. Medido en Studio: 4,9 de cuerpo y 5,6 con cabeza y accesorios |
 | Altura de planta | 7 | Techo de 2 m escasos por planta |
 | Calzada | 34 | Cuatro fichas de lado a lado |
 | Acera | 7 por lado | Con bordillo; la ficha no cabe y circula por la calzada |
@@ -20,7 +20,7 @@ blender --background --factory-startup --python art/blender/blockout/build_block
 | Fondo de solar | 22 | |
 | Ficha: base | 6 de diámetro | |
 | Ficha: altura | 9 | 15 con el avatar subido |
-| Ojo en primera persona | 14,1 | 9 de ficha + 5,1 del avatar |
+| Ojo en primera persona | 14,1 | Sin uso desde el 2026-11-04: ya no hay primera persona |
 
 Alturas con los niveles de edificio de la arquitectura:
 
@@ -32,7 +32,7 @@ Alturas con los niveles de edificio de la arquitectura:
 | Ficha taxi | — | 9 | 892 |
 | Fondo de ciudad | — | 52 | 60 |
 
-**Revisión del 2026-11-04.** Cada propiedad es ahora un edificio propio y fijo, con su altura, y el nivel solo le añade un poco (R-P50). Las alturas de la tabla quedan como referencia del blockout y 92 sigue siendo el techo. Provisionalmente, el solar mide 36 de frente, el ancho de la baldosa, y 22 de fondo, en vez de los 18 de arriba.
+**Revisión del 2026-11-04.** Sin primera persona, las razones de abajo basadas en el ojo a 14,1 ya no fijan la altura de la ficha, que se revisará con la cámara nueva. Cada propiedad es ahora un edificio propio y fijo, con su altura, y el nivel solo le añade un poco (R-P50). Las alturas de la tabla quedan como referencia del blockout y 92 sigue siendo el techo. Provisionalmente, el solar mide 36 de frente y 22 de fondo, en vez de los 18 de arriba. Las casillas son pintura sobre la calzada de 30 × 16, con 40 entre casilla y casilla. Ver [vision-visual.md](vision-visual.md).
 
 ## Por qué estos y no otros
 

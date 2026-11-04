@@ -12,6 +12,27 @@
 
 **Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha, y salvo lo que exige publicar (teletransporte, MemoryStore, lobby y vuelta al asiento), que sigue sin probar. El móvil de referencia debe elegirse antes de la Puerta B.
 
+## Estado (2026-11-04): plan abierto
+
+**La Tarea 3 y la Puerta B siguen abiertas.** La sesión del 2026-11-04 cambió la dirección visual, así que esta tarea hay que leerla con [la visión visual](../../art/vision-visual.md) al lado.
+
+**Hecho:**
+- Tareas 1 y 2.
+- Menús y HUD del plan 05 (ver la [auditoría](../../auditoria/auditoria-2026-11-04-segunda-pasada.md)).
+- Ciudad gris como calle de asfalto con casillas pintadas, edificio fijo por propiedad, marcadores y añadidos (R-P50).
+- Cámara compartida de turno y minimapa, sin primera persona (R-P51).
+- Primera propiedad modelada, el Cine Lux, y sus marcadores. Están en `Draft`: no se han subido ni visto en el juego.
+
+**Siguiente, en este orden:**
+1. **Probar la cámara en una partida real:** se ha visto un plano en un montaje de prueba, no moviéndose en partida.
+2. **Terminar la vista general:** revisarla con la calle nueva, dejar que se gire a mano y añadir el dueño y el nivel sobre cada propiedad.
+3. **Subir el Cine Lux y sus marcadores por Open Cloud** y verlos en el juego. Hace falta la clave de API del responsable, que pone en su entorno. Con eso se comprueba también la paleta de `art/guia-de-estilo.md` §10.
+4. **Revisar el arte para la cámara aérea:** tejados con detalle y altura de la ficha.
+5. **Completar la porción:** 2 o 3 propiedades con ambientación propia, la ficha taxi con avatar, luz, sonido de ambiente y la escena de arresto.
+6. **Elegir el móvil de referencia, medir y presentar la Puerta B.** Solo el responsable la aprueba.
+
+**Decisiones pendientes del responsable:** el móvil de referencia y qué hacer con `tests/tools/manifest.spec.luau` («nunca aprobado»), que fallará al aprobar un asset.
+
 ## Ejecución recomendada
 
 **Modo:** en la sesión, con `superpowers:executing-plans`.
@@ -133,10 +154,11 @@ end)
 
 **Contenido de la porción:**
 
+- Sigue [la visión visual](../../art/vision-visual.md): calle de asfalto, casillas pintadas, aceras y ambientación.
 - Una calle con una zona: 2 o 3 propiedades, cada una con su edificio real, sus marcadores de mejora y los añadidos de sus cinco niveles (decisión del responsable, 2026-11-04).
 - La ficha taxi con un avatar montado.
 - Luz de día, sombras duras, reflejos de cristal y sonido de ambiente.
-- Vista desde primera persona, seguimiento y maqueta.
+- Vista desde el plano del turno, el plano cercano del recorrido y la maqueta.
 - La escena completa del arresto, con policías y patrulla.
 
 **Criterios de aceptación:**

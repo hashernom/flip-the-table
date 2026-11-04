@@ -2,6 +2,8 @@
 
 Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar cada avance.
 
+**Visión:** [vision-visual.md](vision-visual.md) define cómo debe verse la ciudad. Léela primero.
+
 ## Lo que ya existe y funciona
 
 - **Banco de pruebas en Studio**: calle de 140 studs con dos hileras continuas de cinco edificios
@@ -77,13 +79,21 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
   una antes de agrupar.
 - La cámara de `screen_capture` va en sus propios parámetros, no en `Workspace.CurrentCamera`.
 
+**Bajo Linux, con Vinegar (Wine):**
+- Vinegar corre en un sandbox de Flatpak que solo ve Documentos e Imágenes: para abrir un `.rbxl` hay que copiarlo allí.
+- La sesión de servidor y clientes abre ventanas que salen como cuadros negros, y a veces cuelga el escritorio. Una sola ventana sí dibuja bien. En esa sesión, la lógica se comprueba leyendo el estado.
+- Si Studio queda colgado, hay que matar también el `wineserver`, con `flatpak ps` y `flatpak kill`. Eso mata el MCP, que se relanza solo al volver a abrir Studio.
+- `screen_capture` a veces devuelve el 3D en negro. Repetirla dentro de una prueba de una ventana suele bastar.
+- En edición, `require` guarda en caché la versión anterior de un módulo: para probar código nuevo sin reiniciar, hay que clonar `Client` y `shared` a una carpeta temporal y requerir la copia.
+- Team Create (lugar 134548849205816) se cerró varias veces a los 60 s con `Ngtcp2: 3 (Idle Timeout)`, de causa sin confirmar. Se puede trabajar en local con `rojo build` y `rojo serve`.
+
 ## Cómo retomar
 
-1. `PRODUCT.md`, este archivo y `docs/00-ficha/ficha-propuesta.md`.
+1. `art/vision-visual.md`, `PRODUCT.md`, este archivo y `docs/00-ficha/ficha-propuesta.md`.
 2. `art/luz.md` y `art/escala.md` para no repetir decisiones ya tomadas.
 3. `art/PIPELINE.md` si hay que tocar assets.
 4. art/guia-de-estilo.md es la fuente de la identidad: paleta, tipografía, componentes y barrios.
 5. Si el place se perdió o hay que montarlo en otro sitio: `art/lookdev/build_lookdev.lua` levanta la
    calle y `art/lookdev/look.luau` aplica la luz y los materiales. Con esos dos se reconstruye el banco
    de pruebas; el `.rbxl` no se versiona.
-6. El siguiente paso concreto está en «Lo que falta», punto 1.
+6. El siguiente paso concreto está en el apartado «Estado» de `docs/02-mvp/plan-06-base-de-arte.md`.

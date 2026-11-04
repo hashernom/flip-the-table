@@ -91,8 +91,8 @@ end)
 describe("WorldRules.tokenOffsets", function()
 	it("sola en su casilla, la ficha va al centro", function()
 		local offsets = WorldRules.tokenOffsets({ { id = "a", position = 3 }, { id = "b", position = 9 } })
-		expect(offsets.a).toEqual({ side = 0, along = 0 })
-		expect(offsets.b).toEqual({ side = 0, along = 0 })
+		expect(offsets.a).toEqual({ side = CityLayout.SLOT_SIDE_STUDS, along = 0 })
+		expect(offsets.b).toEqual({ side = CityLayout.SLOT_SIDE_STUDS, along = 0 })
 	end)
 
 	it("todas las de una vista inicial quedan en sitios distintos", function()
@@ -108,22 +108,26 @@ describe("WorldRules.tokenOffsets", function()
 	it("depende del asiento, así que todos los clientes ven lo mismo", function()
 		local players = { { id = "a", position = 1 }, { id = "b", position = 1 }, { id = "c", position = 2 } }
 		expect(WorldRules.tokenOffsets(players)).toEqual(WorldRules.tokenOffsets(players))
-		expect(WorldRules.tokenOffsets(players).c).toEqual({ side = 0, along = 0 })
+		expect(WorldRules.tokenOffsets(players).c).toEqual({ side = CityLayout.SLOT_SIDE_STUDS, along = 0 })
 	end)
 end)
 
 describe("CityLayout.tokenOffset", function()
-	it("ocho fichas caben en la casilla sin pisarse", function()
-		local half = (CityLayout.SQUARE_SPACING_STUDS - 4) / 2
+	it("ocho fichas caben en su casilla pintada sin pisarse", function()
+		local token = CityLayout.TOKEN_BASE_STUDS / 2
 		local seen: { [string]: boolean } = {}
 		for order = 1, 8 do
 			local offset = CityLayout.tokenOffset(order, 8)
-			expect(math.abs(offset.side) <= half).toBe(true)
-			expect(math.abs(offset.along) <= half).toBe(true)
+			expect(math.abs(offset.along) + token <= CityLayout.SLOT_LENGTH_STUDS / 2).toBe(true)
+			expect(
+				math.abs(offset.side - CityLayout.SLOT_SIDE_STUDS) + token <= CityLayout.SLOT_DEPTH_STUDS / 2
+			).toBe(true)
 			local key = `{offset.side},{offset.along}`
 			expect(seen[key]).toBe(nil)
 			seen[key] = true
 		end
+		expect(CityLayout.TOKEN_LANE_STUDS >= CityLayout.TOKEN_BASE_STUDS).toBe(true)
+		expect(CityLayout.TOKEN_ROW_STUDS >= CityLayout.TOKEN_BASE_STUDS).toBe(true)
 	end)
 
 	it("el grupo queda centrado en la casilla", function()
@@ -131,12 +135,50 @@ describe("CityLayout.tokenOffset", function()
 			local side, along = 0, 0
 			for order = 1, count do
 				local offset = CityLayout.tokenOffset(order, count)
-				side += offset.side
+				side += offset.side - CityLayout.SLOT_SIDE_STUDS
 				along += offset.along
 			end
 			-- Un carril incompleto no suma cero, pero nunca se aleja más de medio carril del centro.
-			expect(math.abs(side / count) <= CityLayout.TOKEN_LANE_STUDS / 2).toBe(true)
-			expect(math.abs(along / count) <= CityLayout.TOKEN_ROW_STUDS / 2).toBe(true)
+			expect(math.abs(side / count) <= CityLayout.TOKEN_ROW_STUDS / 2).toBe(true)
+			expect(math.abs(along / count) <= CityLayout.TOKEN_LANE_STUDS / 2).toBe(true)
+		end
+	end)
+end)
+
+describe("La calle y sus casillas pintadas", function()
+	it("cada casilla deja asfalto a la vista hasta la siguiente", function()
+		local gap = CityLayout.SQUARE_SPACING_STUDS - CityLayout.SLOT_LENGTH_STUDS
+		expect(gap >= 8).toBe(true)
+	end)
+
+	it("no ocupa toda la calzada: la otra mitad queda libre", function()
+		expect(CityLayout.SLOT_DEPTH_STUDS <= CityLayout.STREET_WIDTH_STUDS / 2).toBe(true)
+		local edge = math.abs(CityLayout.SLOT_SIDE_STUDS) + CityLayout.SLOT_DEPTH_STUDS / 2
+		expect(edge <= CityLayout.STREET_WIDTH_STUDS / 2).toBe(true)
+	end)
+
+	it("los edificios vecinos no se tocan", function()
+		local base = CityLayout.buildingBlocks(0)[1]
+		expect(CityLayout.SQUARE_SPACING_STUDS - base.width >= 8).toBe(true)
+	end)
+
+	it("la casilla cae del lado de su edificio, y el solar empieza tras la acera", function()
+		for _, slot in CityLayout.routeFor("S") do
+			local paint = CityLayout.slotCenter(slot)
+			local lot = CityLayout.lotCenter(slot)
+			local toPaint = math.sqrt((paint.x - slot.position.x) ^ 2 + (paint.z - slot.position.z) ^ 2)
+			local toLot = math.sqrt((lot.x - slot.position.x) ^ 2 + (lot.z - slot.position.z) ^ 2)
+			local paintToLot = math.sqrt((lot.x - paint.x) ^ 2 + (lot.z - paint.z) ^ 2)
+			expect(math.abs(toPaint - math.abs(CityLayout.SLOT_SIDE_STUDS)) < 0.01).toBe(true)
+			expect(math.abs(toLot - paintToLot - toPaint) < 0.01).toBe(true)
+			expect(
+				math.abs(
+					toLot
+						- CityLayout.LOT_DEPTH_STUDS / 2
+						- CityLayout.STREET_WIDTH_STUDS / 2
+						- CityLayout.SIDEWALK_STUDS
+				) < 0.01
+			).toBe(true)
 		end
 	end)
 end)

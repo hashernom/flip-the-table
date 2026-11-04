@@ -2,6 +2,8 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+**Referencia:** [la visión visual](../../art/vision-visual.md): las escenas quitan marcadores y añadidos, y el cuerpo del edificio queda en pie.
+
 **Goal:** Sustituir todas las escenas provisionales, para que cada regla importante ocurra de verdad en la ciudad y todo el grupo la vea.
 
 **Architecture:** Cada escena es un módulo registrado en `SceneDirector` por evento o por carta. Las escenas solo muestran: el estado ya lo decidió el servidor. Una tabla en `config/Scenes` fija duraciones y una prueba impide que falte alguna.

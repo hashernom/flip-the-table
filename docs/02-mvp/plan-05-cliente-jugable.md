@@ -28,7 +28,7 @@
 
 ## Global Constraints
 
-- Primera persona como modo principal, con vista general mediante un botón.
+- Primera persona como modo principal, con vista general mediante un botón. **Sustituido el 2026-11-04 (R-P51):** cámara compartida de turno, minimapa y vista general.
 - Sin movimiento libre: el jugador solo puede mirar alrededor.
 - Todo el grupo ve la misma escena a la vez; el siguiente turno no empieza hasta que termina.
 - La vista general no interrumpe una escena: se abre antes o después.

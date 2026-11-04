@@ -32,11 +32,12 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 
 **Cómo se juega**
 
-- **Primera persona, modo principal:** ves la ciudad desde tu avatar, subido a tu ficha gigante.
+- **Cámara compartida, modo principal:** como en un juego de tablero en grupo, todos ven lo mismo. Una cámara aérea sigue la ficha del turno, se acerca mientras recorre la calle y se aleja al detenerse. Tu avatar y tu ficha siempre se ven. La primera persona se descartó el 2026-11-04: con esta inversión visual, la ciudad y los personajes tienen que verse.
 - **Sin movimiento libre:** como en el juego clásico, siempre estás en una casilla. Puedes mirar alrededor, pero solo avanzas con los dados.
 - **Fichas a escala de ciudad:** tu avatar se sube a su ficha, que recorre las calles hasta la casilla que marcan los dados.
-- **Casillas físicas:** cada casilla es un lugar de la calle, marcado en el suelo y reconocible.
+- **Casillas físicas:** la ruta es una calle de asfalto continua, y cada casilla conserva su color y su sitio como pintura sobre la calzada, sin baldosas ni tablero impreso. Junto a ella, tras la acera, está su edificio. La idea completa está en [Visión visual](../../art/vision-visual.md).
 - **Zonas reales:** cada grupo de color es una zona de edificios, y varias zonas forman un barrio. Cada propiedad es un edificio real y propio, reconocible en todos sus niveles. Mejorarla (una, dos y tres casas, hotel y rascacielos) añade marcadores junto al edificio y embellece un poco su fachada, y lo hace un poco más alto, pero nunca lo sustituye.
+- **Todo el tablero, siempre:** un minimapa fijo enseña todas las casillas con su dueño, nivel y fichas, y al pulsar una se ve su detalle sin mover la cámara de nadie.
 - **Vista general:** con un botón, la ciudad aparece como una maqueta de lujo con el estado de la partida: dueños, dinero, posiciones y efectos activos.
 
 **Tono:** juguetón y caricaturesco, apto para todo público. El juego celebra la traición y la ruina ajena con humor, sin crueldad; los arrestos parecen de dibujos animados.
@@ -195,11 +196,11 @@ Puedes romper un pacto cuando quieras. Pierdes tu garantía y tu ficha lleva la 
 
 | Momento | Jugador activo | Resto del grupo |
 | --- | --- | --- |
-| Tirar dados | Primera persona, sobre su ficha | Mismos dados, sincronizados |
-| Recorrer la calle | Primera persona, en movimiento | Cámara que sigue a la ficha activa |
+| Tirar dados | Cámara aérea sobre su ficha, viendo las casillas que vienen | La misma cámara y los mismos dados |
+| Recorrer la calle | Plano cercano de la ficha y el avatar | El mismo plano |
 | Evento o escena | Misma escena para todos | Misma escena para todos |
-| Decidir compra o carta | Primera persona con su menú | Ven la decisión y pueden reaccionar |
-| Consultar el estado | Vista general con un botón | Vista general con un botón |
+| Decidir compra o carta | Cámara algo alejada, con su menú | La misma cámara; ven la decisión y pueden reaccionar |
+| Consultar el estado | Minimapa siempre visible, detalle al pulsar y vista general con un botón | Igual, también en el turno de otro |
 
 El siguiente turno no empieza hasta que termina la escena en curso. Una escena nunca se interrumpe con la vista general: la maqueta se abre antes o después. Esto incluye la policía, el huracán, la Cartelera, los duelos y cualquier evento del mapa.
 
@@ -234,7 +235,7 @@ En ambos modos, quien se arruina sigue jugando como espectro y puede resucitar, 
 | Área | Qué incluye |
 | --- | --- |
 | Mapa | Metrópolis, con 3 tamaños: 40, 48 y 56 casillas |
-| Vistas | Primera persona, cámara compartida de turno y vista general en maqueta |
+| Vistas | Cámara compartida de turno, minimapa siempre visible y vista general en maqueta |
 | Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), intercambios y bancarrota |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos |
 | Cartas | Las 20 de esta ficha, cada una con su escena; 5 legendarias con cinemática completa |
@@ -318,7 +319,7 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 
 | Decisión | Origen |
 | --- | --- |
-| Primera persona como modo principal, con vista general | Tuya |
+| Cámara compartida de turno como modo principal, con minimapa y vista general; sustituye a la primera persona (2026-11-04) | Tuya |
 | Sin movimiento libre: siempre en una casilla | Tuya |
 | Las reglas importantes ocurren como escenas reales | Tuya |
 | Todo el grupo ve turnos y eventos, como en Mario Party | Tuya |

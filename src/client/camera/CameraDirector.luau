@@ -1,22 +1,21 @@
 --!strict
--- Director de cámara. Decide el modo con `CameraRules` y lo aplica cada fotograma. Es el único sitio
+-- Director de cámara. Decide el plano con `CameraRules` y lo aplica cada fotograma. Es el único sitio
 -- del cliente que toca `Camera`: ni las escenas ni los menús mueven la cámara por su cuenta.
 --
--- Reglas que se ven aquí y no en `CameraRules`: una escena nunca se interrumpe, así que la petición
--- de vista general se recuerda y se abre al terminar; y la cámara no atraviesa el suelo ni la ficha,
--- porque siempre se coloca por encima del asiento con la altura de los ojos del avatar.
+-- Regla que se ve aquí y no en `CameraRules`: una escena nunca se interrumpe, así que la petición de
+-- vista general se recuerda y se abre al terminar.
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local CameraRules = require("./CameraRules")
+local CameraShots = require("../../shared/config/CameraShots")
 local CityLayout = require("../../shared/config/CityLayout")
-local TokenRider = require("../world/TokenRider")
 
 type Mode = CameraRules.Mode
 type SizeId = CityLayout.SizeId
 
 export type Director = {
-	update: (ctx: { isActive: boolean?, sceneRunning: boolean? }) -> Mode,
+	update: (ctx: { riding: boolean?, sceneRunning: boolean? }) -> Mode,
 	requestOverview: (on: boolean) -> (),
 	mode: () -> Mode,
 	follow: (token: Model?) -> (),
@@ -25,14 +24,11 @@ export type Director = {
 	destroy: () -> (),
 }
 
--- Alturas de cámara sobre la ficha y sobre la ciudad. Son de arte provisional: la vista general tiene
--- que verse como una maqueta y la persecución como alguien mirando desde detrás de la ficha.
-local FOLLOW_BACK = 26
-local FOLLOW_UP = 18
+-- Alturas de cámara sobre la ciudad. Son de arte provisional: la vista general tiene que verse como una
+-- maqueta. Los planos del turno y del recorrido están en `config/CameraShots`.
 local OVERVIEW_HEIGHT = 620
 local OVERVIEW_BACK = 320
 local OVERVIEW_TURN = 0.06
-local LERP_ALPHA = 0.12
 
 local CameraDirector = {}
 
@@ -54,67 +50,40 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		cityCenter = Vector3.new(nextCenter.x, 0, nextCenter.z)
 	end
 
-	local mode: Mode = "FollowActive"
+	local mode: Mode = "Turn"
 	local overviewWanted = false
 	local followToken: Model? = nil
 	local sceneFocus: Vector3? = nil
 	local spin = 0
-	local firstPerson = false
+	player.CameraMode = Enum.CameraMode.Classic
 
-	local function currentCharacter(): Model?
-		return player.Character
-	end
-
-	local function seatOf(token: Model?): (Vector3?, CFrame?)
+	local function bodyOf(token: Model?): BasePart?
 		if token == nil then
-			return nil, nil
-		end
-		local seat = token:FindFirstChild("Seat")
-		if seat and seat:IsA("BasePart") then
-			return seat.Position, seat.CFrame
+			return nil
 		end
 		local body = token.PrimaryPart or token:FindFirstChild("Body")
-		if body and body:IsA("BasePart") then
-			return body.Position, body.CFrame
-		end
-		return nil, nil
+		return if body ~= nil and body:IsA("BasePart") then body else nil
 	end
 
-	local function applyFirstPerson()
-		local personaje = currentCharacter()
-		local humanoid = personaje and personaje:FindFirstChildOfClass("Humanoid")
-		if humanoid == nil then
-			mode = "FollowActive"
-			return
-		end
-		-- Primera persona de Roblox: la cámara sigue al humanoid y el jugador solo puede mirar, porque
-		-- el cuerpo está soldado a la ficha y sin velocidad.
-		camera.CameraType = Enum.CameraType.Custom
-		camera.CameraSubject = humanoid
-		player.CameraMode = Enum.CameraMode.LockFirstPerson
-		firstPerson = true
-	end
-
-	local function applyScriptable(target: CFrame)
-		if firstPerson then
-			-- Salir de primera persona exige devolver el control al jugador un instante: si solo se
-			-- cambia el tipo, la cámara se queda pegada al avatar hasta el siguiente fotograma.
-			player.CameraMode = Enum.CameraMode.Classic
-			camera.CameraType = Enum.CameraType.Custom
-			firstPerson = false
-		end
+	local function apply(target: CFrame)
 		camera.CameraType = Enum.CameraType.Scriptable
-		camera.CFrame = camera.CFrame:Lerp(target, LERP_ALPHA)
+		camera.CFrame = camera.CFrame:Lerp(target, CameraShots.lerpAlpha)
 	end
 
-	local function followTarget(): CFrame
-		local position, seat = seatOf(followToken)
-		if position == nil or seat == nil then
-			return CFrame.new(cityCenter + Vector3.new(0, 120, 120)) * CFrame.Angles(0, math.rad(-45), 0)
+	-- Plano sobre la ficha que se sigue. Sin ficha, una vista de la ciudad: nunca se queda en blanco.
+	local function shotTarget(shot: CameraShots.Shot): CFrame
+		local body = bodyOf(followToken)
+		if body == nil then
+			return CFrame.lookAt(cityCenter + Vector3.new(0, 120, 120), cityCenter)
 		end
-		local behind = (seat :: CFrame).LookVector * -FOLLOW_BACK
-		local focus = position + Vector3.new(0, TokenRider.seatHeight() * 0.6, 0)
-		return CFrame.lookAt(focus + behind + Vector3.new(0, FOLLOW_UP, 0), focus)
+		local look = body.CFrame.LookVector
+		local base = body.Position
+		local eye, focus = CameraRules.pose(
+			shot,
+			{ x = base.X, y = base.Y - body.Size.Y / 2, z = base.Z },
+			math.atan2(look.X, look.Z)
+		)
+		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
 
 	local function overviewTarget(): CFrame
@@ -124,29 +93,31 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		return CFrame.lookAt(cityCenter + offset, cityCenter)
 	end
 
+	-- Hasta que cada escena tenga su cámara (plan 08), se ve desde el plano del turno.
 	local function sceneTarget(): CFrame
-		local focus = sceneFocus or cityCenter
-		local anchor = seatOf(followToken)
-		local from = if anchor ~= nil then anchor + Vector3.new(0, 26, 0) else focus + Vector3.new(0, 40, 70)
-		return CFrame.lookAt(from, focus)
+		local focus = sceneFocus
+		if focus == nil then
+			return shotTarget(CameraShots.turn)
+		end
+		return CFrame.lookAt(focus + Vector3.new(0, 40, 70), focus)
 	end
 
 	local director: Director = {
 		update = function(ctx)
 			mode = CameraRules.modeFor({
-				isActive = ctx.isActive,
+				riding = ctx.riding,
 				sceneRunning = ctx.sceneRunning,
 				overviewRequested = overviewWanted,
 			})
-			if mode == "FirstPerson" then
-				applyFirstPerson()
-			elseif mode == "Scene" then
-				applyScriptable(sceneTarget())
+			if mode == "Scene" then
+				apply(sceneTarget())
 			elseif mode == "Overview" then
 				spin += OVERVIEW_TURN * (1 / 60)
-				applyScriptable(overviewTarget())
+				apply(overviewTarget())
+			elseif mode == "Ride" then
+				apply(shotTarget(CameraShots.ride))
 			else
-				applyScriptable(followTarget())
+				apply(shotTarget(CameraShots.turn))
 			end
 			return mode
 		end,
@@ -166,7 +137,6 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 			sceneFocus = position
 		end,
 		destroy = function()
-			player.CameraMode = Enum.CameraMode.Classic
 			camera.CameraType = Enum.CameraType.Custom
 			followToken = nil
 		end,
@@ -178,7 +148,7 @@ end
 -- Arranca el bucle de cámara. Devuelve una función para pararlo.
 function CameraDirector.start(
 	director: Director,
-	ctxProvider: () -> { isActive: boolean?, sceneRunning: boolean? }
+	ctxProvider: () -> { riding: boolean?, sceneRunning: boolean? }
 ): () -> ()
 	local connection = RunService.RenderStepped:Connect(function()
 		director.update(ctxProvider())

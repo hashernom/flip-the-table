@@ -58,6 +58,7 @@ local function boot()
 	local ActionMenu = require("./ui/ActionMenu")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
+	local MiniMap = require("./ui/MiniMap")
 	local Overview = require("./ui/Overview")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -77,6 +78,7 @@ local function boot()
 		return Workspace:GetServerTimeNow()
 	end)
 	local actionMenu = ActionMenu.create(playerGui)
+	local miniMap = MiniMap.create(playerGui, seatColor)
 	local overview = Overview.create(playerGui)
 	local tradeMenu = TradeMenu.create(playerGui, function(action: any)
 		sendAction(action)
@@ -116,6 +118,7 @@ local function boot()
 	local tokens: { [string]: Model } = {}
 	local myToken: Model? = nil
 	local sceneRunning = false
+	local riding = false
 	local city: CityBuilder.CityHandles? = nil
 	local size: string? = nil
 
@@ -219,7 +222,11 @@ local function boot()
 			-- La vista del lote ya lleva el resultado, así que se sabe a qué sitio de la casilla llega.
 			local view = StateStore.view(queue.state)
 			local arrival = if view ~= nil then WorldRules.tokenOffsets(view.players)[id] else nil
+			-- Todo el grupo sigue a esa ficha de cerca mientras recorre la calle (R-P51).
+			director.follow(token)
+			riding = true
 			local used = TokenRider.ride(token, path, ctx.duration, arrival)
+			riding = false
 			ctx.spent(used)
 		end,
 	})
@@ -236,13 +243,7 @@ local function boot()
 	end
 
 	local function context()
-		local view = StateStore.view(queue.state)
-		local active = false
-		if view ~= nil then
-			local turn = view.players[view.turnIndex]
-			active = turn ~= nil and turn.id == playerId
-		end
-		return { isActive = active, sceneRunning = sceneRunning }
+		return { riding = riding, sceneRunning = sceneRunning }
 	end
 
 	CameraDirector.start(director, context)
@@ -378,6 +379,9 @@ local function boot()
 			Overview = function()
 				overview.setView(view, names)
 			end,
+			MiniMap = function()
+				miniMap.setView(view, names)
+			end,
 			TradeMenu = function()
 				tradeMenu.setView(view, names)
 			end,
@@ -494,6 +498,7 @@ local function boot()
 		-- lo que el grupo ya vio.
 		SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 		sceneRunning = false
+		riding = false
 		hud.setBanner("")
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
@@ -522,6 +527,7 @@ local function boot()
 				local ok: boolean, err: any = (pcall :: any)(playBatch, due, now)
 				if not ok then
 					sceneRunning = false
+					riding = false
 					warn(`Cliente: falló el lote {due.seq}: {err}`)
 				end
 				-- Un resync que llegó durante la escena manda sobre la vista de ese lote: es más reciente.

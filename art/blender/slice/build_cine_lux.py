@@ -38,8 +38,10 @@ MARKER_ALONG = 11.5  # a un lado, para no tapar la entrada
 LOD_RATIO = 0.5
 STREET_WIDTH = 34.0
 SIDEWALK = 7.0
-TILE = 36.0
-SPACING = 44.0
+SPACING = 40.0
+SLOT_LENGTH = 30.0
+SLOT_DEPTH = 16.0
+SLOT_SIDE = 8.0
 EYE = 14.1
 SUN_ELEVATION = 34.0
 
@@ -218,9 +220,10 @@ def build_base(mats):
 
     # Puertas del vestíbulo y carteleras a los lados: lo que se ve desde la ficha.
     for x in (-4.2, -1.4, 1.4, 4.2):
-        glazing.append(box("door", (2.4, 0.14, 4.6), (x, bay_front + 0.5, 2.3), mats["glass"]))
-        trims.append(box("door_frame", (0.2, 0.3, 4.7), (x + 1.3, bay_front + 0.3, 2.35), mats["steel"]))
-    box_lobby = box("lobby_cut", (11.4, 3.0, 4.7), (0, front, 2.35))
+        # Más altas que un avatar, que mide 5,6 con accesorios (medido en Studio).
+        glazing.append(box("door", (2.4, 0.14, 6.5), (x, bay_front + 0.5, 3.25), mats["glass"]))
+        trims.append(box("door_frame", (0.2, 0.3, 6.6), (x + 1.3, bay_front + 0.3, 3.3), mats["steel"]))
+    box_lobby = box("lobby_cut", (11.4, 3.0, 6.6), (0, front, 3.3))
     boolean = bay.modifiers.new("lobby", "BOOLEAN")
     boolean.operation = "DIFFERENCE"
     boolean.object = box_lobby
@@ -235,9 +238,9 @@ def build_base(mats):
     perforate(wall, cutters)
 
     # Marquesina sencilla y rótulo: el cine ya se reconoce sin mejoras.
-    trims.append(box("marquee", (12.0, 2.6, 0.6), (0, bay_front - 1.3, 5.3), mats["stone"]))
-    trims.append(box("sign_board", (9.0, 0.4, 1.8), (0, bay_front - 0.1, 6.9), mats["cream"]))
-    trims.append(letters("CINE LUX", 1.25, (0, bay_front - 0.32, 6.9), mats["red"]))
+    trims.append(box("marquee", (12.0, 2.6, 0.6), (0, bay_front - 1.3, 7.1), mats["stone"]))
+    trims.append(box("sign_board", (9.0, 0.4, 1.3), (0, bay_front - 0.1, 8.3), mats["cream"]))
+    trims.append(letters("CINE LUX", 1.0, (0, bay_front - 0.32, 8.3), mats["red"]))
 
     # Molduras: zócalo, junta sobre la planta baja, cornisa y escalonado déco del cuerpo central.
     trims.append(box("plinth", (WIDTH + 0.2, DEPTH + 0.2, 0.8), (0, 0, 0.4), mats["stone"]))
@@ -287,14 +290,14 @@ def build_addon(level, mats):
             parts.append(box("storey_win", (2.2, 0.12, 2.8), (x, -5.06, HEIGHT - 0.2), mats["glass"]))
     elif level == 4:
         # Gran marquesina de acero con filete de oro y su letrero.
-        parts.append(box("grand_marquee", (15.0, 4.6, 0.9), (0, bay_front - 2.3, 5.6), mats["steel"]))
+        parts.append(box("grand_marquee", (15.0, 4.6, 0.9), (0, bay_front - 2.3, 7.4), mats["steel"]))
         # El oro va en el canto, como filete: la cubierta es de acero (guía, §11.6).
-        parts.append(box("grand_band", (15.3, 4.9, 0.18), (0, bay_front - 2.3, 6.1), mats["gold"]))
-        parts.append(box("grand_cap", (15.0, 4.6, 0.14), (0, bay_front - 2.3, 6.25), mats["steel"]))
-        parts.append(box("grand_board", (11.0, 0.5, 1.2), (0, bay_front - 4.4, 6.75), mats["cream"]))
-        parts.append(letters("ESTRENO", 0.8, (0, bay_front - 4.7, 6.75), mats["red"]))
+        parts.append(box("grand_band", (15.3, 4.9, 0.18), (0, bay_front - 2.3, 7.9), mats["gold"]))
+        parts.append(box("grand_cap", (15.0, 4.6, 0.14), (0, bay_front - 2.3, 8.05), mats["steel"]))
+        parts.append(box("grand_board", (11.0, 0.5, 1.2), (0, bay_front - 4.4, 8.55), mats["cream"]))
+        parts.append(letters("ESTRENO", 0.8, (0, bay_front - 4.7, 8.55), mats["red"]))
         for x in (-7.0, 7.0):
-            parts.append(box("post", (0.35, 0.35, 5.2), (x, bay_front - 4.2, 2.6), mats["steel"]))
+            parts.append(box("post", (0.35, 0.35, 7.0), (x, bay_front - 4.2, 3.5), mats["steel"]))
     elif level == 5:
         # Coronación: torre con filete de oro y letrero vertical. Es la señal de propiedad al máximo.
         base = HEIGHT + 3.0
@@ -379,24 +382,47 @@ def place(sources, x, y=0.0, marker_scale=1.0):
         bpy.context.collection.objects.link(copy)
 
 
+def tree(x, y, mats):
+    """Solo para leer el ambiente: el árbol definitivo será un asset propio del plan 07."""
+    box("trunk", (0.8, 0.8, 5.0), (x, y, 2.5), mats["bark"])
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=4.2, location=(x, y, 8.0))
+    bpy.context.active_object.data.materials.append(mats["hedge"])
+
+
+def lamp(x, y, mats):
+    box("lamp_post", (0.35, 0.35, 11.0), (x, y, 5.5), mats["dark"])
+    box("lamp_arm", (0.25, 2.4, 0.25), (x, y - 1.2, 11.0), mats["dark"])
+    box("lamp_head", (0.9, 1.2, 0.35), (x, y - 2.2, 10.9), mats["cream"])
+
+
 def stage(mats, base, addons, markers):
-    """Calle de revisión: el mismo edificio en sus seis estados, con baldosa, ficha y marcadores."""
+    """Tramo de calle: el mismo edificio en sus seis estados, cada uno con su casilla pintada."""
     lot_y = STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2
     building_y = lot_y + FRONT_OFFSET
-    length = SPACING * 9
+    length = SPACING * 10
     box("road", (length, STREET_WIDTH, 0.4), (0, 0, -0.2), mats["asphalt"])
     for sign in (-1, 1):
-        box("kerb", (length, 0.6, 0.6), (0, sign * (STREET_WIDTH / 2 + 0.3), 0.0), mats["stone"])
+        box("kerb", (length, 0.5, 0.5), (0, sign * (STREET_WIDTH / 2 + 0.25), 0.0), mats["stone"])
         box("walk", (length, SIDEWALK, 0.4), (0, sign * (STREET_WIDTH / 2 + SIDEWALK / 2), 0.0), mats["pavement"])
     box("lots", (length, LOT_DEPTH + 20, 0.2), (0, lot_y + 10, -0.1), mats["pavement"])
+    box("far", (length, 60, 0.2), (0, -STREET_WIDTH / 2 - SIDEWALK - 30, -0.1), mats["pavement"])
+
+    # Línea discontinua en el eje: es lo que hace leer calzada y no tablero.
+    dash = -length / 2
+    while dash < length / 2:
+        box("dash", (5.0, 0.4, 0.04), (dash, 0, 0.02), mats["cream"])
+        dash += 11.0
 
     for level in range(6):
         x = (level - 2.5) * SPACING
         place(base, x, building_y)
         for order in range(1, level + 1):
             place([addons[order]], x, building_y)
-        # La casilla, con la barra de zona pintada en la calzada (guía, §5.4).
-        box("bar", (TILE - 2.0, 7.0, 0.05), (x, STREET_WIDTH / 2 - 5.0, 0.03), mats["zone"])
+        # La casilla: pintura de zona en el carril del edificio, con filete y asfalto hasta la siguiente.
+        box("slot", (SLOT_LENGTH, SLOT_DEPTH, 0.04), (x, SLOT_SIDE, 0.03), mats["zone"])
+        for sign in (-1, 1):
+            box("slot_edge", (0.5, SLOT_DEPTH, 0.05), (x + sign * SLOT_LENGTH / 2, SLOT_SIDE, 0.035), mats["cream"])
+            box("slot_edge", (SLOT_LENGTH, 0.5, 0.05), (x, SLOT_SIDE + sign * SLOT_DEPTH / 2, 0.035), mats["cream"])
         if level in (1, 2, 3):
             for order in range(level):
                 place([markers["house"]], x + MARKER_ALONG + (order - (level - 1) / 2) * MARKER_STEP, lot_y + MARKER_FRONT)
@@ -404,11 +430,16 @@ def stage(mats, base, addons, markers):
             place([markers["hotel"]], x + MARKER_ALONG, lot_y + MARKER_FRONT)
         elif level == 5:
             place([markers["tower"]], x + MARKER_ALONG, lot_y + MARKER_FRONT)
+        # Ambiente en el hueco entre edificios, y árboles en la acera de enfrente.
+        gap_x = x + SPACING / 2
+        lamp(gap_x, STREET_WIDTH / 2 + 2.0, mats)
+        tree(gap_x, -(STREET_WIDTH / 2 + SIDEWALK / 2), mats)
+        lamp(x, -(STREET_WIDTH / 2 + 2.0), mats)
 
-    # Ficha y avatar de referencia, solo para leer la escala.
-    bpy.ops.mesh.primitive_cylinder_add(radius=3.0, depth=9.0, location=(-1.5 * SPACING, 2.0, 4.5))
+    # Ficha y avatar de referencia, en su casilla, solo para leer la escala.
+    bpy.ops.mesh.primitive_cylinder_add(radius=3.0, depth=9.0, location=(-1.5 * SPACING, SLOT_SIDE, 4.5))
     bpy.context.active_object.data.materials.append(flat("token_ref", "F5C518", 0.35))
-    box("avatar_ref", (1.6, 1.2, 6.0), (-1.5 * SPACING, 2.0, 12.0), flat("avatar_ref", "6E747C", 0.8))
+    box("avatar_ref", (1.6, 1.2, 6.0), (-1.5 * SPACING, SLOT_SIDE, 12.0), flat("avatar_ref", "6E747C", 0.8))
 
     sun_data = bpy.data.lights.new("sun", "SUN")
     sun_data.energy = 4.2
@@ -458,6 +489,8 @@ def main():
         "cream": flat("cream", "EDE5D3", 0.6),
         "slate": flat("slate", "4A4E54", 0.85),
         "hedge": flat("hedge", "4B6B3A", 0.9),
+        "bark": flat("bark", "5A4636", 0.9),
+        "dark": flat("dark", "2A2E33", 0.6),
         "zone": flat("zone", "DC2626", 0.8),
     }
 
@@ -510,8 +543,8 @@ def main():
     scene.view_settings.look = "AgX - Medium High Contrast"
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(HERE, "cine-lux.blend"))
 
-    render(scene, camera("niveles", (0.0, -210.0, 70.0), (0.0, 35.0, 14.0), 30), "cine-lux-niveles.png")
-    render(scene, camera("calle", (2.5 * SPACING - 46.0, -4.0, EYE), (2.5 * SPACING + 4.0, 42.0, 18.0), 28), "cine-lux-calle.png")
+    render(scene, camera("niveles", (0.0, -190.0, 78.0), (0.0, 22.0, 10.0), 30), "cine-lux-niveles.png")
+    render(scene, camera("calle", (0.5 * SPACING - 52.0, SLOT_SIDE - 1.0, EYE), (0.5 * SPACING + 20.0, 28.0, 16.0), 26), "cine-lux-calle.png")
 
     with open(os.path.join(HERE, "cine-lux-stats.json"), "w", encoding="utf-8") as handle:
         json.dump(stats, handle, indent=2, ensure_ascii=False)

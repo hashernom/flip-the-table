@@ -1,16 +1,19 @@
 --!strict
--- Pruebas de las reglas de cámara. Son puras: reciben el contexto y deciden el modo, sin tocar la
--- cámara ni el avatar. Cubren la tabla «Qué ve cada jugador» de la ficha y los dos criterios de la
--- tarea que se pueden comprobar sin Studio: la prioridad de la escena y el tope del recorrido.
+-- Pruebas de las reglas de cámara. Son puras: reciben el contexto y deciden el plano, sin tocar la
+-- cámara ni el avatar. Cubren la tabla «Qué ve cada jugador» de la ficha: todo el grupo ve el mismo plano
+-- (R-P51), con la prioridad de la escena, el tope del recorrido y la cámara por el interior del anillo.
 local Harness = require("../harness")
 local CameraRules = require("../../src/client/camera/CameraRules")
+local CameraShots = require("../../src/shared/config/CameraShots")
+local CityLayout = require("../../src/shared/config/CityLayout")
+local Economy = require("../../src/shared/config/Economy")
 local Scenes = require("../../src/shared/config/Scenes")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 -- Ayuda: el contexto de cámara con los tres indicadores. Cualquiera que no se pase queda en falso.
 local function ctx(overrides: { [string]: boolean }?)
-	local context = { isActive = false, sceneRunning = false, overviewRequested = false }
+	local context = { riding = false, sceneRunning = false, overviewRequested = false }
 	local source: { [string]: boolean } = overrides or {}
 	for key, value in source do
 		context[key] = value
@@ -20,38 +23,76 @@ end
 
 describe("CameraRules.modeFor", function()
 	it("la escena manda sobre la vista general", function()
-		expect(CameraRules.modeFor({ isActive = false, sceneRunning = true, overviewRequested = true })).toBe(
-			"Scene"
+		expect(CameraRules.modeFor(ctx({ sceneRunning = true, overviewRequested = true }))).toBe("Scene")
+	end)
+
+	it("el recorrido de una ficha es una escena con su propio plano", function()
+		expect(CameraRules.modeFor(ctx({ sceneRunning = true, riding = true }))).toBe("Ride")
+		expect(CameraRules.modeFor(ctx({ sceneRunning = true, riding = true, overviewRequested = true }))).toBe(
+			"Ride"
 		)
 	end)
 
-	it("el activo va en primera persona", function()
-		expect(CameraRules.modeFor({ isActive = true, sceneRunning = false, overviewRequested = false })).toBe(
-			"FirstPerson"
-		)
+	it("un recorrido suelto, sin escena en marcha, no fija el plano cerrado", function()
+		expect(CameraRules.modeFor(ctx({ riding = true }))).toBe("Turn")
 	end)
 
-	it("los demás siguen a la ficha activa", function()
-		expect(CameraRules.modeFor({ isActive = false, sceneRunning = false, overviewRequested = false })).toBe(
-			"FollowActive"
-		)
-	end)
-
-	it("la escena manda también sobre la primera persona", function()
-		expect(CameraRules.modeFor(ctx({ isActive = true, sceneRunning = true }))).toBe("Scene")
-	end)
-
-	it("la vista general manda fuera de una escena, también para el activo", function()
+	it("la vista general manda fuera de una escena", function()
 		expect(CameraRules.modeFor(ctx({ overviewRequested = true }))).toBe("Overview")
-		expect(CameraRules.modeFor(ctx({ isActive = true, overviewRequested = true }))).toBe("Overview")
 	end)
 
-	it("un contexto vacío no rompe: se sigue a la ficha activa", function()
-		expect(CameraRules.modeFor({} :: any)).toBe("FollowActive")
+	it("todo el grupo ve el mismo plano del turno: no hay primera persona", function()
+		expect(CameraRules.modeFor(ctx({}))).toBe("Turn")
+		expect(CameraRules.modeFor({} :: any)).toBe("Turn")
+	end)
+end)
+
+describe("CameraRules.pose", function()
+	local function distance(a: any, b: any): number
+		return math.sqrt((a.x - b.x) ^ 2 + (a.y - b.y) ^ 2 + (a.z - b.z) ^ 2)
+	end
+	local function flat(a: any, b: any): number
+		return math.max(math.abs(a.x - b.x), math.abs(a.z - b.z))
+	end
+
+	for _, size in { "S", "M", "L" } do
+		it(`en el tablero {size} la cámara siempre va por el interior y mira las fachadas`, function()
+			local center = CityLayout.centerFor(size :: any)
+			for _, slot in CityLayout.routeFor(size :: any) do
+				local eye = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
+				-- Las esquinas se doblan: se mide solo a lo largo del lado donde va la casilla.
+				local edge = flat(slot.position, center)
+				local towards = (eye.x - slot.position.x) * (center.x - slot.position.x)
+					+ (eye.z - slot.position.z) * (center.z - slot.position.z)
+				expect(edge > 0).toBe(true)
+				expect(towards > 0).toBe(true)
+			end
+		end)
+	end
+
+	it("el plano del turno ve por encima del edificio más alto", function()
+		local slot = CityLayout.routeFor("S")[5]
+		local eye = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
+		local tallest = 0
+		for _, block in CityLayout.buildingBlocks(Economy.maxBuildingLevel) do
+			tallest = math.max(tallest, block.y + block.height)
+		end
+		expect(eye.y > tallest).toBe(true)
 	end)
 
-	it("los valores ausentes cuentan como falsos", function()
-		expect(CameraRules.modeFor({ sceneRunning = nil, isActive = true } :: any)).toBe("FirstPerson")
+	it("el plano del recorrido está más cerca de la ficha que el del turno", function()
+		local slot = CityLayout.routeFor("S")[5]
+		local ride = CameraRules.pose(CameraShots.ride, slot.position, slot.facing)
+		local turn = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
+		expect(distance(ride, slot.position) < distance(turn, slot.position)).toBe(true)
+	end)
+
+	it("mira hacia delante, a las casillas que vienen", function()
+		local slot = CityLayout.routeFor("S")[5]
+		local _, focus = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
+		local forward = (focus.x - slot.position.x) * math.sin(slot.facing)
+			+ (focus.z - slot.position.z) * math.cos(slot.facing)
+		expect(forward > 0).toBe(true)
 	end)
 end)
 

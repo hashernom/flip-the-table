@@ -230,4 +230,11 @@ function Strings.barrio(barrioId: string): string
 	return Strings.BARRIOS[barrioId] or barrioId
 end
 
+-- Nombre de un nivel de construcción, como lo dice `contenido-tablero.md`.
+local BUILDING_LEVELS = { "Sin mejoras", "1 casa", "2 casas", "3 casas", "Hotel", "Rascacielos" }
+
+function Strings.buildingLevel(level: number): string
+	return BUILDING_LEVELS[level + 1] or `Nivel {level}`
+end
+
 return Strings

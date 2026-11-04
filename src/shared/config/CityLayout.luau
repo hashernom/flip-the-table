@@ -198,50 +198,80 @@ function CityLayout.spanFor(sizeId: SizeId): number
 	return (CityLayout.sideFor(sizeId) - 1) * SQUARE_SPACING
 end
 
--- Reparto de las fichas que comparten casilla: cuatro carriles de lado a lado (`art/escala.md`) y las
--- filas que hagan falta. Caben las ocho de una partida llena dentro de la baldosa.
-local TOKEN_LANES = 4
-local TOKEN_LANE_STUDS = 9
-local TOKEN_ROW_STUDS = 16
+-- La calle: asfalto continuo y, encima, cada casilla pintada en el carril junto a su edificio
+-- (art/vision-visual.md). No ocupa toda la calzada ni llega a la siguiente: se tiene que ver el asfalto.
+local STREET_WIDTH = 34
+local SIDEWALK = 7
+local SLOT_LENGTH = 30
+local SLOT_DEPTH = 16
+-- Sitio del centro de la casilla desde el eje de la calle. Negativo: a la izquierda de la marcha, el
+-- exterior del anillo, que es donde están los edificios.
+local SLOT_SIDE = -8
 
+CityLayout.STREET_WIDTH_STUDS = STREET_WIDTH
+CityLayout.SIDEWALK_STUDS = SIDEWALK
+CityLayout.SLOT_LENGTH_STUDS = SLOT_LENGTH
+CityLayout.SLOT_DEPTH_STUDS = SLOT_DEPTH
+CityLayout.SLOT_SIDE_STUDS = SLOT_SIDE
+
+-- Reparto de las fichas que comparten casilla: cuatro a lo largo y dos filas, con la base de
+-- `art/escala.md`. Caben las ocho de una partida llena dentro de la pintura.
+local TOKEN_BASE = 6
+local TOKEN_LANES = 4
+local TOKEN_LANE_STUDS = 7
+local TOKEN_ROW_STUDS = 7.5
+
+CityLayout.TOKEN_BASE_STUDS = TOKEN_BASE
 CityLayout.TOKEN_LANE_STUDS = TOKEN_LANE_STUDS
 CityLayout.TOKEN_ROW_STUDS = TOKEN_ROW_STUDS
 
--- Desplazamiento de la ficha número `order` de las `count` que hay en una casilla, medido desde su
--- centro: `side` hacia la derecha de la marcha y `along` hacia delante.
+-- Sitio de la ficha número `order` de las `count` que hay en una casilla, medido desde el eje de la
+-- calle: `side` hacia la derecha de la marcha y `along` hacia delante.
 function CityLayout.tokenOffset(order: number, count: number): TokenOffset
 	if count <= 1 then
-		return { side = 0, along = 0 }
+		return { side = SLOT_SIDE, along = 0 }
 	end
 	local lanes = math.min(count, TOKEN_LANES)
 	local rows = math.ceil(count / TOKEN_LANES)
 	local lane = (order - 1) % TOKEN_LANES
 	local row = (order - 1) // TOKEN_LANES
 	return {
-		side = (lane - (lanes - 1) / 2) * TOKEN_LANE_STUDS,
-		along = ((rows - 1) / 2 - row) * TOKEN_ROW_STUDS,
+		side = SLOT_SIDE + ((rows - 1) / 2 - row) * TOKEN_ROW_STUDS,
+		along = (lane - (lanes - 1) / 2) * TOKEN_LANE_STUDS,
 	}
 end
 
--- El solar de cada casilla, junto a la baldosa y por fuera del anillo. Su fondo es el de `art/escala.md`
--- y su ancho, provisional, el de la baldosa, para que dos solares vecinos no se toquen.
-local TILE_HALF = (SQUARE_SPACING - 4) / 2
-local LOT_GAP_STUDS = 2
+-- Punto a `distance` studs del eje de la calle, hacia el exterior del anillo. La ruta gira siempre a la
+-- derecha, así que su exterior queda a la izquierda de la marcha.
+local function outward(slot: Slot, distance: number): Vector3Like
+	return {
+		x = slot.position.x + math.cos(slot.facing) * distance,
+		y = 0,
+		z = slot.position.z - math.sin(slot.facing) * distance,
+	}
+end
+
+-- Centro de la casilla pintada.
+function CityLayout.slotCenter(slot: Slot): Vector3Like
+	return outward(slot, -SLOT_SIDE)
+end
+
+-- El solar de cada casilla, tras la acera. Su fondo es el de `art/escala.md` y su ancho, provisional, el
+-- que deja 4 studs hasta el del vecino.
 local LOT_WIDTH = SQUARE_SPACING - 4
 local LOT_DEPTH = 22
 
 CityLayout.LOT_WIDTH_STUDS = LOT_WIDTH
 CityLayout.LOT_DEPTH_STUDS = LOT_DEPTH
 
--- Centro del solar de una casilla. La ruta gira siempre a la derecha, así que su exterior queda a la
--- izquierda de la marcha.
+-- Centro del solar de una casilla.
 function CityLayout.lotCenter(slot: Slot): Vector3Like
-	local distance = TILE_HALF + LOT_GAP_STUDS + LOT_DEPTH / 2
-	return {
-		x = slot.position.x + math.cos(slot.facing) * distance,
-		y = 0,
-		z = slot.position.z - math.sin(slot.facing) * distance,
-	}
+	return outward(slot, STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2)
+end
+
+-- Sitio del rótulo de la casilla: en la acera, para no estorbar en la calzada.
+function CityLayout.signCenter(slot: Slot): Vector3Like
+	return outward(slot, STREET_WIDTH / 2 + SIDEWALK / 2)
 end
 
 -- Cada propiedad es un edificio fijo que existe desde el inicio (R-P50). Las medidas son de la ciudad
