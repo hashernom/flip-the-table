@@ -181,6 +181,19 @@ local function boot()
 			if token ~= nil and token:GetAttribute("Index") ~= seated.position then
 				TokenRider.place(token, seated.position)
 			end
+			-- Las fichas son locales de cada cliente, así que la soldadura de un avatar no se replica: cada
+			-- cliente sube también a los demás a su copia de la ficha, o los vería flotando en la salida.
+			-- Si su personaje aún no ha llegado, se reintenta con el siguiente lote.
+			local userId = tonumber(seated.id)
+			local other = if userId ~= nil then Players:GetPlayerByUserId(userId) else nil
+			if
+				token ~= nil
+				and other ~= nil
+				and other ~= player
+				and not TokenRider.isMounted(other, token)
+			then
+				TokenRider.mount(other, token)
+			end
 		end
 	end
 
@@ -434,6 +447,7 @@ local function boot()
 		(noticeRemote :: RemoteEvent).OnClientEvent:Connect(function(notice: any)
 			if type(notice) == "table" and type(notice.message) == "string" then
 				rematchMenu.setNotice(notice.message)
+				lobbyMenu.setVisible(false)
 			end
 		end)
 	end

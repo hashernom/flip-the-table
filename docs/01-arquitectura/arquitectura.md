@@ -298,6 +298,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P44 (información oculta):** `MarketBought` oculta a los demás la carta y el precio, que delataría su rareza.
 - **R-P45 (eventos):** `RentPaid.amount` es lo que cobra el dueño, y `GameEnded` lleva `awards` con el resultado de `Awards.compute`.
 - **R-P46 (presencia):** el reloj de una subasta, un Duelo o un Tribunal no cuenta como tiempo agotado de nadie.
+- **R-P47 (avatares):** las fichas son locales de cada cliente y la soldadura de un avatar no se replica, así que cada cliente sube también a los demás jugadores a su copia de la ficha.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales

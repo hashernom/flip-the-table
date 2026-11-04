@@ -144,7 +144,7 @@ end)
 - [x] **Paso 2:** Ejecutar `lune run tests/run SceneClock`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar `Scenes`, `SceneClock` y `MatchService`.
 - [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** En Studio, iniciar un Test Server con 2 clientes y jugar 3 turnos con un script de cliente temporal. Esperado: ambos reciben los lotes con `seq` 1, 2, 3 en orden.
+- [x] **Paso 5:** En Studio, iniciar un Test Server con 2 clientes y jugar 3 turnos con un script de cliente temporal. Esperado: ambos reciben los lotes con `seq` 1, 2, 3 en orden.
 - [x] **Paso 6:** Hacer commit: `feat: ejecutar la partida en el servidor`.
 
 ### Task 4: Presencia y bots
@@ -167,7 +167,7 @@ end)
 - [x] **Paso 2:** Ejecutar `lune run tests/run PresenceRules`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar ambos módulos.
 - [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** En Test Server con 3 clientes, cerrar uno a mitad de turno. Esperado: el bot juega y la partida sigue.
+- [x] **Paso 5:** En Test Server con 3 clientes, cerrar uno a mitad de turno. Esperado: el bot juega y la partida sigue. **(Hecho con 2 clientes: el bot jugó 0,5 s después de la desconexión. Volver al asiento no se pudo probar: Studio da otro id al cliente nuevo.)**
 - [x] **Paso 6:** Hacer commit: `feat: tomar el control con bots`.
 
 ### Task 5: Party privada y partidas públicas
@@ -220,7 +220,8 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
       **Mitad hecha:** el servidor de la revancha está terminado y probado (`RematchService` abre la
       votación al acabar, arranca la partida en el mismo servidor con otra semilla y devuelve al lobby
       a quien no acepta). El botón existe desde la corrección R-P42 (`client/ui/RematchMenu`), en arte
-      gris; falta probarlo con clientes reales para marcar este criterio.
+      gris, y se comprobó en un Test Server local con dos clientes. Queda sin marcar hasta probarlo en
+      un lugar publicado, donde quien no acepta sí viaja al lobby.
 - [x] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
 - [x] Con menos de 2 personas, vuelve al lobby con aviso.
 - [x] Quien no acepta vuelve al lobby.

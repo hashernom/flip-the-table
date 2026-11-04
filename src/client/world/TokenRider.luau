@@ -172,6 +172,15 @@ function TokenRider.mount(player: Player, token: Model)
 	return true
 end
 
+-- ¿El avatar del jugador está soldado a esta ficha? Una ciudad reconstruida deja soldaduras a fichas
+-- que ya no existen, así que no basta con que haya una.
+function TokenRider.isMounted(player: Player, token: Model): boolean
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	local weld = root and root:FindFirstChild(WELD_NAME)
+	return weld ~= nil and weld:IsA("WeldConstraint") and weld.Part1 == token:FindFirstChild("Seat")
+end
+
 -- Suelta la soldadura del avatar. La velocidad sigue a cero: la partida no permite andar por la
 -- ciudad, y volver a moverse es cosa de `CameraDirector` cuando la escena lo permita.
 function TokenRider.dismount(token: Model)

@@ -88,6 +88,9 @@ function RematchMenu.create(playerGui: Instance): Handles
 		setNotice = function(text: string)
 			status.Text = text
 			setButtons(false)
+			-- También llega a quien no tiene partida (entró tarde, o no llegó el grupo): sin esto, el
+			-- aviso se escribiría en un panel que nadie ve.
+			panel.Visible = true
 		end,
 		onVote = function(target: (accept: boolean) -> ())
 			callback = target
