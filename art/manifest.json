@@ -78,43 +78,56 @@
       "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
     },
     {
-      "id": "slice-house",
+      "id": "cine-lux",
       "category": "Building",
-      "source": "art/blender/slice/build_ladder.py",
-      "triangles": 816,
+      "source": "art/blender/slice/build_cine_lux.py",
+      "triangles": 2890,
       "lods": [
-        282
+        1263
       ],
       "textures": 6,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
     },
     {
-      "id": "slice-hotel",
-      "category": "Building",
-      "source": "art/blender/slice/build_ladder.py",
-      "triangles": 3530,
+      "id": "marker-house",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_cine_lux.py",
+      "triangles": 30,
       "lods": [
-        1246
+        12
       ],
-      "textures": 6,
+      "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
     },
     {
-      "id": "slice-tower",
-      "category": "Building",
-      "source": "art/blender/slice/build_ladder.py",
-      "triangles": 2004,
+      "id": "marker-hotel",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_cine_lux.py",
+      "triangles": 48,
       "lods": [
-        652
+        18
       ],
-      "textures": 6,
+      "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
+    },
+    {
+      "id": "marker-tower",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_cine_lux.py",
+      "triangles": 60,
+      "lods": [
+        26
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
     }
   ]
 }

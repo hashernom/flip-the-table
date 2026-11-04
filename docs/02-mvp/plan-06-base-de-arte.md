@@ -133,7 +133,7 @@ end)
 
 **Contenido de la porción:**
 
-- Una calle con una zona: 2 o 3 solares, con sus versiones de una a tres casas, hotel y rascacielos.
+- Una calle con una zona: 2 o 3 propiedades, cada una con su edificio real, sus marcadores de mejora y los añadidos de sus cinco niveles (decisión del responsable, 2026-11-04).
 - La ficha taxi con un avatar montado.
 - Luz de día, sombras duras, reflejos de cristal y sonido de ambiente.
 - Vista desde primera persona, seguimiento y maqueta.

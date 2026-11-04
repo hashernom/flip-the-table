@@ -32,7 +32,7 @@
 
 - Cada asset cumple el estándar de la ficha y se aprueba en el juego por una persona.
 - No hay interiores ni calles que nadie pise.
-- Una propiedad pasa de solar a una, dos y tres casas, hotel y rascacielos.
+- Cada propiedad es un edificio real y propio. Sus cinco niveles añaden marcadores y pequeños cambios de fachada y altura, sin sustituirlo.
 - Cada grupo de color es una zona de edificios, y varias zonas forman un barrio.
 - 30 FPS o más en el móvil de referencia con 8 jugadores.
 
@@ -70,7 +70,7 @@
 - [ ] **Paso 4:** Obtener la aprobación del responsable con capturas y video.
 - [ ] **Paso 5:** Hacer commit: `feat: añadir barrios de Metrópolis`.
 
-### Task 2: Edificios por zona
+### Task 2: Propiedades por zona
 
 **Módulos:** `client/world/BuildingView`, `art/blender/buildings`.
 
@@ -82,16 +82,16 @@
 - Produce: `BuildingView.setLevel(index, level)` para las 34 propiedades.
 
 **Criterios de aceptación:**
-- [ ] 12 zonas con estilo propio; cada una tiene solar, casa, hotel y rascacielos.
+- [ ] Las 34 propiedades tienen edificio propio, y 12 zonas con estilo propio. Los añadidos de nivel se pueden compartir dentro de una zona si cada edificio sigue siendo reconocible.
 - [ ] El color de cada zona se reconoce desde la calle y desde la maqueta.
 - [ ] El dueño se identifica en cada propiedad, sin depender solo del color.
-- [ ] Un rascacielos no tapa la cámara de ninguna casilla; se comprueba por casilla con el nivel máximo.
+- [ ] Ningún edificio tapa la cámara de ninguna casilla; se comprueba por casilla con el nivel máximo.
 
 - [ ] **Paso 1:** Producir una zona y conseguir su aprobación antes de continuar con las demás.
 - [ ] **Paso 2:** Producir las 11 restantes y registrarlas.
 - [ ] **Paso 3:** Con un script de Studio, poner todo al nivel 5 y capturar desde cada casilla. Esperado: ninguna vista bloqueada.
 - [ ] **Paso 4:** Ejecutar `lune run tools/manifest`. Esperado: sin problemas.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir edificios de las 12 zonas`.
+- [ ] **Paso 5:** Hacer commit: `feat: añadir propiedades de las 12 zonas`.
 
 ### Task 3: Casillas especiales
 

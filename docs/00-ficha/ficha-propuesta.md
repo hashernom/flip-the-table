@@ -36,7 +36,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 - **Sin movimiento libre:** como en el juego clásico, siempre estás en una casilla. Puedes mirar alrededor, pero solo avanzas con los dados.
 - **Fichas a escala de ciudad:** tu avatar se sube a su ficha, que recorre las calles hasta la casilla que marcan los dados.
 - **Casillas físicas:** cada casilla es un lugar de la calle, marcado en el suelo y reconocible.
-- **Zonas reales:** cada grupo de color es una zona de edificios, y varias zonas forman un barrio. Una propiedad pasa de solar a una, dos y tres casas, a hotel y a rascacielos ante tus ojos.
+- **Zonas reales:** cada grupo de color es una zona de edificios, y varias zonas forman un barrio. Cada propiedad es un edificio real y propio, reconocible en todos sus niveles. Mejorarla (una, dos y tres casas, hotel y rascacielos) añade marcadores junto al edificio y embellece un poco su fachada, y lo hace un poco más alto, pero nunca lo sustituye.
 - **Vista general:** con un botón, la ciudad aparece como una maqueta de lujo con el estado de la partida: dueños, dinero, posiciones y efectos activos.
 
 **Tono:** juguetón y caricaturesco, apto para todo público. El juego celebra la traición y la ruina ajena con humor, sin crueldad; los arrestos parecen de dibujos animados.
@@ -50,13 +50,13 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 | Qué ocurre | Qué se ve en la ciudad |
 | --- | --- |
 | Ir a la cárcel | Llegan patrullas con sirenas, te bajan de la ficha, te esposan y te llevan |
-| Huracán | Se oscurece el cielo, entra un huracán y arranca edificios del suelo |
-| Terremoto | Las calles se agrietan y los edificios de una zona se derrumban un nivel |
+| Huracán | Se oscurece el cielo, entra un huracán y se lleva marcadores, toldos, rótulos y remates; el cuerpo de los edificios queda en pie |
+| Terremoto | Las calles se agrietan, los edificios de una zona tiemblan y cada uno pierde un marcador y su último añadido |
 | Mundo al Revés | La ciudad gira en el aire y cada ficha cae en una casilla distinta |
 | Revolución | Una multitud toma las calles y camiones blindados cambian el dinero de manos |
 | Huelga | Los locales bajan las persianas, se apagan los carteles y la zona se queda en silencio |
-| Demolición | Una bola de demolición golpea el edificio rival |
-| Construir | Llega una grúa y el edificio crece a toda velocidad |
+| Demolición | Una bola de demolición golpea el edificio rival: salta un marcador y cae su último añadido |
+| Construir | Llega una grúa, deja el marcador nuevo y monta el añadido del nivel |
 | Bancarrota | Una grúa se lleva tu ficha y tu avatar se vuelve espectro |
 | Traición | Un foco te sigue y un cartel gigante te señala como Traidor |
 
@@ -330,6 +330,7 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | Tamaños, rondas, duración y objetivos numéricos | Propuesta mía, a ajustar en pruebas |
 | Tablero base de 40 casillas con 22 propiedades y 8 zonas de 2 y 3 propiedades | Tuya |
 | Cinco pasos de construcción: tres casas, hotel y rascacielos | Tuya |
+| Cada propiedad es un edificio real y fijo; las mejoras añaden marcadores y pequeños cambios de fachada y altura (2026-11-04) | Tuya |
 | Nombres, colores y tramas propios para 12 zonas y 34 propiedades | Propuesta mía, aprobada por ti |
 | Sin monetización en el MVP | Propuesta mía |
 | Zonas y barrios, foco en 4 a 8 jugadores, pactos por menú, pruebas previas y orden de recortes | Propuesta mía |

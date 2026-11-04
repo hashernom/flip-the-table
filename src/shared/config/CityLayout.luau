@@ -40,7 +40,23 @@ export type Bridge = {
 
 export type TokenOffset = { side: number, along: number }
 
-export type BuildingBlock = { along: number, width: number, depth: number, height: number }
+export type BuildingBlock = {
+	along: number,
+	front: number,
+	y: number,
+	width: number,
+	depth: number,
+	height: number,
+}
+
+export type LevelMarker = {
+	along: number,
+	front: number,
+	width: number,
+	depth: number,
+	height: number,
+	kind: string,
+}
 
 -- Presupuesto de separación entre casillas consecutivas, en studs. La ficha pide una ciudad a
 -- escala real; 40 studs por casilla deja la ciudad entre 400 y 560 studs de lado y holgura de sobra
@@ -208,7 +224,7 @@ function CityLayout.tokenOffset(order: number, count: number): TokenOffset
 end
 
 -- El solar de cada casilla, junto a la baldosa y por fuera del anillo. Su fondo es el de `art/escala.md`
--- y su ancho, el de la baldosa, para que dos solares vecinos no se toquen.
+-- y su ancho, provisional, el de la baldosa, para que dos solares vecinos no se toquen.
 local TILE_HALF = (SQUARE_SPACING - 4) / 2
 local LOT_GAP_STUDS = 2
 local LOT_WIDTH = SQUARE_SPACING - 4
@@ -228,35 +244,72 @@ function CityLayout.lotCenter(slot: Slot): Vector3Like
 	}
 end
 
--- La escalera de cinco pasos, en piezas: una, dos y tres casas, hotel y rascacielos. Las alturas son
--- las de `art/escala.md`. `along` es la posición de la pieza a lo largo de la calle.
-local HOUSE: BuildingBlock = { along = 0, width = 10, depth = 12, height = 15.2 }
-local HOUSE_STEP = 12
+-- Cada propiedad es un edificio fijo que existe desde el inicio (R-P50). Las medidas son de la ciudad
+-- gris: el plan 07 las cambia por el modelo de cada propiedad. `along` va a lo largo de la calle, `front`
+-- hacia el fondo del solar (negativo, hacia la calle) e `y` es la altura de la base de la pieza.
+local BASE_BUILDING: BuildingBlock = { along = 0, front = 2, y = 0, width = 32, depth = 18, height = 24 }
 
-local function houses(count: number): { BuildingBlock }
-	local blocks: { BuildingBlock } = {}
-	for order = 1, count do
-		table.insert(blocks, {
-			along = (order - (count + 1) / 2) * HOUSE_STEP,
-			width = HOUSE.width,
-			depth = HOUSE.depth,
-			height = HOUSE.height,
-		})
+-- Lo que añade cada nivel, acumulado: entrada, fachada, planta extra, marquesina y coronación.
+local LEVEL_ADDONS: { BuildingBlock } = {
+	{ along = 0, front = -7.5, y = 6, width = 26, depth = 1, height = 0.6 },
+	{ along = 0, front = -7.5, y = 18, width = 30, depth = 1, height = 3 },
+	{ along = 0, front = 2, y = 24, width = 24, depth = 14, height = 5 },
+	{ along = 0, front = -8.5, y = 7, width = 14, depth = 3, height = 0.8 },
+	{ along = 0, front = 2, y = 29, width = 10, depth = 8, height = 6 },
+}
+
+-- Una, dos y tres casitas; después, un solo marcador por nivel. Van en la franja delantera del solar.
+local MARKER_FRONT = -9.5
+local MARKER_STEP = 4.4
+-- A un lado del solar: en el centro taparían la entrada del edificio.
+local MARKER_ALONG = 11.5
+local HOUSE_MARKER = { width = 3.8, depth = 2.8, height = 3.4, kind = "House" }
+local TOP_MARKERS: { [number]: { width: number, depth: number, height: number, kind: string } } = {
+	[4] = { width = 4.4, depth = 2.8, height = 5.5, kind = "Hotel" },
+	[5] = { width = 3.8, depth = 2.8, height = 8.7, kind = "Tower" },
+}
+local HOUSE_LEVELS = 3
+
+-- Piezas del edificio en un nivel: la base y los añadidos hasta ese nivel. Un nivel que no exista no
+-- añade nada, pero el edificio sigue ahí.
+function CityLayout.buildingBlocks(level: number): { BuildingBlock }
+	local blocks = { BASE_BUILDING }
+	for order = 1, math.min(level, #LEVEL_ADDONS) do
+		table.insert(blocks, LEVEL_ADDONS[order])
 	end
 	return blocks
 end
 
-local BUILDING_STEPS: { { BuildingBlock } } = {
-	houses(1),
-	houses(2),
-	houses(3),
-	{ { along = 0, width = 30, depth = 18, height = 36.5 } },
-	{ { along = 0, width = 18, depth = 18, height = 92 } },
-}
-
--- Piezas de un nivel de edificio. El nivel 0, o uno que no exista, no tiene ninguna.
-function CityLayout.buildingBlocks(level: number): { BuildingBlock }
-	return BUILDING_STEPS[level] or {}
+-- Marcadores de mejora de un nivel. Dicen la renta de un vistazo, sin mirar el edificio.
+function CityLayout.levelMarkers(level: number): { LevelMarker }
+	local top = TOP_MARKERS[level]
+	if top ~= nil then
+		return {
+			{
+				along = MARKER_ALONG,
+				front = MARKER_FRONT,
+				width = top.width,
+				depth = top.depth,
+				height = top.height,
+				kind = top.kind,
+			},
+		}
+	end
+	local markers: { LevelMarker } = {}
+	if level < 1 or level > HOUSE_LEVELS then
+		return markers
+	end
+	for order = 1, level do
+		table.insert(markers, {
+			along = MARKER_ALONG + (order - (level + 1) / 2) * MARKER_STEP,
+			front = MARKER_FRONT,
+			width = HOUSE_MARKER.width,
+			depth = HOUSE_MARKER.depth,
+			height = HOUSE_MARKER.height,
+			kind = HOUSE_MARKER.kind,
+		})
+	end
+	return markers
 end
 
 return CityLayout

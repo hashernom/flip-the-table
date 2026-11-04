@@ -142,52 +142,82 @@ describe("CityLayout.tokenOffset", function()
 end)
 
 describe("CityLayout.buildingBlocks", function()
-	it("un solar sin nivel no tiene piezas", function()
-		expect(#CityLayout.buildingBlocks(0)).toBe(0)
-	end)
-
-	it("una, dos y tres casas, hotel y rascacielos, como la escalera de la ficha", function()
-		expect(#CityLayout.buildingBlocks(1)).toBe(1)
-		expect(#CityLayout.buildingBlocks(2)).toBe(2)
-		expect(#CityLayout.buildingBlocks(3)).toBe(3)
-		expect(#CityLayout.buildingBlocks(4)).toBe(1)
-		expect(#CityLayout.buildingBlocks(5)).toBe(1)
-	end)
-
-	it("hay una forma por cada nivel del motor, y ninguna de más", function()
-		for level = 1, Economy.maxBuildingLevel do
-			expect(#CityLayout.buildingBlocks(level) > 0).toBe(true)
+	local function top(level: number): number
+		local height = 0
+		for _, block in CityLayout.buildingBlocks(level) do
+			height = math.max(height, block.y + block.height)
 		end
-		expect(#CityLayout.buildingBlocks(Economy.maxBuildingLevel + 1)).toBe(0)
+		return height
+	end
+
+	it("el edificio existe sin mejoras y se conserva en todos los niveles (R-P50)", function()
+		local base = CityLayout.buildingBlocks(0)[1]
+		expect(base ~= nil).toBe(true)
+		for level = 1, Economy.maxBuildingLevel do
+			expect(CityLayout.buildingBlocks(level)[1]).toEqual(base)
+		end
 	end)
 
-	it("cada paso se ve más alto o más ocupado que el anterior", function()
-		local function height(level: number): number
-			local top = 0
+	it("cada nivel añade algo y ninguno quita lo anterior", function()
+		for level = 1, Economy.maxBuildingLevel do
+			expect(#CityLayout.buildingBlocks(level) > #CityLayout.buildingBlocks(level - 1)).toBe(true)
+		end
+	end)
+
+	it("sube un poco, no se convierte en otro edificio", function()
+		for level = 1, Economy.maxBuildingLevel do
+			expect(top(level) >= top(level - 1)).toBe(true)
+		end
+		expect(top(Economy.maxBuildingLevel) > top(0)).toBe(true)
+		expect(top(Economy.maxBuildingLevel) <= top(0) * 1.5).toBe(true)
+	end)
+
+	it("todas las piezas caben en su solar", function()
+		for level = 0, Economy.maxBuildingLevel do
 			for _, block in CityLayout.buildingBlocks(level) do
-				top = math.max(top, block.height)
-			end
-			return top
-		end
-		expect(height(4) > height(3)).toBe(true)
-		expect(height(5) > height(4)).toBe(true)
-	end)
-
-	it("usa las alturas de art/escala.md", function()
-		expect(CityLayout.buildingBlocks(1)[1].height).toBe(15.2)
-		expect(CityLayout.buildingBlocks(4)[1].height).toBe(36.5)
-		expect(CityLayout.buildingBlocks(5)[1].height).toBe(92)
-	end)
-
-	it("todas las piezas caben en su solar y no se pisan entre ellas", function()
-		for level = 1, Economy.maxBuildingLevel do
-			local blocks = CityLayout.buildingBlocks(level)
-			for order, block in blocks do
 				expect(math.abs(block.along) + block.width / 2 <= CityLayout.LOT_WIDTH_STUDS / 2).toBe(true)
-				expect(block.depth <= CityLayout.LOT_DEPTH_STUDS).toBe(true)
-				local other = blocks[order + 1]
+				expect(math.abs(block.front) + block.depth / 2 <= CityLayout.LOT_DEPTH_STUDS / 2).toBe(true)
+			end
+		end
+	end)
+end)
+
+describe("CityLayout.levelMarkers", function()
+	it("sin mejoras no hay marcadores, y hay uno por casa", function()
+		expect(#CityLayout.levelMarkers(0)).toBe(0)
+		expect(#CityLayout.levelMarkers(1)).toBe(1)
+		expect(#CityLayout.levelMarkers(2)).toBe(2)
+		expect(#CityLayout.levelMarkers(3)).toBe(3)
+	end)
+
+	it("hotel y rascacielos llevan un solo marcador, cada vez mayor", function()
+		local house = CityLayout.levelMarkers(3)[1]
+		local hotel = CityLayout.levelMarkers(4)
+		local tower = CityLayout.levelMarkers(5)
+		expect(#hotel).toBe(1)
+		expect(#tower).toBe(1)
+		expect(hotel[1].height > house.height).toBe(true)
+		expect(tower[1].height > hotel[1].height).toBe(true)
+	end)
+
+	it("cada nivel del motor tiene su forma, y ninguno de más", function()
+		for level = 1, Economy.maxBuildingLevel do
+			expect(#CityLayout.levelMarkers(level) > 0).toBe(true)
+		end
+		expect(#CityLayout.levelMarkers(Economy.maxBuildingLevel + 1)).toBe(0)
+	end)
+
+	it("van delante del edificio, dentro del solar y sin pisarse", function()
+		local base = CityLayout.buildingBlocks(0)[1]
+		for level = 1, Economy.maxBuildingLevel do
+			local markers = CityLayout.levelMarkers(level)
+			for order, marker in markers do
+				expect(math.abs(marker.along) + marker.width / 2 <= CityLayout.LOT_WIDTH_STUDS / 2).toBe(true)
+				expect(marker.front + marker.depth / 2 <= base.front - base.depth / 2).toBe(true)
+				expect(math.abs(marker.front) + marker.depth / 2 <= CityLayout.LOT_DEPTH_STUDS / 2).toBe(true)
+				local other = markers[order + 1]
 				if other ~= nil then
-					expect(other.along - block.along >= (block.width + other.width) / 2).toBe(true)
+					expect(other.along - marker.along >= (marker.width + other.width) / 2).toBe(true)
 				end
 			end
 		end

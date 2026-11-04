@@ -1,0 +1,19 @@
+{
+  "cine-lux": {
+    "triangles": 2890,
+    "base": 1750,
+    "lod_triangles": 1263
+  },
+  "marker-house": {
+    "triangles": 30,
+    "lod_triangles": 12
+  },
+  "marker-hotel": {
+    "triangles": 48,
+    "lod_triangles": 18
+  },
+  "marker-tower": {
+    "triangles": 60,
+    "lod_triangles": 26
+  }
+}

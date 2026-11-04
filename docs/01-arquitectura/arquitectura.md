@@ -128,7 +128,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
 | `client/world/TokenRider` | Sube el avatar a la ficha y recorre la ruta | 05 |
 | `client/world/WorldRules` | Reglas puras de la ciudad: propiedades que cambiaron y sitio de cada ficha | 06 |
-| `client/world/BuildingView` | Muestra el dueño y el nivel de cada solar | 06 |
+| `client/world/BuildingView` | Muestra cada edificio con su dueño, marcadores y añadidos | 06 |
 | `client/state/ViewWire` | Devuelve claves de número a lo que un remoto convierte a texto | 06 |
 | `client/scenes/SceneDirector` | Reproduce escenas en orden, con la duración de `Scenes` | 05 y 08 |
 | `client/scenes/PlaceholderScene` | Escena provisional: el nombre del evento mientras dura | 05 |
@@ -303,6 +303,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P47 (avatares):** las fichas son locales de cada cliente y la soldadura de un avatar no se replica, así que cada cliente sube también a los demás jugadores a su copia de la ficha.
 - **R-P48 (acciones rechazadas):** `Match.submit` devuelve el motivo del motor cuando rechaza una acción que llegó a tiempo. Un clic durante la escena o con la partida acabada se descarta sin motivo (R-P39) y no avisa. `MatchService.submit` manda el motivo a ese jugador, en español, por `LobbyNotice` con `kind = "ActionRejected"`. Los demás `kind` (`Info`, `Error`, `PartyCode`, en `Protocol.NOTICE_KINDS`) siguen yendo al panel de revancha: el cliente enruta por `kind` (`client/ui/NoticeRules`) y enseña el rechazo como un aviso breve en la barra.
 - **R-P49 (ciudad):** dueños y edificios se dibujan comparando vistas (`WorldRules.propertyChanges`), no escuchando eventos, porque las ventas por bancarrota y por Huracán no los emiten. Toda vista pasa por `ViewWire.normalize` al entrar en el cliente: `properties` tiene huecos y la documentación de Roblox no aclara qué hace un remoto con esas claves numéricas. El color de una ficha sale de su asiento y su sitio en la casilla, de `CityLayout.tokenOffset`.
+- **R-P50 (propiedades):** cada propiedad es un edificio fijo que existe desde el inicio de la partida. El nivel solo añade marcadores junto al edificio y añadidos sobre él, y el aspecto sale siempre del nivel de la vista. Los daños de una escena duran lo que la escena: no hay estados permanentes de daño.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales
@@ -314,7 +315,7 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Efectivo inicial | 1500 |
 | Cobro por pasar la Salida | 200 |
 | Precio de propiedad por zona | De 60 a 400, creciente a lo largo de la ruta |
-| Niveles de edificio | De 0 a 5: solar, una, dos y tres casas, hotel y rascacielos |
+| Niveles de edificio | De 0 a 5: sin mejoras, una, dos y tres casas, hotel y rascacielos. Son niveles de la regla: el edificio no se sustituye (R-P50) |
 | Renta base | 10 % del precio |
 | Renta con grupo completo | Base × 2 |
 | Multiplicador de renta por nivel | × 2, × 3, × 5, × 8 y × 12 |

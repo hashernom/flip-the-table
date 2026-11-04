@@ -32,6 +32,8 @@ Alturas con los niveles de edificio de la arquitectura:
 | Ficha taxi | — | 9 | 892 |
 | Fondo de ciudad | — | 52 | 60 |
 
+**Revisión del 2026-11-04.** Cada propiedad es ahora un edificio propio y fijo, con su altura, y el nivel solo le añade un poco (R-P50). Las alturas de la tabla quedan como referencia del blockout y 92 sigue siendo el techo. Provisionalmente, el solar mide 36 de frente, el ancho de la baldosa, y 22 de fondo, en vez de los 18 de arriba.
+
 ## Por qué estos y no otros
 
 **La ficha mide 9, no 12.** Con 12, el jinete subía a 18 studs y pasaba por encima del tejado de

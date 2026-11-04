@@ -56,11 +56,11 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 4. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
    inventar.
 5. La porción vertical de la Puerta B. `src/client/world/BuildingView` ya existe, con bloques grises
-   comprobados en partida. La escalera de Centro está modelada (`art/blender/slice/build_ladder.py`:
-   casa, hotel y rascacielos, en `Draft`) pero sin subir ni ver en el juego. La escena de arresto está
-   a cero.
-6. **Decidir el solar:** `art/escala.md` dice 18 de frente, pero tres casas no caben ahí. El gris y la
-   escalera usan el ancho de la baldosa, 36. Lo decide el responsable.
+   comprobados en partida. El responsable descartó la escalera de modelos: cada propiedad es un edificio
+   fijo con marcadores y añadidos (R-P50). La primera, el Cine Lux, está en
+   `art/blender/slice/build_cine_lux.py`. La escena de arresto está a cero.
+6. **Medir el solar:** provisionalmente 36 de frente; hay que comprobarlo con edificios reales y, si no
+   basta, separar las casillas (`CityLayout`).
 7. **Studio bajo Vinegar:** en este equipo se ha colgado y el 3D sale negro en las capturas; sin
    resolverlo no se puede aprobar nada en el juego.
 

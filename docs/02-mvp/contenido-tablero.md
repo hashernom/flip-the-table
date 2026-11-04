@@ -101,7 +101,7 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 
 | Nivel | Estado | Coste del paso | Coste acumulado | Multiplicador | Renta en 60 | Renta en 400 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | Solar | — | — | × 1 (× 2 con zona) | 12 | 80 |
+| 0 | Sin mejoras | — | — | × 1 (× 2 con zona) | 12 | 80 |
 | 1 | 1 casa | 50 % | 50 % | × 2 | 24 | 160 |
 | 2 | 2 casas | 50 % | 100 % | × 3 | 36 | 240 |
 | 3 | 3 casas | 50 % | 150 % | × 5 | 60 | 400 |
@@ -110,7 +110,7 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 
 - La renta es precio × 10 % × multiplicador del nivel; con la zona completa se aplica además el × 2.
 - Los efectos dinámicos (rondas finales, Zona Caliente, Inflación, presión) se aplican aparte y están topados a × 4.
-- El hotel exige las 3 casas y sustituye su modelo; el rascacielos sustituye al hotel.
+- El hotel exige las 3 casas, y el rascacielos, el hotel. Los nombres son los de la regla: el edificio de la propiedad no se sustituye. Cada nivel pone sus marcadores y su añadido (ficha, «Zonas reales»), y el aspecto sale siempre del nivel que manda el motor.
 - La zona completa se exige para construir: 2 compras en Cobre y Violeta, 3 en el resto.
 - Constructor descuenta un 20 %. Terremoto y Demolición bajan un nivel; en bancarrota se venden niveles a la mitad.
 

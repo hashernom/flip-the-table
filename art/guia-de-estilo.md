@@ -165,6 +165,8 @@ tramo de tres, no tres escalones sueltos, y deja el hotel como el cambio de cate
 importes de la tabla son de muestra para la lámina; la economía real vive en
 `src/shared/config/Economy.luau`.
 
+**Revisión del 2026-11-04: en la ciudad, los cinco pasos no cambian de modelo.** Cada propiedad es un edificio propio y fijo. Junto a él hay **marcadores de mejora**: casitas de caliza para los tres primeros niveles, un bloque con banda de oro para el hotel y una torre de acero con filete de oro para el rascacielos. Nunca casas verdes ni hotel rojo: serían el reparto gráfico del juego original (§9). «Solar sin construir» en la lámina equivale a «sin mejoras».
+
 **La tarjeta dice lo que se cobra, no lo que cuesta.** El coste de construir es una decisión de
 compra y vive en el **HUD**, junto al dinero y las acciones del turno; la escritura solo responde
 «si caigo aquí, ¿cuánto pago?». Debajo de la tabla van las dos reglas que modifican esa cifra, porque

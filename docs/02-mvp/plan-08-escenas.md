@@ -40,7 +40,7 @@
 1. Un cliente entra a mitad de una escena: ve el estado correcto, sin escena rota. Prueba en Tarea 1.
 2. Un avatar extremo en el arresto: las esposas y la patrulla no se ven rotas. Prueba en Tarea 2.
 3. Dos escenas seguidas sobre el mismo edificio no lo dejan en un nivel incorrecto. Prueba en Tarea 1.
-4. Huracán sin edificios construidos: la escena sigue teniendo sentido. Prueba en Tarea 3.
+4. Huracán sin mejoras construidas: la escena sigue teniendo sentido. Prueba en Tarea 3.
 5. Muchas partículas en móvil: se reducen sin perder la idea de la escena. Prueba en Tarea 7.
 
 ---
@@ -114,10 +114,10 @@ end)
 - Crear: `src/client/scenes/legendary/Hurricane.luau`, `WorldFlip.luau`, `Revolution.luau`, `Earthquake.luau`, `CrownStrike.luau`
 
 **Criterios de aceptación:**
-- [ ] **Huracán:** se oscurece el cielo, entra un huracán y arranca edificios del suelo; con pocos edificios, levanta carteles y coches.
+- [ ] **Huracán:** se oscurece el cielo, entra un huracán y se lleva marcadores, toldos, rótulos y remates; el cuerpo de los edificios queda en pie, y sin mejoras levanta carteles y coches.
 - [ ] **Mundo al Revés:** la ciudad gira en el aire y cada ficha cae en una casilla distinta.
 - [ ] **Revolución:** una multitud toma las calles y camiones blindados cambian el dinero de manos.
-- [ ] **Terremoto:** las calles se agrietan y los edificios de la zona se derrumban un nivel.
+- [ ] **Terremoto:** las calles se agrietan, los edificios de la zona tiemblan y cada uno pierde un marcador y su último añadido. Las grietas y el humo duran lo que la escena.
 - [ ] **Golpe a la Corona:** la corona del líder cae, y el dinero sale volando hacia los demás.
 - [ ] Cada una dura 10 s o menos, y al terminar el mundo coincide con `view`.
 - [ ] Es el momento de mayor calidad del juego: el responsable aprueba cada una por separado.
@@ -137,7 +137,7 @@ end)
 
 **Criterios de aceptación:**
 - [ ] Huelga: los locales bajan las persianas y la zona se queda en silencio.
-- [ ] Demolición: una bola de demolición golpea el edificio rival.
+- [ ] Demolición: una bola de demolición golpea el edificio rival; salta un marcador y cae su último añadido.
 - [ ] Inflación: los precios de los carteles suben y vuelan billetes.
 - [ ] Multa: un policía entrega el parte.
 - [ ] Cada escena dura de 2 a 4 s y deja claro quién actuó y a quién afectó.
@@ -174,7 +174,7 @@ end)
 - Crear: `src/client/scenes/game/Dice.luau`, `Buy.luau`, `Rent.luau`, `Auction.luau`, `Build.luau`, `Bankruptcy.luau`, `Traitor.luau`, `Pact.luau`, `HotZone.luau`, `Crown.luau`, `Fury.luau`, `Ghost.luau`, `FinalRounds.luau`, `Podium.luau`, `CityReveal.luau`
 
 **Criterios de aceptación:**
-- [ ] **Construir:** llega una grúa y el edificio crece a toda velocidad.
+- [ ] **Construir:** llega una grúa, deja el marcador nuevo y monta el añadido del nivel.
 - [ ] **Bancarrota:** una grúa se lleva la ficha y el avatar se vuelve espectro.
 - [ ] **Traición:** un foco sigue al traidor y un cartel gigante lo señala; la marca dura sus 3 rondas.
 - [ ] **Última Ronda:** aviso visible, con cambio de música y de ambiente, solo en modo Rondas.
