@@ -23,7 +23,9 @@ export type Context = PlaceholderScene.Context & {
 export type Scene = { run: (ctx: Context, event: Event) -> () }
 
 export type Options = {
-	wait: ((seconds: number) -> ())?,
+	-- El reloj entra inyectado: el director no conoce `task`, así que se prueba entero con Lune y en
+	-- Roblox espera de verdad. Quien lo crea decide qué significa esperar.
+	wait: (seconds: number) -> (),
 	show: ((text: string) -> ())?,
 	log: ((message: string) -> ())?,
 }
@@ -39,16 +41,11 @@ export type Director = {
 
 local SceneDirector = {}
 
-function SceneDirector.new(options: Options?): Director
-	local settings: Options = options or {}
+function SceneDirector.new(options: Options): Director
 	return {
-		wait = settings.wait or function(seconds: number)
-			task.wait(seconds)
-		end,
-		show = settings.show or function(_text: string) end,
-		log = settings.log or function(message: string)
-			warn(message)
-		end,
+		wait = options.wait,
+		show = options.show or function(_text: string) end,
+		log = options.log or function(_message: string) end,
 		scenes = {},
 		seen = {},
 	}

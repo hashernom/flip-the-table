@@ -57,11 +57,11 @@
 - Produce: `EventQueue.new(): EventQueue`, `EventQueue.push(q, batch): "Queued" | "Gap" | "Duplicate"`, `EventQueue.nextDue(q, now): Batch?`, `EventQueue.resync(q, view, seq)`.
 
 **Criterios de aceptación:**
-- [ ] Los lotes se reproducen en orden de `seq`.
-- [ ] Un duplicado se ignora; un hueco pide `ResyncRequest`.
-- [ ] Un lote cuya escena ya terminó aplica su estado sin reproducirse.
+- [x] Los lotes se reproducen en orden de `seq`.
+- [x] Un duplicado se ignora; un hueco pide `ResyncRequest`.
+- [x] Un lote cuya escena ya terminó aplica su estado sin reproducirse.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("detecta un hueco", function()
@@ -75,10 +75,10 @@ it("ignora un duplicado", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run EventQueue`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar ambos módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: ordenar eventos en el cliente`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run EventQueue`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar ambos módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: ordenar eventos en el cliente`.
 
 ### Task 2: Ciudad gris a escala
 
@@ -92,17 +92,17 @@ end)
 - Produce: `CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles`.
 
 **Criterios de aceptación:**
-- [ ] Cada tamaño tiene su ruta cerrada, con 40, 48 o 56 posiciones.
-- [ ] Centro y Puerto usan las mismas posiciones lógicas en los tres tamaños, y Zona Alta e Industrial se conectan por puentes.
-- [ ] La distancia máxima entre casillas consecutivas es de 60 studs.
-- [ ] Cada casilla es reconocible por tipo, color y etiqueta.
+- [x] Cada tamaño tiene su ruta cerrada, con 40, 48 o 56 posiciones.
+- [x] Centro y Puerto usan las mismas posiciones lógicas en los tres tamaños, y Zona Alta e Industrial se conectan por puentes.
+- [x] La distancia máxima entre casillas consecutivas es de 60 studs.
+- [x] Cada casilla es reconocible por tipo, color y etiqueta.
 
-- [ ] **Paso 1:** Escribir pruebas de ruta: número de posiciones por tamaño, distancia máxima y ruta cerrada.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run CityLayout`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los datos y `CityBuilder`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Con el MCP de Studio, construir los 3 tamaños y capturar pantalla con `screen_capture`. Esperado: ruta visible y sin solapes.
-- [ ] **Paso 6:** Hacer commit: `feat: construir ciudad gris por tamaño`.
+- [x] **Paso 1:** Escribir pruebas de ruta: número de posiciones por tamaño, distancia máxima y ruta cerrada.
+- [x] **Paso 2:** Ejecutar `lune run tests/run CityLayout`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los datos y `CityBuilder`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Con el MCP de Studio, construir los 3 tamaños y capturar pantalla con `screen_capture`. Esperado: ruta visible y sin solapes.
+- [x] **Paso 6:** Hacer commit: `feat: construir ciudad gris por tamaño`.
 
 ### Task 3: Cámaras y control del jugador
 
@@ -116,14 +116,14 @@ end)
 - Produce: `TokenRider.mount(player: Player, token: Model)`, `TokenRider.ride(token: Model, path: { number }, durationSec: number)`.
 
 **Criterios de aceptación:**
-- [ ] Se cumple la tabla "Qué ve cada jugador" de la ficha.
-- [ ] Una escena tiene prioridad sobre la vista general.
-- [ ] Un recorrido dura como máximo 4 s, sea cual sea la distancia.
-- [ ] Caminar y saltar están desactivados; se puede mirar alrededor con ratón o dedo.
-- [ ] La cámara funciona con avatares de altura mínima y máxima.
-- [ ] Los demás jugadores se ven sobre sus fichas.
+- [x] Se cumple la tabla "Qué ve cada jugador" de la ficha.
+- [x] Una escena tiene prioridad sobre la vista general.
+- [x] Un recorrido dura como máximo 4 s, sea cual sea la distancia.
+- [x] Caminar y saltar están desactivados; se puede mirar alrededor con ratón o dedo.
+- [x] La cámara funciona con avatares de altura mínima y máxima.
+- [x] Los demás jugadores se ven sobre sus fichas.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("la escena manda sobre la vista general", function()
@@ -137,12 +137,12 @@ it("los demás siguen a la ficha activa", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run CameraRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `CameraRules`, `CameraDirector` y `TokenRider`, con fichas grises.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Probar en Studio con `start_stop_play` y `user_keyboard_input`: pulsar WASD y espacio. Esperado: el avatar no se mueve.
-- [ ] **Paso 6:** Probar con avatar de escala mínima y máxima; capturar pantalla. Esperado: la cámara no atraviesa el suelo ni la ficha.
-- [ ] **Paso 7:** Hacer commit: `feat: añadir cámaras y subir el avatar a la ficha`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run CameraRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `CameraRules`, `CameraDirector` y `TokenRider`, con fichas grises.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Probar en Studio con `start_stop_play` y `user_keyboard_input`: pulsar WASD y espacio. Esperado: el avatar no se mueve.
+- [x] **Paso 6:** Probar con avatar de escala mínima y máxima; capturar pantalla. Esperado: la cámara no atraviesa el suelo ni la ficha.
+- [x] **Paso 7:** Hacer commit: `feat: añadir cámaras y subir el avatar a la ficha`.
 
 ### Task 4: Escenas provisionales
 
@@ -157,13 +157,13 @@ end)
 - Produce: `Scene = { run: (ctx: SceneContext, event: Event) -> () }`.
 
 **Criterios de aceptación:**
-- [ ] Todo evento sin escena final muestra su nombre durante su duración real.
+- [x] Todo evento sin escena final muestra su nombre durante su duración real.
 - [ ] Dos clientes muestran la misma escena con una diferencia menor de 250 ms.
-- [ ] Un error dentro de una escena no detiene la cola.
+- [x] Un error dentro de una escena no detiene la cola.
 
 - [ ] **Paso 1:** En Test Server con 2 clientes, registrar en consola la hora de inicio de cada escena. Esperado: diferencia menor de 250 ms.
-- [ ] **Paso 2:** Forzar un error en una escena de prueba. Esperado: se registra y la siguiente escena se reproduce.
-- [ ] **Paso 3:** Hacer commit: `feat: reproducir escenas provisionales`.
+- [x] **Paso 2:** Forzar un error en una escena de prueba. Esperado: se registra y la siguiente escena se reproduce.
+- [x] **Paso 3:** Hacer commit: `feat: reproducir escenas provisionales`.
 
 ### Task 5: Interfaz gris
 
@@ -178,18 +178,18 @@ end)
 
 **Criterios de aceptación:**
 - [ ] Se puede jugar toda la partida solo con menús: comprar, pujar, construir, cartas, perks, tratos, pactos, votos, duelos, mercado y turno de espectro.
-- [ ] Un botón solo aparece si su acción es legal.
-- [ ] El temporizador de cada decisión está siempre visible.
-- [ ] En móvil, todo queda dentro de la zona segura y con objetivos táctiles de 44 píxeles o más.
-- [ ] La vista general muestra dueños, dinero, posiciones y efectos activos.
+- [x] Un botón solo aparece si su acción es legal.
+- [x] El temporizador de cada decisión está siempre visible.
+- [x] En móvil, todo queda dentro de la zona segura y con objetivos táctiles de 44 píxeles o más.
+- [x] La vista general muestra dueños, dinero, posiciones y efectos activos.
 - [ ] Los emotes se lanzan con un botón y todos los ven.
 
-- [ ] **Paso 1:** Escribir pruebas de `ActionMenuRules`: sin compra legal no hay botón de compra; con `Bid` hay control de puja.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run ActionMenuRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los menús.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Probar en Studio con el emulador de un móvil de pantalla pequeña; capturar pantalla. Esperado: sin solapes.
-- [ ] **Paso 6:** Hacer commit: `feat: añadir interfaz gris completa`.
+- [x] **Paso 1:** Escribir pruebas de `ActionMenuRules`: sin compra legal no hay botón de compra; con `Bid` hay control de puja.
+- [x] **Paso 2:** Ejecutar `lune run tests/run ActionMenuRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los menús.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Probar en Studio con el emulador de un móvil de pantalla pequeña; capturar pantalla. Esperado: sin solapes.
+- [x] **Paso 6:** Hacer commit: `feat: añadir interfaz gris completa`.
 
 ### Task 6: Puerta A, prueba con amigos
 
@@ -214,3 +214,63 @@ end)
 - [ ] **Paso 4:** Ejecutar `lune run tools/criteria-report` y escribir los resultados y la decisión en `puerta-a.md`.
 - [ ] **Paso 5:** Ajustar `config` según los resultados y repetir hasta que el responsable apruebe.
 - [ ] **Paso 6:** Hacer commit: `docs: registrar resultado de la Puerta A`.
+
+---
+
+## Cómo quedó
+
+Ejecutada en la sesión el 2026-11-04, en el modo que recomienda el plan, con un Studio de edición y
+un servidor HTTP local para llevar el código al DataModel. Las casillas de arriba reflejan lo que se
+comprobó de verdad.
+
+**Lo que se añadió al plan, y por qué** (todo con su ruling en la arquitectura):
+
+- **`src/client/main.client.luau`.** Ninguna tarea nombraba el ensamblado del cliente y sin él ningún
+  módulo llegaba a ejecutarse. Es el único punto de cableado.
+- **`config/Strings` y `config/CityLayout`.** La arquitectura ya listaba `Strings`; los nombres,
+  colores y etiquetas de las casillas solo estaban en `docs/02-mvp/contenido-tablero.md`, y la ruta
+  de cada tamaño necesitaba datos puros que probar con Lune.
+- **`client/ui/Theme`.** Colores, medidas táctiles y zona segura en un solo sitio: los siete menús
+  comparten botones, paneles y modales.
+- **`client/camera/CameraRules`** se separó de `CameraDirector` para poder probar la tabla «Qué ve
+  cada jugador» sin abrir Studio. `CameraRules` decide también el tope de 4 s del recorrido y la
+  altura de la cámara sobre el asiento.
+- **Un remoto de emotes.** La ficha pide que todos vean los emotes y el protocolo no tenía por dónde:
+  `EmoteRequest` con `Protocol.EMOTES` y `Protocol.validateEmote`, reenviado por el servidor a todo el
+  grupo (R-P33).
+- **`Scenes.maxRideSec`.** El tope de 4 s de un recorrido es un número ajustable y vive en `config`.
+
+**Lo que se comprobó, y cómo:**
+
+- **Cola y estado:** 22 pruebas de Lune. **Geometría de la ciudad:** 16. **Textos y colores:** 14.
+  **Cámaras:** 16. **Escenas:** 17. **Menús:** 15. Total de la rama: 1000 pruebas en verde.
+- **Los tres tamaños de ciudad** se construyeron en Studio y se capturaron: anillo cerrado de 40, 48
+  y 56 casillas con su color y su rótulo, y las pasarelas en la junta entre islas.
+- **Sin movimiento libre:** con Play y `user_keyboard_input` (W, A, espacio, D) la raíz del avatar se
+  quedó en el mismo punto (0, 6.135, 0) antes y después.
+- **Avatares extremos:** con `Model:ScaleTo(0.6)` y `2.2`, la cámara quedó por encima del asiento
+  (6,26 y 12,48 frente a 3,30) y del suelo en los dos casos.
+- **Recorrido acotado:** pedir 30 s con siete casillas tardó 4,00 s y dejó la ficha en la casilla 8,
+  con el avatar encima.
+- **Escenas:** con el reloj real de Roblox, una escena que revienta se registra, ocupa su hueco
+  (4,03 s de dos escenas de 2 s) y la siguiente se reproduce.
+- **Menús:** la barra solo enseña lo legal (comprar, no comprar, construir 8, terminar turno; en
+  subasta, pujar con el control entre 10 y 340), el temporizador se ve («19 s», «11 s») y la vista
+  general enseña dueños, dinero, posiciones y efectos activos.
+- **Ventana pequeña:** a 586 × 365 la barra, los botones y el panel de acciones caben dentro de la
+  zona segura de Roblox, y ningún botón baja de 44 píxeles de alto. Se corrigieron dos fallos que
+  solo aparecían ahí: la barra de estado se colocaba debajo de la botonera del motor y el panel de la
+  vista general se salía de la pantalla.
+
+**Pendiente y por qué:**
+
+- **Dos clientes a menos de 250 ms.** Necesita un Test Server con dos clientes conectados a la vez;
+  no se ejecutó. Lo que sí está es el mecanismo: el cliente espera el lote hasta `batch.startsAt` con
+  el reloj del servidor y no lo arranca al recibirlo.
+- **Los emotes entre dos clientes** y **una partida completa de principio a fin** necesitan una
+  partida real: en esta sesión la partida se simuló desde el servidor para poder mirar la interfaz,
+  porque `MatchService` necesita dos jugadores y el lugar no está publicado.
+- **El emulador de móvil.** El MCP de Studio no puede activarlo, así que la prueba de pantalla
+  pequeña se hizo reduciendo la ventana de Studio a 586 × 365 y midiendo los controles.
+- **La Puerta A** es la Tarea 6 entera: publicar en privado, reunir los grupos y decidir. No puede
+  hacerla un agente.

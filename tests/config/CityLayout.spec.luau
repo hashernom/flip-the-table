@@ -9,7 +9,17 @@ local CityLayout = require("../../src/shared/config/CityLayout")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
-local SIZES: { CityLayout.SizeId } = { "S", "M", "L" }
+local SIZES = { "S", "M", "L" } :: { CityLayout.SizeId }
+
+-- El tamaño se recibe como texto y se convierte aquí: un `for` sobre una lista de literales ensancha
+-- el tipo a `string`, y esto deja las llamadas siguientes bien tipadas sin repetir la conversión.
+local function routeFor(sizeId: string): { CityLayout.Slot }
+	return CityLayout.routeFor(sizeId :: any)
+end
+
+local function bridgesFor(sizeId: string): { CityLayout.Bridge }
+	return CityLayout.bridgesFor(sizeId :: any)
+end
 
 local function distance(a: CityLayout.Vector3Like, b: CityLayout.Vector3Like): number
 	local dx, dy, dz = b.x - a.x, b.y - a.y, b.z - a.z
@@ -17,8 +27,8 @@ local function distance(a: CityLayout.Vector3Like, b: CityLayout.Vector3Like): n
 end
 
 -- Cuántas casillas tiene el tablero según `Boards`, que es la fuente de verdad de la composición.
-local function boardSquares(sizeId: CityLayout.SizeId): number
-	return #Boards.get(sizeId).squares
+local function boardSquares(sizeId: string): number
+	return #Boards.get(sizeId :: any).squares
 end
 
 local function barrios(route: { CityLayout.Slot }): { string }
@@ -32,19 +42,19 @@ end
 describe("CityLayout.routeFor", function()
 	it("cada tamaño tiene una posición por casilla del tablero", function()
 		for _, sizeId in SIZES do
-			expect(#CityLayout.routeFor(sizeId)).toBe(boardSquares(sizeId))
+			expect(#routeFor(sizeId)).toBe(boardSquares(sizeId))
 		end
 	end)
 
 	it("los tableros son de 40, 48 y 56 casillas", function()
-		expect(#CityLayout.routeFor("S")).toBe(40)
-		expect(#CityLayout.routeFor("M")).toBe(48)
-		expect(#CityLayout.routeFor("L")).toBe(56)
+		expect(#routeFor("S")).toBe(40)
+		expect(#routeFor("M")).toBe(48)
+		expect(#routeFor("L")).toBe(56)
 	end)
 
 	it("la ruta está cerrada: la última casilla vuelve a la primera", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			local step = distance(route[#route].position, route[1].position)
 			expect(step <= CityLayout.MAX_STEP_STUDS).toBe(true)
 			expect(distance(route[1].position, route[2].position) > 0).toBe(true)
@@ -53,7 +63,7 @@ describe("CityLayout.routeFor", function()
 
 	it("ninguna distancia entre casillas consecutivas pasa de 60 studs", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			local longest = 0
 			for index, slot in route do
 				local nextSlot = route[if index == #route then 1 else index + 1]
@@ -69,7 +79,7 @@ describe("CityLayout.routeFor", function()
 
 	it("todas las casillas están a la altura del suelo", function()
 		for _, sizeId in SIZES do
-			for _, slot in CityLayout.routeFor(sizeId) do
+			for _, slot in routeFor(sizeId) do
 				expect(slot.position.y).toBe(0)
 			end
 		end
@@ -77,7 +87,7 @@ describe("CityLayout.routeFor", function()
 
 	it("cada casilla mira hacia la siguiente", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			for index, slot in route do
 				local nextSlot = route[if index == #route then 1 else index + 1]
 				local dx = nextSlot.position.x - slot.position.x
@@ -88,9 +98,9 @@ describe("CityLayout.routeFor", function()
 	end)
 
 	it("la Salida abre la ruta en la misma esquina en los tres tamaños", function()
-		local first = CityLayout.routeFor("S")[1].position
+		local first = routeFor("S")[1].position
 		for _, sizeId in SIZES do
-			local slot = CityLayout.routeFor(sizeId)[1]
+			local slot = routeFor(sizeId)[1]
 			expect(slot.position.x).toBe(first.x)
 			expect(slot.position.z).toBe(first.z)
 			expect(slot.index).toBe(1)
@@ -99,8 +109,8 @@ describe("CityLayout.routeFor", function()
 
 	it("cada casilla lleva el número, el barrio y el tipo de su casilla del tablero", function()
 		for _, sizeId in SIZES do
-			local board = Boards.get(sizeId)
-			for index, slot in CityLayout.routeFor(sizeId) do
+			local board = Boards.get(sizeId :: any)
+			for index, slot in routeFor(sizeId) do
 				expect(slot.index).toBe(index)
 				expect(slot.barrioId).toBe(board.squares[index].barrioId)
 				expect(slot.kind).toBe(board.squares[index].kind)
@@ -129,13 +139,13 @@ describe("CityLayout: colocación de los barrios", function()
 
 	it("los barrios nunca retroceden a lo largo de la ruta", function()
 		for _, sizeId in SIZES do
-			expect(isNonDecreasing(barrios(CityLayout.routeFor(sizeId)))).toBe(true)
+			expect(isNonDecreasing(barrios(routeFor(sizeId)))).toBe(true)
 		end
 	end)
 
 	it("Centro y Puerto abren la ruta en los tres tamaños", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			expect(route[1].barrioId).toBe("Centro")
 			-- Ninguna casilla de un barrio posterior aparece antes de la última de las dos
 			-- primeras: Centro y Puerto son siempre la cabeza de la ciudad.
@@ -153,12 +163,12 @@ describe("CityLayout: colocación de los barrios", function()
 	end)
 
 	it("la Zona Alta solo existe a partir del tablero mediano", function()
-		local small = barrios(CityLayout.routeFor("S"))
+		local small = barrios(routeFor("S"))
 		expect(table.find(small, "ZonaAlta")).toBe(nil)
 		expect(table.find(small, "Industrial")).toBe(nil)
-		expect(table.find(barrios(CityLayout.routeFor("M")), "ZonaAlta") ~= nil).toBe(true)
-		expect(table.find(barrios(CityLayout.routeFor("M")), "Industrial")).toBe(nil)
-		expect(table.find(barrios(CityLayout.routeFor("L")), "Industrial") ~= nil).toBe(true)
+		expect(table.find(barrios(routeFor("M")), "ZonaAlta") ~= nil).toBe(true)
+		expect(table.find(barrios(routeFor("M")), "Industrial")).toBe(nil)
+		expect(table.find(barrios(routeFor("L")), "Industrial") ~= nil).toBe(true)
 	end)
 end)
 
@@ -166,13 +176,13 @@ describe("CityLayout.bridgesFor", function()
 	-- Islas: el continente reúne Centro y Puerto; Zona Alta e Industrial son islas aparte. Un
 	-- puente es exactamente la arista de la ruta que cruza de una isla a otra.
 	it("el tablero pequeño no necesita puentes", function()
-		expect(#CityLayout.bridgesFor("S")).toBe(0)
+		expect(#bridgesFor("S")).toBe(0)
 	end)
 
 	it("cada puente une dos islas distintas", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
-			for _, bridge in CityLayout.bridgesFor(sizeId) do
+			local route = routeFor(sizeId)
+			for _, bridge in bridgesFor(sizeId) do
 				local from = route[bridge.fromIndex]
 				local to = route[bridge.toIndex]
 				expect(from ~= nil).toBe(true)
@@ -185,10 +195,10 @@ describe("CityLayout.bridgesFor", function()
 
 	it("cada isla exterior entra y sale por un puente", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			-- Un puente toca dos islas: la de salida y la de llegada.
 			local toques: { [string]: number } = {}
-			for _, bridge in CityLayout.bridgesFor(sizeId) do
+			for _, bridge in bridgesFor(sizeId) do
 				local salida = CityLayout.islandOf(route[bridge.fromIndex].barrioId)
 				local llegada = CityLayout.islandOf(route[bridge.toIndex].barrioId)
 				for _, island in { salida, llegada } do
@@ -212,8 +222,8 @@ describe("CityLayout.bridgesFor", function()
 
 	it("el puente arranca en su casilla y apunta a la siguiente", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
-			for _, bridge in CityLayout.bridgesFor(sizeId) do
+			local route = routeFor(sizeId)
+			for _, bridge in bridgesFor(sizeId) do
 				local from = route[bridge.fromIndex]
 				local to = route[bridge.toIndex]
 				expect(bridge.start.x).toBe(from.position.x)
@@ -228,9 +238,9 @@ describe("CityLayout.bridgesFor", function()
 
 	it("no hay puentes donde la ruta no cambia de isla", function()
 		for _, sizeId in SIZES do
-			local route = CityLayout.routeFor(sizeId)
+			local route = routeFor(sizeId)
 			local puentes: { [string]: boolean } = {}
-			for _, bridge in CityLayout.bridgesFor(sizeId) do
+			for _, bridge in bridgesFor(sizeId) do
 				puentes[`{bridge.fromIndex}>{bridge.toIndex}`] = true
 			end
 			for index = 1, #route do

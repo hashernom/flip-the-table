@@ -4,11 +4,12 @@
 -- casillas especiales. La fuente de verdad es docs/02-mvp/contenido-tablero.md.
 local Harness = require("../harness")
 local Boards = require("../../src/shared/config/Boards")
+local Types = require("../../src/shared/rules/Types")
 local Strings = require("../../src/shared/config/Strings")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
-local SIZES: { Boards.SizeId } = { "S", "M", "L" }
+local SIZES = { "S", "M", "L" } :: { Types.SizeId }
 
 describe("Strings: zonas", function()
 	it("cada zona de la arquitectura tiene nombre, color y barrio", function()
@@ -97,7 +98,7 @@ end)
 
 describe("Strings: etiquetas de casilla", function()
 	it("cada tipo de casilla tiene su etiqueta", function()
-		local kinds: { Boards.SquareKind } = {
+		local kinds: { Types.SquareKind } = {
 			"Start",
 			"Property",
 			"Spin",
@@ -109,8 +110,8 @@ describe("Strings: etiquetas de casilla", function()
 			"Tax",
 		}
 		for _, kind in kinds do
-			if kind ~= "Property" then
-				expect(#Strings.kind(kind) > 0).toBe(true)
+			if (kind :: string) ~= "Property" then
+				expect(#Strings.kind(kind :: any) > 0).toBe(true)
 			end
 		end
 	end)
@@ -122,9 +123,9 @@ describe("Strings: etiquetas de casilla", function()
 
 	it("la etiqueta de una casilla de propiedad es el nombre de la propiedad", function()
 		for _, sizeId in SIZES do
-			local board = Boards.get(sizeId)
+			local board = Boards.get(sizeId :: any)
 			for index, square in board.squares do
-				local label = Strings.squareLabel(square, index)
+				local label = Strings.squareLabel(square, index :: any)
 				expect(#label > 0).toBe(true)
 				if square.kind == "Property" then
 					expect(label ~= Strings.kind(square.kind)).toBe(true)

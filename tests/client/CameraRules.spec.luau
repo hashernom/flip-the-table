@@ -11,7 +11,8 @@ local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 -- Ayuda: el contexto de cámara con los tres indicadores. Cualquiera que no se pase queda en falso.
 local function ctx(overrides: { [string]: boolean }?)
 	local context = { isActive = false, sceneRunning = false, overviewRequested = false }
-	for key, value in overrides or {} do
+	local source: { [string]: boolean } = overrides or {}
+	for key, value in source do
 		context[key] = value
 	end
 	return context
@@ -19,18 +20,21 @@ end
 
 describe("CameraRules.modeFor", function()
 	it("la escena manda sobre la vista general", function()
-		expect(CameraRules.modeFor({ isActive = false, sceneRunning = true, overviewRequested = true }))
-			.toBe("Scene")
+		expect(CameraRules.modeFor({ isActive = false, sceneRunning = true, overviewRequested = true })).toBe(
+			"Scene"
+		)
 	end)
 
 	it("el activo va en primera persona", function()
-		expect(CameraRules.modeFor({ isActive = true, sceneRunning = false, overviewRequested = false }))
-			.toBe("FirstPerson")
+		expect(CameraRules.modeFor({ isActive = true, sceneRunning = false, overviewRequested = false })).toBe(
+			"FirstPerson"
+		)
 	end)
 
 	it("los demás siguen a la ficha activa", function()
-		expect(CameraRules.modeFor({ isActive = false, sceneRunning = false, overviewRequested = false }))
-			.toBe("FollowActive")
+		expect(CameraRules.modeFor({ isActive = false, sceneRunning = false, overviewRequested = false })).toBe(
+			"FollowActive"
+		)
 	end)
 
 	it("la escena manda también sobre la primera persona", function()

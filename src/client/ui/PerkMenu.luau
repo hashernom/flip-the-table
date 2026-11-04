@@ -53,9 +53,9 @@ function PerkMenu.create(playerGui: Instance, send: (action: any) -> ()): Handle
 				return
 			end
 			rebuild(view)
-			if view.phase == "PerkDraft" then
-				modal.setOpen(true)
-			end
+			-- El draft se abre solo y se cierra solo: en cuanto la fase deja de ser la suya, la partida
+			-- ya eligió y la ventana no puede quedarse tapando la mesa.
+			modal.setOpen(view.phase == "PerkDraft")
 		end,
 		destroy = function()
 			modal.gui:Destroy()

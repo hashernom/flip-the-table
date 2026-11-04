@@ -24,7 +24,7 @@ describe("Protocol.REMOTES", function()
 			PartyJoin = "PartyJoinRequest",
 			PartyStart = "PartyStartRequest",
 			QueueJoin = "QueueJoinRequest",
-		Emote = "EmoteRequest",
+			Emote = "EmoteRequest",
 			Notice = "LobbyNotice",
 		})
 	end)

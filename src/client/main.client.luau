@@ -77,8 +77,14 @@ local function boot()
 	local lobbyMenu = LobbyMenu.create(playerGui, function() end)
 
 	local scenes = SceneDirector.new({
+		wait = function(seconds: number)
+			task.wait(seconds)
+		end,
 		show = function(text: string)
 			hud.setBanner(text)
+		end,
+		log = function(message: string)
+			warn(message)
 		end,
 	})
 

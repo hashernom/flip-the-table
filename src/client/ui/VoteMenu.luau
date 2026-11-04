@@ -78,8 +78,12 @@ function VoteMenu.create(playerGui: Instance, send: (action: any) -> ()): Handle
 
 	return {
 		setView = function(view: any)
-			if view ~= nil and view.phase == "Tribunal" then
-				modal.setOpen(true)
+			if view == nil then
+				return
+			end
+			local voting = view.phase == "Tribunal"
+			modal.setOpen(voting)
+			if voting then
 				rebuild(view)
 			end
 		end,

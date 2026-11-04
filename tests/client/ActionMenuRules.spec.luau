@@ -86,7 +86,7 @@ describe("ActionMenuRules.buttonsFor", function()
 		for _, actionType in actions do
 			local label = ActionMenuRules.labelFor({ type = actionType } :: any)
 			expect(label ~= actionType).toBe(true)
-			expect(#(label) > 0).toBe(true)
+			expect(#label > 0).toBe(true)
 		end
 	end)
 
