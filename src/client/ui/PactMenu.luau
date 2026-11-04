@@ -17,8 +17,8 @@ local MAX_ROUNDS = 5
 
 local PactMenu = {}
 
-local function panelBody(modal: Theme.Modal): Frame
-	local body = Theme.panel(modal.panel, "Body", nil)
+local function panelBody(modal: Theme.Modal): ScrollingFrame
+	local body = modal.body
 	body.Size = UDim2.fromScale(1, 0)
 	body.AutomaticSize = Enum.AutomaticSize.Y
 	return body

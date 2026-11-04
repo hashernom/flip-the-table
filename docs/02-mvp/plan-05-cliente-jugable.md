@@ -116,7 +116,7 @@ end)
 - Produce: `TokenRider.mount(player: Player, token: Model)`, `TokenRider.ride(token: Model, path: { number }, durationSec: number)`.
 
 **Criterios de aceptación:**
-- [x] Se cumple la tabla "Qué ve cada jugador" de la ficha.
+- [x] Se cumple la tabla "Qué ve cada jugador" de la ficha. **(Por código y pruebas de `CameraRules`; con dos clientes reales no se observó.)**
 - [x] Una escena tiene prioridad sobre la vista general.
 - [x] Un recorrido dura como máximo 4 s, sea cual sea la distancia.
 - [x] Caminar y saltar están desactivados; se puede mirar alrededor con ratón o dedo.
@@ -180,7 +180,7 @@ end)
 - [ ] Se puede jugar toda la partida solo con menús: comprar, pujar, construir, cartas, perks, tratos, pactos, votos, duelos, mercado y turno de espectro.
 - [x] Un botón solo aparece si su acción es legal.
 - [x] El temporizador de cada decisión está siempre visible.
-- [x] En móvil, todo queda dentro de la zona segura y con objetivos táctiles de 44 píxeles o más.
+- [x] En móvil, todo queda dentro de la zona segura y con objetivos táctiles de 44 píxeles o más. **(Medido a 586 × 365 con `CoreUISafeInsets`, no con el emulador.)**
 - [x] La vista general muestra dueños, dinero, posiciones y efectos activos.
 - [ ] Los emotes se lanzan con un botón y todos los ven.
 
@@ -188,7 +188,9 @@ end)
 - [x] **Paso 2:** Ejecutar `lune run tests/run ActionMenuRules`. Esperado: FAIL.
 - [x] **Paso 3:** Implementar los menús.
 - [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [x] **Paso 5:** Probar en Studio con el emulador de un móvil de pantalla pequeña; capturar pantalla. Esperado: sin solapes.
+- [ ] **Paso 5:** Probar en Studio con el emulador de un móvil de pantalla pequeña; capturar pantalla. Esperado: sin solapes.
+      El MCP de Studio no puede activar el emulador: la prueba se hizo reduciendo la ventana a 586 × 365
+      y midiendo los controles. Queda pendiente con el emulador de verdad.
 - [x] **Paso 6:** Hacer commit: `feat: añadir interfaz gris completa`.
 
 ### Task 6: Puerta A, prueba con amigos

@@ -21,6 +21,7 @@ export type Director = {
 	mode: () -> Mode,
 	follow: (token: Model?) -> (),
 	setSceneFocus: (position: Vector3?) -> (),
+	setSize: (sizeId: SizeId) -> (),
 	destroy: () -> (),
 }
 
@@ -45,6 +46,13 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 
 	local center = CityLayout.centerFor(sizeId)
 	local cityCenter = Vector3.new(center.x, 0, center.z)
+
+	-- El tamaño real de la partida llega en la primera vista: la ciudad se vuelve a construir y la
+	-- cámara tiene que mirar al centro nuevo.
+	local function setSize(nextSize: SizeId)
+		local nextCenter = CityLayout.centerFor(nextSize)
+		cityCenter = Vector3.new(nextCenter.x, 0, nextCenter.z)
+	end
 
 	local mode: Mode = "FollowActive"
 	local overviewWanted = false
@@ -153,6 +161,7 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		follow = function(token: Model?)
 			followToken = token
 		end,
+		setSize = setSize,
 		setSceneFocus = function(position: Vector3?)
 			sceneFocus = position
 		end,

@@ -41,6 +41,10 @@ export type Director = {
 
 local SceneDirector = {}
 
+-- Suelo de la escena de un cliente atrasado: suficiente para que el grupo vea que algo pasa, sin
+-- repetir entera una escena que el resto ya vio.
+SceneDirector.MIN_LATE_SEC = 0.2
+
 function SceneDirector.new(options: Options): Director
 	return {
 		wait = options.wait,
@@ -69,7 +73,10 @@ end
 -- Reproduce un lote entero y devuelve cuántas escenas se reprodujeron. `ctx.wait` de la escena y la
 -- espera del director comparten un contador, así que una escena que espera lo suyo no se espera dos
 -- veces y una que falla a la primera sigue ocupando su hueco.
-function SceneDirector.play(director: Director, batch: Batch): number
+-- `behindSec` es cuánto lleva vencido el lote: un cliente que se quedó atrás descuenta ese tiempo en
+-- vez de repetir escenas que el resto ya vio.
+function SceneDirector.play(director: Director, batch: Batch, behindSec: number?): number
+	local late = math.max(0, behindSec or 0)
 	local events: { Event } = batch.events or {}
 	local played = 0
 	for _, event in events do
@@ -81,7 +88,7 @@ function SceneDirector.play(director: Director, batch: Batch): number
 
 		local seen = director.seen[event.type] or 0
 		director.seen[event.type] = seen + 1
-		local duration = Scenes.durationFor(event, seen)
+		local duration = math.max(SceneDirector.MIN_LATE_SEC, Scenes.durationFor(event, seen) - late)
 
 		local elapsed = 0
 		local function wait(seconds: number)

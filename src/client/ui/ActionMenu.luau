@@ -6,7 +6,9 @@ local ActionMenuRules = require("./ActionMenuRules")
 local Theme = require("./Theme")
 
 export type Handles = {
-	setLegal: (legal: { any }) -> (),
+	-- `extras` son botones que no vienen de `legalActions`: tratos y pactos se deciden en su propia
+	-- ventana y el motor no los enumera, así que sin esto no habría forma de abrirlos.
+	setLegal: (legal: { any }, extras: { { id: string, label: string, action: any } }?) -> (),
 	-- Acción elegida por el jugador. El cliente la manda al servidor tal cual.
 	onAction: (callback: (action: any) -> ()) -> (),
 	destroy: () -> (),
@@ -122,7 +124,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 	end
 
 	local handles: Handles = {
-		setLegal = function(legal: { any })
+		setLegal = function(legal: { any }, extras: { { id: string, label: string, action: any } }?)
 			clear()
 			bounds = ActionMenuRules.bidControl(legal)
 			if bounds ~= nil then
@@ -131,7 +133,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 			refreshBid()
 
 			local list = ActionMenuRules.buttonsFor(legal)
-			panel.Visible = #list > 0
+			panel.Visible = #list > 0 or (extras ~= nil and #(extras :: any) > 0)
 			for index, item in list do
 				if item.id == "BidConfirm" then
 					local button = Theme.button(panel, item.label, index, function()
@@ -150,6 +152,17 @@ function ActionMenu.create(playerGui: Instance): Handles
 				end
 			end
 			refreshBid()
+
+			if extras ~= nil then
+				for index, extra in extras do
+					local action = extra.action
+					local button = Theme.button(panel, extra.label, 500 + index, function()
+						emit(action)
+					end)
+					button.Name = `Action_Extra_{extra.id}`
+					table.insert(buttons, button)
+				end
+			end
 		end,
 		onAction = function(target: (action: any) -> ())
 			callback = target

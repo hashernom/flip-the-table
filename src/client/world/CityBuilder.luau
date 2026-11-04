@@ -14,6 +14,8 @@ export type SizeId = CityLayout.SizeId
 
 export type CityHandles = {
 	model: Model,
+	-- Tamaño del tablero con el que se construyó: lo usan las fichas para saber a qué ruta pertenecen.
+	sizeId: SizeId,
 	-- Marcador de cada casilla, por número de casilla del tablero.
 	squares: { [number]: BasePart },
 	-- Carpeta donde `TokenRider` deja las fichas.
@@ -221,6 +223,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 
 	local handles: CityHandles = {
 		model = model,
+		sizeId = sizeId,
 		squares = squares,
 		tokens = tokens,
 		positionOf = function(index: number): Vector3

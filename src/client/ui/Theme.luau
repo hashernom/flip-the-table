@@ -160,6 +160,9 @@ end
 export type Modal = {
 	gui: ScreenGui,
 	panel: Frame,
+	-- Lista con scroll donde van las filas de la ventana. Con siete rivales, un menú social tiene más
+	-- botones de los que caben en un móvil: sin scroll, «Proponer» queda fuera de la pantalla.
+	body: ScrollingFrame,
 	backdrop: TextButton,
 	setOpen: (open: boolean) -> (),
 	isOpen: () -> boolean,
@@ -186,10 +189,29 @@ function Theme.modal(playerGui: Instance, name: string, title: string, displayOr
 	panel.AutomaticSize = Enum.AutomaticSize.Y
 	panel.Visible = false
 
+	local body = Instance.new("ScrollingFrame")
+	body.Name = "Body"
+	body.BackgroundTransparency = 1
+	body.BorderSizePixel = 0
+	body.Size = UDim2.new(1, 0, 1, -34)
+	body.Position = UDim2.fromOffset(0, 34)
+	body.CanvasSize = UDim2.fromScale(1, 0)
+	body.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	body.ScrollBarThickness = 6
+	body.LayoutOrder = 1
+	body.Parent = panel
+
+	local bodyLayout = Instance.new("UIListLayout")
+	bodyLayout.FillDirection = Enum.FillDirection.Vertical
+	bodyLayout.Padding = UDim.new(0, Theme.PADDING)
+	bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	bodyLayout.Parent = body
+
 	local modal: Modal = nil :: any
 	modal = {
 		gui = gui,
 		panel = panel,
+		body = body,
 		backdrop = backdrop,
 		setOpen = function(open: boolean)
 			backdrop.Visible = open

@@ -12,7 +12,7 @@ local PerkMenu = {}
 
 function PerkMenu.create(playerGui: Instance, send: (action: any) -> ()): Handles
 	local modal = Theme.modal(playerGui, "PerkMenu", "Elige un perk", 9)
-	local body = Theme.panel(modal.panel, "Body", nil)
+	local body = modal.body
 	body.Size = UDim2.fromScale(1, 0)
 	body.AutomaticSize = Enum.AutomaticSize.Y
 

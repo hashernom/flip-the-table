@@ -23,13 +23,20 @@ local SEAT_COLORS = {
 	Color3.fromRGB(200, 200, 210),
 }
 
--- Mientras no llegue la primera vista, el cliente monta el tablero pequeño. El tamaño real viaja en
--- `view.sizeId` y se aplica al recibirlo.
-local DEFAULT_SIZE: "S" | "M" | "L" = "S"
+-- Tablero con el que se arranca antes de que llegue la primera vista. El tamaño real lo manda el
+-- servidor en `view.sizeId` y la ciudad se reconstruye al recibirlo.
+local START_SIZE: "S" | "M" | "L" = "S"
 local SHARED_WAIT_SEC = 10
 local REMOTE_WAIT_SEC = 20
 -- Cada cuánto mira la cola si ya venció el siguiente lote. Mismo orden que el latido del servidor.
 local TICK_SEC = 0.05
+
+-- Botones que no vienen de `legalActions`: un trato o un pacto se deciden en su ventana, y el motor no
+-- los enumera como acción legal porque necesitan más datos que un clic.
+local SOCIAL_BUTTONS = {
+	{ id = "Trade", label = "Tratos", action = { type = "__OpenTrade" } },
+	{ id = "Pact", label = "Pactos", action = { type = "__OpenPact" } },
+}
 
 local player = Players.LocalPlayer
 local playerScripts = script.Parent.Parent
@@ -51,6 +58,7 @@ local function boot()
 	local StateStore = require("./state/StateStore")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
+	local Scenes = require("../shared/config/Scenes")
 	local ActionMenu = require("./ui/ActionMenu")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
@@ -59,39 +67,34 @@ local function boot()
 	local PerkMenu = require("./ui/PerkMenu")
 	local TradeMenu = require("./ui/TradeMenu")
 	local VoteMenu = require("./ui/VoteMenu")
-	local Scenes = require("../shared/config/Scenes")
 
 	local playerGui = player:WaitForChild("PlayerGui")
-	local city = CityBuilder.build(DEFAULT_SIZE, Workspace)
-	local director = CameraDirector.new(player, DEFAULT_SIZE)
+
+	-- Los remotos se resuelven más abajo, pero los menús se crean antes: estas funciones se reasignan
+	-- en cuanto los remotos existen y las clausuras ven el valor nuevo.
+	local sendAction: (action: any) -> () = function() end
+	local sendLobby: (request: any) -> () = function() end
 
 	local hud = Hud.create(playerGui, function()
 		return Workspace:GetServerTimeNow()
 	end)
 	local actionMenu = ActionMenu.create(playerGui)
 	local overview = Overview.create(playerGui)
-	local tradeMenu = TradeMenu.create(playerGui, function() end)
-	local pactMenu = PactMenu.create(playerGui, function() end)
-	local voteMenu = VoteMenu.create(playerGui, function() end)
-	local perkMenu = PerkMenu.create(playerGui, function() end)
-	local lobbyMenu = LobbyMenu.create(playerGui, function() end)
-
-	-- Un trato o un pacto necesitan más datos que un botón: el menú de acciones abre su ventana en vez
-	-- de mandar una acción incompleta que el servidor rechazaría.
-	local OPENERS: { [string]: () -> () } = {
-		ProposeTrade = function()
-			tradeMenu.setOpen(true)
-		end,
-		ProposePact = function()
-			pactMenu.setOpen(true)
-		end,
-		RespondPact = function()
-			pactMenu.setOpen(true)
-		end,
-		BreakPact = function()
-			pactMenu.setOpen(true)
-		end,
-	}
+	local tradeMenu = TradeMenu.create(playerGui, function(action: any)
+		sendAction(action)
+	end)
+	local pactMenu = PactMenu.create(playerGui, function(action: any)
+		sendAction(action)
+	end)
+	local voteMenu = VoteMenu.create(playerGui, function(action: any)
+		sendAction(action)
+	end)
+	local perkMenu = PerkMenu.create(playerGui, function(action: any)
+		sendAction(action)
+	end)
+	local lobbyMenu = LobbyMenu.create(playerGui, function(request: any)
+		sendLobby(request)
+	end)
 
 	local scenes = SceneDirector.new({
 		wait = function(seconds: number)
@@ -106,35 +109,64 @@ local function boot()
 	})
 
 	local queue = EventQueue.new()
+	local director = CameraDirector.new(player, START_SIZE)
 	local tokens: { [string]: Model } = {}
 	local myToken: Model? = nil
 	local sceneRunning = false
+	local city: CityBuilder.CityHandles? = nil
+	local size: string? = nil
 
-	-- Una ficha por asiento del servidor, también para los bots: el resto del grupo tiene que ver a
-	-- todo el mundo sobre su casilla, no solo a quien tiene cliente.
-	local function ensureToken(id: string, index: number): Model
+	-- La ciudad se construye con el tamaño que anuncia el servidor. Si la partida es de 5 a 8
+	-- jugadores el tablero es de 48 o 56 casillas, y una ciudad de 40 no sirve: se tira la vieja y se
+	-- levanta la nueva con sus fichas.
+	local function ensureCity(sizeId: string)
+		if size == sizeId and city ~= nil then
+			return
+		end
+		local previous = city
+		city = nil
+		tokens = {}
+		myToken = nil
+		if previous ~= nil then
+			previous.destroy()
+		end
+		local handles = CityBuilder.build(sizeId :: CityBuilder.SizeId, Workspace)
+		city = handles
+		size = sizeId
+		director.setSize(sizeId :: CityBuilder.SizeId)
+	end
+
+	-- Una ficha por asiento del servidor, también para los bots: el resto del grupo tiene que ver a todo
+	-- el mundo sobre su casilla, no solo a quien tiene cliente.
+	local function ensureToken(id: string, index: number): Model?
 		local existing = tokens[id]
 		if existing then
 			return existing
 		end
-		local token = TokenRider.create(id, DEFAULT_SIZE, seatColor(index), city.tokens)
+		local handles = city
+		if handles == nil then
+			return nil
+		end
+		local token = TokenRider.create(id, handles.sizeId, seatColor(index), handles.tokens)
 		TokenRider.place(token, index)
 		tokens[id] = token
 		if id == playerId then
 			myToken = token
-			director.follow(token)
 		end
 		return token
 	end
 
-	-- Las fichas siguen al servidor: la posición de la vista es la que manda, no una cuenta local.
+	-- Las fichas siguen al servidor: la posición de la vista es la que manda. Se llama con la vista
+	-- inicial y al terminar las escenas de un lote, nunca antes: llamarla antes haría que la ficha
+	-- saltara al destino y luego volviera a recorrer la calle.
 	local function syncTokens(view: any)
 		if view == nil or view.players == nil then
 			return
 		end
+		ensureCity(view.sizeId)
 		for _, seated in view.players do
 			local token = ensureToken(seated.id, seated.position)
-			if token:GetAttribute("Index") ~= seated.position then
+			if token ~= nil and token:GetAttribute("Index") ~= seated.position then
 				TokenRider.place(token, seated.position)
 			end
 		end
@@ -156,24 +188,15 @@ local function boot()
 		end,
 	})
 
-	-- Aplica una vista a la vez a la barra, los asientos y los menús. Es el único sitio que lo hace:
-	-- así la interfaz nunca enseña dos verdades distintas.
-	local function applyView(view: any)
+	-- La cámara sigue a la ficha del turno, sea de quien sea: es lo que hace que el resto del grupo vea
+	-- la jugada del activo, como pide la tabla «Qué ve cada jugador».
+	local function followActive(view: any)
 		if view == nil then
 			return
 		end
-		hud.setView(view)
-		-- La primera vista con partida en marcha cierra el lobby: ya hay mesa.
-		lobbyMenu.setVisible(false)
-		actionMenu.setLegal(view.legalActions or {})
-		overview.setView(view)
-		tradeMenu.setView(view)
-		pactMenu.setView(view)
-		voteMenu.setView(view)
-		perkMenu.setView(view)
-		if view.phase == "GameOver" then
-			lobbyMenu.setVisible(false)
-		end
+		local turn = view.players[view.turnIndex]
+		local target = if turn ~= nil then tokens[turn.id] else nil
+		director.follow(target or myToken)
 	end
 
 	local function context()
@@ -188,77 +211,93 @@ local function boot()
 
 	CameraDirector.start(director, context)
 
-	local remotes = ReplicatedStorage:WaitForChild("FlipTheTableRemotes", REMOTE_WAIT_SEC)
-	if remotes == nil then
-		warn("Cliente: el servidor no creó los remotos; la ciudad se queda sin partida")
-		return
-	end
-	local eventBatch = remotes:WaitForChild(Protocol.REMOTES.Batch, REMOTE_WAIT_SEC) :: RemoteEvent
-	local resync = remotes:WaitForChild(Protocol.REMOTES.Resync, REMOTE_WAIT_SEC) :: RemoteEvent
-
-	-- Lotes del servidor. El primero de todos llega con `seq = 0`: es la vista inicial, no un lote
-	-- nuevo (R-P25), y se aplica sin reproducir nada.
-	eventBatch.OnClientEvent:Connect(function(batch: any)
-		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
-			return
-		end
-		if batch.seq == 0 then
-			EventQueue.resync(queue, batch.view, 0)
-			syncTokens(batch.view)
-			applyView(batch.view)
-			return
-		end
-		if EventQueue.push(queue, batch) == "Gap" then
-			resync:FireServer()
-		end
-	end)
-
-	-- Respuesta a una petición de resincronización: vista completa y salto de `seq`.
-	resync.OnClientEvent:Connect(function(batch: any)
-		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
-			return
-		end
-		EventQueue.resync(queue, batch.view, batch.seq)
-		syncTokens(batch.view)
-	end)
-
-	-- Remotos de acción y de emote. El de acción es el mismo que valida el servidor: aquí solo se
-	-- manda la intención, nunca un resultado.
-	-- Un remoto que falte no puede llevarse el cliente por delante: sin él se pierde esa función, no la
-	-- partida. El servidor los crea al arrancar, así que en una partida real están.
-	local actionRemote = remotes:WaitForChild(Protocol.REMOTES.Action, REMOTE_WAIT_SEC)
-	local emoteRemote = remotes:WaitForChild(Protocol.REMOTES.Emote, REMOTE_WAIT_SEC)
-
-	if actionRemote and actionRemote:IsA("RemoteEvent") then
-		local actionEvent = actionRemote :: RemoteEvent
-		actionMenu.onAction(function(action: any)
-			local opener = OPENERS[action.type]
-			if opener ~= nil then
-				opener()
-				return
-			end
-			actionEvent:FireServer(action)
-		end)
-	else
-		warn("Cliente: falta el remoto de acciones; los menús no podrán jugar")
-	end
-
-	-- La vista general se pide con el botón de la barra. Mientras hay una escena, la petición se queda
-	-- guardada: la escena no se interrumpe y la maqueta se abre al terminar.
+	-- La maqueta se abre y se cierra con el modo de cámara, no con el botón: si el jugador la pide justo
+	-- cuando empieza una escena, la petición queda guardada y se abre al terminar. Una escena no se
+	-- interrumpe nunca.
 	local overviewWanted = false
 	hud.onOverview(function()
 		overviewWanted = not overviewWanted
 		director.requestOverview(overviewWanted)
 	end)
+	-- Cerrar con el fondo también cancela la petición: si no, la cámara seguiría orbitando con la
+	-- maqueta cerrada y harían falta dos pulsaciones para volver.
+	overview.onToggle(function(open: boolean)
+		if not open and overviewWanted then
+			overviewWanted = false
+			director.requestOverview(false)
+		end
+	end)
 
-	-- La maqueta se abre y se cierra con el modo de cámara, no con el botón: si el jugador la pide
-	-- justo cuando empieza una escena, la petición queda guardada y se abre al terminar. Una escena no
-	-- se interrumpe nunca.
 	task.spawn(function()
 		while true do
 			overview.setOpen(overviewWanted and director.mode() == "Overview")
 			task.wait(0.1)
 		end
+	end)
+
+	local remotes = ReplicatedStorage:WaitForChild("FlipTheTableRemotes", REMOTE_WAIT_SEC)
+	if remotes == nil then
+		warn("Cliente: el servidor no creó los remotos; la ciudad se queda sin partida")
+		return
+	end
+
+	-- Un remoto que falte no puede llevarse el cliente por delante: sin él se pierde esa función, no la
+	-- partida. El servidor los crea al arrancar, así que en una partida real están.
+	local actionRemote = remotes:WaitForChild(Protocol.REMOTES.Action, REMOTE_WAIT_SEC)
+	local emoteRemote = remotes:WaitForChild(Protocol.REMOTES.Emote, REMOTE_WAIT_SEC)
+	local eventBatch = remotes:WaitForChild(Protocol.REMOTES.Batch, REMOTE_WAIT_SEC) :: RemoteEvent
+	local resync = remotes:WaitForChild(Protocol.REMOTES.Resync, REMOTE_WAIT_SEC) :: RemoteEvent
+
+	if actionRemote and actionRemote:IsA("RemoteEvent") then
+		local actionEvent = actionRemote :: RemoteEvent
+		sendAction = function(action: any)
+			actionEvent:FireServer(action)
+		end
+	else
+		warn("Cliente: falta el remoto de acciones; los menús no podrán jugar")
+	end
+
+	-- Peticiones del lobby. En el lugar de partida no hay servicio que las escuche; el lugar del lobby
+	-- tendrá el suyo en la subfase 09.
+	local function connectLobby(field: string, remote: Instance)
+		if not remote:IsA("RemoteEvent") then
+			return
+		end
+		local lobbyRemote = remote :: RemoteEvent
+		local previous = sendLobby
+		sendLobby = function(request: any)
+			if request.type ~= field then
+				previous(request)
+				return
+			end
+			if field == "PartyJoin" then
+				lobbyRemote:FireServer(request.code)
+			elseif field == "PartyStart" then
+				lobbyRemote:FireServer(request.endMode)
+			else
+				lobbyRemote:FireServer()
+			end
+		end
+	end
+
+	for _, field in { "PartyCreate", "PartyJoin", "PartyStart", "QueueJoin" } do
+		local name = (Protocol.REMOTES :: any)[field]
+		local remote = if type(name) == "string" then remotes:FindFirstChild(name) else nil
+		if remote ~= nil then
+			connectLobby(field, remote :: Instance)
+		end
+	end
+
+	-- Los botones sociales abren su ventana; el resto se manda al servidor tal cual.
+	actionMenu.onAction(function(action: any)
+		if action.type == "__OpenTrade" then
+			tradeMenu.setOpen(true)
+			return
+		elseif action.type == "__OpenPact" then
+			pactMenu.setOpen(true)
+			return
+		end
+		sendAction(action)
 	end)
 
 	if emoteRemote and emoteRemote:IsA("RemoteEvent") then
@@ -280,21 +319,69 @@ local function boot()
 		warn("Cliente: falta el remoto de emotes; se juega sin emotes")
 	end
 
+	-- Aplica una vista a la barra, los asientos y los menús. Es el único sitio que lo hace: así la
+	-- interfaz nunca enseña dos verdades distintas.
+	local function applyView(view: any)
+		if view == nil then
+			return
+		end
+		hud.setView(view)
+		lobbyMenu.setVisible(false)
+		actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS)
+		overview.setView(view)
+		tradeMenu.setView(view)
+		pactMenu.setView(view)
+		voteMenu.setView(view)
+		perkMenu.setView(view)
+	end
+
+	-- Lotes del servidor. El primero de todos llega con `seq = 0`: es la vista inicial, no un lote nuevo
+	-- (R-P25), y se aplica sin reproducir nada.
+	eventBatch.OnClientEvent:Connect(function(batch: any)
+		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
+			return
+		end
+		if batch.seq == 0 then
+			EventQueue.resync(queue, batch.view, 0)
+			syncTokens(batch.view)
+			applyView(batch.view)
+			followActive(batch.view)
+			return
+		end
+		if EventQueue.push(queue, batch) == "Gap" then
+			resync:FireServer()
+		end
+	end)
+
+	-- Respuesta a una petición de resincronización: vista completa y salto de `seq`. La interfaz se
+	-- actualiza aquí también, que es justo el camino del cliente que se quedó atrás.
+	resync.OnClientEvent:Connect(function(batch: any)
+		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
+			return
+		end
+		EventQueue.resync(queue, batch.view, batch.seq)
+		syncTokens(batch.view)
+		applyView(batch.view)
+		followActive(batch.view)
+	end)
+
 	-- Bucle del cliente: entrega los lotes cuando les toca, aplica su estado y reproduce sus escenas.
 	task.spawn(function()
 		while true do
-			local due = EventQueue.nextDue(queue, Workspace:GetServerTimeNow())
+			local now = Workspace:GetServerTimeNow()
+			local due = EventQueue.nextDue(queue, now)
 			if due ~= nil then
 				StateStore.apply(queue.state, due)
-				syncTokens(due.view)
 				applyView(due.view)
 				sceneRunning = true
-				SceneDirector.play(scenes, due)
+				-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
+				-- lo que el grupo ya vio.
+				SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 				sceneRunning = false
 				hud.setBanner("")
-				-- La decisión no empieza hasta que termina la escena: el plazo se cuenta desde aquí,
-				-- igual que hace el reloj del servidor.
 				local view = StateStore.view(queue.state)
+				syncTokens(view)
+				followActive(view)
 				if view ~= nil and view.phase ~= "GameOver" then
 					hud.setDeadline(Workspace:GetServerTimeNow() + Scenes.decisionSeconds(view.phase))
 				else
@@ -306,11 +393,23 @@ local function boot()
 		end
 	end)
 
-	-- El avatar local monta en su ficha en cuanto la vista dice dónde está.
-	task.spawn(function()
+	-- El avatar local monta en su ficha en cuanto hay una, y vuelve a montar si reaparece.
+	local function mountLocal()
+		local token = myToken
+		if token == nil then
+			return
+		end
 		local character = player.Character or player.CharacterAdded:Wait()
-		character:WaitForChild("Humanoid", 10)
-		character:WaitForChild("HumanoidRootPart", 10)
+		if character:WaitForChild("Humanoid", 10) == nil then
+			return
+		end
+		if character:WaitForChild("HumanoidRootPart", 10) == nil then
+			return
+		end
+		TokenRider.mount(player, token)
+	end
+
+	task.spawn(function()
 		local deadline = os.clock() + REMOTE_WAIT_SEC
 		while myToken == nil and os.clock() < deadline do
 			local view = StateStore.view(queue.state)
@@ -319,10 +418,13 @@ local function boot()
 			end
 			task.wait(TICK_SEC)
 		end
-		local token = myToken
-		if token ~= nil then
-			TokenRider.mount(player, token)
-		end
+		mountLocal()
+	end)
+
+	-- Roblox crea un personaje nuevo al reaparecer: hay que volver a soldarlo a la ficha o el jugador
+	-- se queda de pie en el punto de aparición, en primera persona y sin ficha.
+	player.CharacterAdded:Connect(function()
+		task.spawn(mountLocal)
 	end)
 end
 

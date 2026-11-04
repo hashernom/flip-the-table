@@ -64,7 +64,9 @@ local function weldTo(list: { BasePart }, body: BasePart)
 	end
 end
 
--- Crea la ficha gris de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),\n-- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es la franja\n-- que la identifica; el resto va en gris.
+-- Crea la ficha gris de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),
+-- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es la franja
+-- que la identifica; el resto va en gris.
 function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, parent: Instance): Model
 	local model = Instance.new("Model")
 	model.Name = `Token_{ownerId}`
@@ -116,12 +118,12 @@ local function routeOf(token: Model): { CityLayout.Slot }
 	return CityLayout.routeFor(sizeId :: SizeId)
 end
 
+-- La casilla se acota a la ruta en vez de reventar: una ficha con un número de otra ciudad no puede
+-- llevarse por delante el bucle del cliente, que es lo que deja la partida sin imagen.
 local function slotAt(token: Model, index: number): CityLayout.Slot
-	local slot = routeOf(token)[index]
-	if slot == nil then
-		error(`TokenRider: la casilla {index} no existe en esta ciudad`, 2)
-	end
-	return slot :: CityLayout.Slot
+	local route = routeOf(token)
+	local clamped = math.clamp(index, 1, #route)
+	return route[clamped] :: CityLayout.Slot
 end
 
 -- Coloca la ficha en una casilla sin animación. Se usa al entrar en la partida y al resincronizar.
