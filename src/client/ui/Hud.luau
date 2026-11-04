@@ -6,13 +6,16 @@
 -- El temporizador se calcula con el reloj del servidor (`remainingSeconds`), así que dos clientes
 -- enseñan la misma cuenta atrás aunque uno vaya un poco por detrás.
 local ActionMenuRules = require("./ActionMenuRules")
+local Protocol = require("../../shared/net/Protocol")
 local Theme = require("./Theme")
 local Ui = require("../../shared/config/Ui")
+local ViewText = require("./ViewText")
 
 export type Handles = {
 	gui: ScreenGui,
-	-- Fija la vista: ronda, fase, dinero y posiciones de todos.
-	setView: (view: any) -> (),
+	-- Fija la vista: ronda, fase, quién decide, y de cada asiento su dinero, casilla y marcas (Corona,
+	-- Traidor, Furia, perks, cartas), más tu mano. `names` resuelve los `playerId` a nombres.
+	setView: (view: any, names: ViewText.Names?) -> (),
 	-- Plazo de la decisión en tiempo del servidor; nil esconde la cuenta atrás.
 	setDeadline: (deadline: number?) -> (),
 	-- Rótulo de la escena en curso. Vacío lo esconde.
@@ -24,7 +27,6 @@ export type Handles = {
 	destroy: (() -> ())?,
 }
 
-local EMOTES = { "😀", "😱", "🤑", "😡", "🤝", "🗡️" }
 local PHASES: { [string]: string } = {
 	PerkDraft = "Elegir perk",
 	AwaitRoll = "Tirar dados",
@@ -121,12 +123,13 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	emoteButton.Parent = top
 	Theme.corner(emoteButton, 8)
 
-	-- Lista de asientos: dinero y casilla de cada uno, siempre a la vista.
+	-- Lista de asientos: quién decide, dinero y casilla de cada uno con sus marcas, y tu mano. Con ocho
+	-- asientos no cabe en un móvil, así que la lista hace scroll a partir de un alto máximo.
 	local seats = Instance.new("Frame")
 	seats.Name = "Seats"
 	seats.AnchorPoint = Vector2.new(0, 0)
 	seats.Position = UDim2.fromOffset(12, 72)
-	seats.Size = UDim2.fromOffset(250, 10)
+	seats.Size = UDim2.fromOffset(300, 10)
 	seats.AutomaticSize = Enum.AutomaticSize.Y
 	seats.BackgroundColor3 = Theme.panelColor
 	seats.BackgroundTransparency = 0.1
@@ -135,11 +138,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	Theme.corner(seats)
 	Theme.padding(seats, 8)
 
-	local seatLayout = Instance.new("UIListLayout")
-	seatLayout.FillDirection = Enum.FillDirection.Vertical
-	seatLayout.Padding = UDim.new(0, 4)
-	seatLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	seatLayout.Parent = seats
+	local seatList = Theme.scrollList(seats, "List", 1)
 
 	-- Rótulo de escena: lo que está pasando ahora mismo, para todo el grupo.
 	local banner = Instance.new("TextLabel")
@@ -205,33 +204,41 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 
 	local handles: Handles = {
 		gui = gui,
-		setView = function(view: any)
+		setView = function(view: any, names: ViewText.Names?)
 			if view == nil then
 				return
 			end
-			local total = if view.maxRounds and view.maxRounds > 0 then `/{view.maxRounds}` else ""
-			roundLabel.Text = `Ronda {view.round}{total}`
+			roundLabel.Text = ViewText.roundText(view)
 			local phase = PHASES[view.phase] or view.phase
 			phaseLabel.Text = phase
 
-			for _, child in seats:GetChildren() do
+			for _, child in seatList:GetChildren() do
 				if child:IsA("TextLabel") then
 					child:Destroy()
 				end
 			end
-			for index, seated in view.players do
+			local function line(name: string, text: string, order: number, color: Color3, bold: boolean)
 				local label = Instance.new("TextLabel")
-				label.Name = `Seat_{index}`
+				label.Name = name
 				label.BackgroundTransparency = 1
-				label.Size = UDim2.new(1, 0, 0, 20)
-				label.LayoutOrder = index
-				label.Font = Theme.font
+				label.Size = UDim2.new(1, -8, 0, 20)
+				label.AutomaticSize = Enum.AutomaticSize.Y
+				label.LayoutOrder = order
+				label.Font = if bold then Theme.fontBold else Theme.font
 				label.TextSize = 15
+				label.TextWrapped = true
 				label.TextXAlignment = Enum.TextXAlignment.Left
-				label.TextColor3 = if seated.status == "Active" then Theme.text else Theme.muted
-				local turn = if index == view.turnIndex then "▶ " else ""
-				label.Text = `{turn}{seated.id}  {seated.cash}  ·  casa {seated.position}`
-				label.Parent = seats
+				label.TextColor3 = color
+				label.Text = text
+				label.Parent = seatList
+			end
+			line("Headline", ViewText.headline(view, names), 0, Theme.accent, true)
+			for index, seated in view.players do
+				local color = if seated.status == "Active" then Theme.text else Theme.muted
+				line(`Seat_{index}`, ViewText.seatLine(view, names, index), index, color, false)
+			end
+			for index, text in ViewText.ownLines(view, names) do
+				line(`Own_{index}`, text, 100 + index, Theme.muted, false)
 			end
 		end,
 		setDeadline = function(value: number?)
@@ -264,7 +271,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			emoteButton.MouseButton1Click:Connect(function()
 				emoteBar.Visible = not emoteBar.Visible
 			end)
-			for index, emote in EMOTES do
+			for index, emote in Protocol.EMOTES do
 				Theme.button(emoteBar, emote, index, function()
 					emoteBar.Visible = false
 					callback(emote)

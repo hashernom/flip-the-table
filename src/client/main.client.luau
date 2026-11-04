@@ -49,6 +49,7 @@ local function boot()
 	local TokenRider = require("./world/TokenRider")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
+	local ResyncGate = require("./state/ResyncGate")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
 	local ActionMenu = require("./ui/ActionMenu")
@@ -348,7 +349,7 @@ local function boot()
 		ViewText.rememberNames(names, view, lookupName)
 		local steps: { [string]: () -> () } = {
 			Hud = function()
-				hud.setView(view)
+				hud.setView(view, names)
 			end,
 			LobbyMenu = function()
 				lobbyMenu.setVisible(false)
@@ -363,7 +364,7 @@ local function boot()
 				)
 			end,
 			Overview = function()
-				overview.setView(view)
+				overview.setView(view, names)
 			end,
 			TradeMenu = function()
 				tradeMenu.setView(view, names)
@@ -418,15 +419,26 @@ local function boot()
 
 	-- Respuesta a una petición de resincronización: vista completa y salto de `seq`. La interfaz se
 	-- actualiza aquí también, que es justo el camino del cliente que se quedó atrás.
+	-- Pone la interfaz, las fichas y la cámara al día con la vista de un resync.
+	local function applyResync(batch: any)
+		syncTokens(batch.view)
+		applyView(batch.view)
+		followActive(batch.view)
+		hud.setDeadline(batch.decisionDeadline)
+	end
+
+	-- Respuesta de resync que llegó mientras corría una escena. Los menús no vuelven a aparecer a mitad
+	-- de una escena (R-P39): el estado se pone al día en la cola, pero la interfaz espera a que acabe.
+	local resyncGate = ResyncGate.new()
+
 	resync.OnClientEvent:Connect(function(batch: any)
 		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
 			return
 		end
 		EventQueue.resync(queue, batch.view, batch.seq)
-		syncTokens(batch.view)
-		applyView(batch.view)
-		followActive(batch.view)
-		hud.setDeadline(batch.decisionDeadline)
+		if resyncGate.offer(batch, sceneRunning) == "Apply" then
+			applyResync(batch)
+		end
 	end)
 
 	-- La votación de revancha y los avisos del servidor. Sin estos remotos se juega igual.
@@ -490,6 +502,14 @@ local function boot()
 				if not ok then
 					sceneRunning = false
 					warn(`Cliente: falló el lote {due.seq}: {err}`)
+				end
+				-- Un resync que llegó durante la escena manda sobre la vista de ese lote: es más reciente.
+				local late = resyncGate.take()
+				if late ~= nil then
+					local applied: boolean, lateErr: any = (pcall :: any)(applyResync, late)
+					if not applied then
+						warn(`Cliente: falló el resync aplazado: {lateErr}`)
+					end
 				end
 			else
 				task.wait(TICK_SEC)

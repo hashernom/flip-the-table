@@ -4,21 +4,15 @@
 -- el cliente, que es quien sabe si hay una escena en marcha.
 local Strings = require("../../shared/config/Strings")
 local Theme = require("./Theme")
+local ViewText = require("./ViewText")
 
 export type Handles = {
-	setView: (view: any) -> (),
+	setView: (view: any, names: ViewText.Names?) -> (),
 	setOpen: (open: boolean) -> (),
 	isOpen: () -> boolean,
 	onToggle: (callback: (open: boolean) -> ()) -> (),
 	close: () -> (),
 	destroy: () -> (),
-}
-
-local EFFECTS: { [string]: string } = {
-	Inflation = "Inflación",
-	Strike = "Huelga",
-	Haunt = "Embrujo",
-	Discount = "Descuento",
 }
 
 local Overview = {}
@@ -40,8 +34,11 @@ function Overview.create(playerGui: Instance): Handles
 	local panel = Theme.panel(gui, "Sheet", "Vista general")
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Position = UDim2.fromScale(0.5, 0.5)
+	-- Tamaño propio: sin él, un Frame mide 100 × 100 y la maqueta se veía como un cuadrado (M17).
+	panel.Size = UDim2.fromScale(0.9, 0.8)
 	panel.AutomaticSize = Enum.AutomaticSize.None
 	panel.Visible = false
+	Theme.limitWidth(panel)
 
 	-- El contenido va en una lista con scroll: con ocho asientos, dueños, efectos y posiciones no
 	-- caben en una pantalla de móvil, y la maqueta no puede quedarse sin ver lo de abajo.
@@ -110,33 +107,36 @@ function Overview.create(playerGui: Instance): Handles
 	end)
 
 	local handles: Handles = {
-		setView = function(view: any)
+		setView = function(view: any, names: ViewText.Names?)
 			if view == nil then
 				return
 			end
 			local ownerLines: { string } = {}
 			for _, seated in view.players do
 				local tag = if seated.status == "Active" then "" else ` ({seated.status})`
-				table.insert(ownerLines, `{seated.id}{tag}: {seated.cash}`)
+				table.insert(ownerLines, `{ViewText.playerName(view, names, seated.id)}{tag}: {seated.cash}`)
 			end
 
-			local properties = view.properties or {}
-			local owned: { string } = {}
-			for index, property in properties do
+			-- Las propiedades con dueño, en el orden del tablero (el diccionario no tiene orden).
+			local indices: { number } = {}
+			for index, property in view.properties or {} do
 				if property.ownerId ~= nil then
-					table.insert(owned, `Casa {index}: {property.ownerId}, nivel {property.level}`)
+					table.insert(indices, index)
 				end
 			end
-			for _, line in owned do
-				table.insert(ownerLines, line)
+			table.sort(indices)
+			for _, index in indices do
+				local property = view.properties[index]
+				table.insert(
+					ownerLines,
+					`{ViewText.squareName(view, index)}: {ViewText.playerName(view, names, property.ownerId)}, nivel {property.level}`
+				)
 			end
 			fill(owners, ownerLines)
 
 			local effectLines: { string } = {}
 			for _, modifier in view.modifiers or {} do
-				local name = EFFECTS[modifier.kind] or modifier.kind
-				local zone = if modifier.zoneId ~= nil then ` · {Strings.zone(modifier.zoneId).name}` else ""
-				table.insert(effectLines, `{name}{zone} · hasta la ronda {modifier.untilRound}`)
+				table.insert(effectLines, ViewText.modifierText(view, names, modifier))
 			end
 			if view.hotZoneId ~= nil then
 				table.insert(effectLines, `Zona Caliente: {Strings.zone(view.hotZoneId).name}`)
@@ -148,7 +148,13 @@ function Overview.create(playerGui: Instance): Handles
 
 			local positionLines: { string } = {}
 			for _, seated in view.players do
-				table.insert(positionLines, `{seated.id} · casilla {seated.position}`)
+				table.insert(
+					positionLines,
+					`{ViewText.playerName(view, names, seated.id)} · {ViewText.squareName(
+						view,
+						seated.position
+					)}`
+				)
 			end
 			fill(positions, positionLines)
 		end,

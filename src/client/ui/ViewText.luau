@@ -225,4 +225,186 @@ function ViewText.actionLabel(view: any, names: Names?, action: Action): string
 	return actionType
 end
 
+-- Efectos de la mesa que dura unas rondas, con su nombre en español.
+local EFFECTS: { [string]: string } = {
+	Inflation = "Inflación",
+	Strike = "Huelga",
+	Haunt = "Embrujo",
+	Discount = "Descuento",
+}
+
+-- Línea de un efecto activo: qué es, dónde (zona o casilla), de quién y hasta cuándo.
+function ViewText.modifierText(view: any, names: Names?, modifier: any): string
+	local parts: { string } = { EFFECTS[modifier.kind] or tostring(modifier.kind) }
+	if modifier.zoneId ~= nil then
+		table.insert(parts, Strings.zone(modifier.zoneId).name)
+	end
+	if type(modifier.index) == "number" then
+		table.insert(parts, ViewText.squareName(view, modifier.index))
+	end
+	if modifier.playerId ~= nil then
+		table.insert(parts, `de {ViewText.playerName(view, names, modifier.playerId)}`)
+	end
+	table.insert(parts, `hasta la ronda {modifier.untilRound}`)
+	return table.concat(parts, " · ")
+end
+
+-- Ronda en la barra. La ronda del motor sube al acabar la última («21/20») y eso no es una ronda que
+-- se juegue: se acota al tope. Sin tope (Sin Fin) no hay «/N».
+function ViewText.roundText(view: any): string
+	local max = view.maxRounds
+	if type(max) == "number" and max > 0 then
+		return `Ronda {math.min(view.round, max)}/{max}`
+	end
+	return `Ronda {view.round}`
+end
+
+-- ¿Lleva la marca de Traidor? Dura hasta la ronda que fija el motor, incluida.
+local function isTraitor(view: any, seated: any): boolean
+	return seated.traitorUntilRound ~= nil and view.round <= seated.traitorUntilRound
+end
+
+-- Línea de un asiento para la barra: quién, cuánto dinero y dónde, y debajo lo que lo distingue
+-- (Corona, Traidor, Furia, perks y cartas). Lo que el servidor manda como público se enseña a todos;
+-- la mano ajena es solo un número.
+function ViewText.seatLine(view: any, names: Names?, index: number): string
+	local seated = view.players[index]
+	local pending = pendingOf(view)
+	local turn = if index == view.turnIndex and view.phase ~= "GameOver" then "▶ " else ""
+	local main =
+		`{turn}{ViewText.playerName(view, names, seated.id)} · {seated.cash} · {ViewText.squareName(
+			view,
+			seated.position
+		)}`
+	local tags: { string } = {}
+	if seated.status == "Ghost" then
+		table.insert(tags, "Espectro")
+	elseif seated.status == "Left" then
+		table.insert(tags, "Se fue")
+	end
+	if pending.crownId == seated.id then
+		table.insert(tags, "Corona")
+	end
+	if isTraitor(view, seated) then
+		table.insert(tags, "Traidor")
+	end
+	if seated.fury > 0 then
+		table.insert(tags, `Furia {seated.fury}/{Economy.furyThreshold}`)
+	end
+	if seated.status == "Ghost" and seated.sabotages > 0 then
+		table.insert(tags, `{seated.sabotages}/{Economy.ghost.sabotagesToRevive} sabotajes`)
+	end
+	if seated.skipTurns > 0 then
+		table.insert(tags, "pierde turno")
+	end
+	if seated.handCount > 0 then
+		table.insert(tags, if seated.handCount == 1 then "1 carta" else `{seated.handCount} cartas`)
+	end
+	for _, perkId in seated.perks do
+		table.insert(tags, ViewText.perkName(perkId))
+	end
+	if #tags == 0 then
+		return main
+	end
+	return `{main}\n{table.concat(tags, " · ")}`
+end
+
+-- Mano y perks del propio jugador, con el nombre de cada carta, y el resultado del Espía si lo
+-- jugó. Cada línea es una frase; sin nada que decir no hay línea.
+function ViewText.ownLines(view: any, names: Names?): { string }
+	local lines: { string } = {}
+	local own: any = nil
+	for _, seated in view.players do
+		if seated.id == view.playerId then
+			own = seated
+		end
+	end
+	if own == nil then
+		return lines
+	end
+	local hand: { string } = {}
+	for _, cardId in own.hand or {} do
+		table.insert(hand, ViewText.cardName(cardId))
+	end
+	table.insert(lines, if #hand > 0 then `Tu mano: {table.concat(hand, ", ")}` else "Tu mano: vacía")
+	if #own.perks > 0 then
+		local perks: { string } = {}
+		for _, perkId in own.perks do
+			table.insert(perks, ViewText.perkName(perkId))
+		end
+		table.insert(lines, `Tus perks: {table.concat(perks, ", ")}`)
+	end
+	local spy = pendingOf(view).spy
+	if spy ~= nil and spy.viewerId == view.playerId then
+		local spied: { string } = {}
+		for _, cardId in spy.hand or {} do
+			table.insert(spied, ViewText.cardName(cardId))
+		end
+		local target = ViewText.playerName(view, names, spy.targetId)
+		table.insert(
+			lines,
+			if #spied > 0
+				then `Espía: {target} tiene {table.concat(spied, ", ")}`
+				else `Espía: {target} no tiene cartas`
+		)
+	end
+	return lines
+end
+
+-- Qué está pasando ahora en la mesa, para quien mira y para quien espera: de quién es la decisión y,
+-- en una subasta, la puja más alta y lo que vale la casilla.
+function ViewText.headline(view: any, names: Names?): string
+	local pending = pendingOf(view)
+	local function name(id: any): string
+		return ViewText.playerName(view, names, tostring(id))
+	end
+	local phase = view.phase
+	local turn = view.players[view.turnIndex]
+	local turnName = if turn ~= nil then name(turn.id) else "Alguien"
+	if phase == "PerkDraft" then
+		local draft = pending.draft
+		local drafter = if draft ~= nil then draft.order[draft.index] else nil
+		return if drafter ~= nil then `Elige perk: {name(drafter)}` else "Elección de perks"
+	elseif phase == "Auction" then
+		local auction = pending.auction
+		if auction == nil then
+			return "Subasta"
+		end
+		local square = ViewText.board(view.sizeId).squares[auction.index]
+		local worth = if square ~= nil and square.price ~= nil then ` (vale {square.price})` else ""
+		local head = `Subasta de {ViewText.squareName(view, auction.index)}{worth}`
+		if auction.highBidder ~= nil then
+			return `{head}: puja más alta {auction.high} de {name(auction.highBidder)}`
+		end
+		return `{head}: sin pujas`
+	elseif phase == "Reaction" then
+		local reaction = pending.reaction
+		return if reaction ~= nil then `{name(reaction.eligibleId)} puede reaccionar` else "Reacción"
+	elseif phase == "Tribunal" then
+		local tribunal = pending.tribunal
+		if tribunal == nil then
+			return "Tribunal"
+		end
+		if tribunal.accusedId == view.playerId then
+			return "Tribunal: te juzgan los demás"
+		end
+		return `Tribunal: castigo para {name(tribunal.accusedId)}`
+	elseif phase == "Duel" then
+		local duel = pending.duel
+		if duel == nil then
+			return "Duelo"
+		end
+		if duel.rivalId == nil then
+			return `Duelo: {name(duel.challengerId)} elige rival`
+		end
+		return `Duelo: {name(duel.challengerId)} contra {name(duel.rivalId)}`
+	elseif phase == "Market" then
+		local market = pending.market
+		return if market ~= nil then `Mercado Negro: {name(market.playerId)}` else "Mercado Negro"
+	elseif phase == "GameOver" then
+		return "Fin de la partida"
+	end
+	return `Turno de {turnName}`
+end
+
 return ViewText
