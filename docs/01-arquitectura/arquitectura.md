@@ -211,9 +211,12 @@ Protocol.newLimiter(perSecond: number?): { allow: (playerId: string, now: number
 -- El limitador es puro y recibe el reloj. Sin argumento usa Economy.actionsPerSecond (10); el lobby
 -- pide el suyo, más bajo, porque cada petición cuesta unidades de MemoryStore.
 
-export type Batch = { seq: number, startsAt: number, events: { Event }, view: PlayerView }
+export type Batch = {
+    seq: number, startsAt: number, decisionDeadline: number, events: { Event }, view: PlayerView,
+}
 -- Un lote por paso del motor, filtrado para cada jugador y con el mismo `seq` para todos.
 -- `seq` empieza en 1; el 0 es la vista inicial, que viaja por el canal de lotes.
+-- `startsAt` y `decisionDeadline` van en el reloj de `Workspace:GetServerTimeNow()` (R-P38).
 
 export type Seat = {
     userId: number, playerId: PlayerId, seat: number,
@@ -278,10 +281,25 @@ Ajustes acordados al cerrar la subfase 05. Prevalecen sobre lo que digan los pla
 
 - **R-P32:** la ciudad la construye el **cliente**. El servidor no crea ni una pieza y el prototipo no gasta partes replicadas; `CityBuilder.build` la levanta desde `config/CityLayout`, que es puro. El arte gris de la subfase 05 nunca se publica como versión pública.
 - **R-P33:** los emotes van por su propio remoto, `EmoteRequest`, y no por la puerta de acciones: no son una acción del motor. El cliente manda uno de `Protocol.EMOTES` y el lugar de partida lo reenvía a todos con `FireAllClients`; el cliente pinta la burbuja sobre la ficha de quien lo lanzó.
-- **R-P34:** el plazo de la decisión **no viaja en el lote**. El cliente lo deriva de `batch.startsAt` más la duración de las escenas y `Scenes.decisionSeconds(fase)`, igual que hace el reloj del servidor con los mismos datos de `Scenes`. Por eso el temporizador de los menús se calcula al terminar la escena del lote.
+- **R-P34 (sustituida por R-P40):** el plazo de la decisión ya no se deriva en el cliente: viaja en el lote.
 - **R-P35:** `CityLayout.routeFor(sizeId)` da una posición por casilla en el anillo de un cuadrado de 11, 13 o 15 casillas de lado, con 40 studs por casilla (el tope del plan es 60). La Salida queda en la misma esquina en los tres tamaños, los barrios no retroceden a lo largo de la ruta y `bridgesFor` devuelve las aristas que cruzan de una isla a otra: 0 en S, 2 en M y 3 en L.
 - **R-P36:** el cliente espera `PlayerScripts.shared` antes de pedir ningún módulo. Un `LocalScript` empieza a correr en cuanto se copia a `PlayerScripts`, antes que sus hermanos, y sin esa espera la primera partida de cada servidor se quedaba sin cliente. Un remoto que falte ya no tumba el arranque: se pierde esa función y se avisa.
 - **R-P37:** la interfaz usa `ScreenInsets.CoreUISafeInsets`, que suma la muesca del móvil y la barra de Roblox, y ningún botón baja de 44 píxeles de alto. Los paneles se dimensionan en fracción de pantalla con un máximo, para que una ventana pequeña no deje un menú fuera.
+
+### Decisiones que cambian los contratos: corrección del reloj
+
+Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-pasada.md) (B1, B7 e I1). Prevalecen sobre lo que digan los planes y las notas de trabajo.
+
+- **R-P38:** todo instante de la partida usa `Workspace:GetServerTimeNow()`, en el servidor y en el cliente. `time()` cuenta desde que arrancó cada proceso y no se compara entre máquinas; `tools/check` rechaza su uso en `src/server/match`.
+- **R-P39:** las escenas no se solapan. Un lote empieza cuando acaba la escena anterior (`startsAt = max(ahora, fin de la escena en curso)`), y un lote sin eventos no adelanta ese final. El servidor descarta las acciones de un cliente hasta que acaba la escena, con un margen de `Scenes.actionGraceSec` para el desfase entre relojes. Los menús del cliente se esconden durante la escena y la vista se aplica al terminar.
+- **R-P40:** el plazo viaja en el lote (`decisionDeadline`), también en la vista inicial y en el resync. Solo una decisión nueva da el plazo completo: cambia la fase, el turno, la ronda, quien elige perk o el rival o la ronda del Duelo. Dentro de la misma decisión el plazo no se reinicia y solo se alarga lo que dure la escena del lote, así que ni proponer tratos en bucle ni pujar alargan el turno. La subasta dura 15 s fijos, como dice la ficha, y el voto del Tribunal, 10 s.
+- **R-P41:** cada jugador tiene como mucho `Economy.maxOpenOffers` intercambios y otros tantos pactos abiertos a la vez, porque cada oferta viaja en la vista de toda la mesa.
+- **R-P43 (arranque):** `server/match/JoinRules` decide si el lugar de partida espera, empieza o cancela. A un grupo que anunció su tamaño se le espera hasta `Scenes.joinTimeoutSec`, no los 3 s de `Scenes.joinSec`, que quedan para probar en Studio. Si no llegan suficientes, o alguien llega sin asiento, vuelve al lobby con aviso.
+- **R-P44 (información oculta):** `MarketBought` oculta a los demás la carta y el precio, que delataría su rareza.
+- **R-P45 (eventos):** `RentPaid.amount` es lo que cobra el dueño, y `GameEnded` lleva `awards` con el resultado de `Awards.compute`.
+- **R-P46 (presencia):** el reloj de una subasta, un Duelo o un Tribunal no cuenta como tiempo agotado de nadie.
+- **R-P47 (avatares):** las fichas son locales de cada cliente y la soldadura de un avatar no se replica, así que cada cliente sube también a los demás jugadores a su copia de la ficha.
+- **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales
 

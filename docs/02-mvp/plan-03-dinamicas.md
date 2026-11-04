@@ -55,7 +55,7 @@
 **Interfaces:**
 - Produce: `Cards.all: { CardDef }`, con `CardDef = { id: string, name: string, rarity: Rarity, target: "None" | "Player" | "Zone" | "Property" | "Pact", reaction: boolean, leaderOnly: boolean? }`.
 - Produce: `Deck.draw(state, playerId, minRarity: Rarity?): { Event }`, `Deck.weights(state, playerId): { Common: number, Rare: number, Legendary: number }`.
-- Ids: `Hurricane`, `WorldFlip`, `Revolution`, `Earthquake`, `CrownStrike`, `Inflation`, `Blackout`, `BounceRent`, `DeedThief`, `Backstab`, `Demolition`, `Shield`, `ExtraDie`, `Reverse`, `ForcedTip`, `Discount`, `Shove`, `Fine`, `Bribe`, `Spy`.
+- Ids: `Hurricane`, `WorldFlip`, `Revolution`, `Earthquake`, `CrownStrike`, `Inflation`, `Strike`, `BounceRent`, `DeedThief`, `Backstab`, `Demolition`, `Shield`, `ExtraDie`, `Reverse`, `ForcedTip`, `Discount`, `Shove`, `Fine`, `Bribe`, `Spy`.
 
 **Criterios de aceptación:**
 - [x] Hay 20 cartas: 5 legendarias, 6 raras y 9 comunes.
@@ -126,11 +126,11 @@ end)
 - Crear: `tests/rules/CardsRare.spec.luau`
 
 **Interfaces:**
-- Produce: `Modifier = { kind: "Inflation" | "Blackout" | "Haunt" | "Discount", zoneId: string?, index: number?, playerId: PlayerId?, untilRound: number }`.
+- Produce: `Modifier = { kind: "Inflation" | "Strike" | "Haunt" | "Discount", zoneId: string?, index: number?, playerId: PlayerId?, untilRound: number }`.
 
 **Criterios de aceptación:**
 - [x] Inflación: renta × 2 durante 2 rondas.
-- [x] Apagón: una zona no cobra durante 2 rondas.
+- [x] Huelga: una zona no cobra durante 2 rondas.
 - [x] Ladrón de Escrituras: solo sin edificios y si no completa un grupo.
 - [x] Puñalada: rompe un pacto propio sin coste, se queda la garantía y deja marca de Traidor.
 - [x] Demolición: baja un nivel un edificio rival.
@@ -318,7 +318,7 @@ end)
 - [x] Furia sube 1 por renta pagada si no se es líder; con 5, roba una carta rara o mejor y vuelve a 0.
 - [x] Cada ronda, un espectro tiene un turno propio y corto: roba una carta de sabotaje o embruja una propiedad para que no cobre durante 1 ronda.
 - [x] Las cartas de sabotaje son las comunes `Fine` y `Shove`, más la rara `Demolition`, y solo un espectro las recibe por esta vía.
-- [x] Con 3 sabotajes jugados, resucita con 500 en la casilla 1.
+- [x] Con 3 sabotajes acumulados, resucita con 500 en la casilla 1.
 - [x] Alma en Pena: el espectro empieza con 2 cartas de sabotaje.
 - [x] El turno de un espectro también tiene tiempo agotado.
 

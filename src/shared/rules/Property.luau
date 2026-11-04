@@ -15,6 +15,10 @@ type PlayerId = Types.PlayerId
 type Player = Types.Player
 type Event = Types.Event
 
+-- 1,15 no existe exacto en coma flotante: 100 × 1,15 da 114,999… y redondear hacia abajo perdería una
+-- unidad. El margen es muy inferior a cualquier fracción real de una renta. No es un valor ajustable.
+local ROUNDING_MARGIN = 1e-9
+
 local Property = {}
 
 local function findPlayer(state: GameState, playerId: PlayerId): Player?
@@ -65,7 +69,7 @@ function Property.rentMultiplier(state: GameState, index: number): number
 		if modifier.untilRound >= state.round then
 			if modifier.kind == "Inflation" then
 				multiplier *= Economy.inflationRentMultiplier
-			elseif modifier.kind == "Blackout" then
+			elseif modifier.kind == "Strike" then
 				if modifier.zoneId ~= nil and modifier.zoneId == square.zoneId then
 					multiplier = 0
 				end
@@ -109,10 +113,11 @@ function Property.rentFor(state: GameState, index: number): number
 	end
 	return math.floor(
 		price
-			* Economy.baseRentRate
-			* zoneMultiplier
-			* buildingMultiplier
-			* Property.rentMultiplier(state, index)
+				* Economy.baseRentRate
+				* zoneMultiplier
+				* buildingMultiplier
+				* Property.rentMultiplier(state, index)
+			+ ROUNDING_MARGIN
 	)
 end
 
@@ -206,10 +211,12 @@ function Property.chargeRent(
 	-- R-P50: el liderazgo de la Furia se lee antes de mover el dinero, así la misma renta cuenta
 	-- igual sin depender de si el cobro cambia la clasificación.
 	local leaderBefore = Comeback.leaderId(state)
-	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
+	-- Si el pagador se arruina, el dueño cobra solo lo que había: el evento anuncia lo que cobra.
+	local owner = playerOf(state, ownerId)
+	local ownerCashBefore = owner.cash
 	-- Contadores de los premios del final (Tarea 10). Se suman por renta cobrada, no por importe:
-	-- son recuentos de lo que pasó en la partida. El cobro ya pasó por Bankruptcy.charge, así que
-	-- un pagador arruinado también queda contado (pagó lo que pudo).
+	-- son recuentos de lo que pasó en la partida. Van antes del cobro porque esta renta puede cerrar la
+	-- partida, y el GameEnded calcula los premios contándola; un pagador arruinado también pagó lo que pudo.
 	local payerStats = state.stats[payerId]
 	if payerStats then
 		payerStats.rentsPaid = (payerStats.rentsPaid or 0) + 1
@@ -218,10 +225,11 @@ function Property.chargeRent(
 	if ownerStats then
 		ownerStats.rentsCollected = (ownerStats.rentsCollected or 0) + 1
 	end
+	local events: { Event } = Bankruptcy.charge(state, payerId, amount, ownerId)
+	local received = owner.cash - ownerCashBefore
 	-- Casero: la renta cobrada llevaba su bonus (rentFor ya lo aplicó). Se cuenta aquí, cuando el
 	-- cobro se ejecuta, para no contar simples cálculos de renta.
-	local owner = findPlayer(state, ownerId)
-	if owner and Perks.has(owner, "Landlord") then
+	if Perks.has(owner, "Landlord") then
 		Perks.recordUse(state, ownerId, "Landlord")
 	end
 	table.insert(events, 1, {
@@ -229,7 +237,7 @@ function Property.chargeRent(
 		index = index,
 		from = payerId,
 		to = ownerId,
-		amount = amount,
+		amount = received,
 	})
 	-- Tarea 9: una renta pagada por quien no lidera suma Furia. Es el único camino de renta: el
 	-- directo y el rebotado.

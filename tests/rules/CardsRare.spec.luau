@@ -137,7 +137,7 @@ describe("Inflación", function()
 	end)
 end)
 
-describe("Apagón", function()
+describe("Huelga", function()
 	it("anula la renta de una zona 2 rondas y no toca las demás", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = inTurn(s)
@@ -146,15 +146,15 @@ describe("Apagón", function()
 		s.round = 5
 		Fixtures.give(s, a.id, zone[1])
 		Fixtures.give(s, a.id, other)
-		Fixtures.hand(s, a.id, "Blackout")
+		Fixtures.hand(s, a.id, "Strike")
 
-		local events = playCard(s, a.id, "Blackout", { zoneId = zoneIdOf(s, 1) })
-		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Blackout" } })
+		local events = playCard(s, a.id, "Strike", { zoneId = zoneIdOf(s, 1) })
+		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Strike" } })
 		expect(s.modifiers).toEqual({
 			{
-				kind = "Blackout",
+				kind = "Strike",
 				zoneId = zoneIdOf(s, 1),
-				untilRound = modifierExpiry(s, Economy.cards.blackoutRounds),
+				untilRound = modifierExpiry(s, Economy.cards.strikeRounds),
 			},
 		})
 		expect(a.hand).toEqual({})
@@ -176,13 +176,13 @@ describe("Apagón", function()
 	it("rechaza una zona ausente o inexistente sin tocar el estado", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = inTurn(s)
-		Fixtures.hand(s, a.id, "Blackout")
+		Fixtures.hand(s, a.id, "Strike")
 		local before = deepCopy(s)
-		expect(rejected(Engine.apply(s, a.id, { type = "PlayCard", cardId = "Blackout" }))).toBe(
-			"La carta Blackout necesita una zona"
+		expect(rejected(Engine.apply(s, a.id, { type = "PlayCard", cardId = "Strike" }))).toBe(
+			"La carta Strike necesita una zona"
 		)
 		expect(
-			rejected(Engine.apply(s, a.id, { type = "PlayCard", cardId = "Blackout", zoneId = "zona-falsa" }))
+			rejected(Engine.apply(s, a.id, { type = "PlayCard", cardId = "Strike", zoneId = "zona-falsa" }))
 		).toBe("La zona zona-falsa no existe")
 		expect(deepCopy(s)).toEqual(before)
 	end)
@@ -519,6 +519,6 @@ end)
 describe("Economy.cards de las cartas raras", function()
 	it("fija las duraciones de la ficha", function()
 		expect(Economy.cards.inflationRounds).toBe(2)
-		expect(Economy.cards.blackoutRounds).toBe(2)
+		expect(Economy.cards.strikeRounds).toBe(2)
 	end)
 end)

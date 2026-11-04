@@ -49,7 +49,13 @@ end
 local store = if RunService:IsStudio() then PartyStore.memory() else PartyStore.default()
 local teleport = if RunService:IsStudio()
 	then Teleport.unavailable("En Studio no se teletransporta: publica el juego y prueba con dos cuentas.")
-	else Teleport.live(Places.matchId)
+	else Teleport.live(Places.matchId, function(player: Player)
+		notify(
+			player,
+			"No pudimos llevarte a la partida. Sigues en el lobby: crea o únete a otra party.",
+			"Error"
+		)
+	end)
 
 PartyService.configure({
 	store = store,

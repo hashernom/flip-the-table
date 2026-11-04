@@ -1,6 +1,7 @@
 --!strict
 -- Intercambios entre jugadores. Una oferta vive en pending.trades hasta que el destinatario
 -- responde o hasta que termina el turno en que se hizo (caducidad, R20).
+local Economy = require("../config/Economy")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -167,6 +168,16 @@ function Trade.proposeReason(state: GameState, fromId: PlayerId, offer: any): st
 	end
 	if state.players[state.turnIndex].id ~= fromId then
 		return "No es tu turno"
+	end
+	-- R-P41: cada oferta viaja en la vista de toda la mesa, así que su número tiene tope.
+	local open = 0
+	for _, trade in pendingOf(state).trades do
+		if trade.fromId == fromId then
+			open += 1
+		end
+	end
+	if open >= Economy.maxOpenOffers then
+		return "Tienes demasiadas ofertas abiertas"
 	end
 	local toId = offer.toId
 	if type(toId) ~= "string" then

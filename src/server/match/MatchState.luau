@@ -33,6 +33,8 @@ export type Observations = {
 export type Batch = {
 	seq: number,
 	startsAt: number,
+	-- Cuándo vence la decisión vigente (R-P40): el temporizador del cliente es este, no uno propio.
+	decisionDeadline: number,
 	events: { Event },
 	view: PlayerView,
 }
@@ -63,6 +65,8 @@ export type MatchState = {
 	clock: SceneClock.SceneClock,
 	sceneEndsAt: number,
 	decisionDeadline: number,
+	-- Qué decisión cubre ese plazo (R-P40). Nil hasta que el primer paso fije una.
+	decisionKey: string?,
 	observations: Observations,
 	-- Control por bot que pidió el servicio de presencia (R-P6). Se registra aquí y el estado del
 	-- motor se toca en un solo sitio: MatchState.setBotControlled.
@@ -74,14 +78,30 @@ export type MatchState = {
 
 local MatchState = {}
 
+-- Identifica la decisión que la partida está esperando (R-P40). Solo una decisión nueva da el plazo
+-- completo: proponer un trato, pujar o votar dejan esto igual y por tanto no reinician el reloj.
+function MatchState.decisionKey(state: GameState): string
+	local pending = state.pending
+	local duel = if pending then pending.duel else nil
+	local draft = if pending then pending.draft else nil
+	return table.concat({
+		state.phase,
+		tostring(state.round),
+		tostring(state.turnIndex),
+		if duel then `{tostring(duel.rivalId)}:{tostring(duel.round)}` else "",
+		if draft then tostring(draft.index) else "",
+	}, "|")
+end
+
 -- Estado inicial de la partida. La fase inicial también tiene plazo de decisión (el borrador de
 -- perks empieza en PerkDraft y no debe quedarse esperando para siempre).
-function MatchState.begin(startedAt: number, phase: Phase): MatchState
+function MatchState.begin(startedAt: number, phase: Phase, decisionKey: string?): MatchState
 	return {
 		seq = 0,
 		clock = SceneClock.new(),
 		sceneEndsAt = startedAt,
 		decisionDeadline = startedAt + Scenes.decisionSeconds(phase),
+		decisionKey = decisionKey,
 		observations = {
 			startedAt = startedAt,
 			endedAt = if phase == "GameOver" then startedAt else nil,
@@ -128,9 +148,17 @@ function MatchState.timeoutAdvanced(state: GameState, before: Snapshot, events: 
 	return state.turnIndex ~= before.turnIndex
 end
 
+-- ¿Se atiende ya una acción de un cliente? Durante una escena no (R-P39): el siguiente paso no empieza
+-- hasta que el grupo la ha visto. Lo descartado no cuenta como trampa: es un clic de más.
+function MatchState.acceptsAction(match: MatchState, now: number): boolean
+	return now + Scenes.actionGraceSec >= match.sceneEndsAt
+end
+
 -- Registra un paso aceptado del motor: numera el lote, programa sus escenas, fija el plazo de
 -- decisión y actualiza las observaciones. Devuelve nil si la partida ya está cerrada, para que
--- MatchService no difunda dos veces el final. `now` es el instante del servidor.
+-- MatchService no difunda dos veces el final. `now` es el instante del servidor. El lote empieza
+-- cuando acaba la escena en curso (R-P39). Una decisión nueva tiene su plazo entero al acabar la
+-- escena; dentro de la misma, el plazo solo se alarga lo que dure esta escena (R-P40).
 function MatchState.step(
 	match: MatchState,
 	state: GameState,
@@ -141,13 +169,18 @@ function MatchState.step(
 	if MatchState.over(match) then
 		return nil
 	end
+	local startsAt = math.max(now, match.clock.endsAt)
 	local sceneEndsAt = SceneClock.schedule(match.clock, events, now)
-	local decisionDeadline = sceneEndsAt + Scenes.decisionSeconds(state.phase)
+	local decisionKey = MatchState.decisionKey(state)
+	local decisionDeadline = if decisionKey ~= match.decisionKey
+		then sceneEndsAt + Scenes.decisionSeconds(state.phase)
+		else match.decisionDeadline + (sceneEndsAt - startsAt)
 	match.seq += 1
 	match.sceneEndsAt = sceneEndsAt
 	match.decisionDeadline = decisionDeadline
+	match.decisionKey = decisionKey
 	local observations = match.observations
-	observations.sceneSec += sceneEndsAt - now
+	observations.sceneSec += sceneEndsAt - startsAt
 	if endedTurn then
 		observations.turns += 1
 	end
@@ -164,7 +197,7 @@ function MatchState.step(
 	end
 	return {
 		seq = match.seq,
-		startsAt = now,
+		startsAt = startsAt,
 		events = events,
 		sceneEndsAt = sceneEndsAt,
 		decisionDeadline = decisionDeadline,
@@ -177,6 +210,7 @@ function MatchState.batch(state: GameState, step: Step, playerId: PlayerId): Bat
 	return {
 		seq = step.seq,
 		startsAt = step.startsAt,
+		decisionDeadline = step.decisionDeadline,
 		events = View.filterEvents(state, playerId, step.events),
 		view = View.forPlayer(state, playerId),
 	}
@@ -189,6 +223,7 @@ function MatchState.resync(match: MatchState, state: GameState, playerId: Player
 	return {
 		seq = match.seq,
 		startsAt = now,
+		decisionDeadline = match.decisionDeadline,
 		events = {},
 		view = View.forPlayer(state, playerId),
 	}
@@ -216,11 +251,13 @@ end
 
 -- Jugador al que le vence la decisión cuando el reloj cierra la fase. En el borrador elige a
 -- quien le toca (no siempre es el jugador en turno) y en la ventana de reacción contesta el
--- elegido por la carta o la renta. El resto de fases son del jugador en turno, también las
--- colectivas (subasta, duelo, tribunal), que se abren en su turno y se resuelven al vencer su
--- ventana. Lo usa MatchService para avisar a la presencia del asiento que acumuló el tiempo.
+-- elegido por la carta o la renta. El resto de fases son del jugador en turno, salvo las colectivas
+-- (subasta, duelo, tribunal): su reloj vence con normalidad y no es culpa de nadie en concreto, así
+-- que no cuenta para que un bot tome el control. Lo usa MatchService para avisar a la presencia del
+-- asiento que acumuló el tiempo.
 function MatchState.decidingPlayer(state: GameState): PlayerId?
-	if state.phase == "GameOver" then
+	local phase = state.phase
+	if phase == "GameOver" or phase == "Auction" or phase == "Tribunal" or phase == "Duel" then
 		return nil
 	end
 	if state.phase == "PerkDraft" then

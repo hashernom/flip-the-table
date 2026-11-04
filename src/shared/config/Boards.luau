@@ -1,5 +1,5 @@
 --!strict
--- Composición de los tres tableros de Metrópolis de Noche. La fuente de verdad es
+-- Composición de los tres tableros de Metrópolis. La fuente de verdad es
 -- docs/02-mvp/contenido-tablero.md: 12 zonas, 34 propiedades, 2 o 3 propiedades por zona y un
 -- precio distinto por tamaño.
 local Types = require("../rules/Types")

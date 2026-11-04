@@ -4,9 +4,11 @@ local fs = require("@lune/fs")
 local process = require("@lune/process")
 local serde = require("@lune/serde")
 
+local clockRules = require("./clock-rules")
 local pureRules = require("./pure-rules")
 
 local RULES_DIR = "src/shared/rules"
+local MATCH_DIR = "src/server/match"
 local MANIFEST_PATH = "art/manifest.json"
 local CODE_DIRS = { "src", "tests", "tools" }
 -- src/server y src/client quedan fuera: la plataforma estándar es lo que garantiza que el
@@ -118,11 +120,25 @@ else
 	table.insert(failed, "Motor puro")
 end
 
+-- R-P38: el reloj de la partida es uno solo; `time()` no se compara entre el servidor y el cliente.
+local clockOffenders = clockRules.offenders(MATCH_DIR)
+if #clockOffenders == 0 then
+	print("OK    Reloj de la partida")
+else
+	print(`FALLA Reloj de la partida: usan time():\n  {table.concat(clockOffenders, "\n  ")}`)
+	table.insert(failed, "Reloj de la partida")
+end
+
 -- Manifiesto de assets: nada fuera de presupuesto y nada aprobado sin revisión en el juego.
 local manifestOk, manifestErr = pcall(function()
 	local Manifest = require("./manifest")
 	local manifest = serde.decode("json", fs.readFile(MANIFEST_PATH))
 	local problems = Manifest.validate(manifest)
+	for _, path in luauFiles("src", {}) do
+		for _, problem in Manifest.sourceProblems(manifest, path, fs.readFile(path)) do
+			table.insert(problems, problem)
+		end
+	end
 	if #problems > 0 then
 		error(`{table.concat(problems, "\n  ")}`, 0)
 	end

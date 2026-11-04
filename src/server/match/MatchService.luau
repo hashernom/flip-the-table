@@ -11,6 +11,8 @@
 --
 -- Una partida por servidor: start se niega si hay otra sin terminar y current() deja consultarla.
 -- Una partida terminada sí se puede sustituir, que es como la revancha arranca otra.
+local Workspace = game:GetService("Workspace")
+
 local Bot = require("../../shared/rules/Bot")
 local Engine = require("../../shared/rules/Engine")
 local MatchState = require("./MatchState")
@@ -81,6 +83,15 @@ local current: Match? = nil
 -- Suscriptores del arranque de partidas. Se guardan aquí y no en cada partida porque el aviso
 -- ocurre antes de que el servidor pueda consultar `current` (R-P28).
 local startCallbacks: { StartCallback } = {}
+
+-- El único reloj de la partida (R-P38). Los lotes llevan estos instantes y el cliente los compara con
+-- el mismo Workspace:GetServerTimeNow(): con time(), que cuenta desde que arrancó cada proceso, todos
+-- los lotes parecían llegar con años de retraso y cada escena se quedaba en su mínimo.
+local function serverNow(): number
+	return Workspace:GetServerTimeNow()
+end
+
+MatchService.now = serverNow
 
 -- El PlayerId del motor es el userId en texto. La conversión vive en el borde: aquí y en
 -- RemoteGateway, nunca en el motor ni en el cliente.
@@ -200,6 +211,11 @@ local function applyAction(match: Match, playerId: PlayerId, action: Action, fro
 	if match.finished or MatchState.over(match.matchState) then
 		return false
 	end
+	-- R-P39: una persona no puede cortar la escena que el grupo está viendo. El bot no pasa por aquí
+	-- porque ya se programa para después de la escena.
+	if fromClient and not MatchState.acceptsAction(match.matchState, serverNow()) then
+		return false
+	end
 	local phaseBefore: Phase = match.state.phase
 	local result = Engine.apply(match.state, playerId, action)
 	if not result.ok then
@@ -208,7 +224,7 @@ local function applyAction(match: Match, playerId: PlayerId, action: Action, fro
 		end
 		return false
 	end
-	record(match, result.events, phaseBefore, action.type, false, time())
+	record(match, result.events, phaseBefore, action.type, false, serverNow())
 	return true
 end
 
@@ -260,7 +276,7 @@ local function playBot(match: Match)
 		return
 	end
 	if rejected or pendingBot(match) then
-		fireTimeout(match, time(), false)
+		fireTimeout(match, serverNow(), false)
 	end
 end
 
@@ -281,7 +297,7 @@ kickBots = function(match: Match)
 		return
 	end
 	stopBots(match)
-	local now = time()
+	local now = serverNow()
 	local delay = math.max(match.matchState.sceneEndsAt + Scenes.botDelaySec - now, 0)
 	match.botSeq = match.matchState.seq
 	match.botThread = task.delay(delay, function()
@@ -300,7 +316,7 @@ local function heartbeat(match: Match)
 	local warned = false
 	while not match.finished do
 		local ok, err = pcall(function()
-			local now = time()
+			local now = serverNow()
 			local deadline = match.matchState.decisionDeadline
 			if now >= deadline then
 				fireTimeout(match, now, true)
@@ -347,10 +363,10 @@ local function ensureResync()
 			return
 		end
 		local playerId = playerIdOf(player)
-		if not MatchState.acceptsResync(match.matchState, match.state, playerId, time()) then
+		if not MatchState.acceptsResync(match.matchState, match.state, playerId, serverNow()) then
 			return
 		end
-		local batch = MatchState.resync(match.matchState, match.state, playerId, time())
+		local batch = MatchState.resync(match.matchState, match.state, playerId, serverNow())
 		RemoteGateway.remote(Protocol.REMOTES.Resync):FireClient(player, batch)
 	end)
 end
@@ -389,7 +405,7 @@ Match.abandon = function(self: Match, reason: string)
 	self.abandonReason = reason
 	self.finished = true
 	stopBots(self)
-	MatchState.abandon(self.matchState, time())
+	MatchState.abandon(self.matchState, serverNow())
 	local callback = self.abandonCallback
 	if callback then
 		local ok: boolean, err: any = pcall(callback, reason)
@@ -431,7 +447,7 @@ Match.reattach = function(self: Match, player: Player): boolean
 		return false
 	end
 	self.players[playerId] = player
-	local batch = MatchState.resync(self.matchState, self.state, playerId, time())
+	local batch = MatchState.resync(self.matchState, self.state, playerId, serverNow())
 	RemoteGateway.remote(Protocol.REMOTES.Batch):FireClient(player, batch)
 	return true
 end
@@ -441,7 +457,7 @@ local function newMatch(state: GameState, players: { [PlayerId]: Player }, seed:
 		state = state,
 		seed = seed,
 		players = players,
-		matchState = MatchState.begin(now, state.phase),
+		matchState = MatchState.begin(now, state.phase, MatchState.decisionKey(state)),
 		finished = false,
 		abandoned = false,
 		abandonReason = nil,
@@ -481,7 +497,7 @@ function MatchService.start(players: { Player }, seed: number, endMode: EndMode)
 	if current and not current.finished then
 		error("MatchService.start: ya hay una partida en curso; termínala o abandónala antes", 2)
 	end
-	local now = time()
+	local now = serverNow()
 	local playerIds: { PlayerId } = {}
 	local byId: { [PlayerId]: Player } = {}
 	for _, player in players do

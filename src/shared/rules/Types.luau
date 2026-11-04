@@ -81,7 +81,7 @@ export type Pact = {
 }
 
 export type Modifier = {
-	kind: "Inflation" | "Blackout" | "Haunt" | "Discount",
+	kind: "Inflation" | "Strike" | "Haunt" | "Discount",
 	zoneId: string?,
 	index: number?,
 	playerId: PlayerId?,

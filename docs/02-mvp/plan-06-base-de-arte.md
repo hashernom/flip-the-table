@@ -146,7 +146,7 @@ end)
 
 - [ ] **Paso 1:** Modelar y texturizar en Blender; registrar cada asset en el manifiesto como `Draft`.
 - [ ] **Paso 2:** Importar a Studio, pasarlos a `InGame` y capturar con `screen_capture` desde cada cámara.
-- [ ] **Paso 3:** Ejecutar `lune run tools/manifest`. Esperado: sin problemas.
+- [ ] **Paso 3:** Ejecutar `lune run tools/check`. Esperado: «OK Manifiesto». `tools/manifest` es un módulo y no comprueba nada si se ejecuta solo.
 - [ ] **Paso 4:** Medir FPS y memoria en el móvil de referencia con 8 fichas, con ayuda del responsable, y registrar los datos.
 - [ ] **Paso 5:** Presentar capturas y datos al responsable. Si no aprueba, iterar sobre sus comentarios.
 - [ ] **Paso 6:** Marcar los assets como `Approved` y escribir `puerta-b.md`.

@@ -158,10 +158,10 @@ end)
 
 **Criterios de aceptación:**
 - [x] Todo evento sin escena final muestra su nombre durante su duración real.
-- [ ] Dos clientes muestran la misma escena con una diferencia menor de 250 ms.
+- [x] Dos clientes muestran la misma escena con una diferencia menor de 250 ms. **(Medido en la misma máquina: máximo 56 ms en 10 escenas. Falta con red real.)**
 - [x] Un error dentro de una escena no detiene la cola.
 
-- [ ] **Paso 1:** En Test Server con 2 clientes, registrar en consola la hora de inicio de cada escena. Esperado: diferencia menor de 250 ms.
+- [x] **Paso 1:** En Test Server con 2 clientes, registrar en consola la hora de inicio de cada escena. Esperado: diferencia menor de 250 ms.
 - [x] **Paso 2:** Forzar un error en una escena de prueba. Esperado: se registra y la siguiente escena se reproduce.
 - [x] **Paso 3:** Hacer commit: `feat: reproducir escenas provisionales`.
 
@@ -182,7 +182,7 @@ end)
 - [x] El temporizador de cada decisión está siempre visible.
 - [x] En móvil, todo queda dentro de la zona segura y con objetivos táctiles de 44 píxeles o más. **(Medido a 586 × 365 con `CoreUISafeInsets`, no con el emulador.)**
 - [x] La vista general muestra dueños, dinero, posiciones y efectos activos.
-- [ ] Los emotes se lanzan con un botón y todos los ven.
+- [x] Los emotes se lanzan con un botón y todos los ven. **(Comprobado que el remoto llega a los dos clientes; el botón en sí no se pulsó.)**
 
 - [x] **Paso 1:** Escribir pruebas de `ActionMenuRules`: sin compra legal no hay botón de compra; con `Bid` hay control de puja.
 - [x] **Paso 2:** Ejecutar `lune run tests/run ActionMenuRules`. Esperado: FAIL.
@@ -266,12 +266,13 @@ comprobó de verdad.
 
 **Pendiente y por qué:**
 
-- **Dos clientes a menos de 250 ms.** Necesita un Test Server con dos clientes conectados a la vez;
-  no se ejecutó. Lo que sí está es el mecanismo: el cliente espera el lote hasta `batch.startsAt` con
-  el reloj del servidor y no lo arranca al recibirlo.
-- **Los emotes entre dos clientes** y **una partida completa de principio a fin** necesitan una
-  partida real: en esta sesión la partida se simuló desde el servidor para poder mirar la interfaz,
-  porque `MatchService` necesita dos jugadores y el lugar no está publicado.
+- **Dos clientes a menos de 250 ms.** El mecanismo que se describía aquí no funcionaba: el servidor
+  mandaba `time()` y el cliente comparaba con `GetServerTimeNow()`, así que cada escena duraba 0,2 s.
+  Se corrigió después (R-P38 a R-P41) y se midió en un Test Server local con dos clientes. Falta
+  medirlo con red real, en un lugar publicado.
+- **Una partida completa de principio a fin** con personas: las pruebas en Test Server usaron clientes
+  automáticos y saltaron a la última ronda. Los menús tampoco lo permiten todavía (B4, B5, B6 y B8 de
+  la auditoría), a la espera de rehacer la interfaz.
 - **El emulador de móvil.** El MCP de Studio no puede activarlo, así que la prueba de pantalla
   pequeña se hizo reduciendo la ventana de Studio a 586 × 365 y midiendo los controles.
 - **La Puerta A** es la Tarea 6 entera: publicar en privado, reunir los grupos y decidir. No puede

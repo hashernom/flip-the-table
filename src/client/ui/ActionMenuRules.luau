@@ -131,6 +131,24 @@ function ActionMenuRules.bidControl(legal: { Action }): BidControl?
 	return nil
 end
 
+-- Un lado de un trato: dinero, casillas, las dos cosas o «nada».
+local function offerSide(cash: number, squares: { number }): string
+	local parts: { string } = {}
+	if cash > 0 then
+		table.insert(parts, tostring(cash))
+	end
+	if #squares > 0 then
+		local noun = if #squares == 1 then "casilla" else "casillas"
+		table.insert(parts, `{noun} {table.concat(squares, ", ")}`)
+	end
+	return if #parts > 0 then table.concat(parts, " + ") else "nada"
+end
+
+-- Texto de un trato guardado en `pending.trades`, desde el punto de vista de quien lo propone.
+function ActionMenuRules.offerText(trade: any): string
+	return `{offerSide(trade.giveCash, trade.giveSquares)} por {offerSide(trade.wantCash, trade.wantSquares)}`
+end
+
 -- Segundos que quedan de una decisión. Sin plazo conocido no hay cuenta atrás: el menú esconde el
 -- temporizador en vez de inventarse uno.
 function ActionMenuRules.remainingSeconds(deadline: number?, now: number): number?

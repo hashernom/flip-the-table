@@ -13,6 +13,7 @@ type Event = Types.Event
 export type Batch = {
 	seq: number,
 	startsAt: number?,
+	decisionDeadline: number?,
 	events: { Event }?,
 	view: PlayerView?,
 }

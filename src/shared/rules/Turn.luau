@@ -1,6 +1,7 @@
 --!strict
 -- Avance del turno, rondas, Corona y final de la partida. También viven aquí la caducidad de los
 -- intercambios (R20), el movimiento de la Zona Caliente (R-P40) y la de los pactos (Tarea 8).
+local Awards = require("./Awards")
 local Economy = require("../config/Economy")
 local Comeback = require("./Comeback")
 local HotZone = require("./HotZone")
@@ -150,7 +151,12 @@ function Turn.finishIfLastActive(state: GameState, events: { Event }): boolean
 	append(events, Pact.settle(state))
 	local ranking = Score.ranking(state)
 	state.phase = "GameOver"
-	table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
+	table.insert(events, {
+		type = "GameEnded",
+		ranking = ranking,
+		winnerId = winnerOf(state, ranking),
+		awards = Awards.compute(state),
+	})
 	return true
 end
 
@@ -213,7 +219,12 @@ function Turn.next(state: GameState): { Event }
 		-- R-P46: liquida los pactos vivos antes de calcular la clasificación final.
 		append(events, Pact.settle(state))
 		local ranking = Score.ranking(state)
-		table.insert(events, { type = "GameEnded", ranking = ranking, winnerId = winnerOf(state, ranking) })
+		table.insert(events, {
+			type = "GameEnded",
+			ranking = ranking,
+			winnerId = winnerOf(state, ranking),
+			awards = Awards.compute(state),
+		})
 		return events
 	end
 	-- R-P43: la ronda del espectro se cuenta solo cuando su turno va a empezar de verdad.

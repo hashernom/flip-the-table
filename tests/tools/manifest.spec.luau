@@ -119,6 +119,39 @@ describe("Manifest.unknownRefs", function()
 	end)
 end)
 
+describe("Manifest: ids de asset en el código", function()
+	local manifest = { assets = { entry({ id = "taxi", assetId = "rbxassetid://111" }) } }
+
+	it("encuentra los ids en un archivo y los repetidos cuentan una vez", function()
+		local source =
+			'a.Image = "rbxassetid://111"\nb.Image = "rbxassetid://222"\nc.Image = "rbxassetid://111"\n'
+		expect(Manifest.assetRefs(source)).toEqual({ "rbxassetid://111", "rbxassetid://222" })
+	end)
+
+	it("señala un id que ningún asset registra", function()
+		expect(Manifest.unknownAssets(manifest, { "rbxassetid://111", "rbxassetid://222" })).toEqual({
+			"rbxassetid://222",
+		})
+	end)
+
+	it("nombra el archivo y el id sin registrar", function()
+		local problems = Manifest.sourceProblems(
+			manifest,
+			"src/x.luau",
+			'a = "rbxassetid://222"\nb = "rbxassetid://111"\n'
+		)
+		expect(problems).toEqual({ "src/x.luau: rbxassetid://222 no está en el manifiesto" })
+	end)
+end)
+
+describe("Manifest.validate con datos rotos", function()
+	it("nombra el asset sin triángulos en vez de reventar", function()
+		local problems = validate(entry({ triangles = "muchos" }))
+		expect(#problems).toBe(1)
+		expect(string.find(problems[1], "taxi", 1, true)).toBeTruthy()
+	end)
+end)
+
 describe("Manifest.BUDGETS", function()
 	it("reproduce los presupuestos de la subfase 06", function()
 		expect(Manifest.BUDGETS.Token.triangles).toBe(8000)

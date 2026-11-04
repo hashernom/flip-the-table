@@ -14,6 +14,7 @@ srv*.log
 
 # Artefactos de herramientas locales (hooks, config por maquina)
 .codex/
+.claude/worktrees/
 .impeccable/config.local.json
 .impeccable/hook.cache.json
 

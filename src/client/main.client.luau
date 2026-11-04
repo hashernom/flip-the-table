@@ -58,13 +58,13 @@ local function boot()
 	local StateStore = require("./state/StateStore")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
-	local Scenes = require("../shared/config/Scenes")
 	local ActionMenu = require("./ui/ActionMenu")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
 	local Overview = require("./ui/Overview")
 	local PactMenu = require("./ui/PactMenu")
 	local PerkMenu = require("./ui/PerkMenu")
+	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
 	local VoteMenu = require("./ui/VoteMenu")
 
@@ -95,6 +95,7 @@ local function boot()
 	local lobbyMenu = LobbyMenu.create(playerGui, function(request: any)
 		sendLobby(request)
 	end)
+	local rematchMenu = RematchMenu.create(playerGui)
 
 	local scenes = SceneDirector.new({
 		wait = function(seconds: number)
@@ -164,10 +165,34 @@ local function boot()
 			return
 		end
 		ensureCity(view.sizeId)
+		-- En una revancha sigue solo quien aceptó: la ficha de quien se fue no se queda en la calle.
+		local seatedIds: { [string]: boolean } = {}
+		for _, seated in view.players do
+			seatedIds[seated.id] = true
+		end
+		for id, token in tokens do
+			if not seatedIds[id] then
+				token:Destroy()
+				tokens[id] = nil
+			end
+		end
 		for _, seated in view.players do
 			local token = ensureToken(seated.id, seated.position)
 			if token ~= nil and token:GetAttribute("Index") ~= seated.position then
 				TokenRider.place(token, seated.position)
+			end
+			-- Las fichas son locales de cada cliente, así que la soldadura de un avatar no se replica: cada
+			-- cliente sube también a los demás a su copia de la ficha, o los vería flotando en la salida.
+			-- Si su personaje aún no ha llegado, se reintenta con el siguiente lote.
+			local userId = tonumber(seated.id)
+			local other = if userId ~= nil then Players:GetPlayerByUserId(userId) else nil
+			if
+				token ~= nil
+				and other ~= nil
+				and other ~= player
+				and not TokenRider.isMounted(other, token)
+			then
+				TokenRider.mount(other, token)
 			end
 		end
 	end
@@ -270,13 +295,8 @@ local function boot()
 				previous(request)
 				return
 			end
-			if field == "PartyJoin" then
-				lobbyRemote:FireServer(request.code)
-			elseif field == "PartyStart" then
-				lobbyRemote:FireServer(request.endMode)
-			else
-				lobbyRemote:FireServer()
-			end
+			-- El servidor valida el paquete entero con Protocol.validateLobby: tipo y campos.
+			lobbyRemote:FireServer(request)
 		end
 	end
 
@@ -321,18 +341,59 @@ local function boot()
 
 	-- Aplica una vista a la barra, los asientos y los menús. Es el único sitio que lo hace: así la
 	-- interfaz nunca enseña dos verdades distintas.
+	-- Cada pieza va protegida: un menú con un fallo pierde su función, no se lleva por delante el bucle
+	-- del cliente, que dejaría al jugador sin partida hasta que vuelva a entrar.
 	local function applyView(view: any)
 		if view == nil then
 			return
 		end
-		hud.setView(view)
-		lobbyMenu.setVisible(false)
-		actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS)
-		overview.setView(view)
-		tradeMenu.setView(view)
-		pactMenu.setView(view)
-		voteMenu.setView(view)
-		perkMenu.setView(view)
+		local steps: { [string]: () -> () } = {
+			Hud = function()
+				hud.setView(view)
+			end,
+			LobbyMenu = function()
+				lobbyMenu.setVisible(false)
+			end,
+			ActionMenu = function()
+				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS)
+			end,
+			Overview = function()
+				overview.setView(view)
+			end,
+			TradeMenu = function()
+				tradeMenu.setView(view)
+			end,
+			PactMenu = function()
+				pactMenu.setView(view)
+			end,
+			VoteMenu = function()
+				voteMenu.setView(view)
+			end,
+			PerkMenu = function()
+				perkMenu.setView(view)
+			end,
+			RematchMenu = function()
+				rematchMenu.setView(view)
+			end,
+		}
+		for name, step in steps do
+			local ok: boolean, err: any = (pcall :: any)(step)
+			if not ok then
+				warn(`Cliente: {name} falló al aplicar la vista: {err}`)
+			end
+		end
+	end
+
+	-- Declarada aquí porque una partida nueva la necesita; se asigna más abajo.
+	local mountLocal: () -> () = function() end
+
+	-- Durante una escena no se decide nada (R-P39): el servidor descartaría el clic. Los menús vuelven
+	-- con la vista del lote, al terminar la escena.
+	local function hideMenus()
+		actionMenu.setLegal({}, nil)
+		voteMenu.close()
+		perkMenu.close()
+		hud.setDeadline(nil)
 	end
 
 	-- Lotes del servidor. El primero de todos llega con `seq = 0`: es la vista inicial, no un lote nuevo
@@ -341,11 +402,16 @@ local function boot()
 		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
 			return
 		end
+		-- En una revancha, este lote es también la señal de partida nueva: la cola, las escenas vistas y
+		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
 			EventQueue.resync(queue, batch.view, 0)
+			SceneDirector.reset(scenes)
 			syncTokens(batch.view)
 			applyView(batch.view)
 			followActive(batch.view)
+			hud.setDeadline(batch.decisionDeadline)
+			task.spawn(mountLocal)
 			return
 		end
 		if EventQueue.push(queue, batch) == "Gap" then
@@ -363,7 +429,54 @@ local function boot()
 		syncTokens(batch.view)
 		applyView(batch.view)
 		followActive(batch.view)
+		hud.setDeadline(batch.decisionDeadline)
 	end)
+
+	-- La votación de revancha y los avisos del servidor. Sin estos remotos se juega igual.
+	local rematchRemote = remotes:WaitForChild(Protocol.REMOTES.Rematch, REMOTE_WAIT_SEC)
+	if rematchRemote and rematchRemote:IsA("RemoteEvent") then
+		local rematchEvent = rematchRemote :: RemoteEvent
+		rematchMenu.onVote(function(accept: boolean)
+			rematchEvent:FireServer(accept)
+		end)
+	else
+		warn("Cliente: falta el remoto de revancha; no se podrá votar")
+	end
+	local noticeRemote = remotes:WaitForChild(Protocol.REMOTES.Notice, REMOTE_WAIT_SEC)
+	if noticeRemote and noticeRemote:IsA("RemoteEvent") then
+		(noticeRemote :: RemoteEvent).OnClientEvent:Connect(function(notice: any)
+			if type(notice) == "table" and type(notice.message) == "string" then
+				rematchMenu.setNotice(notice.message)
+				lobbyMenu.setVisible(false)
+			end
+		end)
+	end
+
+	-- Reproduce un lote ya vencido. Va aparte para que el bucle lo proteja entero: un fallo aquí no
+	-- puede dejar al cliente sin partida.
+	local function playBatch(due: any, now: number)
+		StateStore.apply(queue.state, due)
+		local events = due.events
+		if events ~= nil and #events > 0 then
+			hideMenus()
+		end
+		sceneRunning = true
+		-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
+		-- lo que el grupo ya vio.
+		SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
+		sceneRunning = false
+		hud.setBanner("")
+		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
+		applyView(due.view)
+		local view = StateStore.view(queue.state)
+		syncTokens(view)
+		followActive(view)
+		if view ~= nil and view.phase ~= "GameOver" then
+			hud.setDeadline(due.decisionDeadline)
+		else
+			hud.setDeadline(nil)
+		end
+	end
 
 	-- Bucle del cliente: entrega los lotes cuando les toca, aplica su estado y reproduce sus escenas.
 	task.spawn(function()
@@ -371,21 +484,10 @@ local function boot()
 			local now = Workspace:GetServerTimeNow()
 			local due = EventQueue.nextDue(queue, now)
 			if due ~= nil then
-				StateStore.apply(queue.state, due)
-				applyView(due.view)
-				sceneRunning = true
-				-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
-				-- lo que el grupo ya vio.
-				SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
-				sceneRunning = false
-				hud.setBanner("")
-				local view = StateStore.view(queue.state)
-				syncTokens(view)
-				followActive(view)
-				if view ~= nil and view.phase ~= "GameOver" then
-					hud.setDeadline(Workspace:GetServerTimeNow() + Scenes.decisionSeconds(view.phase))
-				else
-					hud.setDeadline(nil)
+				local ok: boolean, err: any = (pcall :: any)(playBatch, due, now)
+				if not ok then
+					sceneRunning = false
+					warn(`Cliente: falló el lote {due.seq}: {err}`)
 				end
 			else
 				task.wait(TICK_SEC)
@@ -394,7 +496,7 @@ local function boot()
 	end)
 
 	-- El avatar local monta en su ficha en cuanto hay una, y vuelve a montar si reaparece.
-	local function mountLocal()
+	mountLocal = function()
 		local token = myToken
 		if token == nil then
 			return

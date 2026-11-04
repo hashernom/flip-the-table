@@ -128,6 +128,19 @@ local function enterNextRoundFrom(state: Types.GameState, round: number)
 end
 
 describe("Pact.propose", function()
+	it("rechaza pasar del tope de ofertas abiertas sin guardar nada", function()
+		local s = Fixtures.game({ players = 3 })
+		local proposer = inTurn(s)
+		local target = rivalsOf(s, proposer.id)[1]
+		for _ = 1, Economy.maxOpenOffers do
+			proposePact(s, proposer.id, target.id, 2)
+		end
+		local before = deepCopy(s)
+		local action: Types.Action = { type = "ProposePact", toId = target.id, rounds = 2 }
+		expect(rejected(Engine.apply(s, proposer.id, action))).toBe("Tienes demasiadas ofertas abiertas")
+		expect(s).toEqual(before)
+	end)
+
 	it("guarda la oferta sin mover dinero ni crear el pacto", function()
 		local s = Fixtures.game({ players = 3 })
 		local proposer = inTurn(s)
