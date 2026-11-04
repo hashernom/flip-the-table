@@ -6,13 +6,14 @@ local Theme = require("./Theme")
 
 export type Handles = {
 	setView: (view: any) -> (),
+	-- Podio de la partida que acaba: ganador, clasificación y premios, una frase por línea. Vacío lo
+	-- esconde, y la revancha lo vacía al empezar la partida siguiente.
+	setResult: (lines: { string }) -> (),
 	-- Mensaje del servidor. Es la última palabra de la votación: ya no hay nada que pulsar.
 	setNotice: (text: string) -> (),
 	onVote: (callback: (accept: boolean) -> ()) -> (),
 	destroy: () -> (),
 }
-
-local MAX_WIDTH = 420
 
 local RematchMenu = {}
 
@@ -26,9 +27,11 @@ function RematchMenu.create(playerGui: Instance): Handles
 	panel.AutomaticSize = Enum.AutomaticSize.Y
 	panel.Visible = false
 
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(MAX_WIDTH, math.huge)
-	limit.Parent = panel
+	Theme.limitWidth(panel)
+
+	-- Podio: con ocho jugadores y los premios no cabe en un móvil, así que hace scroll.
+	local result = Theme.scrollList(panel, "Result", 1)
+	result.Visible = false
 
 	local status = Instance.new("TextLabel")
 	status.Name = "Status"
@@ -41,7 +44,7 @@ function RematchMenu.create(playerGui: Instance): Handles
 	status.TextXAlignment = Enum.TextXAlignment.Left
 	status.TextColor3 = Theme.muted
 	status.Text = ""
-	status.LayoutOrder = 1
+	status.LayoutOrder = 2
 	status.Parent = panel
 
 	local callback: ((accept: boolean) -> ())? = nil
@@ -62,10 +65,10 @@ function RematchMenu.create(playerGui: Instance): Handles
 		end
 	end
 
-	accept = Theme.button(panel, "Revancha", 2, function()
+	accept = Theme.button(panel, "Revancha", 3, function()
 		vote(true, "Esperando al resto del grupo…")
 	end)
-	decline = Theme.button(panel, "No, gracias", 3, function()
+	decline = Theme.button(panel, "No, gracias", 4, function()
 		vote(false, "Has dicho que no. Esperando al resto del grupo…")
 	end)
 
@@ -84,6 +87,17 @@ function RematchMenu.create(playerGui: Instance): Handles
 			end
 			open = over
 			panel.Visible = over
+		end,
+		setResult = function(lines: { string })
+			for _, child in result:GetChildren() do
+				if child:IsA("TextLabel") then
+					child:Destroy()
+				end
+			end
+			for index, line in lines do
+				Theme.header(result, line, index).TextColor3 = if index == 1 then Theme.accent else Theme.text
+			end
+			result.Visible = #lines > 0
 		end,
 		setNotice = function(text: string)
 			status.Text = text

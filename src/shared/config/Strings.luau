@@ -131,6 +131,19 @@ local KIND_COLORS: { [SquareKind]: string } = {
 	Tax = "#B91C1C",
 }
 
+-- Premios del final y jugadas del Duelo, en español. Los ids son los del motor (Awards y Squares).
+local AWARDS: { [string]: string } = {
+	MostTreacherous = "Mayor Traidor",
+	BestComeback = "Mejor Remontada",
+	VictimOfTheNight = "Víctima de la Noche",
+}
+
+local DUEL_CHOICES: { [string]: string } = {
+	Rock = "Piedra",
+	Paper = "Papel",
+	Scissors = "Tijera",
+}
+
 local Strings = {}
 
 -- Nombre del barrio, que es la agrupación de zonas que la ciudad muestra en la calle.
@@ -198,6 +211,17 @@ function Strings.squareLabel(square: Types.Square, ordinal: number?): string
 		return zone.names[position]
 	end
 	return Strings.kind(square.kind)
+end
+
+-- Nombre de un premio del podio. Un id desconocido se devuelve tal cual: un premio nuevo sin nombre
+-- debe verse feo, no romper la pantalla final.
+function Strings.award(awardId: string): string
+	return AWARDS[awardId] or awardId
+end
+
+-- Nombre de una jugada del Duelo (Piedra, Papel o Tijera).
+function Strings.duelChoice(choiceId: string): string
+	return DUEL_CHOICES[choiceId] or choiceId
 end
 
 -- Nombre del barrio para la interfaz. Un barrio desconocido devuelve su identificador: se prefiere

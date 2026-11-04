@@ -22,6 +22,10 @@ return {
 	maxBuildingLevel = 5,
 	-- Puja representativa que enumera Engine.legalActions: min(alta + paso, efectivo).
 	auctionBidStep = 10,
+	-- Salto grande del control de puja del cliente: la subasta dura 15 s fijos, así que subir de 10
+	-- en 10 no alcanza. No cambia lo que el motor acepta: cualquier entero entre la puja alta y tu
+	-- efectivo es legal.
+	auctionBidJump = 50,
 	-- Reservas del bot: efectivo que debe quedarle tras pagar para decidir actuar.
 	bot = {
 		buyReserve = 200,

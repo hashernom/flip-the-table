@@ -76,7 +76,7 @@
 **Módulos:** `client/ui/*`.
 
 **Archivos:**
-- Modificar: `Hud.luau`, `ActionMenu.luau`, `TradeMenu.luau`, `PactMenu.luau`, `VoteMenu.luau`, `PerkMenu.luau`, `Overview.luau`
+- Modificar: `Hud.luau`, `ActionMenu.luau`, `TradeMenu.luau`, `PactMenu.luau`, `Overview.luau`. `VoteMenu` y `PerkMenu` ya no existen: esas decisiones van en la barra de `ActionMenu`
 
 **Criterios de aceptación:**
 - [ ] Sigue funcionando toda la partida solo con menús.

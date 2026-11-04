@@ -32,6 +32,16 @@ Protocol.REMOTES = {
 	Emote = "EmoteRequest",
 }
 
+-- Clases de aviso que viajan por `Notice` (R-P48). El cliente enruta por `kind`: un rechazo de acción es
+-- un aviso breve de la barra y el resto se enseña en el panel de revancha. Los valores se escriben igual
+-- en servidor y cliente, así que no hay cadenas sueltas.
+Protocol.NOTICE_KINDS = {
+	Info = "Info",
+	Error = "Error",
+	PartyCode = "PartyCode",
+	ActionRejected = "ActionRejected",
+}
+
 -- Los emotes son pocos y fijos: un botón, un emote. La lista vive aquí para que cliente y servidor
 -- acepten exactamente los mismos.
 Protocol.EMOTES = { "😀", "😱", "🤑", "😡", "🤝", "🗡️" }

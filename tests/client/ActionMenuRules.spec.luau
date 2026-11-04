@@ -8,6 +8,7 @@ local ActionMenuRules = require("../../src/client/ui/ActionMenuRules")
 local Economy = require("../../src/shared/config/Economy")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
+local Types = require("../../src/shared/rules/Types")
 local View = require("../../src/shared/rules/View")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
@@ -129,6 +130,15 @@ describe("ActionMenuRules.offerText", function()
 		expect(ActionMenuRules.offerText(trade)).toBe("100 + casillas 2, 3 por 200 + casilla 6")
 	end)
 
+	it("con un nombrador de casillas, las casillas salen por su nombre", function()
+		local trade =
+			offerFromEngine({ giveCash = 0, wantCash = 75, giveSquares = { 2, 3 }, wantSquares = {} })
+		local text = ActionMenuRules.offerText(trade, function(index: number): string
+			return `C{index}`
+		end)
+		expect(text).toBe("C2, C3 por 75")
+	end)
+
 	it("describe casillas sin dinero, sin signos de más", function()
 		local trade = offerFromEngine({ giveCash = 0, wantCash = 75, giveSquares = { 2 }, wantSquares = {} })
 		expect(ActionMenuRules.offerText(trade)).toBe("casilla 2 por 75")
@@ -136,31 +146,71 @@ describe("ActionMenuRules.offerText", function()
 end)
 
 describe("ActionMenuRules: puja", function()
+	-- El límite inferior es la puja que enumera el motor y el superior, el efectivo del jugador: así
+	-- una puja de 210 contra una alta de 200 no obliga a 20 pulsaciones. B5 de la auditoría.
 	it("con una puja legal hay control de puja", function()
-		local control = ActionMenuRules.bidControl({ { type = "Bid", amount = 240 } })
+		local control = ActionMenuRules.bidControl({ { type = "Bid", amount = 240 } }, 900)
 		expect(control ~= nil).toBe(true)
 		local bounds = control :: any
-		expect(bounds.max).toBe(240)
-		expect(bounds.min).toBe(Economy.auctionBidStep)
+		expect(bounds.min).toBe(240)
+		expect(bounds.max).toBe(900)
 		expect(bounds.step).toBe(Economy.auctionBidStep)
+		expect(bounds.jump).toBe(Economy.auctionBidJump)
 	end)
 
 	it("sin puja legal no hay control de puja", function()
-		expect(ActionMenuRules.bidControl({ { type = "Roll" } })).toBe(nil)
-		expect(ActionMenuRules.bidControl({})).toBe(nil)
+		expect(ActionMenuRules.bidControl({ { type = "Roll" } }, 500)).toBe(nil)
+		expect(ActionMenuRules.bidControl({}, 500)).toBe(nil)
 	end)
 
 	it("la puja legal nunca deja un rango vacío", function()
-		-- Si el servidor enumera una puja por debajo del paso, el control sigue teniendo un valor.
-		local bounds = ActionMenuRules.bidControl({ { type = "Bid", amount = 3 } }) :: any
-		expect(bounds.min).toBe(1)
+		-- Si el servidor enumera una puja y el efectivo no la alcanza (vista incoherente), el rango
+		-- sigue teniendo un valor: el mínimo.
+		local bounds = ActionMenuRules.bidControl({ { type = "Bid", amount = 3 } }, 2) :: any
+		expect(bounds.min).toBe(3)
 		expect(bounds.max >= bounds.min).toBe(true)
+		local noCash = ActionMenuRules.bidControl({ { type = "Bid", amount = 3 } }) :: any
+		expect(noCash.max >= noCash.min).toBe(true)
 	end)
 
 	it("el control de puja no aparece como botón suelto", function()
 		local buttonIds = ids({ { type = "Bid", amount = 200 } })
 		expect(table.find(buttonIds, "Bid")).toBe(nil)
 		expect(table.find(buttonIds, "BidConfirm") ~= nil).toBe(true)
+	end)
+
+	it("conserva lo elegido entre vistas y lo acota al rango nuevo", function()
+		local control = { min = 210, max = 900, step = 10, jump = 50 }
+		expect(ActionMenuRules.clampBid(nil, control)).toBe(210)
+		expect(ActionMenuRules.clampBid(400, control)).toBe(400)
+		-- La puja alta subió por encima de lo elegido: se sube al mínimo nuevo.
+		expect(ActionMenuRules.clampBid(300, { min = 350, max = 900, step = 10, jump = 50 })).toBe(350)
+		-- El efectivo bajó por debajo de lo elegido: se baja al máximo.
+		expect(ActionMenuRules.clampBid(800, { min = 210, max = 600, step = 10, jump = 50 })).toBe(600)
+	end)
+
+	it("con una subasta real, cualquier puja entre el mínimo y el efectivo la acepta el motor", function()
+		-- Subasta abierta con una puja alta de 200 del segundo jugador.
+		local function auction(): Types.GameState
+			local state = Fixtures.game({ players = 3, seed = 7 })
+			local pending: any = state.pending
+			pending.index = Fixtures.squareOf(state, "Property")
+			state.phase = "AwaitBuy"
+			Engine.apply(state, state.players[state.turnIndex].id, { type = "DeclineBuy" })
+			Engine.apply(state, state.players[2].id, { type = "Bid", amount = 200 })
+			return state
+		end
+
+		local state = auction()
+		local rival = state.players[3]
+		local view = View.forPlayer(state, rival.id)
+		local bounds = ActionMenuRules.bidControl(view.legalActions, rival.cash) :: any
+		expect(bounds.min).toBe(210)
+		expect(bounds.max).toBe(rival.cash)
+		for _, amount in { bounds.min, bounds.min + bounds.jump, bounds.max } do
+			local copy = auction()
+			expect(Engine.apply(copy, rival.id, { type = "Bid", amount = amount }).ok).toBe(true)
+		end
 	end)
 end)
 

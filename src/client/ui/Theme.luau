@@ -3,6 +3,9 @@
 -- iconos. Existe para que los menús no repitan la misma veintena de líneas y para que las medidas
 -- táctiles y la zona segura se decidan en un solo sitio.
 local GuiService = game:GetService("GuiService")
+local Workspace = game:GetService("Workspace")
+
+local Ui = require("../../shared/config/Ui")
 
 local Theme = {}
 
@@ -92,6 +95,75 @@ function Theme.panel(parent: Instance, name: string, title: string?): Frame
 	end
 
 	return frame
+end
+
+-- Ancho de un panel: la fracción que se le dé del ancho de la pantalla, con un tope en píxeles. En un
+-- móvil estrecho manda la fracción; en una pantalla grande, el tope. Sin esto, un panel de ancho fijo
+-- se sale de la pantalla (I13).
+function Theme.limitWidth(instance: GuiObject)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(Ui.maxPanelWidth, math.huge)
+	limit.Parent = instance
+end
+
+-- Alto máximo, en píxeles, de una lista dentro de un panel: una fracción de la altura de la pantalla.
+function Theme.maxListHeight(): number
+	local camera = Workspace.CurrentCamera
+	local viewport = if camera ~= nil then camera.ViewportSize.Y else 600
+	return math.floor(viewport * Ui.maxPanelHeightFraction)
+end
+
+-- Lista vertical con scroll. Crece con su contenido hasta `Theme.maxListHeight()` y a partir de ahí
+-- hace scroll: sin ese tope, el scroll de un modal nunca actuaba porque la lista crecía con sus filas y
+-- se salía de la pantalla (I13). El tope sigue al tamaño de la pantalla.
+function Theme.scrollList(parent: Instance, name: string, order: number): ScrollingFrame
+	local list = Instance.new("ScrollingFrame")
+	list.Name = name
+	list.BackgroundTransparency = 1
+	list.BorderSizePixel = 0
+	list.Size = UDim2.fromScale(1, 0)
+	list.AutomaticSize = Enum.AutomaticSize.Y
+	list.CanvasSize = UDim2.fromScale(0, 0)
+	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	list.ScrollingDirection = Enum.ScrollingDirection.Y
+	list.ScrollBarThickness = 6
+	list.LayoutOrder = order
+	list.Parent = parent
+
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Vertical
+	layout.Padding = UDim.new(0, Theme.PADDING)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = list
+
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(math.huge, Theme.maxListHeight())
+	limit.Parent = list
+	local camera = Workspace.CurrentCamera
+	if camera ~= nil then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
+			limit.MaxSize = Vector2.new(math.huge, Theme.maxListHeight())
+		end)
+	end
+	return list
+end
+
+-- Rótulo de sección dentro de un panel o de la lista de un modal.
+function Theme.header(parent: Instance, text: string, order: number): TextLabel
+	local label = Instance.new("TextLabel")
+	label.Name = `Header_{order}`
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 0)
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.Font = Theme.fontBold
+	label.TextSize = 16
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextColor3 = Theme.muted
+	label.Text = text
+	label.LayoutOrder = order
+	label.Parent = parent
+	return label
 end
 
 -- Botón grande, con etiqueta y acción. El alto nunca baja del mínimo táctil.
@@ -185,27 +257,12 @@ function Theme.modal(playerGui: Instance, name: string, title: string, displayOr
 	local panel = Theme.panel(gui, "Sheet", title)
 	panel.AnchorPoint = Vector2.new(0.5, 0.5)
 	panel.Position = UDim2.fromScale(0.5, 0.5)
-	panel.Size = UDim2.fromOffset(460, 0)
+	panel.Size = UDim2.fromScale(0.9, 0)
 	panel.AutomaticSize = Enum.AutomaticSize.Y
 	panel.Visible = false
+	Theme.limitWidth(panel)
 
-	local body = Instance.new("ScrollingFrame")
-	body.Name = "Body"
-	body.BackgroundTransparency = 1
-	body.BorderSizePixel = 0
-	body.Size = UDim2.new(1, 0, 1, -34)
-	body.Position = UDim2.fromOffset(0, 34)
-	body.CanvasSize = UDim2.fromScale(1, 0)
-	body.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	body.ScrollBarThickness = 6
-	body.LayoutOrder = 1
-	body.Parent = panel
-
-	local bodyLayout = Instance.new("UIListLayout")
-	bodyLayout.FillDirection = Enum.FillDirection.Vertical
-	bodyLayout.Padding = UDim.new(0, Theme.PADDING)
-	bodyLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	bodyLayout.Parent = body
+	local body = Theme.scrollList(panel, "Body", 1)
 
 	local modal: Modal = nil :: any
 	modal = {

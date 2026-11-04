@@ -56,7 +56,8 @@ export type Match = {
 	timeoutCallbacks: { (playerId: PlayerId) -> () },
 	actionCallbacks: { (playerId: PlayerId) -> () },
 	abandonCallback: ((reason: string) -> ())?,
-	submit: (self: Match, player: Player, action: Action) -> (),
+	-- Devuelve el motivo del motor si rechazó la acción (R-P48); nil si se aplicó o se descartó sin aviso.
+	submit: (self: Match, player: Player, action: Action) -> string?,
 	setBotControlled: (self: Match, playerId: PlayerId, controlled: boolean) -> boolean,
 	abandon: (self: Match, reason: string) -> (),
 	onAbandon: (self: Match, callback: (reason: string) -> ()) -> (),
@@ -206,15 +207,22 @@ end
 -- valida con Engine.apply, registra el paso y difunde. `fromClient` distingue lo que llegó por la
 -- puerta: solo lo rechazado de un cliente se cuenta (R-P22); una jugada de bot rechazada se
 -- descarta sin contarla y el turno del bot busca otra salida. No avisa a `onAction`: el aviso es
--- de las acciones de personas, y el bot no debe desactivarse a sí mismo (R-P6).
-local function applyAction(match: Match, playerId: PlayerId, action: Action, fromClient: boolean): boolean
+-- de las acciones de personas, y el bot no debe desactivarse a sí mismo (R-P6). Si el motor rechaza
+-- la acción, el segundo valor es su motivo (R-P48); un clic descartado por la escena o por el final
+-- no lleva motivo, porque el cliente no hizo nada mal.
+local function applyAction(
+	match: Match,
+	playerId: PlayerId,
+	action: Action,
+	fromClient: boolean
+): (boolean, string?)
 	if match.finished or MatchState.over(match.matchState) then
-		return false
+		return false, nil
 	end
 	-- R-P39: una persona no puede cortar la escena que el grupo está viendo. El bot no pasa por aquí
 	-- porque ya se programa para después de la escena.
 	if fromClient and not MatchState.acceptsAction(match.matchState, serverNow()) then
-		return false
+		return false, nil
 	end
 	local phaseBefore: Phase = match.state.phase
 	local result = Engine.apply(match.state, playerId, action)
@@ -222,10 +230,10 @@ local function applyAction(match: Match, playerId: PlayerId, action: Action, fro
 		if fromClient then
 			match.rejectedActions += 1
 		end
-		return false
+		return false, result.error
 	end
 	record(match, result.events, phaseBefore, action.type, false, serverNow())
-	return true
+	return true, nil
 end
 
 -- Primer asiento con bot que tiene una decisión pendiente. Engine.legalActions es la misma fuente
@@ -375,11 +383,13 @@ end
 -- se cuenta y no se difunde nada (R-P22). El cliente que se haya quedado desfasado pide
 -- resincronización. Tras aplicarla se avisa a la presencia, que reinicia su racha y le devuelve el
 -- control (R-P28): una acción humana es la única que desactiva un bot.
-Match.submit = function(self: Match, player: Player, action: Action)
+Match.submit = function(self: Match, player: Player, action: Action): string?
 	local playerId = playerIdOf(player)
-	if applyAction(self, playerId, action, true) then
+	local applied, reason = applyAction(self, playerId, action, true)
+	if applied then
 		notify(self.actionCallbacks, playerId)
 	end
+	return reason
 end
 
 -- Control por bot (R-P6): el servicio de presencia decide y este es el único camino que escribe
@@ -545,7 +555,20 @@ function MatchService.submit(player: Player, action: Action)
 	if not match then
 		return
 	end
-	match:submit(player, action)
+	local reason = match:submit(player, action)
+	if reason ~= nil then
+		-- R-P48: quien pulsó un botón que ya no vale lo sabe. FireClient va protegido: un jugador que
+		-- se está yendo no puede tumbar el servicio.
+		local ok: boolean, err: any = (pcall :: any)(function()
+			RemoteGateway.remote(Protocol.REMOTES.Notice):FireClient(player, {
+				kind = Protocol.NOTICE_KINDS.ActionRejected,
+				message = reason,
+			})
+		end)
+		if not ok then
+			warn(`MatchService: no se pudo avisar del rechazo a {player.Name}: {err}`)
+		end
+	end
 end
 
 return MatchService

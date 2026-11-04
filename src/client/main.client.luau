@@ -31,13 +31,6 @@ local REMOTE_WAIT_SEC = 20
 -- Cada cuánto mira la cola si ya venció el siguiente lote. Mismo orden que el latido del servidor.
 local TICK_SEC = 0.05
 
--- Botones que no vienen de `legalActions`: un trato o un pacto se deciden en su ventana, y el motor no
--- los enumera como acción legal porque necesitan más datos que un clic.
-local SOCIAL_BUTTONS = {
-	{ id = "Trade", label = "Tratos", action = { type = "__OpenTrade" } },
-	{ id = "Pact", label = "Pactos", action = { type = "__OpenPact" } },
-}
-
 local player = Players.LocalPlayer
 local playerScripts = script.Parent.Parent
 local playerId = tostring(player.UserId)
@@ -58,6 +51,7 @@ local function boot()
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
+	local ResyncGate = require("./state/ResyncGate")
 	local ViewWire = require("./state/ViewWire")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
@@ -66,10 +60,11 @@ local function boot()
 	local LobbyMenu = require("./ui/LobbyMenu")
 	local Overview = require("./ui/Overview")
 	local PactMenu = require("./ui/PactMenu")
-	local PerkMenu = require("./ui/PerkMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
-	local VoteMenu = require("./ui/VoteMenu")
+	local NoticeRules = require("./ui/NoticeRules")
+	local SocialRules = require("./ui/SocialRules")
+	local ViewText = require("./ui/ViewText")
 
 	local playerGui = player:WaitForChild("PlayerGui")
 
@@ -89,12 +84,6 @@ local function boot()
 	local pactMenu = PactMenu.create(playerGui, function(action: any)
 		sendAction(action)
 	end)
-	local voteMenu = VoteMenu.create(playerGui, function(action: any)
-		sendAction(action)
-	end)
-	local perkMenu = PerkMenu.create(playerGui, function(action: any)
-		sendAction(action)
-	end)
 	local lobbyMenu = LobbyMenu.create(playerGui, function(request: any)
 		sendLobby(request)
 	end)
@@ -111,6 +100,16 @@ local function boot()
 			warn(message)
 		end,
 	})
+
+	-- Nombre de cada asiento. Los `playerId` son el `userId` en texto: se resuelven aquí, que es el único
+	-- sitio que conoce a los `Player`, y se guarda el último nombre conocido porque un bot puede ocupar
+	-- el asiento de quien se fue.
+	local names: ViewText.Names = {}
+	local function lookupName(id: string): string?
+		local userId = tonumber(id)
+		local found = if userId ~= nil then Players:GetPlayerByUserId(userId) else nil
+		return if found ~= nil then found.DisplayName else nil
+	end
 
 	local queue = EventQueue.new()
 	local director = CameraDirector.new(player, START_SIZE)
@@ -359,30 +358,31 @@ local function boot()
 		if view == nil then
 			return
 		end
+		ViewText.rememberNames(names, view, lookupName)
 		local steps: { [string]: () -> () } = {
 			Hud = function()
-				hud.setView(view)
+				hud.setView(view, names)
 			end,
 			LobbyMenu = function()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
-				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS)
+				-- Tratos y Pactos no son acciones del motor: se añaden según la vista (con el número de
+				-- ofertas por responder) y desaparecen al acabar la partida.
+				actionMenu.setLegal(
+					view.legalActions or {},
+					SocialRules.buttonsFor(view),
+					{ view = view, names = names }
+				)
 			end,
 			Overview = function()
-				overview.setView(view)
+				overview.setView(view, names)
 			end,
 			TradeMenu = function()
-				tradeMenu.setView(view)
+				tradeMenu.setView(view, names)
 			end,
 			PactMenu = function()
-				pactMenu.setView(view)
-			end,
-			VoteMenu = function()
-				voteMenu.setView(view)
-			end,
-			PerkMenu = function()
-				perkMenu.setView(view)
+				pactMenu.setView(view, names)
 			end,
 			RematchMenu = function()
 				rematchMenu.setView(view)
@@ -403,8 +403,6 @@ local function boot()
 	-- con la vista del lote, al terminar la escena.
 	local function hideMenus()
 		actionMenu.setLegal({}, nil)
-		voteMenu.close()
-		perkMenu.close()
 		hud.setDeadline(nil)
 	end
 
@@ -419,6 +417,7 @@ local function boot()
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
 			EventQueue.resync(queue, batch.view, 0)
+			rematchMenu.setResult({})
 			SceneDirector.reset(scenes)
 			syncTokens(batch.view)
 			applyView(batch.view)
@@ -432,6 +431,18 @@ local function boot()
 		end
 	end)
 
+	-- Pone la interfaz, las fichas y la cámara al día con la vista de un resync.
+	local function applyResync(batch: any)
+		syncTokens(batch.view)
+		applyView(batch.view)
+		followActive(batch.view)
+		hud.setDeadline(batch.decisionDeadline)
+	end
+
+	-- Respuesta de resync que llegó mientras corría una escena. Los menús no vuelven a aparecer a mitad
+	-- de una escena (R-P39): el estado se pone al día en la cola, pero la interfaz espera a que acabe.
+	local resyncGate = ResyncGate.new()
+
 	-- Respuesta a una petición de resincronización: vista completa y salto de `seq`. La interfaz se
 	-- actualiza aquí también, que es justo el camino del cliente que se quedó atrás.
 	resync.OnClientEvent:Connect(function(batch: any)
@@ -440,10 +451,9 @@ local function boot()
 		end
 		ViewWire.normalize(batch.view)
 		EventQueue.resync(queue, batch.view, batch.seq)
-		syncTokens(batch.view)
-		applyView(batch.view)
-		followActive(batch.view)
-		hud.setDeadline(batch.decisionDeadline)
+		if resyncGate.offer(batch, sceneRunning) == "Apply" then
+			applyResync(batch)
+		end
 	end)
 
 	-- La votación de revancha y los avisos del servidor. Sin estos remotos se juega igual.
@@ -459,7 +469,12 @@ local function boot()
 	local noticeRemote = remotes:WaitForChild(Protocol.REMOTES.Notice, REMOTE_WAIT_SEC)
 	if noticeRemote and noticeRemote:IsA("RemoteEvent") then
 		(noticeRemote :: RemoteEvent).OnClientEvent:Connect(function(notice: any)
-			if type(notice) == "table" and type(notice.message) == "string" then
+			-- R-P48: se enruta por `kind`. El rechazo de una acción es un aviso breve de la barra; los
+			-- avisos de revancha y de lobby siguen yendo al panel de revancha.
+			local route = NoticeRules.route(notice)
+			if route == "Toast" then
+				hud.setToast(notice.message)
+			elseif route == "Panel" then
 				rematchMenu.setNotice(notice.message)
 				lobbyMenu.setVisible(false)
 			end
@@ -482,6 +497,12 @@ local function boot()
 		hud.setBanner("")
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
+		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
+		for _, event in events or {} do
+			if event.type == "GameEnded" then
+				rematchMenu.setResult(ViewText.podiumLines(event, due.view, names))
+			end
+		end
 		local view = StateStore.view(queue.state)
 		syncTokens(view)
 		followActive(view)
@@ -502,6 +523,14 @@ local function boot()
 				if not ok then
 					sceneRunning = false
 					warn(`Cliente: falló el lote {due.seq}: {err}`)
+				end
+				-- Un resync que llegó durante la escena manda sobre la vista de ese lote: es más reciente.
+				local late = resyncGate.take()
+				if late ~= nil then
+					local applied: boolean, lateErr: any = (pcall :: any)(applyResync, late)
+					if not applied then
+						warn(`Cliente: falló el resync aplazado: {lateErr}`)
+					end
 				end
 			else
 				task.wait(TICK_SEC)
