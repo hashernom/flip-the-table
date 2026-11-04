@@ -25,6 +25,7 @@
 - Confirma las condiciones de uso comercial antes de generar audio o ilustraciones.
 - Pide un revisor nuevo para toda la rama antes de cerrar.
 - Termina cuando se puede jugar toda la partida en móvil con la interfaz final, y el responsable la aprueba.
+- Al terminar (planes 06 a 09) existe la alpha, provisional y pendiente de confirmar por el responsable. Sobre ella se pasa la Puerta A, aplazada desde la subfase 05 (`docs/02-mvp/resultados/puerta-a.md`).
 
 ## Global Constraints
 
