@@ -137,6 +137,10 @@ Scenes.botDelaySec = 0.6
 -- y arranca antes si ya están todos los que anuncia el dato de entrada.
 Scenes.joinSec = 3
 
+-- Margen con el que el servidor acepta una acción antes de que acabe la escena (R-P39): cubre el
+-- desfase entre el reloj del cliente y el suyo, sin dejar que un cliente corte la escena del grupo.
+Scenes.actionGraceSec = 0.25
+
 -- Tope de un recorrido de ficha en la ciudad: sea cual sea la distancia, un turno no puede quedarse
 -- esperando a que la ficha cruce el mapa. Lo aplica `CameraRules.rideSeconds`.
 Scenes.maxRideSec = 4

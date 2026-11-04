@@ -46,6 +46,23 @@ local function tradesOf(state: Types.GameState): { any }
 	return pendingOf(state).trades
 end
 
+describe("Trade: tope de ofertas abiertas", function()
+	it("rechaza pasar del tope sin guardar nada", function()
+		local s = Fixtures.game({ players = 3 })
+		local from = inTurn(s)
+		local to = otherThan(s, from.id)
+		local offer: TradeOffer =
+			{ toId = to.id, giveCash = 1, wantCash = 0, giveSquares = {}, wantSquares = {} }
+		for _ = 1, Economy.maxOpenOffers do
+			expect(Engine.apply(s, from.id, { type = "ProposeTrade", offer = offer }).ok).toBe(true)
+		end
+		expect(rejected(Engine.apply(s, from.id, { type = "ProposeTrade", offer = offer }))).toBe(
+			"Tienes demasiadas ofertas abiertas"
+		)
+		expect(#tradesOf(s)).toBe(Economy.maxOpenOffers)
+	end)
+end)
+
 -- Las primeras `count` casillas de propiedad, en orden de tablero.
 local function propertySquares(state: Types.GameState, count: number): { number }
 	local squares: { number } = {}

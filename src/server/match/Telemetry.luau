@@ -136,7 +136,7 @@ local function record(match: Match)
 	end
 	recorded[match] = true
 	local observations = match.matchState.observations
-	local endedAt = observations.endedAt or time()
+	local endedAt = observations.endedAt or MatchService.now()
 	local ordinal = ordinals[match]
 	local summary = MatchSummary.fromState(
 		match.state,

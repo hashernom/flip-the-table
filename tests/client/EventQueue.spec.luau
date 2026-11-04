@@ -5,9 +5,45 @@
 -- resincronización, y lote cuya escena ya terminó aplicado sin reproducirse.
 local Harness = require("../harness")
 local EventQueue = require("../../src/client/state/EventQueue")
+local Fixtures = require("../fixtures")
+local MatchState = require("../../src/server/match/MatchState")
+local SceneDirector = require("../../src/client/scenes/SceneDirector")
 local StateStore = require("../../src/client/state/StateStore")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
+
+-- R-P38: servidor y cliente hablan con el mismo reloj, y el cliente reproduce lo que programó el servidor.
+describe("EventQueue con los lotes reales del servidor", function()
+	-- Un instante de GetServerTimeNow() en noviembre de 2026.
+	local T = 1793750400
+
+	it("reproduce la escena entera y no adelanta el lote encadenado", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(T, state.phase, MatchState.decisionKey(state))
+		local playerId = state.players[1].id
+		local q = EventQueue.new()
+		local first =
+			MatchState.step(match, state, { { type = "CardPlayed", cardId = "Hurricane" } }, T + 1, false)
+		local second = MatchState.step(match, state, { { type = "DiceRolled" } }, T + 2, false)
+		EventQueue.push(q, MatchState.batch(state, first :: any, playerId) :: any)
+		EventQueue.push(q, MatchState.batch(state, second :: any, playerId) :: any)
+
+		local due = EventQueue.nextDue(q, T + 1) :: any
+		expect(due.seq).toBe(1)
+		local waited = 0
+		local director = SceneDirector.new({
+			wait = function(seconds: number)
+				waited += seconds
+			end,
+		})
+		SceneDirector.play(director, due, EventQueue.behindSec(due, T + 1))
+		expect(waited).toBe(10)
+
+		-- El segundo lote espera a que acabe Huracán, aunque llegara un segundo después.
+		expect(EventQueue.nextDue(q, T + 10)).toBe(nil)
+		expect((EventQueue.nextDue(q, T + 11) :: any).seq).toBe(2)
+	end)
+end)
 
 -- Vista mínima: lo que se comprueba es que viaja y se guarda tal cual, no su contenido. El tipo del
 -- contrato es PlayerView; para la prueba basta una tabla identificable.

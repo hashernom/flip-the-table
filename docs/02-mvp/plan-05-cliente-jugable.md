@@ -267,8 +267,9 @@ comprobó de verdad.
 **Pendiente y por qué:**
 
 - **Dos clientes a menos de 250 ms.** Necesita un Test Server con dos clientes conectados a la vez;
-  no se ejecutó. Lo que sí está es el mecanismo: el cliente espera el lote hasta `batch.startsAt` con
-  el reloj del servidor y no lo arranca al recibirlo.
+  no se ejecutó. El mecanismo que se describía aquí no funcionaba: el servidor mandaba `time()` y el
+  cliente comparaba con `GetServerTimeNow()`, así que cada escena duraba 0,2 s. Se corrigió después
+  (R-P38 a R-P41 en la arquitectura); sigue sin medirse con dos clientes.
 - **Los emotes entre dos clientes** y **una partida completa de principio a fin** necesitan una
   partida real: en esta sesión la partida se simuló desde el servidor para poder mirar la interfaz,
   porque `MatchService` necesita dos jugadores y el lugar no está publicado.

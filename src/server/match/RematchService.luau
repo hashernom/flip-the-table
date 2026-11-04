@@ -196,11 +196,11 @@ end
 local function runWindow(match: Match)
 	votes = {}
 	windowMatch = match
-	local deadline = math.max(match.matchState.sceneEndsAt, time()) + Scenes.rematchSec
+	local deadline = math.max(match.matchState.sceneEndsAt, MatchService.now()) + Scenes.rematchSec
 	while windowMatch == match do
 		local present = presentOf(match)
 		local decision: Decision = RematchRules.resolve(votes, present)
-		if decision == "Wait" and time() >= deadline then
+		if decision == "Wait" and MatchService.now() >= deadline then
 			decision = RematchRules.resolve(cappedVotes(votes, present), present)
 		end
 		if decision ~= "Wait" then
@@ -252,7 +252,7 @@ function RematchService.start()
 	RemoteGateway.remote(Protocol.REMOTES.Rematch).OnServerEvent:Connect(function(player: Player, packet: any)
 		-- El limitador va antes de validar, igual que en RemoteGateway: un cliente que inunda con
 		-- paquetes malformados tampoco puede obligar a recorrer nada.
-		if not limiter.allow(tostring(player.UserId), time()) then
+		if not limiter.allow(tostring(player.UserId), MatchService.now()) then
 			return
 		end
 		local ok: boolean, valid: any = (pcall :: any)(function(): boolean

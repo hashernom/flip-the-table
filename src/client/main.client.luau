@@ -58,7 +58,6 @@ local function boot()
 	local StateStore = require("./state/StateStore")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
-	local Scenes = require("../shared/config/Scenes")
 	local ActionMenu = require("./ui/ActionMenu")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
@@ -335,6 +334,15 @@ local function boot()
 		perkMenu.setView(view)
 	end
 
+	-- Durante una escena no se decide nada (R-P39): el servidor descartaría el clic. Los menús vuelven
+	-- con la vista del lote, al terminar la escena.
+	local function hideMenus()
+		actionMenu.setLegal({}, nil)
+		voteMenu.close()
+		perkMenu.close()
+		hud.setDeadline(nil)
+	end
+
 	-- Lotes del servidor. El primero de todos llega con `seq = 0`: es la vista inicial, no un lote nuevo
 	-- (R-P25), y se aplica sin reproducir nada.
 	eventBatch.OnClientEvent:Connect(function(batch: any)
@@ -346,6 +354,7 @@ local function boot()
 			syncTokens(batch.view)
 			applyView(batch.view)
 			followActive(batch.view)
+			hud.setDeadline(batch.decisionDeadline)
 			return
 		end
 		if EventQueue.push(queue, batch) == "Gap" then
@@ -363,6 +372,7 @@ local function boot()
 		syncTokens(batch.view)
 		applyView(batch.view)
 		followActive(batch.view)
+		hud.setDeadline(batch.decisionDeadline)
 	end)
 
 	-- Bucle del cliente: entrega los lotes cuando les toca, aplica su estado y reproduce sus escenas.
@@ -372,18 +382,23 @@ local function boot()
 			local due = EventQueue.nextDue(queue, now)
 			if due ~= nil then
 				StateStore.apply(queue.state, due)
-				applyView(due.view)
+				local events = due.events
+				if events ~= nil and #events > 0 then
+					hideMenus()
+				end
 				sceneRunning = true
 				-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
 				-- lo que el grupo ya vio.
 				SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 				sceneRunning = false
 				hud.setBanner("")
+				-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
+				applyView(due.view)
 				local view = StateStore.view(queue.state)
 				syncTokens(view)
 				followActive(view)
 				if view ~= nil and view.phase ~= "GameOver" then
-					hud.setDeadline(Workspace:GetServerTimeNow() + Scenes.decisionSeconds(view.phase))
+					hud.setDeadline(due.decisionDeadline)
 				else
 					hud.setDeadline(nil)
 				end

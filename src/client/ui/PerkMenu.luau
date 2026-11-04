@@ -5,6 +5,8 @@ local Theme = require("./Theme")
 
 export type Handles = {
 	setView: (view: any) -> (),
+	-- Cierra la ventana mientras dura una escena (R-P39); la siguiente vista decide si se reabre.
+	close: () -> (),
 	destroy: () -> (),
 }
 
@@ -56,6 +58,9 @@ function PerkMenu.create(playerGui: Instance, send: (action: any) -> ()): Handle
 			-- El draft se abre solo y se cierra solo: en cuanto la fase deja de ser la suya, la partida
 			-- ya eligió y la ventana no puede quedarse tapando la mesa.
 			modal.setOpen(view.phase == "PerkDraft")
+		end,
+		close = function()
+			modal.setOpen(false)
 		end,
 		destroy = function()
 			modal.gui:Destroy()

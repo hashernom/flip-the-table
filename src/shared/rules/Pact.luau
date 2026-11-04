@@ -132,6 +132,16 @@ function Pact.proposeReason(state: GameState, fromId: PlayerId, toId: any, round
 	if state.players[state.turnIndex].id ~= fromId then
 		return "No es tu turno"
 	end
+	-- R-P41: cada oferta viaja en la vista de toda la mesa, así que su número tiene tope.
+	local open = 0
+	for _, offer: PactOffer in pendingOf(state).pactOffers or {} do
+		if offer.fromId == fromId then
+			open += 1
+		end
+	end
+	if open >= Economy.maxOpenOffers then
+		return "Tienes demasiadas ofertas abiertas"
+	end
 	if type(toId) ~= "string" then
 		return "La oferta no es válida"
 	end

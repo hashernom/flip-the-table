@@ -199,11 +199,26 @@ describe("SceneClock", function()
 
 	it("acorta las repeticiones del mismo tipo de evento", function()
 		local clock = SceneClock.new()
+		-- Cada lote llega cuando el anterior ya acabó: se mide solo lo que dura la escena.
 		local first = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 0)
-		local second = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 0)
-		local third = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 0)
+		local second = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 100) - 100
+		local third = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 200) - 200
 		expect(second < first).toBeTruthy()
 		expect(third <= second).toBeTruthy()
+	end)
+
+	it("un lote que llega durante una escena empieza cuando esta acaba", function()
+		local clock = SceneClock.new()
+		-- Huracán dura 10 s y un dado recién visto, 2 s.
+		expect(SceneClock.schedule(clock, { cardEvent("Hurricane") }, 100)).toBe(110)
+		expect(SceneClock.schedule(clock, { { type = "DiceRolled" } }, 101)).toBe(112)
+	end)
+
+	it("un lote sin eventos no adelanta el final de la escena en curso", function()
+		local clock = SceneClock.new()
+		SceneClock.schedule(clock, { cardEvent("Hurricane") }, 100)
+		expect(SceneClock.schedule(clock, {}, 101)).toBe(110)
+		expect(clock.endsAt).toBe(110)
 	end)
 
 	it("programa cada lote desde su propio instante", function()
@@ -238,6 +253,104 @@ describe("MatchState", function()
 		expect(step.sceneEndsAt).toBe(sceneEndsAt)
 		expect(step.decisionDeadline).toBe(sceneEndsAt + Scenes.decisionSeconds(state.phase))
 		expect(match.observations.sceneSec).toBe(Scenes.durationFor(events[1], 0))
+	end)
+
+	-- R-P40: el plazo solo vuelve a empezar con una decisión nueva.
+	it("proponer en bucle no alarga el plazo del turno", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(20)
+		expect(stepOf(match, state, {}, 19.5, false).decisionDeadline).toBe(20)
+	end)
+
+	it("cada puja deja el cierre de la subasta donde estaba", function()
+		local state = Fixtures.game({ players = 3 })
+		state.phase = "Auction"
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		expect(stepOf(match, state, {}, 14, false).decisionDeadline).toBe(15)
+	end)
+
+	it("una escena dentro de la misma decisión solo suma lo que dura", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		-- Un dado recién visto dura 2 s: al jugador le quedan los mismos 15 s al acabar la escena.
+		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
+		expect(step.sceneEndsAt).toBe(7)
+		expect(step.decisionDeadline).toBe(22)
+	end)
+
+	it("una decisión nueva da el plazo completo al acabar la escena", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		state.phase = "AwaitEnd"
+		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
+		expect(step.decisionDeadline).toBe(27)
+	end)
+
+	it("cambiar de turno da el plazo completo aunque no haya eventos", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		state.turnIndex = state.turnIndex % 3 + 1
+		expect(stepOf(match, state, {}, 5, false).decisionDeadline).toBe(25)
+	end)
+
+	it("elegir rival en el Duelo da su plazo a la jugada", function()
+		local state = Fixtures.game({ players = 3 })
+		state.phase = "Duel"
+		local pending = state.pending :: any
+		pending.duel = { challengerId = state.players[1].id, picks = {}, round = 1 }
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		pending.duel.rivalId = state.players[2].id
+		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(39)
+		-- La jugada de un participante ya no reinicia nada.
+		pending.duel.picks[state.players[1].id] = "Rock"
+		expect(stepOf(match, state, {}, 30, false).decisionDeadline).toBe(39)
+	end)
+
+	it("cada elección del borrador da su plazo al siguiente", function()
+		local state = Fixtures.game({ players = 3 })
+		state.phase = "PerkDraft"
+		local pending = state.pending :: any
+		pending.draft =
+			{ order = { state.players[1].id, state.players[2].id }, index = 1, offer = { "Banker" } }
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		pending.draft.index = 2
+		expect(stepOf(match, state, {}, 10, false).decisionDeadline).toBe(30)
+	end)
+
+	-- R-P39: las escenas no se solapan.
+	it("un lote durante una escena empieza al acabarla y sin eventos no la adelanta", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		local huge = stepOf(match, state, { cardEvent("Hurricane") }, 100, false)
+		expect(huge.startsAt).toBe(100)
+		expect(huge.sceneEndsAt).toBe(110)
+		local quiet = stepOf(match, state, {}, 101, false)
+		expect(quiet.startsAt).toBe(110)
+		expect(quiet.sceneEndsAt).toBe(110)
+		expect(match.sceneEndsAt).toBe(110)
+		expect(match.observations.sceneSec).toBe(10)
+	end)
+
+	it("descarta acciones de cliente hasta que acaba la escena, con margen", function()
+		local state = Fixtures.game({ players = 3 })
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		stepOf(match, state, { cardEvent("Hurricane") }, 100, false)
+		expect(MatchState.acceptsAction(match, 101)).toBe(false)
+		expect(MatchState.acceptsAction(match, 110 - Scenes.actionGraceSec - 0.01)).toBe(false)
+		expect(MatchState.acceptsAction(match, 110 - Scenes.actionGraceSec)).toBe(true)
+		expect(MatchState.acceptsAction(match, 111)).toBe(true)
+	end)
+
+	it("el lote y el resync llevan el plazo vigente", function()
+		local state = Fixtures.game({ players = 3 })
+		local playerId = state.players[1].id
+		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
+		expect(MatchState.resync(match, state, playerId, 0).decisionDeadline).toBe(20)
+		state.phase = "AwaitEnd"
+		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
+		expect(MatchState.batch(state, step, playerId).decisionDeadline).toBe(27)
+		expect(MatchState.resync(match, state, playerId, 6).decisionDeadline).toBe(27)
 	end)
 
 	it("usa el plazo de la fase al cerrar la escena", function()

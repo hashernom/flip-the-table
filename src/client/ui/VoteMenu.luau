@@ -5,6 +5,8 @@ local Theme = require("./Theme")
 
 export type Handles = {
 	setView: (view: any) -> (),
+	-- Cierra la ventana mientras dura una escena (R-P39); la siguiente vista decide si se reabre.
+	close: () -> (),
 	destroy: () -> (),
 }
 
@@ -86,6 +88,9 @@ function VoteMenu.create(playerGui: Instance, send: (action: any) -> ()): Handle
 			if voting then
 				rebuild(view)
 			end
+		end,
+		close = function()
+			modal.setOpen(false)
 		end,
 		destroy = function()
 			modal.gui:Destroy()

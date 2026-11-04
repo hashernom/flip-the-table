@@ -7,6 +7,9 @@ return {
 	-- Acciones por segundo y jugador que acepta `Protocol.newLimiter` en el servidor. Lo que
 	-- sobra se descarta sin tocar el motor.
 	actionsPerSecond = 10,
+	-- Intercambios, y aparte pactos, que un jugador puede tener abiertos a la vez (R-P41). Da para
+	-- proponer a los siete rivales y una más; cada oferta viaja en la vista de toda la mesa.
+	maxOpenOffers = 8,
 	minPropertyPrice = 60,
 	maxPropertyPrice = 400,
 	priceStep = 10,
