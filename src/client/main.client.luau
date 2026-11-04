@@ -404,6 +404,7 @@ local function boot()
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
 			EventQueue.resync(queue, batch.view, 0)
+			rematchMenu.setResult({})
 			SceneDirector.reset(scenes)
 			syncTokens(batch.view)
 			applyView(batch.view)
@@ -482,6 +483,12 @@ local function boot()
 		hud.setBanner("")
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
+		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
+		for _, event in events or {} do
+			if event.type == "GameEnded" then
+				rematchMenu.setResult(ViewText.podiumLines(event, due.view, names))
+			end
+		end
 		local view = StateStore.view(queue.state)
 		syncTokens(view)
 		followActive(view)

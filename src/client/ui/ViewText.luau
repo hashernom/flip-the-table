@@ -12,6 +12,7 @@ local Cards = require("../../shared/config/Cards")
 local Economy = require("../../shared/config/Economy")
 local Perks = require("../../shared/config/Perks")
 local Property = require("../../shared/rules/Property")
+local Score = require("../../shared/rules/Score")
 local Squares = require("../../shared/rules/Squares")
 local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
@@ -405,6 +406,31 @@ function ViewText.headline(view: any, names: Names?): string
 		return "Fin de la partida"
 	end
 	return `Turno de {turnName}`
+end
+
+-- Podio del final con el evento `GameEnded`: el ganador, la clasificación en el orden del motor
+-- (patrimonio, luego efectivo) y los premios con su nombre. Sin evento, no hay podio. `view` sirve para
+-- resolver nombres: es la vista de la mesa al acabar, con todos sus asientos.
+function ViewText.podiumLines(event: any, view: any, names: Names?): { string }
+	local lines: { string } = {}
+	if event == nil then
+		return lines
+	end
+	if event.winnerId ~= nil then
+		table.insert(lines, `Ganador: {ViewText.playerName(view, names, event.winnerId)}`)
+	end
+	-- `ranking` es la lista de ids en orden. El patrimonio se calcula con la misma fórmula del motor
+	-- sobre la vista final, que ya lleva dinero, casillas y niveles de todos.
+	local final =
+		{ board = ViewText.board(view.sizeId), players = view.players, properties = view.properties }
+	for position, id in event.ranking or {} do
+		local name = ViewText.playerName(view, names, id)
+		table.insert(lines, `{position}. {name} · patrimonio {Score.netWorth(final :: any, id)}`)
+	end
+	for _, award in event.awards or {} do
+		table.insert(lines, `{Strings.award(award.id)}: {ViewText.playerName(view, names, award.playerId)}`)
+	end
+	return lines
 end
 
 return ViewText
