@@ -137,6 +137,10 @@ Scenes.botDelaySec = 0.6
 -- y arranca antes si ya están todos los que anuncia el dato de entrada.
 Scenes.joinSec = 3
 
+-- Tope de un recorrido de ficha en la ciudad: sea cual sea la distancia, un turno no puede quedarse
+-- esperando a que la ficha cruce el mapa. Lo aplica `CameraRules.rideSeconds`.
+Scenes.maxRideSec = 4
+
 -- Ventana de la revancha: segundos que el grupo tiene para decidir si juega otra partida en el
 -- mismo servidor cuando la anterior termina. La cuenta atrás empieza al acabar la escena final y la
 -- cierra el servicio, no la regla (contracts.md, «Revancha»).
