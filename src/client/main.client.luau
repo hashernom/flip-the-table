@@ -76,6 +76,23 @@ local function boot()
 	local perkMenu = PerkMenu.create(playerGui, function() end)
 	local lobbyMenu = LobbyMenu.create(playerGui, function() end)
 
+	-- Un trato o un pacto necesitan más datos que un botón: el menú de acciones abre su ventana en vez
+	-- de mandar una acción incompleta que el servidor rechazaría.
+	local OPENERS: { [string]: () -> () } = {
+		ProposeTrade = function()
+			tradeMenu.setOpen(true)
+		end,
+		ProposePact = function()
+			pactMenu.setOpen(true)
+		end,
+		RespondPact = function()
+			pactMenu.setOpen(true)
+		end,
+		BreakPact = function()
+			pactMenu.setOpen(true)
+		end,
+	}
+
 	local scenes = SceneDirector.new({
 		wait = function(seconds: number)
 			task.wait(seconds)
@@ -215,6 +232,11 @@ local function boot()
 	if actionRemote and actionRemote:IsA("RemoteEvent") then
 		local actionEvent = actionRemote :: RemoteEvent
 		actionMenu.onAction(function(action: any)
+			local opener = OPENERS[action.type]
+			if opener ~= nil then
+				opener()
+				return
+			end
 			actionEvent:FireServer(action)
 		end)
 	else
@@ -226,8 +248,17 @@ local function boot()
 	local overviewWanted = false
 	hud.onOverview(function()
 		overviewWanted = not overviewWanted
-		overview.setOpen(overviewWanted)
 		director.requestOverview(overviewWanted)
+	end)
+
+	-- La maqueta se abre y se cierra con el modo de cámara, no con el botón: si el jugador la pide
+	-- justo cuando empieza una escena, la petición queda guardada y se abre al terminar. Una escena no
+	-- se interrumpe nunca.
+	task.spawn(function()
+		while true do
+			overview.setOpen(overviewWanted and director.mode() == "Overview")
+			task.wait(0.1)
+		end
 	end)
 
 	if emoteRemote and emoteRemote:IsA("RemoteEvent") then

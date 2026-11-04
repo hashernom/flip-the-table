@@ -5,6 +5,9 @@ local Theme = require("./Theme")
 
 export type Handles = {
 	setView: (view: any) -> (),
+	-- Abre o cierra la ventana. El menú de acciones la abre cuando su botón pide un trato o un pacto:
+	-- esas acciones necesitan más datos de los que cabe en un botón.
+	setOpen: (open: boolean) -> (),
 	destroy: () -> (),
 }
 
@@ -144,6 +147,9 @@ function TradeMenu.create(playerGui: Instance, send: (action: any) -> ()): Handl
 				return
 			end
 			rebuild(view)
+		end,
+		setOpen = function(open: boolean)
+			modal.setOpen(open)
 		end,
 		destroy = function()
 			modal.gui:Destroy()
