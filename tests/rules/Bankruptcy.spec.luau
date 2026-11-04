@@ -188,7 +188,7 @@ describe("Bankruptcy.charge", function()
 		-- R11: con dos jugadores, la bancarrota de uno cierra la partida en ese instante.
 		local expected: { Types.Event } = {
 			{ type = "BankruptcyDeclared", playerId = a.id, creditorId = b.id },
-			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id },
+			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id, awards = {} },
 		}
 		expect(events).toEqual(expected)
 	end)
@@ -217,7 +217,7 @@ describe("Bankruptcy.charge", function()
 		-- Sin acreedor el banco no cobra, pero la partida termina igualmente (R11).
 		local expected: { Types.Event } = {
 			{ type = "BankruptcyDeclared", playerId = a.id },
-			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id },
+			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = b.id, awards = {} },
 		}
 		expect(events).toEqual(expected)
 	end)
@@ -270,16 +270,21 @@ describe("Property.payRent con bancarrota", function()
 		local idx = propertyWithPrice(s, 1, 200)
 		Fixtures.give(s, owner.id, idx)
 		payer.cash = 5
-		local rent = Property.rentFor(s, idx)
 		local events = Property.payRent(s, payer.id, idx)
 		expect(payer.status).toBe("Ghost")
 		expect(payer.cash).toBe(0)
 		expect(owner.cash).toBe(Economy.startingCash + 5)
+		-- R-P45: RentPaid anuncia lo que cobró el dueño, y esa renta ya cuenta para los premios.
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "RentPaid", index = idx, from = payer.id, to = owner.id, amount = rent },
+			{ type = "RentPaid", index = idx, from = payer.id, to = owner.id, amount = 5 },
 			{ type = "BankruptcyDeclared", playerId = payer.id, creditorId = owner.id },
-			{ type = "GameEnded", ranking = Score.ranking(s), winnerId = owner.id },
+			{
+				type = "GameEnded",
+				ranking = Score.ranking(s),
+				winnerId = owner.id,
+				awards = { { id = "VictimOfTheNight", playerId = payer.id } },
+			},
 		}
 		expect(events).toEqual(expected)
 	end)

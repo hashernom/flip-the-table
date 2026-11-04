@@ -134,6 +134,11 @@ local manifestOk, manifestErr = pcall(function()
 	local Manifest = require("./manifest")
 	local manifest = serde.decode("json", fs.readFile(MANIFEST_PATH))
 	local problems = Manifest.validate(manifest)
+	for _, path in luauFiles("src", {}) do
+		for _, problem in Manifest.sourceProblems(manifest, path, fs.readFile(path)) do
+			table.insert(problems, problem)
+		end
+	end
 	if #problems > 0 then
 		error(`{table.concat(problems, "\n  ")}`, 0)
 	end

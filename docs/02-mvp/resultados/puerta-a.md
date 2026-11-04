@@ -19,8 +19,10 @@ pregunta: **¿un grupo de amigos pide la revancha al terminar?**
 
 ## Qué está listo
 
-- El prototipo gris se juega de principio a fin con menús: comprar, pujar, construir, cartas, perks,
-  tratos, pactos, votos, duelos, mercado y turno de espectro.
+- El prototipo gris tiene menús para comprar, pujar, construir, cartas, perks, tratos, pactos, votos,
+  duelos, mercado y turno de espectro, pero **todavía no se puede jugar de principio a fin**: la
+  [segunda auditoría](../../../auditoria/auditoria-2026-11-04-segunda-pasada.md) encontró botones sin
+  distinguir y puja rota (B4, B5, B6 y B8), pendientes del rediseño de la interfaz.
 - Todo el grupo ve la misma escena, con las duraciones reales de `config/Scenes`, y una escena nunca
   se interrumpe con la vista general.
 - Primera persona sobre la ficha, vista general con un botón, sin movimiento libre, emotes con botón.

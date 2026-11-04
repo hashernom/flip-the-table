@@ -134,6 +134,9 @@ local function returnToLobby(players: { Player }, reason: string)
 	end
 end
 
+-- Devuelve al lobby a quien no tiene sitio en este servidor: el grupo no llegó o la partida ya empezó.
+RematchService.sendToLobby = returnToLobby
+
 -- Cierra la ventana: quien no votó cuenta como que no acepta. Así el límite de tiempo usa la misma
 -- regla que el resto y el mínimo de aceptaciones no se repite fuera de RematchRules.
 local function cappedVotes(votesIn: { [number]: boolean }, present: { number }): { [number]: boolean }

@@ -1,6 +1,6 @@
 # Contenido del tablero: zonas, colores y propiedades
 
-Fuente de verdad de los nombres, colores, tramas y precios del tablero de Metrópolis de Noche. Son **12 zonas y 34 propiedades**; cada zona tiene 2 o 3 propiedades y cada barrio agrupa dos o más zonas.
+Fuente de verdad de los nombres, colores, tramas y precios del tablero de Metrópolis. Son **12 zonas y 34 propiedades**; cada zona tiene 2 o 3 propiedades y cada barrio agrupa dos o más zonas.
 
 Todos los nombres y colores son propios: no se usan los del juego original ni sus nombres de propiedades.
 

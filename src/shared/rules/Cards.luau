@@ -252,9 +252,9 @@ local function zoneReason(state: GameState, cardId: string, args: PlayArgs): str
 	return nil
 end
 
--- Apagón y Terremoto: la zona debe existir en el tablero.
-local function blackoutReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
-	return zoneReason(state, "Blackout", args)
+-- Huelga y Terremoto: la zona debe existir en el tablero.
+local function strikeReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
+	return zoneReason(state, "Strike", args)
 end
 
 local function earthquakeReason(state: GameState, _playerId: PlayerId, args: PlayArgs): string?
@@ -395,18 +395,12 @@ local function inflation(
 	})
 end
 
--- Apagón: una zona no cobra renta durante Economy.cards.blackoutRounds rondas.
-local function blackout(
-	state: GameState,
-	_player: Player,
-	_target: Player?,
-	_events: { Event },
-	args: PlayArgs
-)
+-- Huelga: una zona no cobra renta durante Economy.cards.strikeRounds rondas.
+local function strike(state: GameState, _player: Player, _target: Player?, _events: { Event }, args: PlayArgs)
 	table.insert(state.modifiers, {
-		kind = "Blackout",
+		kind = "Strike",
 		zoneId = args.zoneId :: string,
-		untilRound = state.round + Economy.cards.blackoutRounds - 1,
+		untilRound = state.round + Economy.cards.strikeRounds - 1,
 	})
 end
 
@@ -610,7 +604,7 @@ local EFFECTS: { [string]: EffectDef } = {
 	Bribe = { phases = TURN_PHASES, apply = bribe },
 	Spy = { phases = TURN_PHASES, apply = spy },
 	Inflation = { phases = TURN_PHASES, apply = inflation },
-	Blackout = { phases = TURN_PHASES, reason = blackoutReason, apply = blackout },
+	Strike = { phases = TURN_PHASES, reason = strikeReason, apply = strike },
 	DeedThief = { phases = TURN_PHASES, reason = deedThiefReason, apply = deedThief },
 	Backstab = { phases = TURN_PHASES, reason = backstabReason, apply = backstab },
 	Demolition = { phases = TURN_PHASES, reason = demolitionReason, apply = demolition },

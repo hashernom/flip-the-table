@@ -36,7 +36,7 @@ local EXPECTED: { ExpectedCard } = {
 		leaderOnly = true,
 	},
 	{ id = "Inflation", name = "Inflación", rarity = "Rare", target = "None", reaction = false },
-	{ id = "Blackout", name = "Apagón", rarity = "Rare", target = "Zone", reaction = false },
+	{ id = "Strike", name = "Huelga", rarity = "Rare", target = "Zone", reaction = false },
 	{ id = "BounceRent", name = "Renta Rebotada", rarity = "Rare", target = "Player", reaction = true },
 	{
 		id = "DeedThief",

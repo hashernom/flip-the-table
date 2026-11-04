@@ -16,7 +16,7 @@ export type Handles = {
 
 local EFFECTS: { [string]: string } = {
 	Inflation = "Inflación",
-	Blackout = "Huelga",
+	Strike = "Huelga",
 	Haunt = "Embrujo",
 	Discount = "Descuento",
 }

@@ -79,7 +79,7 @@ describe("Protocol.validate: rechaza entrada no válida", function()
 		{ type = "PlayCard" },
 		{ type = "PlayCard", cardId = 7 },
 		{ type = "PlayCard", cardId = "Fine", targetId = 7 },
-		{ type = "PlayCard", cardId = "Blackout", zoneId = 7 },
+		{ type = "PlayCard", cardId = "Strike", zoneId = 7 },
 		{ type = "PlayCard", cardId = "Demolition", index = 0 },
 		{ type = "PlayCard", cardId = "Backstab", pactId = 7 },
 		{ type = "PlayCard", cardId = "Fine", targetId = "P2", playerId = "P1" },

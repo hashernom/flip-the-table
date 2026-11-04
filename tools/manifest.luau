@@ -78,6 +78,11 @@ local function checkAsset(asset: Asset, id: string, problems: { string })
 		return
 	end
 
+	if type(asset.triangles) ~= "number" then
+		table.insert(problems, `{id}: los triángulos tienen que ser un número`)
+		return
+	end
+
 	if asset.triangles > budget.triangles then
 		table.insert(
 			problems,
@@ -155,6 +160,43 @@ function Manifest.unknownRefs(manifest: Manifest, refs: { string }): { string }
 		end
 	end
 	return missing
+end
+
+-- Ids de asset de Roblox que aparecen en un texto, sin repetir y en orden de aparición.
+function Manifest.assetRefs(source: string): { string }
+	local refs: { string } = {}
+	for ref in string.gmatch(source, "rbxassetid://%d+") do
+		if not table.find(refs, ref) then
+			table.insert(refs, ref)
+		end
+	end
+	return refs
+end
+
+-- Ids de asset que ninguna entrada del manifiesto registra en su `assetId`.
+function Manifest.unknownAssets(manifest: Manifest, refs: { string }): { string }
+	local known: { [string]: boolean } = {}
+	for _, asset in manifest.assets do
+		if asset.assetId ~= nil then
+			known[asset.assetId] = true
+		end
+	end
+	local missing: { string } = {}
+	for _, ref in refs do
+		if not known[ref] then
+			table.insert(missing, ref)
+		end
+	end
+	return missing
+end
+
+-- Problemas de un archivo de código: cada id de asset sin registrar, con el archivo donde está.
+function Manifest.sourceProblems(manifest: Manifest, path: string, source: string): { string }
+	local problems: { string } = {}
+	for _, ref in Manifest.unknownAssets(manifest, Manifest.assetRefs(source)) do
+		table.insert(problems, `{path}: {ref} no está en el manifiesto`)
+	end
+	return problems
 end
 
 return Manifest

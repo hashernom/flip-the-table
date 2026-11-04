@@ -282,13 +282,8 @@ local function boot()
 				previous(request)
 				return
 			end
-			if field == "PartyJoin" then
-				lobbyRemote:FireServer(request.code)
-			elseif field == "PartyStart" then
-				lobbyRemote:FireServer(request.endMode)
-			else
-				lobbyRemote:FireServer()
-			end
+			-- El servidor valida el paquete entero con Protocol.validateLobby: tipo y campos.
+			lobbyRemote:FireServer(request)
 		end
 	end
 

@@ -35,14 +35,19 @@ end
 -- Fallos posteriores a la llamada: la API avisa por TeleportInitFailed cuando el teletransporte se
 -- aceptó pero el jugador no llegó a salir. El evento entrega las opciones exactas del destino, así
 -- que reintentar al jugador no lo manda a otro servidor. Se acota por jugador con los intentos de
--- config; al agotarse, el fallo queda en el registro en vez de dejar al jugador en silencio.
-local function watchFailures()
+-- config; al agotarse, el jugador sigue en el lobby y `onGiveUp` se lo dice, en vez de dejarlo en
+-- silencio. Su contador vuelve a cero para que pueda intentarlo otra vez.
+local function watchFailures(onGiveUp: ((player: Player) -> ())?)
 	local failures: { [number]: number } = {}
 	TeleportService.TeleportInitFailed:Connect(function(player, result, message, placeId, options)
 		local count = (failures[player.UserId] or 0) + 1
 		failures[player.UserId] = count
 		if count > Lobby.teleportAttempts then
 			warn(`Teleport: no se pudo llevar a {player.Name}: {tostring(result)} {message}`)
+			failures[player.UserId] = nil
+			if onGiveUp ~= nil then
+				onGiveUp(player)
+			end
 			return
 		end
 		task.wait(Lobby.teleportRetrySec)
@@ -60,8 +65,8 @@ end
 
 -- Implementación real. `matchPlaceId` es el lugar de partida: quien monta el servidor lo lee de
 -- config y comprueba antes que esté publicado (R-P31).
-function Teleport.live(matchPlaceId: number): Teleport
-	watchFailures()
+function Teleport.live(matchPlaceId: number, onGiveUp: ((player: Player) -> ())?): Teleport
+	watchFailures(onGiveUp)
 	return {
 		reserve = function(players: { Player }, data: LobbyRules.MatchData): (boolean, string?)
 			if #players == 0 then

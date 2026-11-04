@@ -150,6 +150,13 @@ function View.filterEvents(_state: GameState, playerId: PlayerId, events: { Even
 		if DRAWN_CARD_EVENTS[viewEvent.type] == true and viewEvent.playerId ~= playerId then
 			viewEvent.cardId = nil
 		end
+		-- Comprar en el Mercado mete la carta en la mano: es tan secreta como una robada. El precio
+		-- también se oculta porque la oferta es pública y lleva una carta por rareza a un precio
+		-- distinto, así que delataría cuál fue.
+		if viewEvent.type == "MarketBought" and viewEvent.playerId ~= playerId then
+			viewEvent.cardId = nil
+			viewEvent.price = nil
+		end
 		table.insert(filtered, viewEvent)
 	end
 	return filtered

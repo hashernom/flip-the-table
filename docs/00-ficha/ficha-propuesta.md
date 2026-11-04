@@ -347,6 +347,6 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 
 - [ ] Elegir el nombre definitivo y comprobar que esté disponible.
 - [ ] Re-medir las rondas con los tableros de 40, 48 y 56.
-- [ ] Renombrar el id `Blackout` del motor a `Strike`: la ficción de la carta pasa a Huelga.
+- [x] Renombrar el id `Blackout` del motor a `Strike`: la ficción de la carta pasa a Huelga.
 
 Fuente de la norma de azar: [guía de experiencias de Roblox](https://create.roblox.com/docs/production/promotion/experience-guidelines), consultada el 1 de noviembre de 2026.

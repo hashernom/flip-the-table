@@ -137,7 +137,8 @@ function Deck.add(state: GameState, playerId: PlayerId, cardId: string): { Event
 	if #player.hand >= Deck.handLimit(player) then
 		-- R-P53: el bono de Coleccionista es dinero del banco y se apaga en la presión de Sin Fin
 		-- (excepción de ficha aprobada el 2026-11-02) para que la partida avance hacia un final.
-		if Perks.has(player, "Collector") and not pressureOf(state) then
+		-- Un espectro está fuera del circuito de dinero: sabotear con la mano llena no le paga.
+		if player.status == "Active" and Perks.has(player, "Collector") and not pressureOf(state) then
 			player.cash += Economy.perks.collectorBonus
 			Perks.recordUse(state, playerId, "Collector")
 		end

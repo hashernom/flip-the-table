@@ -14,6 +14,7 @@ local Protocol = require("../shared/net/Protocol")
 local Rng = require("../shared/rules/Rng")
 local Scenes = require("../shared/config/Scenes")
 local Types = require("../shared/rules/Types")
+local JoinRules = require("./match/JoinRules")
 local MatchService = require("./match/MatchService")
 local PresenceService = require("./match/PresenceService")
 local RematchService = require("./match/RematchService")
@@ -85,12 +86,16 @@ end
 
 local started = false
 local starting = false
-local deadline: number? = nil
+local firstSeenAt: number? = nil
+local minimumAt: number? = nil
 local joinData: JoinData? = nil
 
--- Intenta arrancar la partida con los jugadores presentes. Espera a que llegue el grupo hasta
--- Scenes.joinSec, o antes si ya están los que anuncia `size`. Con menos de 2 no arranca: el grupo
--- de una partida es de 2 a 8 (State.create lo vuelve a validar).
+-- Mensajes al jugador que no entra en la partida. El servicio de revancha añade el destino.
+local GROUP_MISSING = "No llegó el resto del grupo."
+local ALREADY_STARTED = "Esta partida ya empezó sin ti."
+
+-- Intenta arrancar la partida con los jugadores presentes. JoinRules decide si se sigue esperando al
+-- grupo, se empieza o se cancela porque nadie más va a llegar.
 local function tryStart()
 	if started or starting then
 		return
@@ -101,17 +106,30 @@ local function tryStart()
 		return
 	end
 	local players = Players:GetPlayers()
-	if #players < Lobby.minPlayers then
+	if #players == 0 then
 		return
 	end
 	local now = os.clock()
-	if deadline == nil then
-		deadline = now + Scenes.joinSec
+	if firstSeenAt == nil then
+		firstSeenAt = now
+	end
+	if #players >= Lobby.minPlayers and minimumAt == nil then
+		minimumAt = now
 	end
 	local data = joinData
-	local expected = if data ~= nil then data.size else nil
-	local complete = expected ~= nil and #players >= expected
-	if not complete and now < (deadline :: number) then
+	local since = minimumAt
+	local decision = JoinRules.decide({
+		present = #players,
+		expected = if data ~= nil then data.size else nil,
+		sinceFirst = now - (firstSeenAt :: number),
+		sinceMinimum = if since ~= nil then now - since else nil,
+	})
+	if decision == "Wait" then
+		return
+	end
+	if decision == "Abort" then
+		started = true
+		RematchService.sendToLobby(players, GROUP_MISSING)
 		return
 	end
 
@@ -179,6 +197,14 @@ Players.PlayerAdded:Connect(function(player: Player)
 		joinData = readJoinData(player)
 	end
 	tryStart()
+	-- Quien llega con la partida ya en marcha y sin asiento no tiene qué jugar; quien tenía asiento y
+	-- vuelve lo recupera en PresenceService. Se le espera un instante para que su cliente reciba el aviso.
+	local current = MatchService.current()
+	local seated: Player? = if current ~= nil then current.players[tostring(player.UserId)] else nil
+	if started and seated == nil then
+		task.wait(Scenes.joinSec)
+		RematchService.sendToLobby({ player }, ALREADY_STARTED)
+	end
 end)
 
 -- Sin un PlayerAdded más (el grupo ya está dentro o llegó incompleto), el plazo de espera debe

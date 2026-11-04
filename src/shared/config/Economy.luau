@@ -57,7 +57,7 @@ return {
 		discountMultiplier = 0.5,
 		-- Duración en rondas de las cartas raras; el modificador caduca después.
 		inflationRounds = 2,
-		blackoutRounds = 2,
+		strikeRounds = 2,
 		-- Porcentaje del efectivo del líder que reparte Golpe a la Corona, redondeado hacia abajo.
 		crownStrikeRate = 0.25,
 	},

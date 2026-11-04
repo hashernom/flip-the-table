@@ -1,6 +1,6 @@
 # Flip the Table: documentación
 
-Punto de entrada a toda la documentación del proyecto. El juego aún no se ha construido: estos documentos describen qué se va a construir y en qué orden.
+Punto de entrada a toda la documentación del proyecto: qué se construye y en qué orden. El motor, el servidor y un cliente gris ya existen (subfases 01 a 05, sin probar todavía con un grupo real); cada plan dice qué se comprobó de verdad.
 
 ## Cómo leer esto
 

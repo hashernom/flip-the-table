@@ -251,11 +251,13 @@ end
 
 -- Jugador al que le vence la decisión cuando el reloj cierra la fase. En el borrador elige a
 -- quien le toca (no siempre es el jugador en turno) y en la ventana de reacción contesta el
--- elegido por la carta o la renta. El resto de fases son del jugador en turno, también las
--- colectivas (subasta, duelo, tribunal), que se abren en su turno y se resuelven al vencer su
--- ventana. Lo usa MatchService para avisar a la presencia del asiento que acumuló el tiempo.
+-- elegido por la carta o la renta. El resto de fases son del jugador en turno, salvo las colectivas
+-- (subasta, duelo, tribunal): su reloj vence con normalidad y no es culpa de nadie en concreto, así
+-- que no cuenta para que un bot tome el control. Lo usa MatchService para avisar a la presencia del
+-- asiento que acumuló el tiempo.
 function MatchState.decidingPlayer(state: GameState): PlayerId?
-	if state.phase == "GameOver" then
+	local phase = state.phase
+	if phase == "GameOver" or phase == "Auction" or phase == "Tribunal" or phase == "Duel" then
 		return nil
 	end
 	if state.phase == "PerkDraft" then
