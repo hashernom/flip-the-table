@@ -1,0 +1,55 @@
+{
+  "_nota": "Foto del look que tiene hoy el banco de pruebas, tomada con script el 2026-11-04. La fuente de verdad es art/lookdev/look.luau, que además lo aplica; este archivo sirve para comparar y para ver el cambio en un diff. Si los dos no coinciden, manda el .luau.",
+  "lighting": {
+    "ClockTime": 10.6,
+    "GeographicLatitude": 41.7333,
+    "Brightness": 3.135,
+    "Ambient": [58, 62, 74],
+    "OutdoorAmbient": [112, 116, 128],
+    "ShadowSoftness": 0.2,
+    "GlobalShadows": true,
+    "EnvironmentDiffuseScale": 0.55,
+    "EnvironmentSpecularScale": 0.85,
+    "ExposureCompensation": 0,
+    "LightingStyle": "Realistic"
+  },
+  "effects": {
+    "Atmosphere": {
+      "Density": 0.26,
+      "Haze": 1.5,
+      "Offset": 0.1,
+      "Color": [208, 222, 242],
+      "Decay": [198, 170, 146],
+      "Glare": 0.1
+    },
+    "Bloom": { "Intensity": 0.45, "Threshold": 1.3, "Size": 22 },
+    "ColorCorrection": {
+      "Brightness": 0.01,
+      "Contrast": 0.18,
+      "Saturation": 1.02,
+      "TintColor": [255, 246, 232]
+    },
+    "DepthOfField": { "FarIntensity": 0.14, "FocusDistance": 60, "InFocusRadius": 110 }
+  },
+  "sky": {
+    "SkyboxFt": "rbxassetid://130728511009606",
+    "SkyboxBk": "rbxassetid://80764594111224",
+    "SkyboxLf": "rbxassetid://119522021872772",
+    "SkyboxRt": "rbxassetid://110426578506982",
+    "SkyboxUp": "rbxassetid://113330714001871",
+    "SkyboxDn": "rbxassetid://91237438205488",
+    "StarCount": 3000,
+    "SunAngularSize": 2,
+    "MoonAngularSize": 11
+  },
+  "materials": {
+    "BrickRedCC0": { "BaseMaterial": "Brick", "inUse": true },
+    "BrickWarmCC0": { "BaseMaterial": "Brick", "inUse": true },
+    "ConcreteCC0": { "BaseMaterial": "Concrete", "inUse": true },
+    "AsphaltCC0": { "BaseMaterial": "Asphalt", "inUse": true },
+    "LimestoneDia": { "BaseMaterial": "Limestone", "inUse": false },
+    "BrickDia": { "BaseMaterial": "Brick", "inUse": false },
+    "AsphaltDia": { "BaseMaterial": "Asphalt", "inUse": false },
+    "BrickCC0": { "BaseMaterial": "Brick", "inUse": false, "nota": "ColorMap obsoleto; no usar" }
+  }
+}

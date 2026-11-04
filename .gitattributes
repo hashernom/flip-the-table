@@ -1,9 +1,26 @@
+# En este archivo gana la ÚLTIMA regla que coincide, así que lo general va primero y lo concreto
+# después: las reglas de Git LFS del final son las que mandan en las rutas de arte.
+
 * text=auto eol=lf
+
+# Binarios: Git no los compara ni los mezcla.
 *.rbxl binary
 *.rbxm binary
-*.blend binary
-*.fbx binary
-*.png binary
-*.jpg binary
 *.ogg binary
 *.mp3 binary
+*.png binary
+*.jpg binary
+
+# Binarios pesados por Git LFS (ver art/PIPELINE.md §10).
+#
+# Los que ya estaban en el historial siguen ahí como objetos normales: LFS solo se aplica a las
+# versiones nuevas. Convertir el historial exige `git lfs migrate import`, que reescribe todos los
+# commits y obliga a force-push; no se hace sin decidirlo. Mientras tanto, esto evita que el
+# repositorio crezca con cada export.
+*.blend filter=lfs diff=lfs merge=lfs -text
+*.fbx filter=lfs diff=lfs merge=lfs -text
+art/textures/**/*.png filter=lfs diff=lfs merge=lfs -text
+art/textures/**/*.jpg filter=lfs diff=lfs merge=lfs -text
+art/skybox/*.png filter=lfs diff=lfs merge=lfs -text
+art/render/*.png filter=lfs diff=lfs merge=lfs -text
+art/render/*.jpg filter=lfs diff=lfs merge=lfs -text

@@ -22,11 +22,26 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
   único. Láminas en `art/identidad/direccion-a-componentes.png` y `direccion-a-giro.png`.
 - **Tres conceptos de barrio aprobados** (2026-11-02): cortes a escala real de Centro, Puerto y Zona
   Alta en `art/identidad/concepto-*.png`.
+- **Look versionado** (2026-11-04): `art/lookdev/look.luau` es la fuente de verdad de la luz, la
+  atmósfera, el post-proceso, el cielo y los ocho materiales, y se aplica con un comando en Studio.
+  `art/lookdev/look.json` es la foto del estado. Antes esto solo existía dentro del `.rbxl`, que no se
+  versiona: la luz estaba a un archivo perdido de desaparecer.
+
+## Resuelto después del 2026-11-02
+
+- **La escalera de cinco pasos ya está alineada** en los tres sitios que no coincidían: la ficha dice
+  «tres casas, hotel y rascacielos» (cinco pasos), `Economy.maxBuildingLevel = 5` con
+  `buildingRentMultiplier = { 2, 3, 5, 8, 12 }`, y `Building` la aplica al comprobar el nivel máximo.
+  El motor ya no está en tres niveles con `{ 3, 6, 10 }`.
+- **El look salió del `.rbxl`**: ver `art/lookdev/look.luau`.
+- **`asset-ids.json` completado** con los ids de `BrickDia`, `AsphaltDia` y los del ladrillo antiguo,
+  que existían en el place sin documentar.
 
 ## Decidido y no se reabre sin motivo
 
 - Escala: ficha 9, calzada 34, acera 7, frente de solar 18, planta 7. Ver `art/escala.md`.
-- Luz: día, `LightingStyle = Realistic`, `ClockTime` 9,4, `Ambient` 44/48/60. Ver `art/luz.md`.
+- Luz: día, `LightingStyle = Realistic`, `ClockTime` 10,6, `Ambient` 58/62/74. Ver `art/luz.md` y
+  `art/lookdev/look.luau`.
 - Manhattan de día con la Zona Alta de cristal y oro. **Sin neón nocturno.**
 - **Sin NPCs**: la ciudad se lee como maqueta de lujo, que es la fantasía del juego.
 - Identidad **A · Señalética** y su paleta, tipografía y componentes: `art/guia-de-estilo.md`.
@@ -34,15 +49,14 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 
 ## Lo que falta
 
-1. **Alinear ficha y motor con la escalera de cinco pasos** (solar → 3 casas → hotel → rascacielos).
-   El motor sigue en `maxBuildingLevel = 3` con multiplicadores `{3, 6, 10}` y la ficha todavía dice
-   «tres niveles». La tarjeta ya dibuja los cinco pasos. Bloquea la implementación de la interfaz.
-2. Verificar los albedos de `art/guia-de-estilo.md` §2.2 en el juego, con la luz real, antes de
-   modelar fachadas.
-3. Tres fachadas más, una por receta, para cerrar una hilera entera con mallas reales.
-4. Puerto y Zona Alta: existen en concepto, no en el juego.
-5. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
+1. Verificar los albedos de `art/guia-de-estilo.md` §2.2 en el juego, con la luz real, antes de
+   modelar fachadas. Lo que hay aplicado hoy son texturas CC0, no los albedos de la guía.
+2. Tres fachadas más, una por receta, para cerrar una hilera entera con mallas reales.
+3. Puerto y Zona Alta: existen en concepto, no en el juego.
+4. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
    inventar.
+5. La porción vertical de la Puerta B: `src/client/world/BuildingView` no existe, la escalera visual
+   de cinco pasos por solar tampoco, y la escena de arresto está a cero.
 
 ## Errores ya pagados, para no repetirlos
 
@@ -62,5 +76,8 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 1. `PRODUCT.md`, este archivo y `docs/00-ficha/ficha-propuesta.md`.
 2. `art/luz.md` y `art/escala.md` para no repetir decisiones ya tomadas.
 3. `art/PIPELINE.md` si hay que tocar assets.
-4. rt/guia-de-estilo.md es la fuente de la identidad: paleta, tipografía, componentes y barrios.
-5. El siguiente paso concreto está en «Lo que falta», punto 1.
+4. art/guia-de-estilo.md es la fuente de la identidad: paleta, tipografía, componentes y barrios.
+5. Si el place se perdió o hay que montarlo en otro sitio: `art/lookdev/build_lookdev.lua` levanta la
+   calle y `art/lookdev/look.luau` aplica la luz y los materiales. Con esos dos se reconstruye el banco
+   de pruebas; el `.rbxl` no se versiona.
+6. El siguiente paso concreto está en «Lo que falta», punto 1.

@@ -1,5 +1,5 @@
 {
-  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02. Las texturas CC0 salen de art/generators/fetch_cc0.ps1, la skybox de art/generators/pbr_assets.py y los modelos de art/blender/facade/build_facade.py subidos por Open Cloud. Si un asset se borra, se regenera, se sube y se actualiza este archivo.",
+  "_nota": "Ids subidos a la cuenta del responsable el 2026-11-02 y completados el 2026-11-04. Las texturas CC0 salen de art/generators/fetch_cc0.ps1, la skybox y las procedurales de art/generators/pbr_assets.py, y los modelos de art/blender/facade/build_facade.py subidos por Open Cloud. Qué materiales se montan con estos ids, y con qué luz, está en art/lookdev/look.luau, que es la fuente de verdad del look: aquí solo se registra qué es cada id. Si un asset se borra, se regenera, se sube y se actualiza este archivo.",
   "skybox": {
     "front": "rbxassetid://130728511009606",
     "back": "rbxassetid://80764594111224",
@@ -45,11 +45,32 @@
       "albedo": "rbxassetid://114375194063151",
       "roughness": "rbxassetid://128913742934911",
       "normal": "rbxassetid://130288238810852",
-      "nota": "Textura generada por código. Sustituible por CC0 cuando se decida el estilo de la Zona Alta."
+      "nota": "Textura generada por código (art/generators/pbr_assets.py). Material LimestoneDia. Sustituible por CC0 cuando se decida el estilo de la Zona Alta."
+    },
+    "brick_dia": {
+      "albedo": "rbxassetid://95607629939024",
+      "roughness": "rbxassetid://126002287634078",
+      "normal": "rbxassetid://138499103748415",
+      "nota": "Material BrickDia. Junto con asphalt_dia y limestone forman el juego «Dia». Ninguno de los tres está puesto en una pieza del banco de pruebas todavía."
+    },
+    "asphalt_dia": {
+      "albedo": "rbxassetid://102871027653708",
+      "roughness": "rbxassetid://131559911701324",
+      "normal": "rbxassetid://84109786110489",
+      "nota": "Material AsphaltDia, sin usar en el banco de pruebas."
+    }
+  },
+  "sin_uso": {
+    "_nota": "Materiales que existen en el place pero no están puestos en ninguna pieza. Se registran para no perder los ids; no deben usarse sin revisarlos antes.",
+    "brick_antiguo_BrickCC0": {
+      "color": "rbxassetid://117145705650698",
+      "normal": "rbxassetid://83484755331691",
+      "roughness": "rbxassetid://78452583129868",
+      "nota": "Su ColorMap está en la lista de obsoletos: es el ladrillo anterior. Para ladrillo, usar brick_red o brick_warm."
     }
   },
   "obsoletos_2026_11_02": {
-    "_nota": "Sustituidos al rehacer el cielo y el ladrillo. Se pueden borrar de la cuenta.",
+    "_nota": "Sustituidos al rehacer el cielo y el ladrillo. Se pueden borrar de la cuenta. El último sigue referenciado por el material BrickCC0, que no se usa.",
     "ids": [
       "rbxassetid://91487453005421",
       "rbxassetid://139623111065709",

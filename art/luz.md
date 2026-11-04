@@ -98,6 +98,41 @@ Ajustes que funcionaron con sombras reales: `ClockTime` 9,4, `Brightness` 2,45, 
 `ShadowSoftness` 0,18, sol con elevación de unos 48°, y la `Atmosphere` a 0,26 de densidad para que
 la bruma no se coma las sombras lejanas.
 
+## El preset vigente (2026-11-04)
+
+Aquella primera prueba se afinó después, cuando entraron la skybox y los materiales PBR. El look que
+tiene hoy el banco de pruebas **no es el de la lista de arriba**: es este.
+
+| Ajuste | Valor |
+| --- | --- |
+| `LightingStyle` | `Realistic` (manual) |
+| `ClockTime` | 10,6 |
+| `GeographicLatitude` | 41,73 |
+| `Brightness` | 3,14 |
+| `Ambient` | 58 / 62 / 74 |
+| `OutdoorAmbient` | 112 / 116 / 128 |
+| `ShadowSoftness` | 0,2 |
+| `EnvironmentDiffuseScale` | 0,55 |
+| `EnvironmentSpecularScale` | 0,85 |
+| `ExposureCompensation` | 0 |
+| `Atmosphere` | densidad 0,26 · bruma 1,5 · color 208/222/242 · decaimiento 198/170/146 |
+| `Bloom` | intensidad 0,45 · umbral 1,3 · tamaño 22 |
+| `ColorCorrection` | contraste 0,18 · saturación 1,02 · tinte 255/246/232 |
+| `DepthOfField` | lejanía 0,14 · foco 60 · radio 110 |
+
+Sigue dentro de la tabla de la sección 3 salvo en dos cosas, y conviene saberlo antes de tocarlas:
+`Brightness` 3,14 pasa del máximo de 2,6, y `ClockTime` 10,6 sale del margen «entre 8 y 10». El
+resultado con la skybox nueva y los ladrillos PBR es el que se ve en `art/render/`, así que se quedan
+así hasta que la Puerta B diga otra cosa. `ShadowSoftness` está en 0,2 y no en 0,6: con sombras
+reales, 0,6 las difumina tanto que dejan de leerse.
+
+**El look vive en el repositorio, no solo en el place.** `art/lookdev/look.luau` es la fuente de
+verdad y se ejecuta en la barra de comandos para recrear luz, atmósfera, post-proceso, cielo y los
+ocho materiales en cualquier place. `art/lookdev/look.json` es una foto del mismo estado, para
+comparar. Antes de esto, la luz y los `MaterialVariant` solo existían dentro del `.rbxl` del banco de
+pruebas, que no se versiona.
+
+
 ## Con assets: hasta dónde llega
 
 `art/render/lookdev-cielo-pbr.jpg` es la misma calle con la skybox y los tres sets PBR de

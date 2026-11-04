@@ -200,19 +200,31 @@ es una aprobación.
 
 Esto es lo que este documento **no** puede afirmar todavía:
 
-1. Importar el FBX en Studio y medir el tamaño resultante contra una pieza de referencia.
-2. Un asset con mapas PBR reales y su `SurfaceAppearance` en el juego.
+1. ~~Importar el FBX en Studio y medir el tamaño resultante contra una pieza de referencia.~~
+   **Hecho:** `facade_wall`, `facade_trim` y `facade_glass` se subieron por Open Cloud y están
+   colocados como `FacadeModel` en el banco de pruebas (`facade-reference`, `InGame` en el manifiesto).
+2. Un asset con mapas PBR **por `SurfaceAppearance`** en una malla del juego. Lo que sí está probado
+   son los `MaterialVariant` sobre piezas (§7.b), que es otro camino: los tres modelos de fachada
+   siguen sin su `SurfaceAppearance` aplicado.
 3. Intercambio de `_LOD1` en partida y su coste.
 4. FPS y memoria en el móvil de referencia, con 8 fichas en escena (Puerta B).
 
 ## 10. Repositorio
 
-`*.blend` y `*.fbx` son binarios y **no hay Git LFS configurado**. El blockout pesa unos 200 KB
-en total y no es problema, pero un `.blend` de una ciudad pesa cientos de megas y el historial no
-se puede deshacer. Antes de producir arte de verdad, decide una de dos:
+Los binarios pesados van por **Git LFS** desde el 2026-11-04. `.gitattributes` manda a LFS los
+`.blend`, los `.fbx`, y las texturas y capturas de `art/`. Los archivos que ya estaban en el historial
+siguen siendo objetos normales: LFS solo se aplica de aquí en adelante. Convertir lo viejo exige
+`git lfs migrate import`, que reescribe todos los commits y obliga a force-push, así que no se hace
+sin decidirlo.
 
-- activar `git lfs` para `*.blend`, `*.fbx` y texturas; o
-- dejar los `.blend` fuera del repositorio y guardar solo los exportables y el guion que los genera.
+Quedan dos decisiones de este apartado, ninguna urgente mientras el blockout sea procedural:
+
+- **Convertir el historial a LFS.** Hoy los binarios rondan los 22 MB, con tres `.fbx` de 2 a 3,3 MB.
+  No es un problema todavía; lo será cuando haya una ciudad modelada.
+- **Si el `.rbxl` entra al repositorio.** La luz y los materiales ya no dependen de él
+  (`art/lookdev/look.luau` los reproduce) y la calle se vuelve a levantar con
+  `art/lookdev/build_lookdev.lua`. Mientras esos dos scripts reconstruyan el place, guardar un `.rbxl`
+  de decenas de megas no aporta.
 
 Mientras el blockout sea procedural, lo que manda es el guion: los binarios se pueden borrar y
 regenerar con un comando.
