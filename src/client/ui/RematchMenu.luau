@@ -12,8 +12,6 @@ export type Handles = {
 	destroy: () -> (),
 }
 
-local MAX_WIDTH = 420
-
 local RematchMenu = {}
 
 function RematchMenu.create(playerGui: Instance): Handles
@@ -26,9 +24,7 @@ function RematchMenu.create(playerGui: Instance): Handles
 	panel.AutomaticSize = Enum.AutomaticSize.Y
 	panel.Visible = false
 
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(MAX_WIDTH, math.huge)
-	limit.Parent = panel
+	Theme.limitWidth(panel)
 
 	local status = Instance.new("TextLabel")
 	status.Name = "Status"

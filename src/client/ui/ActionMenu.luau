@@ -28,9 +28,15 @@ function ActionMenu.create(playerGui: Instance): Handles
 	local panel = Theme.panel(gui, "Bar", nil)
 	panel.AnchorPoint = Vector2.new(0.5, 1)
 	panel.Position = UDim2.new(0.5, 0, 1, -12)
-	panel.Size = UDim2.fromOffset(420, 0)
+	-- Ancho en fracción de la pantalla con tope: un panel de 420 px fijos se salía de un móvil estrecho.
+	panel.Size = UDim2.fromScale(0.9, 0)
 	panel.AutomaticSize = Enum.AutomaticSize.Y
 	panel.Visible = false
+	Theme.limitWidth(panel)
+
+	-- Los botones van en una lista con scroll de alto máximo: con muchas cartas la barra ya no se sale
+	-- de la pantalla, y la banda de puja queda siempre a la vista debajo.
+	local listFrame = Theme.scrollList(panel, "List", 1)
 
 	-- Banda de puja: solo aparece con una subasta en marcha. Los botones de paso van en una lista
 	-- horizontal: sin anchos ni posiciones fijas, la banda cabe en el ancho que tenga el panel.
@@ -157,7 +163,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 			panel.Visible = #list > 0 or (extras ~= nil and #(extras :: any) > 0)
 			for index, item in list do
 				if item.id == "BidConfirm" then
-					local button = Theme.button(panel, item.label, index, function()
+					local button = Theme.button(listFrame, item.label, index, function()
 						local range = bounds
 						if range ~= nil then
 							emit({ type = "Bid", amount = ActionMenuRules.clampBid(bid, range) })
@@ -168,7 +174,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 					table.insert(buttons, button)
 				else
 					local action = item.action
-					local button = Theme.button(panel, item.label, index, function()
+					local button = Theme.button(listFrame, item.label, index, function()
 						emit(action)
 					end)
 					button.Name = `Action_{index}_{item.id}`
@@ -180,7 +186,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 			if extras ~= nil then
 				for index, extra in extras do
 					local action = extra.action
-					local button = Theme.button(panel, extra.label, 500 + index, function()
+					local button = Theme.button(listFrame, extra.label, 500 + index, function()
 						emit(action)
 					end)
 					button.Name = `Action_Extra_{extra.id}`
