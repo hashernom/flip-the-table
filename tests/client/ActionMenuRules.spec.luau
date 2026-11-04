@@ -130,6 +130,15 @@ describe("ActionMenuRules.offerText", function()
 		expect(ActionMenuRules.offerText(trade)).toBe("100 + casillas 2, 3 por 200 + casilla 6")
 	end)
 
+	it("con un nombrador de casillas, las casillas salen por su nombre", function()
+		local trade =
+			offerFromEngine({ giveCash = 0, wantCash = 75, giveSquares = { 2, 3 }, wantSquares = {} })
+		local text = ActionMenuRules.offerText(trade, function(index: number): string
+			return `C{index}`
+		end)
+		expect(text).toBe("C2, C3 por 75")
+	end)
+
 	it("describe casillas sin dinero, sin signos de más", function()
 		local trade = offerFromEngine({ giveCash = 0, wantCash = 75, giveSquares = { 2 }, wantSquares = {} })
 		expect(ActionMenuRules.offerText(trade)).toBe("casilla 2 por 75")

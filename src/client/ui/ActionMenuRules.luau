@@ -171,22 +171,32 @@ function ActionMenuRules.clampBid(previous: number?, control: BidControl): numbe
 	return math.max(control.min, math.min(control.max, previous))
 end
 
--- Un lado de un trato: dinero, casillas, las dos cosas o «nada».
-local function offerSide(cash: number, squares: { number }): string
+-- Un lado de un trato: dinero, casillas, las dos cosas o «nada». Con `squareName` las casillas se
+-- nombran («Plaza Halcyon»); sin él se enseña su número, como en las pruebas de forma.
+local function offerSide(cash: number, squares: { number }, squareName: ((number) -> string)?): string
 	local parts: { string } = {}
 	if cash > 0 then
 		table.insert(parts, tostring(cash))
 	end
 	if #squares > 0 then
-		local noun = if #squares == 1 then "casilla" else "casillas"
-		table.insert(parts, `{noun} {table.concat(squares, ", ")}`)
+		if squareName ~= nil then
+			local named: { string } = {}
+			for _, index in squares do
+				table.insert(named, squareName(index))
+			end
+			table.insert(parts, table.concat(named, ", "))
+		else
+			local noun = if #squares == 1 then "casilla" else "casillas"
+			table.insert(parts, `{noun} {table.concat(squares, ", ")}`)
+		end
 	end
 	return if #parts > 0 then table.concat(parts, " + ") else "nada"
 end
 
 -- Texto de un trato guardado en `pending.trades`, desde el punto de vista de quien lo propone.
-function ActionMenuRules.offerText(trade: any): string
-	return `{offerSide(trade.giveCash, trade.giveSquares)} por {offerSide(trade.wantCash, trade.wantSquares)}`
+function ActionMenuRules.offerText(trade: any, squareName: ((number) -> string)?): string
+	local give = offerSide(trade.giveCash, trade.giveSquares, squareName)
+	return `{give} por {offerSide(trade.wantCash, trade.wantSquares, squareName)}`
 end
 
 -- Segundos que quedan de una decisión. Sin plazo conocido no hay cuenta atrás: el menú esconde el

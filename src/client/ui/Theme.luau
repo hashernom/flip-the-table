@@ -94,6 +94,24 @@ function Theme.panel(parent: Instance, name: string, title: string?): Frame
 	return frame
 end
 
+-- Rótulo de sección dentro de un panel o de la lista de un modal.
+function Theme.header(parent: Instance, text: string, order: number): TextLabel
+	local label = Instance.new("TextLabel")
+	label.Name = `Header_{order}`
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 0)
+	label.AutomaticSize = Enum.AutomaticSize.Y
+	label.Font = Theme.fontBold
+	label.TextSize = 16
+	label.TextWrapped = true
+	label.TextXAlignment = Enum.TextXAlignment.Left
+	label.TextColor3 = Theme.muted
+	label.Text = text
+	label.LayoutOrder = order
+	label.Parent = parent
+	return label
+end
+
 -- Botón grande, con etiqueta y acción. El alto nunca baja del mínimo táctil.
 function Theme.button(parent: Instance, text: string, order: number, onClick: () -> ()): TextButton
 	local button = Instance.new("TextButton")

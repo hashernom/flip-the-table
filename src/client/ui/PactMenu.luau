@@ -1,129 +1,121 @@
 --!strict
 -- Menú de pactos. Propone un acuerdo con duración, acepta o rechaza los que llegan y permite romper
 -- el propio, que es la mitad divertida de la traición: perder la garantía y llevar la marca de Traidor
--- a la vista de todos.
+-- a la vista de todos. Quién puede qué lo decide `SocialRules`.
+local Economy = require("../../shared/config/Economy")
+local SocialRules = require("./SocialRules")
 local Theme = require("./Theme")
+local ViewText = require("./ViewText")
 
 export type Handles = {
-	setView: (view: any) -> (),
+	setView: (view: any, names: ViewText.Names?) -> (),
 	-- Abre o cierra la ventana. El menú de acciones la abre cuando su botón pide un trato o un pacto:
 	-- esas acciones necesitan más datos de los que cabe en un botón.
 	setOpen: (open: boolean) -> (),
 	destroy: () -> (),
 }
 
-local ROUND_OPTIONS = { 1, 2, 3, 5 }
-local MAX_ROUNDS = 5
-
 local PactMenu = {}
-
-local function panelBody(modal: Theme.Modal): ScrollingFrame
-	local body = modal.body
-	body.Size = UDim2.fromScale(1, 0)
-	body.AutomaticSize = Enum.AutomaticSize.Y
-	return body
-end
 
 function PactMenu.create(playerGui: Instance, send: (action: any) -> ()): Handles
 	local modal = Theme.modal(playerGui, "PactMenu", "Pactos", 9)
-	local body = panelBody(modal)
-	local state = { targetId = nil :: string?, rounds = ROUND_OPTIONS[1] }
+	local body = modal.body
+	local options = SocialRules.pactRounds()
+	local state = { targetId = nil :: string?, rounds = options[1] }
+	local lastView: any = nil
+	local lastNames: ViewText.Names? = nil
 
-	local function rebuild(view: any)
+	local function rebuild()
+		local view = lastView
+		if view == nil then
+			return
+		end
+		local names = lastNames
 		for _, child in body:GetChildren() do
-			if child:IsA("GuiObject") and child.Name ~= "Title" then
+			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
 		end
 		local order = 0
-
 		local function header(text: string)
 			order += 1
-			local label = Instance.new("TextLabel")
-			label.Name = `Header_{order}`
-			label.BackgroundTransparency = 1
-			label.Size = UDim2.fromScale(1, 0)
-			label.AutomaticSize = Enum.AutomaticSize.Y
-			label.Font = Theme.fontBold
-			label.TextSize = 16
-			label.TextXAlignment = Enum.TextXAlignment.Left
-			label.TextColor3 = Theme.muted
-			label.Text = text
-			label.LayoutOrder = order
-			label.Parent = body
+			Theme.header(body, text, order)
 		end
-
 		local function button(text: string, onClick: () -> ())
 			order += 1
 			Theme.button(body, text, order, onClick)
 		end
 
-		header(`Con quién y cuántas rondas (máximo {MAX_ROUNDS})`)
-		for _, seated in view.players do
-			if seated.id ~= view.playerId then
-				local selected = if state.targetId == seated.id then "✓ " else ""
-				button(`{selected}{seated.id}`, function()
-					state.targetId = seated.id
-					rebuild(view)
+		if SocialRules.canPropose(view) then
+			header(`Con quién y cuántas rondas (máximo {Economy.pact.maxRounds})`)
+			local rivals = SocialRules.rivals(view)
+			if state.targetId ~= nil and table.find(rivals, state.targetId) == nil then
+				state.targetId = nil
+			end
+			for _, rivalId in rivals do
+				local mark = if state.targetId == rivalId then "✓ " else ""
+				button(`{mark}{ViewText.playerName(view, names, rivalId)}`, function()
+					state.targetId = rivalId
+					rebuild()
 				end)
 			end
+			for _, rounds in options do
+				local mark = if state.rounds == rounds then "✓ " else ""
+				button(`{mark}{rounds} rondas`, function()
+					state.rounds = rounds
+					rebuild()
+				end)
+			end
+			button("Proponer pacto", function()
+				local target = state.targetId
+				if target == nil then
+					return
+				end
+				send({ type = "ProposePact", toId = target, rounds = state.rounds })
+				modal.setOpen(false)
+			end)
+		else
+			header("Solo puedes proponer un pacto en tu turno, antes de tirar o al final")
 		end
-		for _, rounds in ROUND_OPTIONS do
-			local selected = if state.rounds == rounds then "✓ " else ""
-			button(`{selected}{rounds} rondas`, function()
-				state.rounds = rounds
-				rebuild(view)
+
+		local announced = false
+		for _, offer in SocialRules.incomingPacts(view) do
+			if not announced then
+				header("Te han propuesto")
+				announced = true
+			end
+			local from = ViewText.playerName(view, names, offer.fromId)
+			button(`Aceptar pacto de {from} ({offer.rounds} rondas)`, function()
+				send({ type = "RespondPact", pactId = offer.id, accept = true })
+			end)
+			button(`Rechazar pacto de {from}`, function()
+				send({ type = "RespondPact", pactId = offer.id, accept = false })
 			end)
 		end
-		button("Proponer pacto", function()
-			local target = state.targetId
-			if target == nil then
-				return
-			end
-			send({ type = "ProposePact", toId = target, rounds = state.rounds })
-			modal.setOpen(false)
-		end)
 
-		local pending = view.pending
-		local offers = if pending ~= nil and pending.pactOffers ~= nil then pending.pactOffers else {}
-		if #offers > 0 then
-			header("Te han propuesto")
-			for _, offer in offers do
-				if offer.toId == view.playerId then
-					button(`Aceptar pacto de {offer.fromId} ({offer.rounds} rondas)`, function()
-						send({ type = "RespondPact", pactId = offer.id, accept = true })
-						rebuild(view)
-					end)
-					button(`Rechazar pacto de {offer.fromId}`, function()
-						send({ type = "RespondPact", pactId = offer.id, accept = false })
-						rebuild(view)
-					end)
-				end
-			end
-		end
-
-		local own: { any } = {}
-		for _, pact in view.pacts or {} do
-			if pact.a == view.playerId or pact.b == view.playerId then
-				table.insert(own, pact)
-			end
-		end
+		local own = SocialRules.ownPacts(view)
 		if #own > 0 then
 			header("Tus pactos")
 			for _, pact in own do
-				button(`Romper pacto con {if pact.a == view.playerId then pact.b else pact.a}`, function()
+				local partner = ViewText.playerName(view, names, pact.partnerId)
+				button(`Romper pacto con {partner} (hasta la ronda {pact.untilRound})`, function()
 					send({ type = "BreakPact", pactId = pact.id })
-					rebuild(view)
 				end)
 			end
 		end
 	end
 
 	return {
-		setView = function(view: any)
-			if view ~= nil then
-				rebuild(view)
+		setView = function(view: any, names: ViewText.Names?)
+			if view == nil then
+				return
 			end
+			lastView = view
+			lastNames = names
+			if not SocialRules.available(view) then
+				modal.setOpen(false)
+			end
+			rebuild()
 		end,
 		setOpen = function(open: boolean)
 			modal.setOpen(open)

@@ -31,13 +31,6 @@ local REMOTE_WAIT_SEC = 20
 -- Cada cuánto mira la cola si ya venció el siguiente lote. Mismo orden que el latido del servidor.
 local TICK_SEC = 0.05
 
--- Botones que no vienen de `legalActions`: un trato o un pacto se deciden en su ventana, y el motor no
--- los enumera como acción legal porque necesitan más datos que un clic.
-local SOCIAL_BUTTONS = {
-	{ id = "Trade", label = "Tratos", action = { type = "__OpenTrade" } },
-	{ id = "Pact", label = "Pactos", action = { type = "__OpenPact" } },
-}
-
 local player = Players.LocalPlayer
 local playerScripts = script.Parent.Parent
 local playerId = tostring(player.UserId)
@@ -65,6 +58,7 @@ local function boot()
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
+	local SocialRules = require("./ui/SocialRules")
 	local ViewText = require("./ui/ViewText")
 
 	local playerGui = player:WaitForChild("PlayerGui")
@@ -359,16 +353,22 @@ local function boot()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
-				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS, { view = view, names = names })
+				-- Tratos y Pactos no son acciones del motor: se añaden según la vista (con el número de
+				-- ofertas por responder) y desaparecen al acabar la partida.
+				actionMenu.setLegal(
+					view.legalActions or {},
+					SocialRules.buttonsFor(view),
+					{ view = view, names = names }
+				)
 			end,
 			Overview = function()
 				overview.setView(view)
 			end,
 			TradeMenu = function()
-				tradeMenu.setView(view)
+				tradeMenu.setView(view, names)
 			end,
 			PactMenu = function()
-				pactMenu.setView(view)
+				pactMenu.setView(view, names)
 			end,
 			RematchMenu = function()
 				rematchMenu.setView(view)
