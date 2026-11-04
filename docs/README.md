@@ -31,16 +31,16 @@ Cada tarea de cada plan indica sus módulos, sus interfaces, sus criterios de ac
 | 02 | [Motor de reglas](02-mvp/plan-02-motor-de-reglas.md) | Partida base completa, sin Roblox | |
 | 03 | [Dinámicas únicas](02-mvp/plan-03-dinamicas.md) | Cartas, perks, casillas, pactos y remontada | |
 | 04 | [Red y partidas](02-mvp/plan-04-red-y-partidas.md) | Servidor, party, bots y revancha | |
-| 05 | [Cliente jugable](02-mvp/plan-05-cliente-jugable.md) | Prototipo gris jugable con amigos | **Puerta A:** las reglas divierten |
+| 05 | [Cliente jugable](02-mvp/plan-05-cliente-jugable.md) | Prototipo gris jugable con amigos | Puerta A aplazada hasta la alpha (ver abajo) |
 | 06 | [Base de arte](02-mvp/plan-06-base-de-arte.md) | Tubería de assets y porción vertical | **Puerta B:** nivel visual aprobado y fluido en móvil |
 | 07 | [Ciudad y fichas](02-mvp/plan-07-ciudad-y-fichas.md) | Metrópolis, 8 fichas y personajes | |
 | 08 | [Escenas](02-mvp/plan-08-escenas.md) | Todas las escenas del juego | |
-| 09 | [Interfaz, audio y aprendizaje](02-mvp/plan-09-interfaz-audio-aprendizaje.md) | Interfaz final, sonido y primera partida guiada | |
+| 09 | [Interfaz, audio y aprendizaje](02-mvp/plan-09-interfaz-audio-aprendizaje.md) | Interfaz final, sonido y primera partida guiada | **Alpha** (provisional) y **Puerta A:** las reglas divierten |
 | 10 | [Pruebas y lanzamiento](02-mvp/plan-10-pruebas-y-lanzamiento.md) | Criterios de salida cumplidos y juego publicado | **Puerta C:** abre la Fase 1 |
 
 ## Reglas de trabajo
 
-- **Reglas antes que arte:** las subfases 01 a 05 prueban si el juego divierte con arte provisional, antes de producir los assets finales.
+- **Reglas antes que arte:** las subfases 01 a 05 prueban si el juego divierte con arte provisional, antes de producir los assets finales. **Excepción (2026-11-04):** por decisión del responsable, la Puerta A no se pasa sobre el prototipo gris sino sobre una alpha. Esta alpha es provisional, pendiente de confirmar: el juego con el resultado de las subfases 06 a 09, antes de la 10, en un lugar privado. Ver [puerta-a.md](02-mvp/resultados/puerta-a.md).
 - **Las fases 1 a 4 son planes vivos:** sus datos de partida son provisionales. Antes de ejecutar una fase, se revisa su plan con lo aprendido en la anterior.
 - **Aprobación humana:** cada asset y cada puerta requieren la aprobación del responsable del proyecto. Los agentes no pueden aprobarlos.
 - **Antes de hacer push, merge o publicar:** los agentes se detienen y preguntan.
@@ -48,5 +48,5 @@ Cada tarea de cada plan indica sus módulos, sus interfaces, sus criterios de ac
 ## Pendiente de decidir
 
 - [ ] Nombre definitivo del juego y comprobación de disponibilidad. Flip the Table es provisional.
-- [ ] Móvil de referencia para las pruebas de rendimiento. Se elige en la subfase 05.
+- [ ] Móvil de referencia para las pruebas de rendimiento. Debía elegirse en la subfase 05; debe elegirse antes de la Puerta B (subfase 06), que lo necesita para medir 30 FPS.
 - [ ] Consulta legal sobre la marca antes de publicar. Se hace en la subfase 10.

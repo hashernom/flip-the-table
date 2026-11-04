@@ -1,11 +1,25 @@
 # Puerta A: las reglas divierten
 
-> **Estado: sin cerrar.** Esta puerta la decide el responsable con partidas reales. Un agente puede
-> preparar el prototipo, medir y escribir lo que salga, pero no puede jugar ni decidir. Todo lo que
-> hay debajo de «Datos pendientes» está vacío a propósito.
+> **Estado: aplazada hasta la alpha.** No está aprobada ni eliminada: se traslada. Esta puerta la
+> decide el responsable con partidas reales. Un agente puede preparar el juego, medir y escribir lo que
+> salga, pero no puede jugar ni decidir. Todo lo que hay debajo de «Datos pendientes» está vacío a
+> propósito.
 
-La Puerta A se abre al terminar la subfase 05, con arte gris y en un lugar privado. Responde una sola
-pregunta: **¿un grupo de amigos pide la revancha al terminar?**
+## Decisión de aplazamiento (2026-11-04)
+
+El responsable decidió: «quiero omitir/modificar la puerta A. el mapa gris, poco detalle visual y seguramente bugs y mala gestion y diseño de HUD no deben ser pasados por encima por la puerta A. primero quiero tener una alpha, y luego testeo la puerta A»
+
+Los criterios y el método no cambian. Se evalúan sobre una alpha y no sobre el prototipo gris. La
+Puerta A ya no bloquea el plan 06.
+
+**Definición de alpha (provisional, pendiente de confirmar por el responsable):** el juego con el
+resultado de los planes 06 a 09 (arte, escenas, interfaz y audio), antes del plan 10, en un lugar
+privado.
+
+## Pregunta de la puerta
+
+La Puerta A se abre al tener la alpha, en un lugar privado (antes se abría al terminar la subfase 05,
+con arte gris). Responde una sola pregunta: **¿un grupo de amigos pide la revancha al terminar?**
 
 ## Criterios
 
@@ -29,12 +43,14 @@ pregunta: **¿un grupo de amigos pide la revancha al terminar?**
 - Cada partida deja un resumen en `telemetry/` (sin datos personales) y `tools/criteria-report` calcula
   los cuatro criterios medibles solo con partidas en modo Rondas.
 
-## Qué falta antes de jugar
+## Qué falta antes de jugar (sobre la alpha)
 
-1. **Publicar el prototipo en un lugar privado.** El plan 04 dejó la publicación pendiente por
+1. **Publicar la alpha en un lugar privado.** El plan 04 dejó la publicación pendiente por
    decisión del responsable: `config/Places` vale `0` y sin lugar el lobby no teletransporta. Hace
    falta permiso explícito para publicar en **privado**.
-2. **Elegir el móvil de referencia** para las pruebas de rendimiento y de pantalla táctil.
+2. **Elegir el móvil de referencia** para las pruebas de rendimiento y de pantalla táctil. Ya no puede
+   esperar a esta puerta: la Puerta B (plan 06) lo necesita para medir 30 FPS, así que debe elegirse
+   antes de la Puerta B.
 3. **Reunir los grupos.** Esta parte no la puede hacer un agente: hacen falta entre 4 y 8 personas por
    sesión y al menos 5 sesiones.
 4. **Sondear sin preguntar.** El criterio de la revancha solo vale si nadie la sugiere; se apunta si
@@ -72,10 +88,10 @@ Son cifras de bots. La ficha pide partidas de amigos.
 
 ## Decisión del responsable
 
-**Sin escribir.** Cuando haya jugado los grupos, aquí va una de estas tres, con el motivo:
+**Sin escribir.** Cuando haya jugado los grupos sobre la alpha, aquí va una de estas tres, con el motivo:
 
-- [ ] Seguir: las reglas divierten y se pasa a la subfase 06 (base de arte).
+- [ ] Seguir: las reglas divierten y se pasa a la subfase 10 (pruebas y lanzamiento).
 - [ ] Ajustar reglas: se anota qué se cambia en `config` y se repite la prueba.
-- [ ] Replantear: no divierte y se revisa el diseño antes de gastar en arte.
+- [ ] Replantear: no divierte y se revisa el diseño antes de seguir.
 
-Sin esta decisión escrita no empieza el plan 06.
+Sin esta decisión escrita no empieza el plan 10. El plan 06 ya no depende de ella.

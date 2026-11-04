@@ -19,7 +19,7 @@
 **Instrucciones para la sesión:**
 
 - Sigue también las [instrucciones generales](../instrucciones-de-sesion.md).
-- Requiere los planes 08 y 09 terminados.
+- Requiere los planes 08 y 09 terminados y la Puerta A decidida por escrito sobre la alpha (aplazada desde la subfase 05; ver `docs/02-mvp/resultados/puerta-a.md`).
 - Es normal que esta sesión se pause y se retome: registra cada resultado en `docs/02-mvp/resultados/` al obtenerlo.
 - Nunca completes un criterio sin datos reales ni estimes partidas o encuestas.
 - Cambia un solo grupo de valores a la vez entre tandas de prueba, para saber qué causó cada mejora.

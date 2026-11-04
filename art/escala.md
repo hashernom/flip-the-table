@@ -60,6 +60,6 @@ La acera queda para los viandantes, el mobiliario y las escenas.
 ## Lo que no decide este documento
 
 - Paleta, materiales, iluminación, tipografía y logo: guía de estilo de la subfase 06, con la
-  skill `impeccable`, después de la Puerta A.
+  skill `impeccable`, sin esperar a la Puerta A (aplazada hasta la alpha).
 - Composición del tablero y número de barrios: ya están en la arquitectura (6, 8 y 10 zonas).
 - Detalle de los edificios: el blockout solo comprueba volúmenes y proporciones.

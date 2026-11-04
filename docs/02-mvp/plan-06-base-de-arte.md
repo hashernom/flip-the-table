@@ -10,7 +10,7 @@
 
 **Spec:** "Estándar de calidad de assets" en la [ficha](../00-ficha/ficha-propuesta.md).
 
-**Requisito previo:** la Puerta A está aprobada.
+**Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha. El móvil de referencia debe elegirse antes de la Puerta B.
 
 ## Ejecución recomendada
 
@@ -21,7 +21,7 @@
 **Instrucciones para la sesión:**
 
 - Sigue también las [instrucciones generales](../instrucciones-de-sesion.md).
-- Requiere la Puerta A aprobada, y Blender y Studio abiertos con sus MCP.
+- Requiere el plan 05 terminado (la Puerta A ya no es requisito), y Blender y Studio abiertos con sus MCP.
 - Muestra avances pronto: comparte capturas o imágenes al primer resultado, no solo al final.
 - Comprueba en el juego y desde la cámara real; una imagen de Blender no sirve como aprobación.
 - Anota en el manifiesto con qué herramienta se generó cada asset.

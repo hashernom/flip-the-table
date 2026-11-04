@@ -24,7 +24,7 @@
 - La prueba de PC y móvil se hace durante toda la subfase, no al final.
 - Pide un revisor nuevo para la rama antes de la Tarea 6.
 - La Tarea 6 depende de personas: pide permiso para publicar en privado y pide al responsable que reúna los grupos. Espera los resultados reales.
-- Termina con la decisión escrita del responsable sobre la Puerta A. Sin ella, no empieza el plan 06.
+- La Puerta A (Tarea 6) queda aplazada hasta la alpha por decisión del responsable (2026-11-04). Ya no bloquea el plan 06; ver `docs/02-mvp/resultados/puerta-a.md`.
 
 ## Global Constraints
 
@@ -193,7 +193,7 @@ end)
       y midiendo los controles. Queda pendiente con el emulador de verdad.
 - [x] **Paso 6:** Hacer commit: `feat: añadir interfaz gris completa`.
 
-### Task 6: Puerta A, prueba con amigos
+### Task 6: Puerta A, prueba con amigos (aplazada hasta la alpha)
 
 **Módulos:** todos los anteriores; `tools/criteria-report`.
 
@@ -276,4 +276,4 @@ comprobó de verdad.
 - **El emulador de móvil.** El MCP de Studio no puede activarlo, así que la prueba de pantalla
   pequeña se hizo reduciendo la ventana de Studio a 586 × 365 y midiendo los controles.
 - **La Puerta A** es la Tarea 6 entera: publicar en privado, reunir los grupos y decidir. No puede
-  hacerla un agente.
+  hacerla un agente. Aplazada hasta la alpha (2026-11-04), ya no bloquea el plan 06.

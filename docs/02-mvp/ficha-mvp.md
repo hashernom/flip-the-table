@@ -58,7 +58,7 @@ Las subfases 08 y 09 pueden avanzar en paralelo si no tocan los mismos archivos.
 
 ### Puerta A: las reglas divierten
 
-Al terminar la subfase 05, con arte gris.
+Aplazada hasta tener una alpha, antes de la subfase 10 (decisión del responsable, 2026-11-04: «quiero omitir/modificar la puerta A. el mapa gris, poco detalle visual y seguramente bugs y mala gestion y diseño de HUD no deben ser pasados por encima por la puerta A. primero quiero tener una alpha, y luego testeo la puerta A»). Los criterios no cambian. Definición de alpha, provisional y pendiente de confirmar: el juego con el resultado de las subfases 06 a 09, en un lugar privado.
 
 - [ ] 5 partidas completas de 4 a 8 jugadores con amigos, en PC y móvil.
 - [ ] Turno medio de 20 s o menos, con las duraciones reales de escena.
