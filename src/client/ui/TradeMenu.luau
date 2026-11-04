@@ -1,6 +1,7 @@
 --!strict
 -- Menú de tratos. Propone un intercambio (dinero por dinero, sobre casillas, o las dos cosas) y
 -- responde a los que llegan. Todo se hace con botones: la ficha prohíbe depender del chat o de la voz.
+local ActionMenuRules = require("./ActionMenuRules")
 local Theme = require("./Theme")
 
 export type Handles = {
@@ -14,20 +15,6 @@ export type Handles = {
 local CASH_STEPS = { 0, 50, 100, 200 }
 
 local TradeMenu = {}
-
-local function formatOffer(offer: any): string
-	local give = if offer.giveCash > 0 then `{offer.giveCash}` else ""
-	local squares = if offer.giveSquares and #offer.giveSquares > 0
-		then `casas {table.concat(offer.giveSquares, ",")}`
-		else ""
-	local want = if offer.wantCash > 0 then `{offer.wantCash}` else ""
-	local wantSquares = if offer.wantSquares and #offer.wantSquares > 0
-		then `casas {table.concat(offer.wantSquares, ",")}`
-		else ""
-	local left = if #give > 0 or #squares > 0 then table.concat({ give, squares }, " + ") else "nada"
-	local right = if #want > 0 or #wantSquares > 0 then table.concat({ want, wantSquares }, " + ") else "nada"
-	return `{left} por {right}`
-end
 
 function TradeMenu.create(playerGui: Instance, send: (action: any) -> ()): Handles
 	local modal = Theme.modal(playerGui, "TradeMenu", "Tratos", 9)
@@ -124,19 +111,21 @@ function TradeMenu.create(playerGui: Instance, send: (action: any) -> ()): Handl
 
 		local pending = view.pending
 		local trades = if pending ~= nil and pending.trades ~= nil then pending.trades else {}
-		if #trades > 0 then
-			header("Te han propuesto")
-			for _, trade in trades do
-				if trade.toId == view.playerId then
-					button(`Aceptar: {formatOffer(trade.offer)}`, function()
-						send({ type = "RespondTrade", tradeId = trade.id, accept = true })
-						rebuild(view)
-					end)
-					button("Rechazar", function()
-						send({ type = "RespondTrade", tradeId = trade.id, accept = false })
-						rebuild(view)
-					end)
+		local announced = false
+		for _, trade in trades do
+			if trade.toId == view.playerId then
+				if not announced then
+					header("Te han propuesto")
+					announced = true
 				end
+				button(`Aceptar de {trade.fromId}: {ActionMenuRules.offerText(trade)}`, function()
+					send({ type = "RespondTrade", tradeId = trade.id, accept = true })
+					rebuild(view)
+				end)
+				button(`Rechazar a {trade.fromId}`, function()
+					send({ type = "RespondTrade", tradeId = trade.id, accept = false })
+					rebuild(view)
+				end)
 			end
 		end
 	end

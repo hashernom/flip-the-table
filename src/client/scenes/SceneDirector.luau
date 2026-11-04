@@ -55,6 +55,12 @@ function SceneDirector.new(options: Options): Director
 	}
 end
 
+-- Una partida nueva vuelve a ver sus escenas enteras: el servidor estrena su reloj con cada partida y
+-- los dos cuentan las mismas repeticiones.
+function SceneDirector.reset(director: Director)
+	director.seen = {}
+end
+
 -- Qué escena le toca a un evento. Una carta jugada se anuncia con su id, que es lo que le da escena
 -- propia a cada legendaria; todo lo demás usa el tipo del evento.
 function SceneDirector.sceneIdFor(event: Event): string

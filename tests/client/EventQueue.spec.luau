@@ -160,6 +160,29 @@ describe("EventQueue.nextDue", function()
 	end)
 end)
 
+describe("EventQueue: partida nueva en el mismo servidor", function()
+	it("tras una revancha acepta sus lotes desde el 1 y olvida los pendientes", function()
+		local q = EventQueue.new()
+		for seq = 1, 5 do
+			EventQueue.push(q, batch(seq, 0))
+		end
+		-- La vista inicial de la revancha llega con seq = 0, con lotes viejos aún en la cola.
+		EventQueue.resync(q, view("revancha"), 0)
+		expect(tagOf(q)).toBe("revancha")
+		expect(EventQueue.nextDue(q, 1000)).toBe(nil)
+		expect(EventQueue.push(q, batch(1, 50))).toBe("Queued")
+		expect((EventQueue.nextDue(q, 50) :: any).seq).toBe(1)
+		expect(EventQueue.push(q, batch(2, 50))).toBe("Queued")
+	end)
+
+	it("un lote sin número válido no reinicia la cola", function()
+		local q = EventQueue.new()
+		EventQueue.push(q, batch(1, 0))
+		EventQueue.resync(q, view("x"), -1)
+		expect(EventQueue.push(q, batch(1, 0))).toBe("Duplicate")
+	end)
+end)
+
 describe("EventQueue.resync", function()
 	it("aplica el estado de la resincronización sin reproducir escenas", function()
 		local q = EventQueue.new()

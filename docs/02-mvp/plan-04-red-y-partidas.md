@@ -219,7 +219,8 @@ comprobado. El detalle y lo que debe demostrar la comprobación publicada están
 - [ ] Al terminar, un botón inicia la revancha en el mismo servidor, sin teletransportar.
       **Mitad hecha:** el servidor de la revancha está terminado y probado (`RematchService` abre la
       votación al acabar, arranca la partida en el mismo servidor con otra semilla y devuelve al lobby
-      a quien no acepta). El botón en sí es interfaz de las subfases 05 y 08, que aún no existen.
+      a quien no acepta). El botón existe desde la corrección R-P42 (`client/ui/RematchMenu`), en arte
+      gris; falta probarlo con clientes reales para marcar este criterio.
 - [x] Empieza cuando todos votan o a los 20 s, con quienes aceptaron.
 - [x] Con menos de 2 personas, vuelve al lobby con aviso.
 - [x] Quien no acepta vuelve al lobby.

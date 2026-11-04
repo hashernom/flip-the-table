@@ -6,6 +6,9 @@
 local Harness = require("../harness")
 local ActionMenuRules = require("../../src/client/ui/ActionMenuRules")
 local Economy = require("../../src/shared/config/Economy")
+local Engine = require("../../src/shared/rules/Engine")
+local Fixtures = require("../fixtures")
+local View = require("../../src/shared/rules/View")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
@@ -93,6 +96,42 @@ describe("ActionMenuRules.buttonsFor", function()
 	it("el botón de una carta lleva el nombre de la carta", function()
 		local label = ActionMenuRules.labelFor({ type = "PlayCard", cardId = "Hurricane" } :: any)
 		expect(string.find(label, "Hurricane", 1, true) ~= nil).toBe(true)
+	end)
+end)
+
+describe("ActionMenuRules.offerText", function()
+	-- La oferta sale del motor y de la vista reales: el fallo original era leer un campo que no existe.
+	local function offerFromEngine(offer: { [string]: any }): any
+		local state = Fixtures.game({ players = 3, seed = 3 })
+		local from, to = state.players[1].id, state.players[2].id
+		for _, index in offer.giveSquares do
+			Fixtures.give(state, from, index)
+		end
+		for _, index in offer.wantSquares do
+			Fixtures.give(state, to, index)
+		end
+		offer.toId = to
+		local result = Engine.apply(state, from, { type = "ProposeTrade", offer = offer })
+		if not result.ok then
+			error(result.error, 2)
+		end
+		return (View.forPlayer(state, to).pending :: any).trades[1]
+	end
+
+	it("describe dinero por nada", function()
+		local trade = offerFromEngine({ giveCash = 50, wantCash = 0, giveSquares = {}, wantSquares = {} })
+		expect(ActionMenuRules.offerText(trade)).toBe("50 por nada")
+	end)
+
+	it("describe casillas y dinero en los dos lados", function()
+		local trade =
+			offerFromEngine({ giveCash = 100, wantCash = 200, giveSquares = { 2, 3 }, wantSquares = { 6 } })
+		expect(ActionMenuRules.offerText(trade)).toBe("100 + casillas 2, 3 por 200 + casilla 6")
+	end)
+
+	it("describe casillas sin dinero, sin signos de más", function()
+		local trade = offerFromEngine({ giveCash = 0, wantCash = 75, giveSquares = { 2 }, wantSquares = {} })
+		expect(ActionMenuRules.offerText(trade)).toBe("casilla 2 por 75")
 	end)
 end)
 

@@ -95,8 +95,13 @@ end
 
 -- Resincronizar: sustituye la vista y salta hasta el `seq` que anuncia el servidor. Los lotes
 -- anteriores se descartan porque sus escenas ya terminaron: su estado entra por la vista y no se
--- reproducen.
+-- reproducen. `seq = 0` significa «todavía no hay lotes»: si la cola ya llevaba alguno, es una partida
+-- nueva en el mismo servidor (la revancha) y la numeración vuelve a empezar.
 function EventQueue.resync(q: Queue, view: any, seq: number)
+	if seq == 0 then
+		q.lastSeq = 0
+		q.pending = {}
+	end
 	local target = if isValidSeq(seq) then seq else q.lastSeq
 	StateStore.reset(q.state, view, target)
 	if target > q.lastSeq then

@@ -294,6 +294,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P39:** las escenas no se solapan. Un lote empieza cuando acaba la escena anterior (`startsAt = max(ahora, fin de la escena en curso)`), y un lote sin eventos no adelanta ese final. El servidor descarta las acciones de un cliente hasta que acaba la escena, con un margen de `Scenes.actionGraceSec` para el desfase entre relojes. Los menús del cliente se esconden durante la escena y la vista se aplica al terminar.
 - **R-P40:** el plazo viaja en el lote (`decisionDeadline`), también en la vista inicial y en el resync. Solo una decisión nueva da el plazo completo: cambia la fase, el turno, la ronda, quien elige perk o el rival o la ronda del Duelo. Dentro de la misma decisión el plazo no se reinicia y solo se alarga lo que dure la escena del lote, así que ni proponer tratos en bucle ni pujar alargan el turno. La subasta dura 15 s fijos, como dice la ficha, y el voto del Tribunal, 10 s.
 - **R-P41:** cada jugador tiene como mucho `Economy.maxOpenOffers` intercambios y otros tantos pactos abiertos a la vez, porque cada oferta viaja en la vista de toda la mesa.
+- **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales
 
