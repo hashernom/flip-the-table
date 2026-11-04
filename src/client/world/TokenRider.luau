@@ -227,4 +227,39 @@ function TokenRider.ride(token: Model, path: { number }, durationSec: number): n
 	return seconds
 end
 
+-- Burbuja efímera sobre la ficha: es como se ven los emotes del grupo. Se destruye sola; dos seguidos
+-- reemplazan la anterior en vez de apilarse.
+local BUBBLE_NAME = "EmoteBubble"
+
+function TokenRider.bubble(token: Model, text: string, seconds: number?)
+	local existing = token:FindFirstChild(BUBBLE_NAME)
+	if existing then
+		existing:Destroy()
+	end
+	local anchor = token:FindFirstChild("Seat") or token.PrimaryPart
+	if anchor == nil then
+		return
+	end
+	local billboard = Instance.new("BillboardGui")
+	billboard.Name = BUBBLE_NAME
+	billboard.Size = UDim2.fromScale(8, 8)
+	billboard.StudsOffsetWorldSpace = Vector3.new(0, 6, 0)
+	billboard.AlwaysOnTop = true
+	billboard.Parent = anchor
+
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.Text = text
+	label.Parent = billboard
+
+	task.delay(seconds or 2.5, function()
+		if billboard.Parent then
+			billboard:Destroy()
+		end
+	end)
+end
+
 return TokenRider

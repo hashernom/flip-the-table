@@ -27,7 +27,14 @@ Protocol.REMOTES = {
 	PartyStart = "PartyStartRequest",
 	QueueJoin = "QueueJoinRequest",
 	Notice = "LobbyNotice",
+	-- Emotes del cliente (plan 05): no son una acción del motor, así que no pasan por la puerta de
+	-- acciones. El servidor los reenvía a todo el grupo y el cliente los enseña sobre la ficha.
+	Emote = "EmoteRequest",
 }
+
+-- Los emotes son pocos y fijos: un botón, un emote. La lista vive aquí para que cliente y servidor
+-- acepten exactamente los mismos.
+Protocol.EMOTES = { "😀", "😱", "🤑", "😡", "🤝", "🗡️" }
 
 -- La ventana del limitador es un segundo por definición; el número de acciones vive en config.
 local WINDOW_SECONDS = 1
@@ -319,6 +326,15 @@ function Protocol.validateRematch(vote: any): (boolean, string?)
 		return false, "El voto de revancha tiene que ser verdadero o falso"
 	end
 	return true, nil
+end
+
+-- ¿El paquete del remoto de emotes es uno de los emotes de la lista? Mismo criterio de forma que las
+-- acciones: lo que no está en la lista no se reenvía a nadie.
+function Protocol.validateEmote(emote: any): boolean
+	if type(emote) ~= "string" then
+		return false
+	end
+	return table.find(Protocol.EMOTES, emote) ~= nil
 end
 
 -- Limitador deslizante: guarda los instantes de las acciones aceptadas y descarta la que haría

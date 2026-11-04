@@ -39,42 +39,6 @@ local function seatColor(index: number): Color3
 	return SEAT_COLORS[(index - 1) % #SEAT_COLORS + 1]
 end
 
--- Rótulo gris de la escena en curso. Es el arte temporal que la subfase 09 sustituye por la interfaz
--- final; aquí solo tiene que dejar claro qué está pasando.
-local function createBanner(): TextLabel
-	local gui = Instance.new("ScreenGui")
-	gui.Name = "SceneBanner"
-	gui.ResetOnSpawn = false
-	gui.IgnoreGuiInset = true
-	gui.DisplayOrder = 10
-	gui.Parent = player:WaitForChild("PlayerGui")
-
-	local label = Instance.new("TextLabel")
-	label.Name = "Text"
-	label.AnchorPoint = Vector2.new(0.5, 0)
-	label.Position = UDim2.new(0.5, 0, 0, 24)
-	label.Size = UDim2.new(0, 420, 0, 54)
-	label.BackgroundColor3 = Color3.fromRGB(32, 34, 38)
-	label.BackgroundTransparency = 0.15
-	label.BorderSizePixel = 0
-	label.Font = Enum.Font.GothamBold
-	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(240, 240, 240)
-	label.Text = ""
-	label.Parent = gui
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 10)
-	corner.Parent = label
-
-	local padding = Instance.new("UIPadding")
-	padding.PaddingLeft = UDim.new(0, 12)
-	padding.PaddingRight = UDim.new(0, 12)
-	padding.Parent = label
-
-	return label
-end
-
 local function boot()
 	-- R-P17: `shared` se monta junto al código del cliente para que la misma cadena relativa resuelva
 	-- en el disco, en Lune y en el DataModel. Hay que esperarla antes de pedir nada.
@@ -87,13 +51,34 @@ local function boot()
 	local StateStore = require("./state/StateStore")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
+	local ActionMenu = require("./ui/ActionMenu")
+	local Hud = require("./ui/Hud")
+	local LobbyMenu = require("./ui/LobbyMenu")
+	local Overview = require("./ui/Overview")
+	local PactMenu = require("./ui/PactMenu")
+	local PerkMenu = require("./ui/PerkMenu")
+	local TradeMenu = require("./ui/TradeMenu")
+	local VoteMenu = require("./ui/VoteMenu")
+	local Scenes = require("../shared/config/Scenes")
 
-	local banner = createBanner()
+	local playerGui = player:WaitForChild("PlayerGui")
 	local city = CityBuilder.build(DEFAULT_SIZE, Workspace)
 	local director = CameraDirector.new(player, DEFAULT_SIZE)
+
+	local hud = Hud.create(playerGui, function()
+		return Workspace:GetServerTimeNow()
+	end)
+	local actionMenu = ActionMenu.create(playerGui)
+	local overview = Overview.create(playerGui)
+	local tradeMenu = TradeMenu.create(playerGui, function() end)
+	local pactMenu = PactMenu.create(playerGui, function() end)
+	local voteMenu = VoteMenu.create(playerGui, function() end)
+	local perkMenu = PerkMenu.create(playerGui, function() end)
+	local lobbyMenu = LobbyMenu.create(playerGui, function() end)
+
 	local scenes = SceneDirector.new({
 		show = function(text: string)
-			banner.Text = text
+			hud.setBanner(text)
 		end,
 	})
 
@@ -148,6 +133,26 @@ local function boot()
 		end,
 	})
 
+	-- Aplica una vista a la vez a la barra, los asientos y los menús. Es el único sitio que lo hace:
+	-- así la interfaz nunca enseña dos verdades distintas.
+	local function applyView(view: any)
+		if view == nil then
+			return
+		end
+		hud.setView(view)
+		-- La primera vista con partida en marcha cierra el lobby: ya hay mesa.
+		lobbyMenu.setVisible(false)
+		actionMenu.setLegal(view.legalActions or {})
+		overview.setView(view)
+		tradeMenu.setView(view)
+		pactMenu.setView(view)
+		voteMenu.setView(view)
+		perkMenu.setView(view)
+		if view.phase == "GameOver" then
+			lobbyMenu.setVisible(false)
+		end
+	end
+
 	local function context()
 		local view = StateStore.view(queue.state)
 		local active = false
@@ -177,6 +182,7 @@ local function boot()
 		if batch.seq == 0 then
 			EventQueue.resync(queue, batch.view, 0)
 			syncTokens(batch.view)
+			applyView(batch.view)
 			return
 		end
 		if EventQueue.push(queue, batch) == "Gap" then
@@ -193,6 +199,50 @@ local function boot()
 		syncTokens(batch.view)
 	end)
 
+	-- Remotos de acción y de emote. El de acción es el mismo que valida el servidor: aquí solo se
+	-- manda la intención, nunca un resultado.
+	-- Un remoto que falte no puede llevarse el cliente por delante: sin él se pierde esa función, no la
+	-- partida. El servidor los crea al arrancar, así que en una partida real están.
+	local actionRemote = remotes:WaitForChild(Protocol.REMOTES.Action, REMOTE_WAIT_SEC)
+	local emoteRemote = remotes:WaitForChild(Protocol.REMOTES.Emote, REMOTE_WAIT_SEC)
+
+	if actionRemote and actionRemote:IsA("RemoteEvent") then
+		local actionEvent = actionRemote :: RemoteEvent
+		actionMenu.onAction(function(action: any)
+			actionEvent:FireServer(action)
+		end)
+	else
+		warn("Cliente: falta el remoto de acciones; los menús no podrán jugar")
+	end
+
+	-- La vista general se pide con el botón de la barra. Mientras hay una escena, la petición se queda
+	-- guardada: la escena no se interrumpe y la maqueta se abre al terminar.
+	local overviewWanted = false
+	hud.onOverview(function()
+		overviewWanted = not overviewWanted
+		overview.setOpen(overviewWanted)
+		director.requestOverview(overviewWanted)
+	end)
+
+	if emoteRemote and emoteRemote:IsA("RemoteEvent") then
+		local emoteEvent = emoteRemote :: RemoteEvent
+		hud.onEmote(function(emote: string)
+			emoteEvent:FireServer(emote)
+		end)
+		-- Los emotes llegan de todo el grupo: burbuja sobre la ficha de quien lo lanza.
+		emoteEvent.OnClientEvent:Connect(function(fromId: any, emote: any)
+			if type(fromId) ~= "string" or type(emote) ~= "string" then
+				return
+			end
+			local token: Model? = tokens[fromId]
+			if token ~= nil then
+				TokenRider.bubble(token, emote)
+			end
+		end)
+	else
+		warn("Cliente: falta el remoto de emotes; se juega sin emotes")
+	end
+
 	-- Bucle del cliente: entrega los lotes cuando les toca, aplica su estado y reproduce sus escenas.
 	task.spawn(function()
 		while true do
@@ -200,10 +250,19 @@ local function boot()
 			if due ~= nil then
 				StateStore.apply(queue.state, due)
 				syncTokens(due.view)
+				applyView(due.view)
 				sceneRunning = true
 				SceneDirector.play(scenes, due)
 				sceneRunning = false
-				banner.Text = ""
+				hud.setBanner("")
+				-- La decisión no empieza hasta que termina la escena: el plazo se cuenta desde aquí,
+				-- igual que hace el reloj del servidor.
+				local view = StateStore.view(queue.state)
+				if view ~= nil and view.phase ~= "GameOver" then
+					hud.setDeadline(Workspace:GetServerTimeNow() + Scenes.decisionSeconds(view.phase))
+				else
+					hud.setDeadline(nil)
+				end
 			else
 				task.wait(TICK_SEC)
 			end

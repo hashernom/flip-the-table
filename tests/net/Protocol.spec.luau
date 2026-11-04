@@ -24,6 +24,7 @@ describe("Protocol.REMOTES", function()
 			PartyJoin = "PartyJoinRequest",
 			PartyStart = "PartyStartRequest",
 			QueueJoin = "QueueJoinRequest",
+		Emote = "EmoteRequest",
 			Notice = "LobbyNotice",
 		})
 	end)
@@ -357,4 +358,27 @@ describe("Protocol.validate: acciones reales de una partida", function()
 			end
 		)
 	end
+end)
+
+describe("Protocol.validateEmote", function()
+	it("acepta un emote de la lista", function()
+		for _, emote in Protocol.EMOTES do
+			expect(Protocol.validateEmote(emote)).toBe(true)
+		end
+	end)
+
+	it("rechaza texto que no es un emote", function()
+		local ok = Protocol.validateEmote("hola")
+		expect(ok).toBe(false)
+	end)
+
+	it("rechaza lo que no es una cadena", function()
+		expect(Protocol.validateEmote(nil)).toBe(false)
+		expect(Protocol.validateEmote(42)).toBe(false)
+		expect(Protocol.validateEmote({})).toBe(false)
+	end)
+
+	it("el remoto del emote tiene nombre propio y vive con los demás", function()
+		expect(Protocol.REMOTES.Emote).toBe("EmoteRequest")
+	end)
 end)
