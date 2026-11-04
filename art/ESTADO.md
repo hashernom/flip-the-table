@@ -55,8 +55,14 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
 3. Puerto y Zona Alta: existen en concepto, no en el juego.
 4. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
    inventar.
-5. La porción vertical de la Puerta B: `src/client/world/BuildingView` no existe, la escalera visual
-   de cinco pasos por solar tampoco, y la escena de arresto está a cero.
+5. La porción vertical de la Puerta B. `src/client/world/BuildingView` ya existe, con bloques grises
+   comprobados en partida. La escalera de Centro está modelada (`art/blender/slice/build_ladder.py`:
+   casa, hotel y rascacielos, en `Draft`) pero sin subir ni ver en el juego. La escena de arresto está
+   a cero.
+6. **Decidir el solar:** `art/escala.md` dice 18 de frente, pero tres casas no caben ahí. El gris y la
+   escalera usan el ancho de la baldosa, 36. Lo decide el responsable.
+7. **Studio bajo Vinegar:** en este equipo se ha colgado y el 3D sale negro en las capturas; sin
+   resolverlo no se puede aprobar nada en el juego.
 
 ## Errores ya pagados, para no repetirlos
 

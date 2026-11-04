@@ -1,0 +1,14 @@
+{
+  "slice-house": {
+    "triangles": 816,
+    "lod_triangles": 282
+  },
+  "slice-hotel": {
+    "triangles": 3530,
+    "lod_triangles": 1246
+  },
+  "slice-tower": {
+    "triangles": 2004,
+    "lod_triangles": 652
+  }
+}

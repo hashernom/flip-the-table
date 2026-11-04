@@ -105,7 +105,11 @@ Si cambias de equipo, esto no está en git:
 
 **Cómo se comprobó:** B1, B3, B7, I1, I7 y M18, en Studio. I8 y el paquete de I6 solo tienen comprobación de tipos, porque necesitan un lugar publicado. El resto, con pruebas de Lune.
 
-**Sigue abierto:** lo de «Cómo retomar». La salida de `sondas/hallazgos` ya muestra el comportamiento corregido en S1 a S3, aunque sus títulos describen el fallo original.
+**Cerrado en la rama `plan-06-base-de-arte`, sin integrar en `main`:** B4, B5, B6, B8, I13, M12, M13, M14, M17, el «Extra», I4 e I5, y `PerkMenu` y `VoteMenu` retirados con el visto bueno del responsable. Las pruebas de Lune los cubren. En Studio (2026-11-04), una partida de 2 clientes, jugada por un script que manda acciones legales por el remoto real, llegó al final: perks, nombres, HUD, colores y sitio de las fichas, dueños, edificios hasta el nivel 5, aviso de rechazo, ronda 20/20, podio y botones de revancha. **Sin comprobar:** clics reales, control de puja, diálogo de tratos, aspecto de los paneles, móvil y votación de revancha, porque bajo Vinegar las ventanas de cliente salían como cuadros negros y el 3D salía negro en las capturas.
+
+**Hallazgo nuevo, corregido (R-P49):** un `RemoteEvent` convierte a texto las claves de `view.properties` (`string:2`), comprobado en Studio. Lune no podía detectarlo; lo arregla `client/state/ViewWire`.
+
+**Sigue abierto:** lo demás de «Cómo retomar». La salida de `sondas/hallazgos` ya muestra el comportamiento corregido en S1 a S3, aunque sus títulos describen el fallo original.
 
 ## Pruebas en Studio (2026-11-04, Test Server local)
 

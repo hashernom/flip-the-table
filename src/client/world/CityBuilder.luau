@@ -258,15 +258,15 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			if tile == nil then
 				return
 			end
-			local existing = tile:FindFirstChild(OWNER_PLATE)
+			local current = tile:FindFirstChild(OWNER_PLATE)
 			if color == nil then
-				if existing ~= nil then
-					existing:Destroy()
+				if current ~= nil then
+					current:Destroy()
 				end
 				return
 			end
-			if existing ~= nil and existing:IsA("BasePart") then
-				existing.Color = color
+			if current ~= nil and current:IsA("BasePart") then
+				current.Color = color
 				return
 			end
 			local plate = makePart({

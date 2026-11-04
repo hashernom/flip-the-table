@@ -76,6 +76,45 @@
       "status": "Draft",
       "screenshots": [],
       "generatedWith": "Blender 5.2, art/blender/blockout/build_blockout.py"
+    },
+    {
+      "id": "slice-house",
+      "category": "Building",
+      "source": "art/blender/slice/build_ladder.py",
+      "triangles": 816,
+      "lods": [
+        282
+      ],
+      "textures": 6,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
+    },
+    {
+      "id": "slice-hotel",
+      "category": "Building",
+      "source": "art/blender/slice/build_ladder.py",
+      "triangles": 3530,
+      "lods": [
+        1246
+      ],
+      "textures": 6,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
+    },
+    {
+      "id": "slice-tower",
+      "category": "Building",
+      "source": "art/blender/slice/build_ladder.py",
+      "triangles": 2004,
+      "lods": [
+        652
+      ],
+      "textures": 6,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_ladder.py"
     }
   ]
 }
