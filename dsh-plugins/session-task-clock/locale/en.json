@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Tiempo de tarea",
+    "description": "Añade una pestaña a la barra lateral derecha con el reloj de la sesión, una barra de progreso estimada de la tarea en curso y el tiempo de cada agente y subagente."
+  }
+}

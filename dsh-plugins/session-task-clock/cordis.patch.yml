@@ -1,0 +1,3 @@
+- insert:
+    - id: session-task-clock
+      name: '@local/session-task-clock'
