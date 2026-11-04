@@ -24,7 +24,9 @@ export type CityHandles = {
 	facingOf: (index: number) -> number,
 	labelOf: (index: number) -> string,
 	colorOf: (index: number) -> Color3,
-	-- Pinta el dueño y el nivel de una propiedad. `nil` la devuelve al gris de solar.
+	-- Solar de la casilla: en el suelo, junto a la baldosa, con su frente mirando a la calle.
+	lotOf: (index: number) -> CFrame,
+	-- Pinta el solar con el color del dueño. La baldosa conserva el de su zona; `nil` libera el solar.
 	setOwner: (index: number, color: Color3?) -> (),
 	destroy: () -> (),
 }
@@ -35,6 +37,7 @@ local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 local POST_HEIGHT = 12
 local LABEL_DISTANCE = 400
+local OWNER_PLATE = "OwnerPlate"
 
 local CityBuilder = {}
 
@@ -221,6 +224,14 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		return slot
 	end
 
+	local function lotOf(index: number): CFrame
+		local slot = slotAt(index)
+		local center = CityLayout.lotCenter(slot)
+		local position = Vector3.new(center.x, 0, center.z)
+		local road = Vector3.new(slot.position.x, 0, slot.position.z)
+		return CFrame.lookAt(position, road)
+	end
+
 	local handles: CityHandles = {
 		model = model,
 		sizeId = sizeId,
@@ -241,12 +252,30 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			local slot = slotAt(index)
 			return Color3.fromHex(Strings.colorFor(toSquare(slot)))
 		end,
+		lotOf = lotOf,
 		setOwner = function(index: number, color: Color3?)
 			local tile: BasePart? = squares[index]
 			if tile == nil then
 				return
 			end
-			tile.Color = color or Color3.fromHex("#9CA3AF")
+			local existing = tile:FindFirstChild(OWNER_PLATE)
+			if color == nil then
+				if existing ~= nil then
+					existing:Destroy()
+				end
+				return
+			end
+			if existing ~= nil and existing:IsA("BasePart") then
+				existing.Color = color
+				return
+			end
+			local plate = makePart({
+				Name = OWNER_PLATE,
+				Size = Vector3.new(CityLayout.LOT_WIDTH_STUDS, TILE_HEIGHT, CityLayout.LOT_DEPTH_STUDS),
+				CFrame = lotOf(index),
+				Color = color,
+			})
+			plate.Parent = tile
 		end,
 		destroy = function()
 			model:Destroy()

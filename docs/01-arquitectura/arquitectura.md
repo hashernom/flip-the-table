@@ -127,7 +127,9 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/camera/CameraDirector` | Aplica el modo elegido a la cámara del jugador | 05 |
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
 | `client/world/TokenRider` | Sube el avatar a la ficha y recorre la ruta | 05 |
-| `client/world/BuildingView` | Muestra el nivel de cada edificio | 05 |
+| `client/world/WorldRules` | Reglas puras de la ciudad: propiedades que cambiaron y sitio de cada ficha | 06 |
+| `client/world/BuildingView` | Muestra el dueño y el nivel de cada solar | 06 |
+| `client/state/ViewWire` | Devuelve claves de número a lo que un remoto convierte a texto | 06 |
 | `client/scenes/SceneDirector` | Reproduce escenas en orden, con la duración de `Scenes` | 05 y 08 |
 | `client/scenes/PlaceholderScene` | Escena provisional: el nombre del evento mientras dura | 05 |
 | `client/ui/Theme` | Piezas comunes de la interfaz gris: colores, medidas táctiles y zona segura | 05 |
@@ -299,6 +301,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P45 (eventos):** `RentPaid.amount` es lo que cobra el dueño, y `GameEnded` lleva `awards` con el resultado de `Awards.compute`.
 - **R-P46 (presencia):** el reloj de una subasta, un Duelo o un Tribunal no cuenta como tiempo agotado de nadie.
 - **R-P47 (avatares):** las fichas son locales de cada cliente y la soldadura de un avatar no se replica, así que cada cliente sube también a los demás jugadores a su copia de la ficha.
+- **R-P48 (ciudad):** dueños y edificios se dibujan comparando vistas (`WorldRules.propertyChanges`), no escuchando eventos, porque las ventas por bancarrota y por Huracán no los emiten. Toda vista pasa por `ViewWire.normalize` al entrar en el cliente: `properties` tiene huecos y la documentación de Roblox no aclara qué hace un remoto con esas claves numéricas. El color de una ficha sale de su asiento y su sitio en la casilla, de `CityLayout.tokenOffset`.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales

@@ -38,6 +38,10 @@ export type Bridge = {
 	lengthStuds: number,
 }
 
+export type TokenOffset = { side: number, along: number }
+
+export type BuildingBlock = { along: number, width: number, depth: number, height: number }
+
 -- Presupuesto de separación entre casillas consecutivas, en studs. La ficha pide una ciudad a
 -- escala real; 40 studs por casilla deja la ciudad entre 400 y 560 studs de lado y holgura de sobra
 -- bajo el máximo de 60 que fija el plan.
@@ -176,6 +180,83 @@ end
 -- Lado de la ciudad en studs, de una esquina a la opuesta.
 function CityLayout.spanFor(sizeId: SizeId): number
 	return (CityLayout.sideFor(sizeId) - 1) * SQUARE_SPACING
+end
+
+-- Reparto de las fichas que comparten casilla: cuatro carriles de lado a lado (`art/escala.md`) y las
+-- filas que hagan falta. Caben las ocho de una partida llena dentro de la baldosa.
+local TOKEN_LANES = 4
+local TOKEN_LANE_STUDS = 9
+local TOKEN_ROW_STUDS = 16
+
+CityLayout.TOKEN_LANE_STUDS = TOKEN_LANE_STUDS
+CityLayout.TOKEN_ROW_STUDS = TOKEN_ROW_STUDS
+
+-- Desplazamiento de la ficha número `order` de las `count` que hay en una casilla, medido desde su
+-- centro: `side` hacia la derecha de la marcha y `along` hacia delante.
+function CityLayout.tokenOffset(order: number, count: number): TokenOffset
+	if count <= 1 then
+		return { side = 0, along = 0 }
+	end
+	local lanes = math.min(count, TOKEN_LANES)
+	local rows = math.ceil(count / TOKEN_LANES)
+	local lane = (order - 1) % TOKEN_LANES
+	local row = (order - 1) // TOKEN_LANES
+	return {
+		side = (lane - (lanes - 1) / 2) * TOKEN_LANE_STUDS,
+		along = ((rows - 1) / 2 - row) * TOKEN_ROW_STUDS,
+	}
+end
+
+-- El solar de cada casilla, junto a la baldosa y por fuera del anillo. Su fondo es el de `art/escala.md`
+-- y su ancho, el de la baldosa, para que dos solares vecinos no se toquen.
+local TILE_HALF = (SQUARE_SPACING - 4) / 2
+local LOT_GAP_STUDS = 2
+local LOT_WIDTH = SQUARE_SPACING - 4
+local LOT_DEPTH = 22
+
+CityLayout.LOT_WIDTH_STUDS = LOT_WIDTH
+CityLayout.LOT_DEPTH_STUDS = LOT_DEPTH
+
+-- Centro del solar de una casilla. La ruta gira siempre a la derecha, así que su exterior queda a la
+-- izquierda de la marcha.
+function CityLayout.lotCenter(slot: Slot): Vector3Like
+	local distance = TILE_HALF + LOT_GAP_STUDS + LOT_DEPTH / 2
+	return {
+		x = slot.position.x + math.cos(slot.facing) * distance,
+		y = 0,
+		z = slot.position.z - math.sin(slot.facing) * distance,
+	}
+end
+
+-- La escalera de cinco pasos, en piezas: una, dos y tres casas, hotel y rascacielos. Las alturas son
+-- las de `art/escala.md`. `along` es la posición de la pieza a lo largo de la calle.
+local HOUSE: BuildingBlock = { along = 0, width = 10, depth = 12, height = 15.2 }
+local HOUSE_STEP = 12
+
+local function houses(count: number): { BuildingBlock }
+	local blocks: { BuildingBlock } = {}
+	for order = 1, count do
+		table.insert(blocks, {
+			along = (order - (count + 1) / 2) * HOUSE_STEP,
+			width = HOUSE.width,
+			depth = HOUSE.depth,
+			height = HOUSE.height,
+		})
+	end
+	return blocks
+end
+
+local BUILDING_STEPS: { { BuildingBlock } } = {
+	houses(1),
+	houses(2),
+	houses(3),
+	{ { along = 0, width = 30, depth = 18, height = 36.5 } },
+	{ { along = 0, width = 18, depth = 18, height = 92 } },
+}
+
+-- Piezas de un nivel de edificio. El nivel 0, o uno que no exista, no tiene ninguna.
+function CityLayout.buildingBlocks(level: number): { BuildingBlock }
+	return BUILDING_STEPS[level] or {}
 end
 
 return CityLayout

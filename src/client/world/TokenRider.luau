@@ -28,10 +28,13 @@ function TokenRider.seatHeight(): number
 end
 
 -- CFrame del cuerpo de la ficha en una casilla: apoyado en el suelo y girado hacia la siguiente, para
--- que el avatar mire por donde va la partida.
-local function cframeAt(slot: CityLayout.Slot): CFrame
-	local base = Vector3.new(slot.position.x, 0, slot.position.z)
+-- que el avatar mire por donde va la partida. `offset` la aparta del centro si comparte casilla.
+local function cframeAt(slot: CityLayout.Slot, offset: CityLayout.TokenOffset?): CFrame
 	local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
+	local right = Vector3.new(-forward.Z, 0, forward.X)
+	local side = if offset ~= nil then offset.side else 0
+	local along = if offset ~= nil then offset.along else 0
+	local base = Vector3.new(slot.position.x, 0, slot.position.z) + right * side + forward * along
 	local bodyCenter = base + Vector3.new(0, BODY_SIZE.Y / 2, 0)
 	return CFrame.lookAt(bodyCenter, bodyCenter + forward)
 end
@@ -126,10 +129,23 @@ local function slotAt(token: Model, index: number): CityLayout.Slot
 	return route[clamped] :: CityLayout.Slot
 end
 
--- Coloca la ficha en una casilla sin animación. Se usa al entrar en la partida y al resincronizar.
-function TokenRider.place(token: Model, index: number)
-	bodyOf(token).CFrame = cframeAt(slotAt(token, index))
+local function remember(token: Model, index: number, offset: CityLayout.TokenOffset?)
 	token:SetAttribute("Index", index)
+	token:SetAttribute("Side", if offset ~= nil then offset.side else 0)
+	token:SetAttribute("Along", if offset ~= nil then offset.along else 0)
+end
+
+-- Coloca la ficha en una casilla sin animación. Se usa al entrar en la partida y al resincronizar.
+function TokenRider.place(token: Model, index: number, offset: CityLayout.TokenOffset?)
+	bodyOf(token).CFrame = cframeAt(slotAt(token, index), offset)
+	remember(token, index, offset)
+end
+
+-- ¿La ficha ya está en esa casilla y en ese sitio de la casilla?
+function TokenRider.isAt(token: Model, index: number, offset: CityLayout.TokenOffset): boolean
+	return token:GetAttribute("Index") == index
+		and token:GetAttribute("Side") == offset.side
+		and token:GetAttribute("Along") == offset.along
 end
 
 -- Sube el avatar a la ficha: lo deja de pie sobre el asiento y soldado a él, sin poder caminar ni
@@ -201,8 +217,14 @@ function TokenRider.dismount(token: Model)
 end
 
 -- Lleva la ficha por la ruta en, como máximo, `Scenes.maxRideSec` segundos. `path` son números de
--- casilla en orden. Devuelve la duración real usada, para que quien la llame sepa cuánto esperar.
-function TokenRider.ride(token: Model, path: { number }, durationSec: number): number
+-- casilla en orden. `arrival` es su sitio en la última casilla, para que no pise a quien ya esté allí.
+-- Devuelve la duración real usada, para que quien la llame sepa cuánto esperar.
+function TokenRider.ride(
+	token: Model,
+	path: { number },
+	durationSec: number,
+	arrival: CityLayout.TokenOffset?
+): number
 	local body = bodyOf(token)
 	local seconds = CameraRules.rideSeconds(durationSec)
 	if #path == 0 then
@@ -221,9 +243,10 @@ function TokenRider.ride(token: Model, path: { number }, durationSec: number): n
 	end
 
 	local step = seconds / #targets
-	for _, index in targets do
+	for order, index in targets do
+		local offset = if order == #targets then arrival else nil
 		local from = body.CFrame
-		local to = cframeAt(route[index] :: CityLayout.Slot)
+		local to = cframeAt(route[index] :: CityLayout.Slot, offset)
 		local elapsed = 0
 		while elapsed < step do
 			elapsed += task.wait(RIDE_STEP)
@@ -233,7 +256,7 @@ function TokenRider.ride(token: Model, path: { number }, durationSec: number): n
 			body.CFrame = from:Lerp(to, eased)
 		end
 		body.CFrame = to
-		token:SetAttribute("Index", index)
+		remember(token, index, offset)
 	end
 	return seconds
 end

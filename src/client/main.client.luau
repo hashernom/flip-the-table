@@ -52,10 +52,13 @@ local function boot()
 	playerScripts:WaitForChild("shared", SHARED_WAIT_SEC)
 
 	local CameraDirector = require("./camera/CameraDirector")
+	local BuildingView = require("./world/BuildingView")
 	local CityBuilder = require("./world/CityBuilder")
 	local TokenRider = require("./world/TokenRider")
+	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
+	local ViewWire = require("./state/ViewWire")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
 	local ActionMenu = require("./ui/ActionMenu")
@@ -134,12 +137,13 @@ local function boot()
 		local handles = CityBuilder.build(sizeId :: CityBuilder.SizeId, Workspace)
 		city = handles
 		size = sizeId
+		BuildingView.bind(handles)
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
 
 	-- Una ficha por asiento del servidor, también para los bots: el resto del grupo tiene que ver a todo
 	-- el mundo sobre su casilla, no solo a quien tiene cliente.
-	local function ensureToken(id: string, index: number): Model?
+	local function ensureToken(id: string, seat: number, index: number): Model?
 		local existing = tokens[id]
 		if existing then
 			return existing
@@ -148,7 +152,7 @@ local function boot()
 		if handles == nil then
 			return nil
 		end
-		local token = TokenRider.create(id, handles.sizeId, seatColor(index), handles.tokens)
+		local token = TokenRider.create(id, handles.sizeId, seatColor(seat), handles.tokens)
 		TokenRider.place(token, index)
 		tokens[id] = token
 		if id == playerId then
@@ -176,10 +180,11 @@ local function boot()
 				tokens[id] = nil
 			end
 		end
-		for _, seated in view.players do
-			local token = ensureToken(seated.id, seated.position)
-			if token ~= nil and token:GetAttribute("Index") ~= seated.position then
-				TokenRider.place(token, seated.position)
+		local offsets = WorldRules.tokenOffsets(view.players)
+		for seat, seated in view.players do
+			local token = ensureToken(seated.id, seat, seated.position)
+			if token ~= nil and not TokenRider.isAt(token, seated.position, offsets[seated.id]) then
+				TokenRider.place(token, seated.position, offsets[seated.id])
 			end
 			-- Las fichas son locales de cada cliente, así que la soldadura de un avatar no se replica: cada
 			-- cliente sube también a los demás a su copia de la ficha, o los vería flotando en la salida.
@@ -195,6 +200,10 @@ local function boot()
 				TokenRider.mount(other, token)
 			end
 		end
+		BuildingView.sync(view.properties or {}, function(ownerId: string): Color3?
+			local seat = WorldRules.seatOf(view.players, ownerId)
+			return if seat ~= nil then seatColor(seat) else nil
+		end)
 	end
 
 	-- El recorrido de una ficha es una escena: el grupo entero ve cómo se mueve. `ride` corre por su
@@ -208,7 +217,10 @@ local function boot()
 				ctx.wait(ctx.duration)
 				return
 			end
-			local used = TokenRider.ride(token, path, ctx.duration)
+			-- La vista del lote ya lleva el resultado, así que se sabe a qué sitio de la casilla llega.
+			local view = StateStore.view(queue.state)
+			local arrival = if view ~= nil then WorldRules.tokenOffsets(view.players)[id] else nil
+			local used = TokenRider.ride(token, path, ctx.duration, arrival)
 			ctx.spent(used)
 		end,
 	})
@@ -402,6 +414,7 @@ local function boot()
 		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
 			return
 		end
+		ViewWire.normalize(batch.view)
 		-- En una revancha, este lote es también la señal de partida nueva: la cola, las escenas vistas y
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
@@ -425,6 +438,7 @@ local function boot()
 		if type(batch) ~= "table" or type(batch.seq) ~= "number" then
 			return
 		end
+		ViewWire.normalize(batch.view)
 		EventQueue.resync(queue, batch.view, batch.seq)
 		syncTokens(batch.view)
 		applyView(batch.view)
