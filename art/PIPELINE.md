@@ -196,6 +196,11 @@ Estados: `Draft` → `InGame` (importado y colocado) → `Approved` (revisado en
 Las capturas se toman en el juego, con la iluminación y la cámara reales. Una imagen de Blender no
 es una aprobación.
 
+Si un asset se generó con IA, `generatedWith` lo dice, y antes de aprobarlo el responsable comprueba
+que no recuerde a una marca o un personaje existentes: ni el logo, el personaje o el tablero del juego
+original, ni símbolos de casino (`art/guia-de-estilo.md`, §9). El script no puede juzgarlo, así que es
+parte de la revisión y no de `Manifest.validate`.
+
 ## 9. Lo que queda por comprobar
 
 Esto es lo que este documento **no** puede afirmar todavía:

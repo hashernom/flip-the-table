@@ -10,7 +10,7 @@
 
 **Spec:** "Estándar de calidad de assets" en la [ficha](../00-ficha/ficha-propuesta.md).
 
-**Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha. El móvil de referencia debe elegirse antes de la Puerta B.
+**Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha, y salvo lo que exige publicar (teletransporte, MemoryStore, lobby y vuelta al asiento), que sigue sin probar. El móvil de referencia debe elegirse antes de la Puerta B.
 
 ## Ejecución recomendada
 
@@ -51,25 +51,27 @@
 **Módulos:** `art/guia-de-estilo`.
 
 **Archivos:**
-- Crear: `art/guia-de-estilo.md`, `art/referencias/`
+- Crear: `art/guia-de-estilo.md`. Las referencias acabaron en `art/identidad/`; `art/referencias/` no se creó.
 
 **Interfaces:**
 - Produce: paleta, materiales, iluminación, proporciones, tipografía e intención de cada barrio. Todas las tareas de arte la consultan.
 
 **Criterios de aceptación:**
-- [ ] La identidad visual (logo y títulos, fuentes, colores y jerarquía) se desarrolla siguiendo la skill `impeccable`.
-- [ ] Define la paleta de Metrópolis con luz de día, con sus valores de color: piedra caliza, ladrillo, cristal azul y oro.
-- [ ] Define el tratamiento del título del juego, las fuentes y sus usos, y comprueba que existan o se puedan usar en Roblox.
-- [ ] Define la biblioteca de materiales: asfalto seco, caliza, ladrillo, cristal, acero pulido, oro y agua.
-- [ ] Define el aspecto de Centro, Puerto, Zona Alta e Industrial, para que se distingan de un vistazo.
-- [ ] Incluye la escala de las fichas respecto a calles y edificios.
-- [ ] Aclara qué evitar: el logo, el personaje y el diseño de tablero del juego original, y símbolos de casino.
-- [ ] Incluye 3 imágenes conceptuales de la ciudad, aprobadas por el responsable.
+- [x] La identidad visual (logo y títulos, fuentes, colores y jerarquía) se desarrolla siguiendo la skill `impeccable`.
+- [x] Define la paleta de Metrópolis con luz de día, con sus valores de color: piedra caliza, ladrillo, cristal azul y oro.
+- [x] Define el tratamiento del título del juego, las fuentes y sus usos, y comprueba que existan o se puedan usar en Roblox.
+- [x] Define la biblioteca de materiales: asfalto seco, caliza, ladrillo, cristal, acero pulido, oro y agua.
+- [x] Define el aspecto de Centro, Puerto, Zona Alta e Industrial, para que se distingan de un vistazo.
+- [x] Incluye la escala de las fichas respecto a calles y edificios.
+- [x] Aclara qué evitar: el logo, el personaje y el diseño de tablero del juego original, y símbolos de casino.
+- [x] Incluye 3 imágenes conceptuales de la ciudad, aprobadas por el responsable.
 
-- [ ] **Paso 0:** Cargar la skill `impeccable` y seguirla en toda esta tarea.
-- [ ] **Paso 1:** Generar 3 direcciones visuales, con títulos, fuentes y colores, y presentarlas al responsable.
-- [ ] **Paso 2:** Escribir la guía con la dirección elegida.
-- [ ] **Paso 3:** Hacer commit: `docs: añadir guía de estilo`.
+- [x] **Paso 0:** Cargar la skill `impeccable` y seguirla en toda esta tarea.
+- [x] **Paso 1:** Generar 3 direcciones visuales, con títulos, fuentes y colores, y presentarlas al responsable.
+- [x] **Paso 2:** Escribir la guía con la dirección elegida.
+- [x] **Paso 3:** Hacer commit: `docs: añadir guía de estilo`.
+
+**Sigue abierto de esta tarea:** comprobar la paleta de materiales con una captura real, con la luz de `art/luz.md` (`art/guia-de-estilo.md`, §10). Necesita Studio y se hace al empezar la Tarea 3.
 
 ### Task 2: Tubería y manifiesto
 
@@ -93,14 +95,14 @@
 | Fondo de ciudad | 3 000 | Opcional |
 
 **Criterios de aceptación:**
-- [ ] `PIPELINE.md` documenta exportación FBX, escala, nombres, mapas PBR, `SurfaceAppearance`, subida y revisión.
-- [ ] Antes de escribirlo, se confirma en la documentación oficial cómo importar mallas y aplicar `SurfaceAppearance`.
-- [ ] Ningún asset puede estar `Approved` sin `approvedBy` y capturas en el juego.
-- [ ] Un asset fuera de presupuesto o sin versión de menor detalle falla.
-- [ ] Un id de asset que no esté en el manifiesto no se puede referenciar desde `src/`.
-- [ ] La revisión comprueba que un asset generado con IA no recuerde a marcas o personajes existentes.
+- [x] `PIPELINE.md` documenta exportación FBX, escala, nombres, mapas PBR, `SurfaceAppearance`, subida y revisión.
+- [x] Antes de escribirlo, se confirma en la documentación oficial cómo importar mallas y aplicar `SurfaceAppearance`.
+- [x] Ningún asset puede estar `Approved` sin `approvedBy` y capturas en el juego.
+- [x] Un asset fuera de presupuesto o sin versión de menor detalle falla.
+- [x] Un id de asset que no esté en el manifiesto no se puede referenciar desde `src/`.
+- [x] La revisión comprueba que un asset generado con IA no recuerde a marcas o personajes existentes.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("rechaza aprobar sin capturas", function()
@@ -113,10 +115,10 @@ it("rechaza superar el presupuesto", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run manifest`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar `tools/manifest.luau` y añadirlo a `tools/check`.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir tubería y manifiesto de assets`.
+- [x] **Paso 2:** Ejecutar `lune run tests/run manifest`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar `tools/manifest.luau` y añadirlo a `tools/check`.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Hacer commit: `feat: añadir tubería y manifiesto de assets`.
 
 ### Task 3: Porción vertical y Puerta B
 
