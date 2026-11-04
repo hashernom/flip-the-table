@@ -13,7 +13,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 | Público | Grupos de amigos en Roblox que buscan un plan juntos; apto para todo público |
 | Jugadores | 2 a 8 en el MVP; 9 a 12 después |
 | Duración | 25 a 35 minutos en modo Rondas; sin duración fija en modo Sin Fin |
-| Dispositivos | PC y móvil desde el MVP |
+| Dispositivos | PC y móvil en el MVP; primero se termina en PC y el móvil se hace al final (decisión del responsable, 2026-11-04) |
 | Promesa | Nadie está a salvo y nadie está fuera hasta el final |
 
 **Por qué se vuelve a jugar:** cada partida cambia por las cartas, los perks elegidos y lo que tus amigos te hicieron en la anterior. La revancha es el motor principal.

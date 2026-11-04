@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans (recommended) or superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Fijar el nivel visual del juego con una porción vertical aprobada, que funcione fluida en móvil, antes de producir todos los assets.
+**Goal:** Fijar el nivel visual del juego con una porción vertical aprobada, que funcione fluida en PC, antes de producir todos los assets. El móvil queda aplazado hasta tener el producto terminado en PC (decisión del responsable, 2026-11-04).
 
 **Architecture:** Fuentes en `art/` y un manifiesto que registra cada asset con su estado. Un script comprueba los presupuestos técnicos; la calidad la aprueba una persona dentro del juego.
 
@@ -10,7 +10,7 @@
 
 **Spec:** "Estándar de calidad de assets" en la [ficha](../00-ficha/ficha-propuesta.md).
 
-**Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha, y salvo lo que exige publicar (teletransporte, MemoryStore, lobby y vuelta al asiento), que sigue sin probar. El móvil de referencia debe elegirse antes de la Puerta B.
+**Requisito previo:** el plan 05 terminado, salvo la Puerta A (Tarea 6), aplazada hasta la alpha, y salvo lo que exige publicar (teletransporte, MemoryStore, lobby y vuelta al asiento), que sigue sin probar.
 
 ## Estado (2026-11-04): plan abierto
 
@@ -29,9 +29,9 @@
 3. **Subir el Cine Lux y sus marcadores por Open Cloud** y verlos en el juego. Hace falta la clave de API del responsable, que pone en su entorno. Con eso se comprueba también la paleta de `art/guia-de-estilo.md` §10.
 4. **Revisar el arte para la cámara aérea:** tejados con detalle y altura de la ficha.
 5. **Completar la porción:** 2 o 3 propiedades con ambientación propia, la ficha taxi con avatar, luz, sonido de ambiente y la escena de arresto.
-6. **Elegir el móvil de referencia, medir y presentar la Puerta B.** Solo el responsable la aprueba.
+6. **Medir en PC y presentar la Puerta B.** Solo el responsable la aprueba.
 
-**Decisiones pendientes del responsable:** el móvil de referencia y qué hacer con `tests/tools/manifest.spec.luau` («nunca aprobado»), que fallará al aprobar un asset.
+**Decisión pendiente del responsable:** qué hacer con `tests/tools/manifest.spec.luau` («nunca aprobado»), que fallará al aprobar un asset.
 
 ## Ejecución recomendada
 
@@ -62,7 +62,7 @@
 1. Se marca como aprobado un asset sin revisión en el juego: el manifiesto lo rechaza. Prueba en Tarea 2.
 2. Un asset supera su presupuesto de triángulos: la comprobación falla y lo nombra. Prueba en Tarea 2.
 3. Un asset generado con IA recuerda a una marca existente: la revisión lo detecta. Criterio en Tarea 2.
-4. Los materiales se ven bien con calidad gráfica alta pero se apagan con la mínima en móvil. Prueba en Tarea 3.
+4. Los materiales se ven bien con calidad gráfica alta pero se apagan con la mínima. Prueba en Tarea 3.
 5. Un asset no tiene versión de menor detalle: la comprobación falla. Prueba en Tarea 2.
 
 ---
@@ -163,15 +163,15 @@ end)
 
 **Criterios de aceptación:**
 - [ ] Cada asset de la porción cumple las 6 condiciones del estándar de la ficha.
-- [ ] El responsable compara capturas y video en PC y móvil, y aprueba la referencia de calidad.
-- [ ] 30 FPS o más en el móvil de referencia, con 8 fichas en escena.
+- [ ] El responsable compara capturas y video en PC, y aprueba la referencia de calidad.
+- [ ] 30 FPS o más en el PC del responsable, con 8 fichas en escena.
 - [ ] Se ve aceptable con el nivel gráfico mínimo.
 - [ ] La memoria del cliente queda registrada en `puerta-b.md` como presupuesto de la ciudad completa.
 
 - [ ] **Paso 1:** Modelar y texturizar en Blender; registrar cada asset en el manifiesto como `Draft`.
 - [ ] **Paso 2:** Importar a Studio, pasarlos a `InGame` y capturar con `screen_capture` desde cada cámara.
 - [ ] **Paso 3:** Ejecutar `lune run tools/check`. Esperado: «OK Manifiesto». `tools/manifest` es un módulo y no comprueba nada si se ejecuta solo.
-- [ ] **Paso 4:** Medir FPS y memoria en el móvil de referencia con 8 fichas, con ayuda del responsable, y registrar los datos.
+- [ ] **Paso 4:** Medir FPS y memoria en PC con 8 fichas, con ayuda del responsable, y registrar los datos.
 - [ ] **Paso 5:** Presentar capturas y datos al responsable. Si no aprueba, iterar sobre sus comentarios.
 - [ ] **Paso 6:** Marcar los assets como `Approved` y escribir `puerta-b.md`.
 - [ ] **Paso 7:** Hacer commit: `feat: aprobar porción vertical`.

@@ -65,12 +65,12 @@ Aplazada hasta tener una alpha, antes de la subfase 10 (decisión del responsabl
 - [ ] Al menos una vez, el grupo pidió la revancha sin que nadie lo sugiriera.
 - [ ] Decisión escrita del responsable: seguir, ajustar reglas o replantear.
 
-### Puerta B: nivel visual aprobado y fluido en móvil
+### Puerta B: nivel visual aprobado y fluido en PC
 
-Al terminar la subfase 06.
+Al terminar la subfase 06. El móvil queda aplazado hasta tener el producto terminado en PC (decisión del responsable, 2026-11-04); sus criterios se retoman antes de publicar.
 
 - [ ] El responsable aprueba la porción vertical como referencia de calidad.
-- [ ] La porción se mantiene en 30 FPS o más en el móvil de referencia.
+- [ ] La porción se mantiene en 30 FPS o más en el PC del responsable.
 
 ### Puerta C: abre la Fase 1
 

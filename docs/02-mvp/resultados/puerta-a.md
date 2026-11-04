@@ -48,9 +48,8 @@ con arte gris). Responde una sola pregunta: **¿un grupo de amigos pide la revan
 1. **Publicar la alpha en un lugar privado.** El plan 04 dejó la publicación pendiente por
    decisión del responsable: `config/Places` vale `0` y sin lugar el lobby no teletransporta. Hace
    falta permiso explícito para publicar en **privado**.
-2. **Elegir el móvil de referencia** para las pruebas de rendimiento y de pantalla táctil. Ya no puede
-   esperar a esta puerta: la Puerta B (plan 06) lo necesita para medir 30 FPS, así que debe elegirse
-   antes de la Puerta B.
+2. **Móvil de referencia:** aplazado hasta tener el producto terminado en PC, por decisión del
+   responsable (2026-11-04). Mientras tanto, los criterios de móvil de esta puerta no la bloquean.
 3. **Reunir los grupos.** Esta parte no la puede hacer un agente: hacen falta entre 4 y 8 personas por
    sesión y al menos 5 sesiones.
 4. **Sondear sin preguntar.** El criterio de la revancha solo vale si nadie la sugiere; se apunta si

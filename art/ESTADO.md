@@ -55,8 +55,8 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
    modelar fachadas. Lo que hay aplicado hoy son texturas CC0, no los albedos de la guía.
 2. Tres fachadas más, una por receta, para cerrar una hilera entera con mallas reales.
 3. Puerto y Zona Alta: existen en concepto, no en el juego.
-4. Rendimiento en móvil: **aplazado por decisión del responsable**. No hay números y no se deben
-   inventar.
+4. Rendimiento en móvil: **aplazado hasta tener el producto terminado en PC**, por decisión del
+   responsable. No hay números y no se deben inventar.
 5. La porción vertical de la Puerta B. `src/client/world/BuildingView` ya existe, con bloques grises
    comprobados en partida. El responsable descartó la escalera de modelos: cada propiedad es un edificio
    fijo con marcadores y añadidos (R-P50). La primera, el Cine Lux, está en
