@@ -355,7 +355,7 @@ local function boot()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
-				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS)
+				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS, { view = view })
 			end,
 			Overview = function()
 				overview.setView(view)

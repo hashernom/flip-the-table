@@ -22,6 +22,15 @@ export type BidControl = {
 	min: number,
 	max: number,
 	step: number,
+	-- Salto grande, para no pulsar «+» veinte veces con solo 15 s de subasta.
+	jump: number,
+}
+
+-- Lo que el menú sabe de la mesa además de las acciones legales: la vista del jugador y los nombres
+-- que `main.client` resolvió. Sin contexto los botones se quedan con su etiqueta genérica.
+export type Context = {
+	view: any?,
+	names: { [string]: string }?,
 }
 
 -- Etiqueta de cada acción, en el idioma del juego. Las que llevan objeto se completan más abajo.
@@ -90,13 +99,27 @@ local function idFor(action: Action): string
 	return actionType
 end
 
+-- Efectivo del propio jugador en la vista, o nil si no se conoce.
+function ActionMenuRules.ownCash(context: Context?): number?
+	local view = if context ~= nil then context.view else nil
+	if view == nil then
+		return nil
+	end
+	for _, seated in view.players do
+		if seated.id == view.playerId then
+			return seated.cash
+		end
+	end
+	return nil
+end
+
 -- Botones del menú, en el orden en que el motor enumera sus acciones. Una puja no es un botón: tiene
 -- su propio control, así que se cambia por el botón de confirmar.
-function ActionMenuRules.buttonsFor(legal: { Action }): { Button }
+function ActionMenuRules.buttonsFor(legal: { Action }, context: Context?): { Button }
 	local buttons: { Button } = {}
 	for _, action in legal do
 		if action.type == "Bid" then
-			local bounds = ActionMenuRules.bidControl(legal)
+			local bounds = ActionMenuRules.bidControl(legal, ActionMenuRules.ownCash(context))
 			if bounds ~= nil then
 				table.insert(buttons, {
 					id = "BidConfirm",
@@ -115,20 +138,29 @@ function ActionMenuRules.buttonsFor(legal: { Action }): { Button }
 	return buttons
 end
 
--- Límites del control de puja, o nil si no hay ninguna puja legal. El máximo es la puja que el motor
--- enumera como representativa (`min(alta + paso, efectivo)`), y el mínimo, un paso.
-function ActionMenuRules.bidControl(legal: { Action }): BidControl?
+-- Límites del control de puja, o nil si no hay ninguna puja legal. El mínimo es la puja que el motor
+-- enumera (`min(alta + paso, efectivo)`) y el máximo, el efectivo del jugador: el motor acepta
+-- cualquier entero entre las dos. Sin efectivo conocido, el rango se reduce a esa puja.
+function ActionMenuRules.bidControl(legal: { Action }, cash: number?): BidControl?
 	for _, action in legal do
 		if action.type == "Bid" then
 			local enumerated = action.amount
 			local step = Economy.auctionBidStep
-			local max = if type(enumerated) == "number" and enumerated > 0 then enumerated else step
-			-- Si el máximo cabe por debajo de un paso, el mínimo es 1: el rango nunca queda vacío.
-			local min = if max < step then 1 else step
-			return { min = min, max = max, step = step }
+			local min = if type(enumerated) == "number" and enumerated > 0 then enumerated else step
+			local max = if cash ~= nil then math.max(min, cash) else min
+			return { min = min, max = max, step = step, jump = Economy.auctionBidJump }
 		end
 	end
 	return nil
+end
+
+-- Puja elegida tras una vista nueva: se conserva lo que el jugador había elegido, acotado al rango de
+-- ahora (la puja alta puede haber subido o su efectivo haber bajado). Sin elección previa, el mínimo.
+function ActionMenuRules.clampBid(previous: number?, control: BidControl): number
+	if previous == nil then
+		return control.min
+	end
+	return math.max(control.min, math.min(control.max, previous))
 end
 
 -- Un lado de un trato: dinero, casillas, las dos cosas o «nada».
