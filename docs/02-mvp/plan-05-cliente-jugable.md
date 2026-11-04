@@ -170,7 +170,7 @@ end)
 **Módulos:** `client/ui/Hud`, `client/ui/Menus`.
 
 **Archivos:**
-- Crear: `src/client/ui/Hud.luau`, `src/client/ui/ActionMenu.luau`, `src/client/ui/TradeMenu.luau`, `src/client/ui/PactMenu.luau`, `src/client/ui/VoteMenu.luau`, `src/client/ui/PerkMenu.luau`, `src/client/ui/Overview.luau`, `src/client/ui/LobbyMenu.luau`, `src/client/ui/ActionMenuRules.luau`, `tests/client/ActionMenuRules.spec.luau`
+- Crear: `src/client/ui/Hud.luau`, `src/client/ui/ActionMenu.luau`, `src/client/ui/TradeMenu.luau`, `src/client/ui/PactMenu.luau`, `src/client/ui/Overview.luau`, `src/client/ui/LobbyMenu.luau`, `src/client/ui/ActionMenuRules.luau`, `src/client/ui/ViewText.luau`, `tests/client/ActionMenuRules.spec.luau`, `tests/client/ViewText.spec.luau`
 
 **Interfaces:**
 - Consume: `Engine.legalActions` por medio de `view.legalActions`.
@@ -192,6 +192,8 @@ end)
       El MCP de Studio no puede activar el emulador: la prueba se hizo reduciendo la ventana a 586 × 365
       y midiendo los controles. Queda pendiente con el emulador de verdad.
 - [x] **Paso 6:** Hacer commit: `feat: añadir interfaz gris completa`.
+
+**Cambio posterior (cierre de menús, 2026-11-04):** se quitan los modales `PerkMenu` y `VoteMenu`. Los perks del borrador y los votos del Tribunal pasan a la barra de acciones, con etiquetas que dicen qué hace cada botón («Banquero: Cobras 50 % más al pasar por la Salida», «Multa de 150 a Ana»). Así no tapan la barra a quien no decide ni se reabren tras votar (M13). Los textos salen de `ui/ViewText` y se prueban con vistas reales del motor en `tests/client/ViewText.spec.luau`.
 
 ### Task 6: Puerta A, prueba con amigos (aplazada hasta la alpha)
 

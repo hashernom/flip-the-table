@@ -8,6 +8,7 @@
 -- tipo por nombre.
 local Economy = require("../../shared/config/Economy")
 local Types = require("../../shared/rules/Types")
+local ViewText = require("./ViewText")
 
 type Action = Types.Action
 
@@ -59,20 +60,24 @@ local LABELS: { [string]: string } = {
 
 local ActionMenuRules = {}
 
--- Nombre visible de un botón. Las acciones con objeto lo llevan en la etiqueta, porque en el menú
--- aparecen varias a la vez y «Construir» a secas no dice en qué casilla.
-function ActionMenuRules.labelFor(action: Action): string
+-- Nombre visible de un botón. Con la vista (`context`) las acciones con objeto lo llevan en la
+-- etiqueta, por su nombre: en el menú aparecen varias a la vez y «Construir» a secas no dice dónde.
+-- Sin ella se cae a una etiqueta genérica, que es lo que ven las pruebas de forma.
+function ActionMenuRules.labelFor(action: Action, context: Context?): string
+	if context ~= nil and context.view ~= nil then
+		return ViewText.actionLabel(context.view, context.names, action)
+	end
 	local actionType = action.type
 	local base = LABELS[actionType]
 	if base == nil then
 		return actionType
 	end
-	if actionType == "Build" or actionType == "MarketBuy" then
+	if actionType == "Build" then
 		local index = action.index
 		if type(index) == "number" then
 			return `{base} {index}`
 		end
-	elseif actionType == "PlayCard" or actionType == "React" then
+	elseif actionType == "MarketBuy" or actionType == "PlayCard" or actionType == "React" then
 		if type(action.cardId) == "string" then
 			return `{base}: {action.cardId}`
 		end
@@ -85,18 +90,21 @@ function ActionMenuRules.labelFor(action: Action): string
 	return base
 end
 
--- Identificador único del botón. Dos acciones del mismo tipo sobre casillas distintas tienen que
--- poder convivir en el mismo menú.
-local function idFor(action: Action): string
-	local actionType = action.type
-	if actionType == "Build" or actionType == "MarketBuy" then
-		return `{actionType}:{tostring(action.index)}`
-	elseif actionType == "PlayCard" or actionType == "React" then
-		return `{actionType}:{tostring(action.cardId)}`
-	elseif actionType == "GhostAct" then
-		return `{actionType}:{tostring(action.kind)}:{tostring(action.index)}`
+-- Identificador único del botón: el tipo y todos los campos de la acción, en orden. Dos acciones del
+-- mismo tipo que difieren en cualquier campo (rival, jugada, objetivo, carta) tienen ids distintos.
+function ActionMenuRules.idFor(action: Action): string
+	local keys: { string } = {}
+	for key in action do
+		if key ~= "type" then
+			table.insert(keys, key)
+		end
 	end
-	return actionType
+	table.sort(keys)
+	local parts: { string } = { action.type }
+	for _, key in keys do
+		table.insert(parts, `{key}={tostring(action[key])}`)
+	end
+	return table.concat(parts, ":")
 end
 
 -- Efectivo del propio jugador en la vista, o nil si no se conoce.
@@ -129,8 +137,8 @@ function ActionMenuRules.buttonsFor(legal: { Action }, context: Context?): { But
 			end
 		else
 			table.insert(buttons, {
-				id = idFor(action),
-				label = ActionMenuRules.labelFor(action),
+				id = ActionMenuRules.idFor(action),
+				label = ActionMenuRules.labelFor(action, context),
 				action = action,
 			})
 		end

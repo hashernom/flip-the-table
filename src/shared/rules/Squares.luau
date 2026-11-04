@@ -146,6 +146,22 @@ local function effectivePrice(state: GameState, playerId: PlayerId, price: numbe
 	return price
 end
 
+-- Precio que pagaría el jugador por una carta del Mercado Negro abierto, con su Descuento si lo tiene,
+-- o nil si la carta no está en la oferta. Es la misma cuenta que cobra marketBuy: la interfaz la lee
+-- en vez de repetir la fórmula. Solo lee `pending`, así que acepta también una vista.
+function Squares.marketPriceFor(state: GameState, playerId: PlayerId, cardId: string): number?
+	local pending = state.pending
+	local market: PendingMarket? = if pending ~= nil then pending.market else nil
+	if market == nil then
+		return nil
+	end
+	local offer = offerOf(market, cardId)
+	if offer == nil then
+		return nil
+	end
+	return effectivePrice(state, playerId, offer.price)
+end
+
 -- Motivo por el que el jugador no puede comprar esa carta, o nil. La oferta, el efectivo y el
 -- sitio en la mano se comprueban antes de cobrar nada.
 function Squares.marketBuyReason(state: GameState, playerId: PlayerId, cardId: any): string?

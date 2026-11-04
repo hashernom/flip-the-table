@@ -63,10 +63,9 @@ local function boot()
 	local LobbyMenu = require("./ui/LobbyMenu")
 	local Overview = require("./ui/Overview")
 	local PactMenu = require("./ui/PactMenu")
-	local PerkMenu = require("./ui/PerkMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
-	local VoteMenu = require("./ui/VoteMenu")
+	local ViewText = require("./ui/ViewText")
 
 	local playerGui = player:WaitForChild("PlayerGui")
 
@@ -86,12 +85,6 @@ local function boot()
 	local pactMenu = PactMenu.create(playerGui, function(action: any)
 		sendAction(action)
 	end)
-	local voteMenu = VoteMenu.create(playerGui, function(action: any)
-		sendAction(action)
-	end)
-	local perkMenu = PerkMenu.create(playerGui, function(action: any)
-		sendAction(action)
-	end)
 	local lobbyMenu = LobbyMenu.create(playerGui, function(request: any)
 		sendLobby(request)
 	end)
@@ -108,6 +101,16 @@ local function boot()
 			warn(message)
 		end,
 	})
+
+	-- Nombre de cada asiento. Los `playerId` son el `userId` en texto: se resuelven aquí, que es el único
+	-- sitio que conoce a los `Player`, y se guarda el último nombre conocido porque un bot puede ocupar
+	-- el asiento de quien se fue.
+	local names: ViewText.Names = {}
+	local function lookupName(id: string): string?
+		local userId = tonumber(id)
+		local found = if userId ~= nil then Players:GetPlayerByUserId(userId) else nil
+		return if found ~= nil then found.DisplayName else nil
+	end
 
 	local queue = EventQueue.new()
 	local director = CameraDirector.new(player, START_SIZE)
@@ -347,6 +350,7 @@ local function boot()
 		if view == nil then
 			return
 		end
+		ViewText.rememberNames(names, view, lookupName)
 		local steps: { [string]: () -> () } = {
 			Hud = function()
 				hud.setView(view)
@@ -355,7 +359,7 @@ local function boot()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
-				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS, { view = view })
+				actionMenu.setLegal(view.legalActions or {}, SOCIAL_BUTTONS, { view = view, names = names })
 			end,
 			Overview = function()
 				overview.setView(view)
@@ -365,12 +369,6 @@ local function boot()
 			end,
 			PactMenu = function()
 				pactMenu.setView(view)
-			end,
-			VoteMenu = function()
-				voteMenu.setView(view)
-			end,
-			PerkMenu = function()
-				perkMenu.setView(view)
 			end,
 			RematchMenu = function()
 				rematchMenu.setView(view)
@@ -391,8 +389,6 @@ local function boot()
 	-- con la vista del lote, al terminar la escena.
 	local function hideMenus()
 		actionMenu.setLegal({}, nil)
-		voteMenu.close()
-		perkMenu.close()
 		hud.setDeadline(nil)
 	end
 
