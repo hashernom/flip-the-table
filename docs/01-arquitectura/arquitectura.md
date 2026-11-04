@@ -90,7 +90,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 
 ### Datos: `src/shared/config`
 
-`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby` y `Places`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado.
+`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings` y `CityLayout`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
 
 ### Servidor
 
@@ -120,14 +120,18 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 
 | Módulo | Responsabilidad | Subfase |
 | --- | --- | --- |
+| `client/main.client` | Único punto de cableado del cliente: ciudad, cola, estado, fichas, cámara, escenas e interfaz | 05 |
 | `client/state/EventQueue` | Ordena lotes y detecta huecos | 05 |
 | `client/state/StateStore` | Última vista conocida | 05 |
-| `client/camera/CameraDirector` | Elige el modo de cámara | 05 |
+| `client/camera/CameraRules` | Qué modo de cámara toca y cuánto dura un recorrido | 05 |
+| `client/camera/CameraDirector` | Aplica el modo elegido a la cámara del jugador | 05 |
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
 | `client/world/TokenRider` | Sube el avatar a la ficha y recorre la ruta | 05 |
 | `client/world/BuildingView` | Muestra el nivel de cada edificio | 05 |
-| `client/ui/Hud` y menús | Interacción táctil y de PC | 05 y 09 |
-| `client/scenes/SceneDirector` | Reproduce escenas en orden | 05 y 08 |
+| `client/scenes/SceneDirector` | Reproduce escenas en orden, con la duración de `Scenes` | 05 y 08 |
+| `client/scenes/PlaceholderScene` | Escena provisional: el nombre del evento mientras dura | 05 |
+| `client/ui/Theme` | Piezas comunes de la interfaz gris: colores, medidas táctiles y zona segura | 05 |
+| `client/ui/Hud` y menús | Interacción táctil y de PC; `ActionMenuRules` decide qué botones existen | 05 y 09 |
 | `client/audio/AudioDirector` | Música y efectos | 09 |
 
 ## Contratos del motor
@@ -195,10 +199,14 @@ Protocol.REMOTES = {
     PartyCreate = "PartyCreateRequest", PartyJoin = "PartyJoinRequest",
     PartyStart = "PartyStartRequest", QueueJoin = "QueueJoinRequest",
     Notice = "LobbyNotice",
+    -- Emotes (subfase 05): petición del cliente y reenvío del servidor por el mismo remoto.
+    Emote = "EmoteRequest",
 }
 Protocol.validate(action: any): (boolean, string?)
 Protocol.validateLobby(request: any): (boolean, string?)
 Protocol.validateRematch(vote: any): (boolean, string?)
+Protocol.validateEmote(emote: any): boolean
+Protocol.EMOTES = { "😀", "😱", "🤑", "😡", "🤝", "🗡️" }
 Protocol.newLimiter(perSecond: number?): { allow: (playerId: string, now: number) -> boolean }
 -- El limitador es puro y recibe el reloj. Sin argumento usa Economy.actionsPerSecond (10); el lobby
 -- pide el suyo, más bajo, porque cada petición cuesta unidades de MemoryStore.
@@ -263,6 +271,17 @@ Ajustes acordados al cerrar la subfase 04. Prevalecen sobre lo que digan los pla
 - **R-P31:** `config/Places` con `0` significa «sin publicar». Con `0` no se teletransporta y se avisa; los identificadores los rellena el responsable al publicar.
 - **Ofertas públicas:** `pending.trades` y `pending.pactOffers` son información de la mesa y viajan en la vista de todos. Lo secreto es la mano, la carta robada, las jugadas del Duelo, las papeletas del Tribunal, el Espía y el `rng`. Una negociación a la vista es lo que hace legible quién se está aliando con quién, que es de lo que vive la traición.
 - **Telemetría:** `MatchSummary.report` calcula los cuatro criterios solo con partidas en modo Rondas; la duración se mide sobre partidas de 4 a 8 jugadores, como dice la ficha, y el líder a mitad solo divide entre las partidas con líder conocido. `telemetry/` es salida de ejecución y no se versiona.
+
+### Decisiones que cambian los contratos: subfase 05
+
+Ajustes acordados al cerrar la subfase 05. Prevalecen sobre lo que digan los planes y las notas de trabajo.
+
+- **R-P32:** la ciudad la construye el **cliente**. El servidor no crea ni una pieza y el prototipo no gasta partes replicadas; `CityBuilder.build` la levanta desde `config/CityLayout`, que es puro. El arte gris de la subfase 05 nunca se publica como versión pública.
+- **R-P33:** los emotes van por su propio remoto, `EmoteRequest`, y no por la puerta de acciones: no son una acción del motor. El cliente manda uno de `Protocol.EMOTES` y el lugar de partida lo reenvía a todos con `FireAllClients`; el cliente pinta la burbuja sobre la ficha de quien lo lanzó.
+- **R-P34:** el plazo de la decisión **no viaja en el lote**. El cliente lo deriva de `batch.startsAt` más la duración de las escenas y `Scenes.decisionSeconds(fase)`, igual que hace el reloj del servidor con los mismos datos de `Scenes`. Por eso el temporizador de los menús se calcula al terminar la escena del lote.
+- **R-P35:** `CityLayout.routeFor(sizeId)` da una posición por casilla en el anillo de un cuadrado de 11, 13 o 15 casillas de lado, con 40 studs por casilla (el tope del plan es 60). La Salida queda en la misma esquina en los tres tamaños, los barrios no retroceden a lo largo de la ruta y `bridgesFor` devuelve las aristas que cruzan de una isla a otra: 0 en S, 2 en M y 3 en L.
+- **R-P36:** el cliente espera `PlayerScripts.shared` antes de pedir ningún módulo. Un `LocalScript` empieza a correr en cuanto se copia a `PlayerScripts`, antes que sus hermanos, y sin esa espera la primera partida de cada servidor se quedaba sin cliente. Un remoto que falte ya no tumba el arranque: se pierde esa función y se avisa.
+- **R-P37:** la interfaz usa `ScreenInsets.CoreUISafeInsets`, que suma la muesca del móvil y la barra de Roblox, y ningún botón baja de 44 píxeles de alto. Los paneles se dimensionan en fracción de pantalla con un máximo, para que una ventana pequeña no deje un menú fuera.
 
 ## Datos iniciales
 

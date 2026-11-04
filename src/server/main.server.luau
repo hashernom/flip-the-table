@@ -10,6 +10,7 @@
 local Players = game:GetService("Players")
 
 local Lobby = require("../shared/config/Lobby")
+local Protocol = require("../shared/net/Protocol")
 local Rng = require("../shared/rules/Rng")
 local Scenes = require("../shared/config/Scenes")
 local Types = require("../shared/rules/Types")
@@ -142,6 +143,21 @@ end
 -- por servidor: la revancha reutiliza esta conexión y solo cambia la partida vigente.
 RemoteGateway.start(function(player, action)
 	MatchService.submit(player, action)
+end)
+
+-- Emotes: no son una acción del motor y no pasan por la puerta de acciones. Se validan contra la lista
+-- del protocolo, se limitan como cualquier paquete del cliente y se reenvían a todos, que es lo único
+-- que hacen: enseñarlos.
+local emoteRemote = RemoteGateway.remote(Protocol.REMOTES.Emote)
+local emoteLimiter = Protocol.newLimiter()
+emoteRemote.OnServerEvent:Connect(function(player: Player, emote: any)
+	if not emoteLimiter.allow(tostring(player.UserId), game:GetService("Workspace"):GetServerTimeNow()) then
+		return
+	end
+	if not Protocol.validateEmote(emote) then
+		return
+	end
+	emoteRemote:FireAllClients(tostring(player.UserId), emote)
 end)
 
 -- La presencia registra PlayerAdded/PlayerRemoving y se engancha al arranque de cada partida;
