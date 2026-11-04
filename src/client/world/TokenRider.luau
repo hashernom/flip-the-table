@@ -64,10 +64,10 @@ local function weldTo(list: { BasePart }, body: BasePart)
 	end
 end
 
--- Crea la ficha gris de un jugador. `color` es la franja que la identifica; el resto va en gris.
-function TokenRider.create(player: Player, sizeId: SizeId, color: Color3, parent: Instance): Model
+-- Crea la ficha gris de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),\n-- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es la franja\n-- que la identifica; el resto va en gris.
+function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, parent: Instance): Model
 	local model = Instance.new("Model")
-	model.Name = `Token_{player.UserId}`
+	model.Name = `Token_{ownerId}`
 
 	local body = part("Body", BODY_SIZE, BODY_COLOR, model, true)
 	model.PrimaryPart = body

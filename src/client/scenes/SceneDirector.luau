@@ -1,0 +1,128 @@
+--!strict
+-- Director de escenas del cliente. Recibe un lote, resuelve la escena de cada evento y la reproduce
+-- en orden, con la duración real de `Scenes`. Es el único módulo que sabe cuánto dura algo.
+--
+-- Dos decisiones que sostienen los criterios de la tarea:
+--
+-- - **El reloj entra inyectado.** Así el director se prueba entero con Lune, sin abrir Studio.
+-- - **Un error no se lleva la cola por delante.** Cada escena va dentro de `pcall`; si falla se
+--   registra y se sigue. La escena fallida ocupa su tiempo igual, para que el cliente no se adelante
+--   al reloj del servidor, que es lo que mantiene a dos clientes a menos de 250 ms.
+local Scenes = require("../../shared/config/Scenes")
+local Types = require("../../shared/rules/Types")
+local PlaceholderScene = require("./PlaceholderScene")
+
+type Event = Types.Event
+type Batch = { seq: number, startsAt: number?, events: { Event }?, view: any? }
+
+export type Context = PlaceholderScene.Context & {
+	-- Tiempo que la escena ya consumió fuera de `wait` (un recorrido que corre por su cuenta). El
+	-- director lo descuenta para no esperar dos veces el mismo hueco.
+	spent: (seconds: number) -> (),
+}
+export type Scene = { run: (ctx: Context, event: Event) -> () }
+
+export type Options = {
+	wait: ((seconds: number) -> ())?,
+	show: ((text: string) -> ())?,
+	log: ((message: string) -> ())?,
+}
+
+export type Director = {
+	wait: (seconds: number) -> (),
+	show: (text: string) -> (),
+	log: (message: string) -> (),
+	scenes: { [string]: Scene },
+	-- Cuántas veces se ha visto cada tipo de evento en esta partida: acorta las escenas repetidas.
+	seen: { [string]: number },
+}
+
+local SceneDirector = {}
+
+function SceneDirector.new(options: Options?): Director
+	local settings: Options = options or {}
+	return {
+		wait = settings.wait or function(seconds: number)
+			task.wait(seconds)
+		end,
+		show = settings.show or function(_text: string) end,
+		log = settings.log or function(message: string)
+			warn(message)
+		end,
+		scenes = {},
+		seen = {},
+	}
+end
+
+-- Qué escena le toca a un evento. Una carta jugada se anuncia con su id, que es lo que le da escena
+-- propia a cada legendaria; todo lo demás usa el tipo del evento.
+function SceneDirector.sceneIdFor(event: Event): string
+	if event.type == "CardPlayed" and type(event.cardId) == "string" then
+		return event.cardId
+	end
+	return event.type
+end
+
+-- Registra la escena definitiva de un evento o de una carta. Las escenas provisionales de la subfase
+-- 05 no registran nada: el nombre lo pone `PlaceholderScene` por defecto.
+function SceneDirector.register(director: Director, eventOrCardId: string, scene: Scene)
+	director.scenes[eventOrCardId] = scene
+end
+
+-- Reproduce un lote entero y devuelve cuántas escenas se reprodujeron. `ctx.wait` de la escena y la
+-- espera del director comparten un contador, así que una escena que espera lo suyo no se espera dos
+-- veces y una que falla a la primera sigue ocupando su hueco.
+function SceneDirector.play(director: Director, batch: Batch): number
+	local events: { Event } = batch.events or {}
+	local played = 0
+	for _, event in events do
+		local id = SceneDirector.sceneIdFor(event)
+		local scene: Scene? = director.scenes[id]
+		if scene == nil then
+			scene = director.scenes[event.type]
+		end
+
+		local seen = director.seen[event.type] or 0
+		director.seen[event.type] = seen + 1
+		local duration = Scenes.durationFor(event, seen)
+
+		local elapsed = 0
+		local function wait(seconds: number)
+			if seconds <= 0 then
+				return
+			end
+			elapsed += seconds
+			director.wait(seconds)
+		end
+
+		local ctx: Context = {
+			duration = duration,
+			show = director.show,
+			wait = wait,
+			spent = function(seconds: number)
+				if seconds > 0 then
+					elapsed = math.min(duration, elapsed + seconds)
+				end
+			end,
+		}
+
+		local target: Scene = scene or PlaceholderScene
+		local ok, err = (pcall :: any)(target.run, ctx, event)
+		if not ok then
+			director.log(`SceneDirector: la escena {id} falló: {tostring(err)}`)
+		end
+
+		-- Lo que la escena no consumió se espera aquí: el lote tiene que ocupar lo que dice el reloj
+		-- del servidor, aunque la escena se haya quedado corta o haya reventado.
+		local remaining = duration - elapsed
+		if remaining > 0 then
+			elapsed = duration
+			director.wait(remaining)
+		end
+
+		played += 1
+	end
+	return played
+end
+
+return SceneDirector
