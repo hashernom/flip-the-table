@@ -139,6 +139,7 @@ local function boot()
 	local riding = false
 	local city: CityBuilder.CityHandles? = nil
 	local size: string? = nil
+	local maquetaOpen = false
 
 	-- La escena de la detención aparta la ficha del detenido mientras dura. El color del asiento viste al
 	-- relleno de un bot detenido.
@@ -174,6 +175,8 @@ local function boot()
 		tokens = {}
 		myToken = nil
 		ModelCity.destroy()
+		director.setOverviewFocus(nil, nil)
+		maquetaOpen = false
 		if previous ~= nil then
 			previous.destroy()
 		end
@@ -375,7 +378,6 @@ local function boot()
 		overviewWanted = not overviewWanted
 		director.requestOverview(overviewWanted)
 	end)
-	local maquetaOpen = false
 	task.spawn(function()
 		while true do
 			local open = overviewWanted and director.mode() == "Overview"

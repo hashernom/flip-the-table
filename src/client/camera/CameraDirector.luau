@@ -95,9 +95,10 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	end
 
 	local function overviewTarget(): CFrame
-		local center = overviewFocus or cityCenter
+		local focusCenter = overviewFocus or cityCenter
 		local span = if overviewRadius ~= nil then overviewRadius * 2 else citySpan
-		local eye, focus = CameraRules.overviewPose({ x = center.X, y = center.Y, z = center.Z }, span, spin)
+		local eye, focus =
+			CameraRules.overviewPose({ x = focusCenter.X, y = focusCenter.Y, z = focusCenter.Z }, span, spin)
 		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
 
