@@ -489,6 +489,13 @@ def main():
     bpy.ops.object.material_slot_remove_unused()
     assert len(lod.data.materials) == 1, "el LOD1 tiene mas de un material"
 
+    # Las ruedas y los tapacubos se exportan con su origen en el eje y ya colocados en su sitio del
+    # coche. Asi Roblox los deja en el eje al cargarlos (el FBX lleva la traslacion del objeto) y
+    # siguen girando alrededor de su propio centro. Sin esto, los cuatro caen en (0,0,0).
+    for key in WHEEL_AXLES:
+        wheels[key].location = WHEEL_AXLES[key]
+        hubs[key].location = WHEEL_AXLES[key]
+
     files = {}
     for obj in body.values():
         export(obj, f"{obj.name}.fbx")
