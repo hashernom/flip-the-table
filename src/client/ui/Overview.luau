@@ -20,22 +20,12 @@ local Overview = {}
 function Overview.create(playerGui: Instance): Handles
 	local gui = Theme.screenGui(playerGui, "Overview", 8)
 
-	local backdrop = Instance.new("TextButton")
-	backdrop.Name = "Backdrop"
-	backdrop.BackgroundColor3 = Theme.background
-	backdrop.BackgroundTransparency = 0.25
-	backdrop.BorderSizePixel = 0
-	backdrop.Size = UDim2.fromScale(1, 1)
-	backdrop.Text = ""
-	backdrop.AutoButtonColor = false
-	backdrop.Visible = false
-	backdrop.Parent = gui
-
+	-- Panel lateral y sin fondo: lo importante de esta vista es la ciudad, que tiene que verse y girarse.
 	local panel = Theme.panel(gui, "Sheet", "Vista general")
-	panel.AnchorPoint = Vector2.new(0.5, 0.5)
-	panel.Position = UDim2.fromScale(0.5, 0.5)
+	panel.AnchorPoint = Vector2.new(0, 0.5)
+	panel.Position = UDim2.new(0, 12, 0.5, 30)
 	-- Tamaño propio: sin él, un Frame mide 100 × 100 y la maqueta se veía como un cuadrado (M17).
-	panel.Size = UDim2.fromScale(0.9, 0.8)
+	panel.Size = UDim2.fromScale(0.3, 0.75)
 	panel.AutomaticSize = Enum.AutomaticSize.None
 	panel.Visible = false
 	Theme.limitWidth(panel)
@@ -95,16 +85,11 @@ function Overview.create(playerGui: Instance): Handles
 
 	local function setOpen(value: boolean)
 		open = value
-		backdrop.Visible = value
 		panel.Visible = value
 		for _, listener in listeners do
 			listener(value)
 		end
 	end
-
-	backdrop.MouseButton1Click:Connect(function()
-		setOpen(false)
-	end)
 
 	local handles: Handles = {
 		setView = function(view: any, names: ViewText.Names?)

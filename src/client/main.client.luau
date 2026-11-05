@@ -205,6 +205,8 @@ local function boot()
 		BuildingView.sync(view.properties or {}, function(ownerId: string): Color3?
 			local seat = WorldRules.seatOf(view.players, ownerId)
 			return if seat ~= nil then seatColor(seat) else nil
+		end, function(ownerId: string): string
+			return ViewText.playerName(view, names, ownerId)
 		end)
 	end
 
@@ -256,19 +258,40 @@ local function boot()
 		overviewWanted = not overviewWanted
 		director.requestOverview(overviewWanted)
 	end)
-	-- Cerrar con el fondo también cancela la petición: si no, la cámara seguiría orbitando con la
-	-- maqueta cerrada y harían falta dos pulsaciones para volver.
-	overview.onToggle(function(open: boolean)
-		if not open and overviewWanted then
-			overviewWanted = false
-			director.requestOverview(false)
+	task.spawn(function()
+		while true do
+			local open = overviewWanted and director.mode() == "Overview"
+			overview.setOpen(open)
+			BuildingView.setTagsVisible(open)
+			task.wait(0.1)
 		end
 	end)
 
-	task.spawn(function()
-		while true do
-			overview.setOpen(overviewWanted and director.mode() == "Overview")
-			task.wait(0.1)
+	-- Arrastrar sobre la ciudad gira la vista general. Lo que cae sobre un botón no cuenta.
+	local UserInputService = game:GetService("UserInputService")
+	local dragging = false
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		local kind = input.UserInputType
+		if
+			not processed and (kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch)
+		then
+			dragging = true
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if kind == Enum.UserInputType.MouseButton1 or kind == Enum.UserInputType.Touch then
+			dragging = false
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input: InputObject)
+		local kind = input.UserInputType
+		if
+			dragging
+			and director.mode() == "Overview"
+			and (kind == Enum.UserInputType.MouseMovement or kind == Enum.UserInputType.Touch)
+		then
+			director.rotateOverview(input.Delta.X)
 		end
 	end)
 

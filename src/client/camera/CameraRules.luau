@@ -64,6 +64,29 @@ function CameraRules.pose(
 	return eye, focus
 end
 
+-- Dónde va la cámara de la vista general: crece con la ciudad, para que quepa en cualquier tamaño.
+function CameraRules.overviewPose(
+	center: CityLayout.Vector3Like,
+	span: number,
+	yaw: number
+): (CityLayout.Vector3Like, CityLayout.Vector3Like)
+	local back = span * CameraShots.overview.backPerSpan
+	local eye = {
+		x = center.x + math.sin(yaw) * back,
+		y = center.y + span * CameraShots.overview.heightPerSpan,
+		z = center.z + math.cos(yaw) * back,
+	}
+	return eye, center
+end
+
+-- Giro de la vista general tras arrastrar `pixels`. Un valor roto no la mueve.
+function CameraRules.overviewYaw(yaw: number, pixels: number): number
+	if pixels ~= pixels then
+		return yaw
+	end
+	return yaw - pixels * CameraShots.overview.radiansPerPixel
+end
+
 -- Cuánto se acerca la cámara a su plano en un fotograma de `dt` segundos. Es exponencial para que el
 -- movimiento sea el mismo a 30 que a 144 FPS. Un tiempo roto no la mueve.
 function CameraRules.followAlpha(rate: number, dt: number): number

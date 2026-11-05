@@ -139,6 +139,52 @@ describe("CameraRules: suavizado", function()
 	end)
 end)
 
+describe("CameraRules: vista general", function()
+	-- Fracciones de pantalla de un punto: 0,5 es el centro. FOV vertical 70 y la pantalla más estrecha de PC.
+	local function project(eye: any, focus: any, point: any): (number, number)
+		local function sub(a: any, b: any)
+			return { x = a.x - b.x, y = a.y - b.y, z = a.z - b.z }
+		end
+		local function dot(a: any, b: any)
+			return a.x * b.x + a.y * b.y + a.z * b.z
+		end
+		local function norm(a: any)
+			local l = math.sqrt(dot(a, a))
+			return { x = a.x / l, y = a.y / l, z = a.z / l }
+		end
+		local function cross(a: any, b: any)
+			return { x = a.y * b.z - a.z * b.y, y = a.z * b.x - a.x * b.z, z = a.x * b.y - a.y * b.x }
+		end
+		local forward = norm(sub(focus, eye))
+		local right = norm(cross(forward, { x = 0, y = 1, z = 0 }))
+		local up = cross(right, forward)
+		local d = sub(point, eye)
+		local depth = dot(d, forward)
+		local half = math.tan(math.rad(35))
+		return dot(d, right) / (depth * half * 4 / 3), dot(d, up) / (depth * half)
+	end
+
+	it("toda la ciudad cabe en pantalla, en cualquier tamaño y giro", function()
+		for _, sizeId in { "S", "M", "L" } do
+			local span = CityLayout.spanFor(sizeId :: any)
+			local center = CityLayout.centerFor(sizeId :: any)
+			for yaw = 0, 6, 0.5 do
+				local eye, focus = CameraRules.overviewPose(center, span, yaw)
+				for _, corner in { { 0, 0 }, { span, 0 }, { 0, span }, { span, span } } do
+					local x, y = project(eye, focus, { x = corner[1], y = 0, z = corner[2] })
+					expect(math.abs(x) < 1 and math.abs(y) < 1).toBe(true)
+				end
+			end
+		end
+	end)
+
+	it("arrastrar gira la vista y no arrastrar no la mueve", function()
+		expect(CameraRules.overviewYaw(1, 0)).toBe(1)
+		expect(CameraRules.overviewYaw(1, 100) ~= 1).toBe(true)
+		expect(CameraRules.overviewYaw(1, 0 / 0)).toBe(1)
+	end)
+end)
+
 describe("CameraRules: altura del avatar", function()
 	it("cuanto más alto el avatar, más alta la cámara", function()
 		-- Con un avatar mínimo o máximo la cámara queda por encima del asiento; nunca dentro de la

@@ -278,3 +278,13 @@ describe("CityLayout.lotCenter", function()
 		end
 	end)
 end)
+
+Harness.describe("WorldRules.ownerTag", function()
+	Harness.it("sin dueño no hay etiqueta", function()
+		Harness.expect(WorldRules.ownerTag(nil, 0)).toBe(nil)
+	end)
+	Harness.it("dice el dueño y, si hay mejoras, el nivel", function()
+		Harness.expect(WorldRules.ownerTag("Ana", 0)).toBe("Ana")
+		Harness.expect(WorldRules.ownerTag("Ana", 3)).toBe("Ana · Nivel 3")
+	end)
+end)

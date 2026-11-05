@@ -24,8 +24,8 @@
 - Primera propiedad modelada, el Cine Lux, y sus marcadores. Están en `Draft`: no se han subido ni visto en el juego.
 
 **Siguiente, en este orden:**
-1. **Probar la cámara en una partida real:** se ha visto un plano en un montaje de prueba, no moviéndose en partida.
-2. **Terminar la vista general:** revisarla con la calle nueva, dejar que se gire a mano y añadir el dueño y el nivel sobre cada propiedad.
+1. **Hecho (2026-11-04):** cámara probada en partida con dos clientes y clics reales; ambos ven el mismo plano. Falta verla en una escena propia, que llega con el plan 08.
+2. **Hecho (2026-11-04):** vista general con la ciudad a la vista, panel lateral, giro al arrastrar y dueño y nivel sobre cada propiedad. Es gris: el panel aún tapa parte del lado izquierdo y se solapa con el de jugadores, y su texto largo se corta. Se rehace en el plan 09.
 3. **Subir el Cine Lux y sus marcadores por Open Cloud** y verlos en el juego. Hace falta la clave de API del responsable, que pone en su entorno. Con eso se comprueba también la paleta de `art/guia-de-estilo.md` §10.
 4. **Revisar el arte para la cámara aérea:** tejados con detalle y altura de la ficha.
 5. **Completar la porción:** 2 o 3 propiedades con ambientación propia, la ficha taxi con avatar, luz, sonido de ambiente y la escena de arresto.

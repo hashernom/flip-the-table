@@ -36,6 +36,14 @@ function WorldRules.propertyChanges(
 	return changes
 end
 
+-- Etiqueta de una propiedad en la vista general, o nil si no tiene dueño.
+function WorldRules.ownerTag(ownerName: string?, level: number): string?
+	if ownerName == nil then
+		return nil
+	end
+	return if level > 0 then `{ownerName} · Nivel {level}` else ownerName
+end
+
 -- Asiento de un jugador: su orden en la vista, que no cambia durante la partida.
 function WorldRules.seatOf(players: { any }, id: string): number?
 	for seat, seated in players do

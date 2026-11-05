@@ -17,18 +17,13 @@ type SizeId = CityLayout.SizeId
 export type Director = {
 	update: (ctx: { riding: boolean?, sceneRunning: boolean? }, dt: number) -> Mode,
 	requestOverview: (on: boolean) -> (),
+	rotateOverview: (pixels: number) -> (),
 	mode: () -> Mode,
 	follow: (token: Model?) -> (),
 	setSceneFocus: (position: Vector3?) -> (),
 	setSize: (sizeId: SizeId) -> (),
 	destroy: () -> (),
 }
-
--- Alturas de cámara sobre la ciudad. Son de arte provisional: la vista general tiene que verse como una
--- maqueta. Los planos del turno y del recorrido están en `config/CameraShots`.
-local OVERVIEW_HEIGHT = 620
-local OVERVIEW_BACK = 320
-local OVERVIEW_TURN = 0.06
 
 local CameraDirector = {}
 
@@ -42,12 +37,14 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 
 	local center = CityLayout.centerFor(sizeId)
 	local cityCenter = Vector3.new(center.x, 0, center.z)
+	local citySpan = CityLayout.spanFor(sizeId)
 
 	-- El tamaño real de la partida llega en la primera vista: la ciudad se vuelve a construir y la
 	-- cámara tiene que mirar al centro nuevo.
 	local function setSize(nextSize: SizeId)
 		local nextCenter = CityLayout.centerFor(nextSize)
 		cityCenter = Vector3.new(nextCenter.x, 0, nextCenter.z)
+		citySpan = CityLayout.spanFor(nextSize)
 	end
 
 	local mode: Mode = "Turn"
@@ -87,10 +84,8 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	end
 
 	local function overviewTarget(): CFrame
-		local angle = spin
-		local offset =
-			Vector3.new(math.sin(angle) * OVERVIEW_BACK, OVERVIEW_HEIGHT, math.cos(angle) * OVERVIEW_BACK)
-		return CFrame.lookAt(cityCenter + offset, cityCenter)
+		local eye = CameraRules.overviewPose({ x = cityCenter.X, y = 0, z = cityCenter.Z }, citySpan, spin)
+		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), cityCenter)
 	end
 
 	-- Hasta que cada escena tenga su cámara (plan 08), se ve desde el plano del turno.
@@ -112,7 +107,6 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 			if mode == "Scene" then
 				apply(sceneTarget(), dt)
 			elseif mode == "Overview" then
-				spin += OVERVIEW_TURN * dt
 				apply(overviewTarget(), dt)
 			elseif mode == "Ride" then
 				apply(shotTarget(CameraShots.ride), dt)
@@ -125,6 +119,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 			-- Si la escena está en marcha, la petición se queda guardada: `update` la abrirá en cuanto
 			-- la escena termine, que es lo que pide la ficha.
 			overviewWanted = on
+		end,
+		rotateOverview = function(pixels: number)
+			spin = CameraRules.overviewYaw(spin, pixels)
 		end,
 		mode = function(): Mode
 			return mode
