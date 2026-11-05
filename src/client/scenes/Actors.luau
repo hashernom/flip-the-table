@@ -253,6 +253,11 @@ local function forget(model: Model)
 		if index ~= nil then
 			table.remove(list, index)
 		end
+		-- El modelo aparcado ya no está en la lista: el libre también se descuenta.
+		local state = pools[record.kind]
+		if state.free > 0 then
+			state.free -= 1
+		end
 	else
 		ActorsRules.abandon(pools[record.kind])
 	end
