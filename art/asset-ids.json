@@ -14,9 +14,9 @@
     "facade_glass": "rbxassetid://109039875989083",
     "nota": "Subidos por Open Cloud con content-type model/fbx. Llegan sin texturas: el material se aplica en Studio con MaterialVariant.",
     "cine_lux_wall": "rbxassetid://71336473679427",
-    "cine_lux_trim": "rbxassetid://81968909588669",
+    "cine_lux_trim": "rbxassetid://77475477580156",
     "cine_lux_glass": "rbxassetid://121921872087774",
-    "cine_lux_lod1": "rbxassetid://87520759957901",
+    "cine_lux_lod1": "rbxassetid://91737572047342",
     "cine_lux_addon1": "rbxassetid://82226622101441",
     "cine_lux_addon2": "rbxassetid://99052113424773",
     "cine_lux_addon3": "rbxassetid://129785060528007",
@@ -27,7 +27,9 @@
     "marker_hotel": "rbxassetid://135810274975392",
     "marker_hotel_lod1": "rbxassetid://85638850137848",
     "marker_tower": "rbxassetid://94509577031463",
-    "marker_tower_lod1": "rbxassetid://80618965593083"
+    "marker_tower_lod1": "rbxassetid://80618965593083",
+    "cine_lux_roof": "rbxassetid://114543760508825",
+    "cine_lux_sign": "rbxassetid://76583737990361"
   },
   "cc0": {
     "brick_red": {

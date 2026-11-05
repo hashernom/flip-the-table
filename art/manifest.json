@@ -81,9 +81,9 @@
       "id": "cine-lux",
       "category": "Building",
       "source": "art/blender/slice/build_cine_lux.py",
-      "triangles": 2898,
+      "triangles": 3042,
       "lods": [
-        1271
+        1317
       ],
       "textures": 6,
       "status": "Draft",

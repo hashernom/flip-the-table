@@ -6,7 +6,7 @@ flancos, sin neón ni estética nocturna, como pide art/guia-de-estilo.md.
 
 Salidas, en art/blender/slice/:
   cine-lux.blend            escena de revisión (no se versiona)
-  cine-lux_base_{wall,trim,glass}.fbx y cine-lux_addon1..5.fbx, con el origen en el centro de la base
+  cine-lux_base_{wall,trim,glass,roof,sign}.fbx y cine-lux_addon1..5.fbx, con el origen en el centro de la base
   cine-lux_LOD1.fbx         versión reducida del conjunto al máximo
   marker-{house,hotel,tower}.fbx y sus _LOD1
   cine-lux-stats.json       triángulos reales
@@ -185,6 +185,7 @@ def build_base(mats):
     bay_front = front - 0.8
     flank_h = HEIGHT - 3.0
     trims, glazing, cutters = [], [], []
+    roofing, signs = [], []
 
     # Flancos de ladrillo con cuerpo central de caliza que sobresale y sube: la silueta del cine.
     wall = box("wall", (WIDTH, DEPTH, flank_h), (0, 0, flank_h / 2), mats["brick"])
@@ -240,18 +241,30 @@ def build_base(mats):
     # Marquesina sencilla y rótulo: el cine ya se reconoce sin mejoras.
     trims.append(box("marquee", (12.0, 2.6, 0.6), (0, bay_front - 1.3, 7.1), mats["stone"]))
     trims.append(box("sign_board", (9.0, 0.4, 1.3), (0, bay_front - 0.1, 8.3), mats["cream"]))
-    trims.append(letters("CINE LUX", 1.0, (0, bay_front - 0.32, 8.3), mats["red"]))
+    signs.append(letters("CINE LUX", 1.0, (0, bay_front - 0.32, 8.3), mats["red"]))
 
     # Molduras: zócalo, junta sobre la planta baja, cornisa y escalonado déco del cuerpo central.
     trims.append(box("plinth", (WIDTH + 0.2, DEPTH + 0.2, 0.8), (0, 0, 0.4), mats["stone"]))
     trims.append(box("string", (WIDTH + 0.2, DEPTH + 0.2, 0.4), (0, 0, FLOOR + 1.2), mats["stone"]))
     trims.append(box("cornice", (WIDTH + 0.7, DEPTH + 0.7, 0.6), (0, 0, flank_h + 0.1), mats["stone"]))
-    trims.append(box("roof", (WIDTH - 0.8, DEPTH - 0.8, 0.5), (0, 0, flank_h + 0.45), mats["slate"]))
+    # Cubierta: en Roblox cada malla lleva un solo material, así que va aparte de la caliza. La cámara del
+    # turno la ve de lleno: lucernario de la sala, climatización, conductos y depósito.
+    roof_z = flank_h + 0.45
+    top = roof_z + 0.25
+    roofing.append(box("roof", (WIDTH - 0.8, DEPTH - 0.8, 0.5), (0, 0, roof_z), mats["slate"]))
+    roofing.append(box("skylight_curb", (10.0, 6.0, 0.7), (-7.0, 2.0, top + 0.35), mats["slate"]))
+    for u in (-3.0, 0.0, 3.0):
+        roofing.append(box("skylight_rib", (0.3, 6.2, 1.1), (-7.0 + u, 2.0, top + 0.55), mats["slate"]))
+    for x, y in ((6.0, 4.5), (11.0, 4.5), (6.0, -1.5)):
+        roofing.append(box("hvac", (3.4, 2.6, 1.8), (x, y, top + 0.9), mats["slate"]))
+        roofing.append(box("hvac_fan", (2.2, 1.6, 0.25), (x, y, top + 1.9), mats["slate"]))
+    roofing.append(box("duct", (5.0, 0.7, 0.7), (8.5, 1.5, top + 0.35), mats["slate"]))
+    roofing.append(box("hatch", (1.8, 1.8, 0.9), (12.0, -3.5, top + 0.45), mats["slate"]))
     trims.append(box("bay_step", (BAY - 3.0, 1.6, 1.0), (0, front, HEIGHT + 0.5), mats["stone"]))
     trims.append(box("bay_step2", (BAY - 7.0, 1.6, 0.8), (0, front, HEIGHT + 1.4), mats["stone"]))
     for x in (-BAY / 2 + 0.5, BAY / 2 - 0.5):
         trims.append(box("bay_pier", (1.0, 0.5, HEIGHT - 8.0), (x, bay_front - 0.1, 16.0), mats["stone"]))
-    return wall, trims, glazing
+    return wall, trims, glazing, roofing, signs
 
 
 def build_addon(level, mats):
@@ -494,14 +507,16 @@ def main():
         "zone": flat("zone", "DC2626", 0.8),
     }
 
-    wall, trims, glazing = build_base(mats)
+    wall, trims, glazing, roofing, signs = build_base(mats)
     wall.name = "cine-lux_base_wall"
     origin_at_zero(wall)
     trim = join(trims, "cine-lux_base_trim")
     glass = join(glazing, "cine-lux_base_glass")
-    for obj in (wall, trim, glass):
+    roof = join(roofing, "cine-lux_base_roof")
+    sign = join(signs, "cine-lux_base_sign")
+    for obj in (wall, trim, glass, roof, sign):
         uv_unwrap(obj)
-    base = [wall, trim, glass]
+    base = [wall, trim, glass, roof, sign]
 
     addons = {level: build_addon(level, mats) for level in range(1, 6)}
     markers = {kind: build_marker(kind, mats) for kind in ("house", "hotel", "tower")}
@@ -510,7 +525,7 @@ def main():
     lod = lod_of(whole, "cine-lux_LOD1")
     marker_lods = {kind: lod_of([marker], f"marker-{kind}_LOD1") for kind, marker in markers.items()}
 
-    for obj, name in ((wall, "base_wall"), (trim, "base_trim"), (glass, "base_glass")):
+    for obj, name in ((wall, "base_wall"), (trim, "base_trim"), (glass, "base_glass"), (roof, "base_roof"), (sign, "base_sign")):
         export(obj, f"cine-lux_{name}.fbx")
     for level, addon in addons.items():
         export(addon, f"cine-lux_addon{level}.fbx")
