@@ -37,6 +37,9 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Mercado de la Séptima | En juego | 17,0; nivel 0 17,4 | 33,8 | 2 876 | 1 305 | [niveles](../render/naranja/mercado-de-la-septima/mercado-de-la-septima-niveles.png) · [comparación](../render/naranja/mercado-de-la-septima/mercado-de-la-septima-comparacion.png) |
+| llaneradas.com | En juego | 15,5; nivel 0 20,2 con chimenea | 33,8 | 2 826 | 1 250 | [niveles](../render/naranja/llaneradas-com/llaneradas-com-niveles.png) · [comparación](../render/naranja/llaneradas-com/llaneradas-com-comparacion.png) |
+| Calle del Azafrán | En juego | 19,0; nivel 0 22,0 | 33,7 | 2 844 | 1 219 | [niveles](../render/naranja/calle-del-azafran/calle-del-azafran-niveles.png) · [comparación](../render/naranja/calle-del-azafran/calle-del-azafran-comparacion.png) |
 
 ## Zona 05 · Carmesí (`carmesi`)
 

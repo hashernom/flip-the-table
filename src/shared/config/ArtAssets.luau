@@ -432,6 +432,126 @@ ArtAssets.properties = {
 			},
 		},
 	},
+	["Mercado de la Séptima"] = {
+		base = {
+			piece("mercado_body_limestone", "77471832714745", { 210, 201, 180 }, "Limestone"),
+			piece("mercado_body_brick", "137006844915231", { 176, 102, 74 }, "Brick"),
+			piece("mercado_body_slate", "136622029207832", { 74, 78, 84 }, "Slate"),
+			piece("mercado_body_wood", "131311982670316", { 107, 74, 46 }, "Wood"),
+			piece("mercado_body_glass", "119520924153027", { 46, 74, 99 }, "Glass", 0.25),
+			piece("mercado_body_metal_acero", "104664109891974", { 168, 174, 180 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("mercado_addon1_fabric_rojo", "122812051468101", { 196, 56, 43 }, "Fabric"),
+				piece("mercado_addon1_wood", "83916935567879", { 107, 74, 46 }, "Wood"),
+			},
+			{
+				piece("mercado_addon2_glass", "81105450440851", { 46, 74, 99 }, "Glass", 0.25),
+				piece("mercado_addon2_limestone", "85145222835761", { 210, 201, 180 }, "Limestone"),
+				piece("mercado_addon2_metal_acero", "95695111966899", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("mercado_addon3_limestone", "112432273273744", { 210, 201, 180 }, "Limestone"),
+				piece("mercado_addon3_metal_naranja", "78132198744377", { 245, 158, 11 }, "Metal"),
+				piece("mercado_addon3_glass", "109766746867033", { 46, 74, 99 }, "Glass", 0.25),
+				piece("mercado_addon3_metal_acero", "108629379322945", { 168, 174, 180 }, "Metal"),
+				piece("mercado_addon3_metal_oro", "115546801271105", { 201, 162, 39 }, "Metal"),
+				piece("mercado_addon3_slate", "136367699387765", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("mercado_addon4_brick", "109975518928155", { 176, 102, 74 }, "Brick"),
+				piece("mercado_addon4_slate", "100364484689183", { 74, 78, 84 }, "Slate"),
+				piece("mercado_addon4_limestone", "85583838116307", { 210, 201, 180 }, "Limestone"),
+				piece("mercado_addon4_wood", "131957495311834", { 107, 74, 46 }, "Wood"),
+				piece("mercado_addon4_metal_acero", "98845564068852", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("mercado_addon5_brick", "82849304132615", { 176, 102, 74 }, "Brick"),
+				piece("mercado_addon5_limestone", "99048013177223", { 210, 201, 180 }, "Limestone"),
+				piece("mercado_addon5_slate", "71279092049009", { 74, 78, 84 }, "Slate"),
+				piece("mercado_addon5_metal_oro", "112426748312839", { 201, 162, 39 }, "Metal"),
+				piece("mercado_addon5_glass", "131586654218098", { 46, 74, 99 }, "Glass", 0.25),
+			},
+		},
+	},
+	["llaneradas.com"] = {
+		base = {
+			piece("llaneradas_body_brick", "123897169745946", { 176, 102, 74 }, "Brick"),
+			piece("llaneradas_body_slate", "131828391115375", { 74, 78, 84 }, "Slate"),
+			piece("llaneradas_body_limestone", "89280355184234", { 210, 201, 180 }, "Limestone"),
+			piece("llaneradas_body_wood", "77603557697254", { 107, 74, 46 }, "Wood"),
+			piece("llaneradas_body_metal_acero", "130468251779472", { 168, 174, 180 }, "Metal"),
+			piece("llaneradas_body_glass", "112107427982059", { 46, 74, 99 }, "Glass", 0.25),
+		},
+		addons = {
+			{
+				piece("llaneradas_addon1_wood", "99369335552054", { 107, 74, 46 }, "Wood"),
+				piece("llaneradas_addon1_fabric_rojo", "77959320468794", { 196, 56, 43 }, "Fabric"),
+			},
+			{
+				piece("llaneradas_addon2_limestone", "117882637087275", { 210, 201, 180 }, "Limestone"),
+				piece("llaneradas_addon2_wood", "86314286769639", { 107, 74, 46 }, "Wood"),
+			},
+			{
+				piece("llaneradas_addon3_brick", "125123145131525", { 176, 102, 74 }, "Brick"),
+				piece("llaneradas_addon3_limestone", "110654565771166", { 210, 201, 180 }, "Limestone"),
+				piece("llaneradas_addon3_metal_acero", "108923141374127", { 168, 174, 180 }, "Metal"),
+				piece("llaneradas_addon3_wood", "128753075142042", { 107, 74, 46 }, "Wood"),
+			},
+			{
+				piece("llaneradas_addon4_brick", "86476962455659", { 176, 102, 74 }, "Brick"),
+				piece("llaneradas_addon4_glass", "110043906976731", { 46, 74, 99 }, "Glass", 0.25),
+				piece("llaneradas_addon4_wood", "108026832709258", { 107, 74, 46 }, "Wood"),
+				piece("llaneradas_addon4_limestone", "127093706308858", { 210, 201, 180 }, "Limestone"),
+				piece("llaneradas_addon4_slate", "102699121901157", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("llaneradas_addon5_brick", "86586809097039", { 176, 102, 74 }, "Brick"),
+				piece("llaneradas_addon5_limestone", "125826402566245", { 210, 201, 180 }, "Limestone"),
+				piece("llaneradas_addon5_metal_acero", "80032207687733", { 168, 174, 180 }, "Metal"),
+				piece("llaneradas_addon5_metal_oro", "107665246412123", { 201, 162, 39 }, "Metal"),
+			},
+		},
+	},
+	["Calle del Azafrán"] = {
+		base = {
+			piece("azafran_body_brick", "123624330487661", { 176, 102, 74 }, "Brick"),
+			piece("azafran_body_limestone", "71587529757545", { 210, 201, 180 }, "Limestone"),
+			piece("azafran_body_slate", "124260390633490", { 74, 78, 84 }, "Slate"),
+			piece("azafran_body_glass", "79621249259130", { 46, 74, 99 }, "Glass", 0.25),
+			piece("azafran_body_wood", "119454273442182", { 107, 74, 46 }, "Wood"),
+			piece("azafran_body_metal_acero", "97591832340356", { 168, 174, 180 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("azafran_addon1_fabric_rojo", "129807180893598", { 196, 56, 43 }, "Fabric"),
+				piece("azafran_addon1_wood", "96444822635125", { 107, 74, 46 }, "Wood"),
+				piece("azafran_addon1_limestone", "107182728741522", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("azafran_addon2_wood", "81552343839720", { 107, 74, 46 }, "Wood"),
+				piece("azafran_addon2_limestone", "99363072635858", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("azafran_addon3_brick", "101403010438182", { 176, 102, 74 }, "Brick"),
+				piece("azafran_addon3_limestone", "110579261570994", { 210, 201, 180 }, "Limestone"),
+				piece("azafran_addon3_metal_acero", "92860153760575", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("azafran_addon4_brick", "74534731874931", { 176, 102, 74 }, "Brick"),
+				piece("azafran_addon4_wood", "133805355061496", { 107, 74, 46 }, "Wood"),
+				piece("azafran_addon4_metal_acero", "111569453487548", { 168, 174, 180 }, "Metal"),
+				piece("azafran_addon4_limestone", "119062961063989", { 210, 201, 180 }, "Limestone"),
+				piece("azafran_addon4_slate", "100120291785769", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("azafran_addon5_wood", "107944339946097", { 107, 74, 46 }, "Wood"),
+				piece("azafran_addon5_limestone", "115647865106287", { 210, 201, 180 }, "Limestone"),
+				piece("azafran_addon5_metal_oro", "138328505053018", { 201, 162, 39 }, "Metal"),
+			},
+		},
+	},
 } :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
 -- El mojón del nivel máximo. Su anillo se tiñe con el color de la zona en `BuildingView`.

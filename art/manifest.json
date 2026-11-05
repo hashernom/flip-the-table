@@ -715,6 +715,132 @@
         "rbxassetid://120878106391291",
         "rbxassetid://131385565607475"
       ]
+    },
+    {
+      "id": "mercado-de-la-septima",
+      "category": "Building",
+      "source": "art/blender/buildings/naranja/mercado-de-la-septima.py",
+      "triangles": 2876,
+      "lods": [
+        1305
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/naranja-mercado-de-la-septima-nivel0.jpg",
+        "art/render/ingame/naranja-mercado-de-la-septima-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/naranja/mercado-de-la-septima.py",
+      "assetId": "rbxassetid://77471832714745",
+      "assetIds": [
+        "rbxassetid://137006844915231",
+        "rbxassetid://136622029207832",
+        "rbxassetid://131311982670316",
+        "rbxassetid://119520924153027",
+        "rbxassetid://104664109891974",
+        "rbxassetid://122812051468101",
+        "rbxassetid://83916935567879",
+        "rbxassetid://81105450440851",
+        "rbxassetid://85145222835761",
+        "rbxassetid://95695111966899",
+        "rbxassetid://112432273273744",
+        "rbxassetid://78132198744377",
+        "rbxassetid://109766746867033",
+        "rbxassetid://108629379322945",
+        "rbxassetid://115546801271105",
+        "rbxassetid://136367699387765",
+        "rbxassetid://109975518928155",
+        "rbxassetid://100364484689183",
+        "rbxassetid://85583838116307",
+        "rbxassetid://131957495311834",
+        "rbxassetid://98845564068852",
+        "rbxassetid://82849304132615",
+        "rbxassetid://99048013177223",
+        "rbxassetid://71279092049009",
+        "rbxassetid://112426748312839",
+        "rbxassetid://131586654218098"
+      ]
+    },
+    {
+      "id": "llaneradas-com",
+      "category": "Building",
+      "source": "art/blender/buildings/naranja/llaneradas-com.py",
+      "triangles": 2826,
+      "lods": [
+        1250
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/naranja-llaneradas-com-nivel0.jpg",
+        "art/render/ingame/naranja-llaneradas-com-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/naranja/llaneradas-com.py",
+      "assetId": "rbxassetid://123897169745946",
+      "assetIds": [
+        "rbxassetid://131828391115375",
+        "rbxassetid://89280355184234",
+        "rbxassetid://77603557697254",
+        "rbxassetid://130468251779472",
+        "rbxassetid://112107427982059",
+        "rbxassetid://99369335552054",
+        "rbxassetid://77959320468794",
+        "rbxassetid://117882637087275",
+        "rbxassetid://86314286769639",
+        "rbxassetid://125123145131525",
+        "rbxassetid://110654565771166",
+        "rbxassetid://108923141374127",
+        "rbxassetid://128753075142042",
+        "rbxassetid://86476962455659",
+        "rbxassetid://110043906976731",
+        "rbxassetid://108026832709258",
+        "rbxassetid://127093706308858",
+        "rbxassetid://102699121901157",
+        "rbxassetid://86586809097039",
+        "rbxassetid://125826402566245",
+        "rbxassetid://80032207687733",
+        "rbxassetid://107665246412123"
+      ]
+    },
+    {
+      "id": "calle-del-azafran",
+      "category": "Building",
+      "source": "art/blender/buildings/naranja/calle-del-azafran.py",
+      "triangles": 2844,
+      "lods": [
+        1219
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/naranja-calle-del-azafran-nivel0.jpg",
+        "art/render/ingame/naranja-calle-del-azafran-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/naranja/calle-del-azafran.py",
+      "assetId": "rbxassetid://123624330487661",
+      "assetIds": [
+        "rbxassetid://71587529757545",
+        "rbxassetid://124260390633490",
+        "rbxassetid://79621249259130",
+        "rbxassetid://119454273442182",
+        "rbxassetid://97591832340356",
+        "rbxassetid://129807180893598",
+        "rbxassetid://96444822635125",
+        "rbxassetid://107182728741522",
+        "rbxassetid://81552343839720",
+        "rbxassetid://99363072635858",
+        "rbxassetid://101403010438182",
+        "rbxassetid://110579261570994",
+        "rbxassetid://92860153760575",
+        "rbxassetid://74534731874931",
+        "rbxassetid://133805355061496",
+        "rbxassetid://111569453487548",
+        "rbxassetid://119062961063989",
+        "rbxassetid://100120291785769",
+        "rbxassetid://107944339946097",
+        "rbxassetid://115647865106287",
+        "rbxassetid://138328505053018"
+      ]
     }
   ]
 }
