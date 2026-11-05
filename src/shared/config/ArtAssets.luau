@@ -197,6 +197,128 @@ ArtAssets.properties = {
 			},
 		},
 	},
+	["Pasaje Burbuja"] = {
+		base = {
+			piece("burbuja_body_brick", "103391980797160", { 176, 102, 74 }, "Brick"),
+			piece("burbuja_body_limestone", "94640944009712", { 210, 201, 180 }, "Limestone"),
+			piece("burbuja_body_slate", "76961577340298", { 74, 78, 84 }, "Slate"),
+			piece("burbuja_body_glass", "118832065874377", { 46, 74, 99 }, "Glass", 0.25),
+			piece("burbuja_body_metal_acero", "129620634725709", { 140, 147, 155 }, "Metal"),
+			piece("burbuja_body_metal", "80753143796400", { 201, 123, 58 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("burbuja_addon1_fabric_crema", "139372678526042", { 237, 229, 211 }, "Fabric"),
+				piece("burbuja_addon1_metal", "133336562643174", { 201, 123, 58 }, "Metal"),
+				piece("burbuja_addon1_slate", "135553394452541", { 74, 78, 84 }, "Slate"),
+				piece("burbuja_addon1_limestone", "79077726228557", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("burbuja_addon2_glass", "113766000018074", { 46, 74, 99 }, "Glass", 0.25),
+				piece("burbuja_addon2_metal", "124635660403203", { 201, 123, 58 }, "Metal"),
+				piece("burbuja_addon2_slate", "134793553165362", { 74, 78, 84 }, "Slate"),
+				piece("burbuja_addon2_metal_acero", "97628699334830", { 140, 147, 155 }, "Metal"),
+			},
+			{
+				piece("burbuja_addon3_wood", "119781983875673", { 90, 58, 36 }, "Wood"),
+				piece("burbuja_addon3_metal", "129514834243812", { 201, 123, 58 }, "Metal"),
+				piece("burbuja_addon3_fabric_crema", "125163776717825", { 237, 229, 211 }, "Fabric"),
+				piece("burbuja_addon3_limestone", "109380948746059", { 210, 201, 180 }, "Limestone"),
+				piece("burbuja_addon3_grass", "96041340998037", { 75, 107, 58 }, "Grass"),
+			},
+			{
+				piece("burbuja_addon4_limestone", "70850086137837", { 210, 201, 180 }, "Limestone"),
+				piece("burbuja_addon4_glass", "113687019359330", { 46, 74, 99 }, "Glass", 0.25),
+				piece("burbuja_addon4_metal_acero", "140297038342450", { 140, 147, 155 }, "Metal"),
+				piece("burbuja_addon4_slate", "137757204815976", { 74, 78, 84 }, "Slate"),
+				piece("burbuja_addon4_metal", "70659656958884", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("burbuja_addon5_limestone", "74142914829231", { 210, 201, 180 }, "Limestone"),
+				piece("burbuja_addon5_metal", "106311885398454", { 201, 123, 58 }, "Metal"),
+				piece("burbuja_addon5_glass", "120445958150394", { 46, 74, 99 }, "Glass", 0.25),
+				piece("burbuja_addon5_metal_acero", "111462530021716", { 140, 147, 155 }, "Metal"),
+			},
+		},
+	},
+	["Caldas"] = {
+		base = {
+			piece("caldas_body_glass", "122965442068541", { 46, 74, 99 }, "Glass", 0.25),
+			piece("caldas_body_metal_acero", "100010827705328", { 168, 174, 180 }, "Metal"),
+			piece("caldas_body_limestone", "140559333995860", { 210, 201, 180 }, "Limestone"),
+			piece("caldas_body_brick", "103566331614280", { 176, 102, 74 }, "Brick"),
+			piece("caldas_body_slate", "101812546670031", { 74, 78, 84 }, "Slate"),
+			piece("caldas_body_grass", "103596263200563", { 75, 107, 58 }, "Grass"),
+		},
+		addons = {
+			{
+				piece("caldas_addon1_limestone", "98770696390795", { 210, 201, 180 }, "Limestone"),
+				piece("caldas_addon1_slate", "124924543460287", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("caldas_addon2_glass", "124781700021160", { 46, 74, 99 }, "Glass", 0.25),
+				piece("caldas_addon2_metal_acero", "135934058178386", { 168, 174, 180 }, "Metal"),
+				piece("caldas_addon2_slate", "120071911720672", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("caldas_addon3_brick", "122908062624730", { 176, 102, 74 }, "Brick"),
+				piece("caldas_addon3_glass", "104580131110865", { 46, 74, 99 }, "Glass", 0.25),
+				piece("caldas_addon3_metal_acero", "109496020004691", { 168, 174, 180 }, "Metal"),
+				piece("caldas_addon3_limestone", "87891951561064", { 210, 201, 180 }, "Limestone"),
+				piece("caldas_addon3_slate", "105992745898819", { 74, 78, 84 }, "Slate"),
+				piece("caldas_addon3_metal_cobre", "122360766459525", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("caldas_addon4_glass", "93687494051252", { 46, 74, 99 }, "Glass", 0.25),
+				piece("caldas_addon4_metal_acero", "128258494680013", { 168, 174, 180 }, "Metal"),
+				piece("caldas_addon4_limestone", "114940466686741", { 210, 201, 180 }, "Limestone"),
+				piece("caldas_addon4_brick", "75016798845943", { 176, 102, 74 }, "Brick"),
+				piece("caldas_addon4_slate", "101675218711204", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("caldas_addon5_limestone", "74581702331384", { 210, 201, 180 }, "Limestone"),
+				piece("caldas_addon5_brick", "135383786739610", { 176, 102, 74 }, "Brick"),
+				piece("caldas_addon5_glass", "139531223933789", { 46, 74, 99 }, "Glass", 0.25),
+				piece("caldas_addon5_metal_cobre", "85578283082041", { 201, 123, 58 }, "Metal"),
+			},
+		},
+	},
+	["Calle del Cable"] = {
+		base = {
+			piece("cable_body_limestone", "112094634818212", { 210, 201, 180 }, "Limestone"),
+			piece("cable_body_slate", "112430344342632", { 74, 78, 84 }, "Slate"),
+			piece("cable_body_glass", "140184159985921", { 46, 74, 99 }, "Glass", 0.25),
+			piece("cable_body_metal_acero", "90602875068166", { 140, 147, 155 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("cable_addon1_metal_acero", "123140265460024", { 140, 147, 155 }, "Metal"),
+				piece("cable_addon1_metal", "135231395837361", { 201, 123, 58 }, "Metal"),
+				piece("cable_addon1_limestone", "96488576600476", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("cable_addon2_limestone", "117906736019774", { 210, 201, 180 }, "Limestone"),
+				piece("cable_addon2_glass", "120381510980226", { 46, 74, 99 }, "Glass", 0.25),
+				piece("cable_addon2_metal_acero", "111252003971356", { 140, 147, 155 }, "Metal"),
+			},
+			{
+				piece("cable_addon3_metal_acero", "99501668254030", { 140, 147, 155 }, "Metal"),
+				piece("cable_addon3_limestone", "124024575235266", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("cable_addon4_limestone", "80092103262161", { 210, 201, 180 }, "Limestone"),
+				piece("cable_addon4_brick", "83815705939833", { 176, 102, 74 }, "Brick"),
+				piece("cable_addon4_slate", "74179072403937", { 74, 78, 84 }, "Slate"),
+				piece("cable_addon4_glass", "113722543527276", { 46, 74, 99 }, "Glass", 0.25),
+				piece("cable_addon4_metal_acero", "70586870413240", { 140, 147, 155 }, "Metal"),
+			},
+			{
+				piece("cable_addon5_limestone", "73176870634841", { 210, 201, 180 }, "Limestone"),
+				piece("cable_addon5_metal_acero", "88725532235926", { 140, 147, 155 }, "Metal"),
+				piece("cable_addon5_metal", "95550716005110", { 201, 123, 58 }, "Metal"),
+			},
+		},
+	},
 } :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
 -- El mojón del nivel máximo. Su anillo se tiñe con el color de la zona en `BuildingView`.

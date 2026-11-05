@@ -6,7 +6,7 @@ local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 describe("ArtAssets", function()
 	it("una propiedad sin modelo se queda en gris", function()
-		expect(ArtAssets.piecesFor("Pasaje Burbuja", 3)).toBe(nil)
+		expect(ArtAssets.piecesFor("Fábrica de Ladrillos La Hormiga", 3)).toBe(nil)
 	end)
 
 	it("cada nivel suma su añadido y nunca quita el cuerpo", function()

@@ -468,6 +468,134 @@
         "rbxassetid://136446359469385",
         "rbxassetid://95495357299466"
       ]
+    },
+    {
+      "id": "pasaje-burbuja",
+      "category": "Building",
+      "source": "art/blender/buildings/cian/pasaje-burbuja.py",
+      "triangles": 2948,
+      "lods": [
+        1381
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/cian-pasaje-burbuja-nivel0.jpg",
+        "art/render/ingame/cian-pasaje-burbuja-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/cian/pasaje-burbuja.py",
+      "assetId": "rbxassetid://103391980797160",
+      "assetIds": [
+        "rbxassetid://94640944009712",
+        "rbxassetid://76961577340298",
+        "rbxassetid://118832065874377",
+        "rbxassetid://129620634725709",
+        "rbxassetid://80753143796400",
+        "rbxassetid://139372678526042",
+        "rbxassetid://133336562643174",
+        "rbxassetid://135553394452541",
+        "rbxassetid://79077726228557",
+        "rbxassetid://113766000018074",
+        "rbxassetid://124635660403203",
+        "rbxassetid://134793553165362",
+        "rbxassetid://97628699334830",
+        "rbxassetid://119781983875673",
+        "rbxassetid://129514834243812",
+        "rbxassetid://125163776717825",
+        "rbxassetid://109380948746059",
+        "rbxassetid://96041340998037",
+        "rbxassetid://70850086137837",
+        "rbxassetid://113687019359330",
+        "rbxassetid://140297038342450",
+        "rbxassetid://137757204815976",
+        "rbxassetid://70659656958884",
+        "rbxassetid://74142914829231",
+        "rbxassetid://106311885398454",
+        "rbxassetid://120445958150394",
+        "rbxassetid://111462530021716"
+      ]
+    },
+    {
+      "id": "caldas",
+      "category": "Building",
+      "source": "art/blender/buildings/cian/caldas.py",
+      "triangles": 2844,
+      "lods": [
+        1209
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/cian-caldas-nivel0.jpg",
+        "art/render/ingame/cian-caldas-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/cian/caldas.py",
+      "assetId": "rbxassetid://122965442068541",
+      "assetIds": [
+        "rbxassetid://100010827705328",
+        "rbxassetid://140559333995860",
+        "rbxassetid://103566331614280",
+        "rbxassetid://101812546670031",
+        "rbxassetid://103596263200563",
+        "rbxassetid://98770696390795",
+        "rbxassetid://124924543460287",
+        "rbxassetid://124781700021160",
+        "rbxassetid://135934058178386",
+        "rbxassetid://120071911720672",
+        "rbxassetid://122908062624730",
+        "rbxassetid://104580131110865",
+        "rbxassetid://109496020004691",
+        "rbxassetid://87891951561064",
+        "rbxassetid://105992745898819",
+        "rbxassetid://122360766459525",
+        "rbxassetid://93687494051252",
+        "rbxassetid://128258494680013",
+        "rbxassetid://114940466686741",
+        "rbxassetid://75016798845943",
+        "rbxassetid://101675218711204",
+        "rbxassetid://74581702331384",
+        "rbxassetid://135383786739610",
+        "rbxassetid://139531223933789",
+        "rbxassetid://85578283082041"
+      ]
+    },
+    {
+      "id": "calle-del-cable",
+      "category": "Building",
+      "source": "art/blender/buildings/cian/calle-del-cable.py",
+      "triangles": 2710,
+      "lods": [
+        1203
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/cian-calle-del-cable-nivel0.jpg",
+        "art/render/ingame/cian-calle-del-cable-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/cian/calle-del-cable.py",
+      "assetId": "rbxassetid://112094634818212",
+      "assetIds": [
+        "rbxassetid://112430344342632",
+        "rbxassetid://140184159985921",
+        "rbxassetid://90602875068166",
+        "rbxassetid://123140265460024",
+        "rbxassetid://135231395837361",
+        "rbxassetid://96488576600476",
+        "rbxassetid://117906736019774",
+        "rbxassetid://120381510980226",
+        "rbxassetid://111252003971356",
+        "rbxassetid://99501668254030",
+        "rbxassetid://124024575235266",
+        "rbxassetid://80092103262161",
+        "rbxassetid://83815705939833",
+        "rbxassetid://74179072403937",
+        "rbxassetid://113722543527276",
+        "rbxassetid://70586870413240",
+        "rbxassetid://73176870634841",
+        "rbxassetid://88725532235926",
+        "rbxassetid://95550716005110"
+      ]
     }
   ]
 }
