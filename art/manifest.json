@@ -841,6 +841,248 @@
         "rbxassetid://115647865106287",
         "rbxassetid://138328505053018"
       ]
+    },
+    {
+      "id": "plaza-del-jazz",
+      "category": "Building",
+      "source": "art/blender/buildings/carmesi/plaza-del-jazz.py",
+      "triangles": 2940,
+      "lods": [
+        1350
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/carmesi-plaza-del-jazz-nivel0.jpg",
+        "art/render/ingame/carmesi-plaza-del-jazz-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/carmesi/plaza-del-jazz.py",
+      "assetId": "rbxassetid://98441867480439",
+      "assetIds": [
+        "rbxassetid://97434683895332",
+        "rbxassetid://84237558852044",
+        "rbxassetid://135797905739561",
+        "rbxassetid://115823625283150",
+        "rbxassetid://125307180915586",
+        "rbxassetid://131417758077939",
+        "rbxassetid://86173757912531",
+        "rbxassetid://74726670789219",
+        "rbxassetid://87518798197751",
+        "rbxassetid://94735711173236",
+        "rbxassetid://126119072611259",
+        "rbxassetid://74840645122884",
+        "rbxassetid://133606293121018",
+        "rbxassetid://95774255129320",
+        "rbxassetid://88463925977865",
+        "rbxassetid://95348491904327",
+        "rbxassetid://76077228374431",
+        "rbxassetid://74217863468447",
+        "rbxassetid://105497783714788",
+        "rbxassetid://109512584907406"
+      ]
+    },
+    {
+      "id": "vereda-la-mata",
+      "category": "Building",
+      "source": "art/blender/buildings/limon/vereda-la-mata.py",
+      "triangles": 2698,
+      "lods": [
+        1171
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/limon-vereda-la-mata-nivel0.jpg",
+        "art/render/ingame/limon-vereda-la-mata-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/limon/vereda-la-mata.py",
+      "assetId": "rbxassetid://94314835860752",
+      "assetIds": [
+        "rbxassetid://107319439555855",
+        "rbxassetid://83627100670548",
+        "rbxassetid://105970296327242",
+        "rbxassetid://104788211747870",
+        "rbxassetid://98500855887566",
+        "rbxassetid://116998854765615",
+        "rbxassetid://130891097017823",
+        "rbxassetid://87973149881999",
+        "rbxassetid://124474878609158",
+        "rbxassetid://78831408116439",
+        "rbxassetid://130469777855092",
+        "rbxassetid://79870982544750",
+        "rbxassetid://83001867765391",
+        "rbxassetid://134073251181753",
+        "rbxassetid://130572394313971",
+        "rbxassetid://104395766581948",
+        "rbxassetid://80235819400354",
+        "rbxassetid://103206398921669",
+        "rbxassetid://112534855996743",
+        "rbxassetid://133705657313162"
+      ]
+    },
+    {
+      "id": "villa-margarita",
+      "category": "Building",
+      "source": "art/blender/buildings/limon/villa-margarita.py",
+      "triangles": 2802,
+      "lods": [
+        1211
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/limon-villa-margarita-nivel0.jpg",
+        "art/render/ingame/limon-villa-margarita-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/limon/villa-margarita.py",
+      "assetId": "rbxassetid://138799697130954",
+      "assetIds": [
+        "rbxassetid://80323131862529",
+        "rbxassetid://98114866961324",
+        "rbxassetid://72928945988093",
+        "rbxassetid://111697135931168",
+        "rbxassetid://96629276511209",
+        "rbxassetid://89198818986459",
+        "rbxassetid://104619538747454",
+        "rbxassetid://94712127900664",
+        "rbxassetid://75472727837399",
+        "rbxassetid://79050716968499",
+        "rbxassetid://85649483772888",
+        "rbxassetid://128062842733399",
+        "rbxassetid://104807723348858",
+        "rbxassetid://84928684189225",
+        "rbxassetid://102901783776263",
+        "rbxassetid://79212539839262",
+        "rbxassetid://72881864966099",
+        "rbxassetid://114044409248981",
+        "rbxassetid://99350344031732",
+        "rbxassetid://140721797838083",
+        "rbxassetid://98202448183200",
+        "rbxassetid://126976054522481",
+        "rbxassetid://130134222108364",
+        "rbxassetid://116211582840570"
+      ]
+    },
+    {
+      "id": "panaderia-la-espiga",
+      "category": "Building",
+      "source": "art/blender/buildings/limon/panaderia-la-espiga.py",
+      "triangles": 2918,
+      "lods": [
+        1354
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/limon-panaderia-la-espiga-nivel0.jpg",
+        "art/render/ingame/limon-panaderia-la-espiga-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/limon/panaderia-la-espiga.py",
+      "assetId": "rbxassetid://83857237067402",
+      "assetIds": [
+        "rbxassetid://86731299352641",
+        "rbxassetid://75061150756774",
+        "rbxassetid://83561690480861",
+        "rbxassetid://129498894064289",
+        "rbxassetid://72273289673155",
+        "rbxassetid://80819796663870",
+        "rbxassetid://87464596660682",
+        "rbxassetid://123404630039180",
+        "rbxassetid://138549751343452",
+        "rbxassetid://113157966694137",
+        "rbxassetid://135477692016467",
+        "rbxassetid://129957927708691",
+        "rbxassetid://71284932654542",
+        "rbxassetid://78763033075460",
+        "rbxassetid://70965937748053",
+        "rbxassetid://82626645920473",
+        "rbxassetid://80513704842202",
+        "rbxassetid://71606215099055",
+        "rbxassetid://135367158769867",
+        "rbxassetid://82773924365953",
+        "rbxassetid://131125180353925",
+        "rbxassetid://79626073814047",
+        "rbxassetid://126487036299234",
+        "rbxassetid://97922521415715",
+        "rbxassetid://70725600273805"
+      ]
+    },
+    {
+      "id": "muelle-de-los-pescadores",
+      "category": "Building",
+      "source": "art/blender/buildings/esmeralda/muelle-de-los-pescadores.py",
+      "triangles": 2958,
+      "lods": [
+        1384
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/esmeralda-muelle-de-los-pescadores-nivel0.jpg",
+        "art/render/ingame/esmeralda-muelle-de-los-pescadores-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/esmeralda/muelle-de-los-pescadores.py",
+      "assetId": "rbxassetid://80486369165718",
+      "assetIds": [
+        "rbxassetid://103978780906147",
+        "rbxassetid://96731419968659",
+        "rbxassetid://137476619427301",
+        "rbxassetid://131898389708094",
+        "rbxassetid://85078728248054",
+        "rbxassetid://100470111488943",
+        "rbxassetid://97023886033429",
+        "rbxassetid://77069725731775",
+        "rbxassetid://76380117209283",
+        "rbxassetid://91956996083042",
+        "rbxassetid://138642333258284",
+        "rbxassetid://133876536295487",
+        "rbxassetid://88274803086708",
+        "rbxassetid://103038960597336",
+        "rbxassetid://95997220268313",
+        "rbxassetid://118372469344164",
+        "rbxassetid://129577521214676",
+        "rbxassetid://78763495774305",
+        "rbxassetid://89060101754325",
+        "rbxassetid://91436282202079"
+      ]
+    },
+    {
+      "id": "astillero-neptuno",
+      "category": "Building",
+      "source": "art/blender/buildings/esmeralda/astillero-neptuno.py",
+      "triangles": 2462,
+      "lods": [
+        1114
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/esmeralda-astillero-neptuno-nivel0.jpg",
+        "art/render/ingame/esmeralda-astillero-neptuno-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/esmeralda/astillero-neptuno.py",
+      "assetId": "rbxassetid://77317841801014",
+      "assetIds": [
+        "rbxassetid://70771737178858",
+        "rbxassetid://139080412419937",
+        "rbxassetid://108223092379207",
+        "rbxassetid://84284130567232",
+        "rbxassetid://109411517409792",
+        "rbxassetid://139102702258924",
+        "rbxassetid://83903329411799",
+        "rbxassetid://79832907933939",
+        "rbxassetid://108414822245421",
+        "rbxassetid://87358403759690",
+        "rbxassetid://81808100130349",
+        "rbxassetid://82870304761927",
+        "rbxassetid://92103148525308",
+        "rbxassetid://122208975551435",
+        "rbxassetid://88158410867775",
+        "rbxassetid://108563683771769",
+        "rbxassetid://115594188882382",
+        "rbxassetid://81872110573930",
+        "rbxassetid://86345238199135"
+      ]
     }
   ]
 }

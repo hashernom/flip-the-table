@@ -45,11 +45,15 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Plaza del Jazz | En juego | 18,0; nivel 0 22,5 | 33,8 | 2 940 | 1 350 | [niveles](../render/carmesi/plaza-del-jazz/plaza-del-jazz-niveles.png) · [comparación](../render/carmesi/plaza-del-jazz/plaza-del-jazz-comparacion.png) |
 
 ## Zona 06 · Limón (`limon`)
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Vereda La Mata | En juego | 17,5; nivel 0 19,6 | 32,4 | 2 698 | 1 171 | [niveles](../render/limon/vereda-la-mata/vereda-la-mata-niveles.png) · [comparación](../render/limon/vereda-la-mata/vereda-la-mata-comparacion.png) |
+| Villa Margarita | En juego | 20,0; nivel 0 24,8 con cubierta | 33,7 | 2 802 | 1 211 | [niveles](../render/limon/villa-margarita/villa-margarita-niveles.png) · [comparación](../render/limon/villa-margarita/villa-margarita-comparacion.png) |
+| Panadería La Espiga | En juego | 16,0; nivel 0 20,7 con silo | 33,8 | 2 918 | 1 354 | [niveles](../render/limon/panaderia-la-espiga/panaderia-la-espiga-niveles.png) · [comparación](../render/limon/panaderia-la-espiga/panaderia-la-espiga-comparacion.png) |
 
 ## Zona 07 · Esmeralda (`esmeralda`)
 
