@@ -15,9 +15,13 @@ type SizeId = CityLayout.SizeId
 
 local BODY_SIZE = Vector3.new(6, 5, 6)
 local SEAT_THICKNESS = 0.3
+-- El asiento gris es solo el anclaje del avatar: su centro va 0,55 por encima de la placa real para
+-- que un avatar de 6 studs apoye los pies en ella (`mount` lo baja 0,15 de su altura).
+local SEAT_LIFT = 0.55
 local BODY_COLOR = Color3.fromRGB(96, 100, 106)
 local SEAT_COLOR = Color3.fromRGB(58, 62, 68)
 local ArtAssets = require("../../shared/config/ArtAssets")
+local Tokens = require("../../shared/config/Tokens")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local WELD_NAME = "TokenWeld"
@@ -70,12 +74,24 @@ local function weldTo(list: { BasePart }, body: BasePart)
 	end
 end
 
--- Crea la ficha gris de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),
--- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es la franja
--- que la identifica; el resto va en gris.
-function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, parent: Instance): Model
+-- Crea la ficha de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),
+-- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es el color
+-- del jugador: tiñe la placa del asiento, que es lo que la identifica. `tokenId` elige el vehículo
+-- del catálogo `Tokens`; sin uno válido cae al taxi para no dejar a nadie sin ficha.
+function TokenRider.create(
+	ownerId: string,
+	sizeId: SizeId,
+	color: Color3,
+	parent: Instance,
+	tokenId: string
+): Model
+	local spec = Tokens.get(tokenId) or Tokens.get("taxi")
+	if spec == nil then
+		error("TokenRider: no hay fichas en el catálogo", 2)
+	end
 	local model = Instance.new("Model")
 	model.Name = `Token_{ownerId}`
+	model:SetAttribute("TokenId", spec.id)
 
 	local body = part("Body", BODY_SIZE, BODY_COLOR, model, true)
 	model.PrimaryPart = body
@@ -83,9 +99,9 @@ function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, paren
 	local stripe = part("Stripe", Vector3.new(BODY_SIZE.X + 0.2, 1.2, BODY_SIZE.Z + 0.2), color, model, false)
 	stripe.CFrame = body.CFrame
 
-	local seat =
-		part("Seat", Vector3.new(BODY_SIZE.X - 1, SEAT_THICKNESS, BODY_SIZE.Z - 1), SEAT_COLOR, model, false)
-	seat.CFrame = body.CFrame * CFrame.new(0, BODY_SIZE.Y / 2 + SEAT_THICKNESS / 2, 0)
+	local seat = part("Seat", Vector3.new(1, SEAT_THICKNESS, 1), SEAT_COLOR, model, false)
+	local seatAt = spec.art.seat
+	seat.CFrame = body.CFrame * CFrame.new(seatAt[1], seatAt[2] + SEAT_LIFT - BODY_SIZE.Y / 2, seatAt[3])
 
 	weldTo({ stripe, seat }, body)
 
@@ -134,18 +150,26 @@ function TokenRider.isHidden(token: Model): boolean
 	return token:GetAttribute(HIDDEN_ATTRIBUTE) == true
 end
 
--- Viste la ficha con el taxi real si ya está cargado. Sin él sigue siendo la gris; se puede repetir.
+-- Viste la ficha con su vehículo real si ya está cargado. Sin él sigue siendo la gris; se puede repetir.
+local DRESSED_NAME = "DressedArt"
+
 function TokenRider.dress(token: Model)
 	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
 	local body = token.PrimaryPart
-	if folder == nil or body == nil or token:FindFirstChild("Taxi") ~= nil then
+	if folder == nil or body == nil or token:FindFirstChild(DRESSED_NAME) ~= nil then
+		return
+	end
+	local tokenId = token:GetAttribute("TokenId")
+	local spec = if type(tokenId) == "string" then Tokens.get(tokenId) else nil
+	if spec == nil then
 		return
 	end
 	local origin = body.CFrame * CFrame.new(0, -BODY_SIZE.Y / 2, 0)
 	local dressed = Instance.new("Folder")
-	dressed.Name = "Taxi"
+	dressed.Name = DRESSED_NAME
 	local pieces: { BasePart } = {}
-	for _, piece in ArtAssets.taxi do
+	local plate: BasePart? = nil
+	for _, piece in spec.art.pieces do
 		local source = folder:FindFirstChild(piece.key)
 		if source == nil or not source:IsA("BasePart") then
 			dressed:Destroy()
@@ -156,27 +180,37 @@ function TokenRider.dress(token: Model)
 		mesh.Anchored = false
 		mesh.Parent = dressed
 		table.insert(pieces, mesh)
+		if piece.key == spec.art.plate then
+			plate = mesh
+		end
 	end
 	weldTo(pieces, body)
 	dressed.Parent = token
-	-- El cuerpo sigue moviendo la ficha, pero ya no se ve.
+	-- El cuerpo y la franja siguen moviendo la ficha, pero ya no se ven.
 	body.Transparency = 1
 	local stripe = token:FindFirstChild("Stripe")
+	local playerColor = BODY_COLOR
 	if stripe ~= nil and stripe:IsA("BasePart") then
-		-- En el taxi, el color del asiento pasa a la placa del techo, bajo el avatar.
-		local seat = token:FindFirstChild("Seat")
-		if seat ~= nil and seat:IsA("BasePart") then
-			seat.Color = stripe.Color
-		end
+		playerColor = stripe.Color
 		stripe.Transparency = 1
 	end
-	-- Si la ficha estaba oculta, el taxi recién puesto también se oculta. El cuerpo y la franja ya son
+	-- La placa del techo se tiñe con el color del jugador: es su marca en la ciudad.
+	if plate ~= nil then
+		plate.Color = playerColor
+		plate.Material = Enum.Material.SmoothPlastic
+	end
+	-- El asiento gris era solo el anclaje del avatar; la placa real ocupa su sitio.
+	local seat = token:FindFirstChild("Seat")
+	if seat ~= nil and seat:IsA("BasePart") then
+		seat.Transparency = 1
+		seat:SetAttribute(SAVED_TRANSPARENCY, 1)
+	end
+	-- Si la ficha estaba oculta, el vehículo recién puesto también se oculta. El cuerpo y la franja ya son
 	-- invisibles, así que se guardan con transparencia 1: `show` no debe devolverlos visibles.
 	if TokenRider.isHidden(token) then
 		body:SetAttribute(SAVED_TRANSPARENCY, 1)
-		local hiddenStripe = token:FindFirstChild("Stripe")
-		if hiddenStripe ~= nil and hiddenStripe:IsA("BasePart") then
-			hiddenStripe:SetAttribute(SAVED_TRANSPARENCY, 1)
+		if stripe ~= nil and stripe:IsA("BasePart") then
+			stripe:SetAttribute(SAVED_TRANSPARENCY, 1)
 		end
 		TokenRider.hide(token)
 	end

@@ -1385,14 +1385,309 @@ ArtAssets.mojon = {
 	ring = piece("marker_mojon_ring", "72497880426898", { 201, 123, 58 }, "Metal"),
 }
 
--- La ficha taxi: su origen es la base de la ficha.
-ArtAssets.taxi = {
-	piece("taxi_cream", "109034949932647", { 237, 229, 211 }, "SmoothPlastic"),
-	piece("taxi_dark", "90234802967497", { 42, 46, 51 }, "SmoothPlastic"),
-	piece("taxi_glass", "100862088195781", GLASS, "Glass", 0.25),
-	piece("taxi_steel", "91742839184724", { 168, 174, 180 }, "Metal"),
-	piece("taxi_taxi", "124072967548133", { 245, 197, 24 }, "SmoothPlastic"),
-} :: { Piece }
+-- Fichas. `seat` ya viene en coordenadas de Roblox (x, alto, fondo).
+export type TokenArt = {
+	seat: { number },
+	plate: string,
+	pieces: { Piece },
+}
+ArtAssets.tokens = {
+	taxi = {
+		seat = { 0.0, 4.6, 0.8 },
+		plate = "taxi_plate",
+		pieces = {
+			piece("taxi_body_taxi", "133679178418934", { 245, 197, 24 }, "SmoothPlastic"),
+			piece("taxi_body_dark", "126187163151566", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("taxi_body_glass", "126221105256296", { 127, 178, 217 }, "Glass", 0.25),
+			piece("taxi_body_cream", "137708554774758", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("taxi_body_steel", "117224687992090", { 168, 174, 180 }, "Metal"),
+			piece("taxi_body_red", "135043097064829", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("taxi_plate", "107338938974746", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("taxi_wheel_fl", "97597231499402", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("taxi_wheel_fr", "128722054419235", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("taxi_wheel_rl", "95528865461443", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("taxi_wheel_rr", "83438224235139", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("taxi_hub_fl", "116008906030895", { 168, 174, 180 }, "Metal"),
+			piece("taxi_hub_fr", "130188908974894", { 168, 174, 180 }, "Metal"),
+			piece("taxi_hub_rl", "93413293531770", { 168, 174, 180 }, "Metal"),
+			piece("taxi_hub_rr", "75695399375147", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	limusina = {
+		seat = { 0.0, 4.42, 0.35 },
+		plate = "limo_plate",
+		pieces = {
+			piece("limo_body_negro", "127437988006054", { 25, 29, 34 }, "SmoothPlastic"),
+			piece("limo_body_dark", "91621964389888", { 16, 19, 23 }, "SmoothPlastic"),
+			piece("limo_body_glass", "109072490202306", { 58, 74, 87 }, "Glass", 0.25),
+			piece("limo_body_steel", "106450967852852", { 168, 174, 180 }, "Metal"),
+			piece("limo_body_cream", "113301381550647", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("limo_body_red", "98498376554704", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("limo_plate", "117594125263828", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("limo_wheel_fl", "137002489744173", { 16, 19, 23 }, "SmoothPlastic"),
+			piece("limo_wheel_fr", "110187169031453", { 16, 19, 23 }, "SmoothPlastic"),
+			piece("limo_wheel_rl", "128129184479320", { 16, 19, 23 }, "SmoothPlastic"),
+			piece("limo_wheel_rr", "107533052531604", { 16, 19, 23 }, "SmoothPlastic"),
+			piece("limo_hub_fl", "96578930903147", { 168, 174, 180 }, "Metal"),
+			piece("limo_hub_fr", "99143389833331", { 168, 174, 180 }, "Metal"),
+			piece("limo_hub_rl", "109360893700449", { 168, 174, 180 }, "Metal"),
+			piece("limo_hub_rr", "126638550934476", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	moto = {
+		seat = { 0.0, 3.86, 3.32 },
+		plate = "moto_plate",
+		pieces = {
+			piece("moto_body_moto", "132417205516577", { 62, 127, 166 }, "SmoothPlastic"),
+			piece("moto_body_cream", "71381782628324", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("moto_body_dark", "118755625023967", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("moto_body_steel", "96133866716735", { 168, 174, 180 }, "Metal"),
+			piece("moto_body_glass", "76898507219000", { 127, 178, 217 }, "Glass", 0.25),
+			piece("moto_body_red", "102927408986875", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("moto_plate", "72706032635558", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("moto_wheel_f", "87922310223663", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("moto_wheel_r", "133648784746370", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("moto_hub_f", "101538307697722", { 168, 174, 180 }, "Metal"),
+			piece("moto_hub_r", "82897371717785", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	deportivo = {
+		seat = { 0.0, 2.6, 2.8 },
+		plate = "sport_plate",
+		pieces = {
+			piece("sport_body_rojo", "136081573678494", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("sport_body_asfalto", "117259799926793", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("sport_body_cristal", "115296219445586", { 127, 178, 217 }, "SmoothPlastic"),
+			piece("sport_body_caliza", "91150373991070", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("sport_body_naranja", "130585144325959", { 224, 122, 60 }, "SmoothPlastic"),
+			piece("sport_body_acero", "78496661139150", { 168, 174, 180 }, "SmoothPlastic"),
+			piece("sport_plate", "95353151886414", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("sport_wheel_fl", "132219869563411", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("sport_wheel_fr", "79398872310749", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("sport_wheel_rl", "79543523206457", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("sport_wheel_rr", "109463345865761", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("sport_hub_fl", "140069927818554", { 168, 174, 180 }, "SmoothPlastic"),
+			piece("sport_hub_fr", "86364475189586", { 168, 174, 180 }, "SmoothPlastic"),
+			piece("sport_hub_rl", "89790819605380", { 168, 174, 180 }, "SmoothPlastic"),
+			piece("sport_hub_rr", "119034074880914", { 168, 174, 180 }, "SmoothPlastic"),
+		},
+	},
+	["food-truck"] = {
+		seat = { 0.0, 5.94, 2.85 },
+		plate = "food_plate",
+		pieces = {
+			piece("food_body_food", "84013555966138", { 224, 122, 60 }, "SmoothPlastic"),
+			piece("food_body_cream", "93607579771508", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("food_body_dark", "87203837574936", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("food_body_glass", "108631865868385", { 127, 178, 217 }, "Glass", 0.25),
+			piece("food_body_steel", "128503754670395", { 168, 174, 180 }, "Metal"),
+			piece("food_body_red", "122222082620369", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("food_plate", "92971657149200", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("food_wheel_fl", "115016909869963", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("food_wheel_fr", "117836392595129", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("food_wheel_rl", "127555327324859", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("food_wheel_rr", "115294741192520", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("food_hub_fl", "114634501769985", { 168, 174, 180 }, "Metal"),
+			piece("food_hub_fr", "94665463852261", { 168, 174, 180 }, "Metal"),
+			piece("food_hub_rl", "76870926424844", { 168, 174, 180 }, "Metal"),
+			piece("food_hub_rr", "74209059361676", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	["camion-helados"] = {
+		seat = { 0.0, 4.22, 3.1 },
+		plate = "icecream_plate",
+		pieces = {
+			piece("icecream_body_mint", "77241776022066", { 159, 213, 182 }, "SmoothPlastic"),
+			piece("icecream_body_cream", "84834518679830", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("icecream_body_dark", "71919428981737", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("icecream_body_glass", "110762726897832", { 127, 178, 217 }, "Glass", 0.25),
+			piece("icecream_body_steel", "97123490670317", { 168, 174, 180 }, "Metal"),
+			piece("icecream_body_pink", "136026058344228", { 234, 167, 187 }, "SmoothPlastic"),
+			piece("icecream_body_tan", "110026515431393", { 189, 132, 57 }, "SmoothPlastic"),
+			piece("icecream_body_red", "106509143507849", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("icecream_plate", "115777956233147", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("icecream_wheel_fl", "99702163268970", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("icecream_wheel_fr", "122553739559148", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("icecream_wheel_rl", "70740715231488", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("icecream_wheel_rr", "124103728914495", { 35, 39, 44 }, "SmoothPlastic"),
+			piece("icecream_hub_fl", "84423499489756", { 168, 174, 180 }, "Metal"),
+			piece("icecream_hub_fr", "118425661490841", { 168, 174, 180 }, "Metal"),
+			piece("icecream_hub_rl", "98761388818027", { 168, 174, 180 }, "Metal"),
+			piece("icecream_hub_rr", "118536506004390", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	grua = {
+		seat = { 0.0, 2.67, 4.55 },
+		plate = "tow_plate",
+		pieces = {
+			piece("tow_body_yellow", "95053997370747", { 245, 197, 24 }, "SmoothPlastic"),
+			piece("tow_body_steel", "134314077480826", { 168, 174, 180 }, "Metal"),
+			piece("tow_body_dark", "100129015045608", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_body_glass", "102138962592189", { 127, 178, 217 }, "Glass", 0.25),
+			piece("tow_body_orange", "124638709028401", { 224, 122, 60 }, "SmoothPlastic"),
+			piece("tow_body_cream", "137991435829010", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("tow_body_red", "104936000375608", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("tow_plate", "131002028917702", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("tow_wheel_fl", "76073551293191", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_wheel_fr", "77185300358917", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_wheel_rl", "73306696008205", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_wheel_rr", "89402250749875", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_wheel_ml", "90955544415570", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_wheel_mr", "128004742463450", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("tow_hub_fl", "101959208863864", { 168, 174, 180 }, "Metal"),
+			piece("tow_hub_fr", "123925876481313", { 168, 174, 180 }, "Metal"),
+			piece("tow_hub_rl", "80838197031263", { 168, 174, 180 }, "Metal"),
+			piece("tow_hub_rr", "122925467180126", { 168, 174, 180 }, "Metal"),
+			piece("tow_hub_ml", "125765712980969", { 168, 174, 180 }, "Metal"),
+			piece("tow_hub_mr", "120862205016509", { 168, 174, 180 }, "Metal"),
+		},
+	},
+	autobus = {
+		seat = { 0.0, 6.64, 0.0 },
+		plate = "bus_plate",
+		pieces = {
+			piece("bus_body_bus", "125497238852457", { 62, 127, 166 }, "SmoothPlastic"),
+			piece("bus_body_dark", "126065636378431", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bus_body_cream", "75461336238466", { 237, 229, 211 }, "SmoothPlastic"),
+			piece("bus_body_glass", "130625169548214", { 127, 178, 217 }, "Glass", 0.25),
+			piece("bus_body_steel", "94753857181355", { 168, 174, 180 }, "Metal"),
+			piece("bus_body_red", "123729454419227", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("bus_plate", "114784370707983", { 237, 234, 227 }, "SmoothPlastic"),
+			piece("bus_wheel_fl", "106046077217011", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bus_wheel_fr", "136667030447978", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bus_wheel_rl", "124780908396106", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bus_wheel_rr", "116487059231740", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bus_hub_fl", "131694775575542", { 168, 174, 180 }, "Metal"),
+			piece("bus_hub_fr", "96019583172265", { 168, 174, 180 }, "Metal"),
+			piece("bus_hub_rl", "134886663783006", { 168, 174, 180 }, "Metal"),
+			piece("bus_hub_rr", "117976189269343", { 168, 174, 180 }, "Metal"),
+		},
+	},
+} :: { [string]: TokenArt }
+
+-- Fichas: el taxi es la primera y `ArtAssets.taxi` se queda como alias de su lista.
+ArtAssets.taxi = ArtAssets.tokens.taxi.pieces
+
+-- Casillas especiales, por el `kind` de `CityLayout`. Falta Portal: su modelo está en
+-- `art/blender/squares/portal/`, pero no se ha subido y no tiene ids en `subida.json`.
+ArtAssets.squares = {
+	Start = {
+		piece("start_limestone", "93362661254990", { 210, 201, 180 }, "Limestone"),
+		piece("start_brick", "88301210005913", { 176, 102, 74 }, "Brick"),
+		piece("start_metal", "110537904072654", { 168, 174, 180 }, "Metal"),
+		piece("start_wood", "118569556498980", { 107, 74, 46 }, "Wood"),
+		piece("start_glass", "129540652814301", { 46, 74, 99 }, "Glass", 0.25),
+		piece("start_slate", "136837897405609", { 74, 78, 84 }, "Slate"),
+	},
+	Spin = {
+		piece("spin_limestone", "122621577452052", { 210, 201, 180 }, "Limestone"),
+		piece("spin_brick", "74280849987138", { 176, 102, 74 }, "Brick"),
+		piece("spin_wood", "125726746320306", { 107, 74, 46 }, "Wood"),
+		piece("spin_glass", "101093413451917", { 46, 74, 99 }, "Glass", 0.25),
+		piece("spin_metal", "118355936961529", { 201, 123, 58 }, "Metal"),
+		piece("spin_slate", "107548372394489", { 74, 78, 84 }, "Slate"),
+	},
+	Market = {
+		piece("market_brick", "126647262180401", { 176, 102, 74 }, "Brick"),
+		piece("market_limestone", "92916995374126", { 210, 201, 180 }, "Limestone"),
+		piece("market_wood", "96129506027593", { 107, 74, 46 }, "Wood"),
+		piece("market_metal_acero", "129596700606961", { 168, 174, 180 }, "Metal"),
+		piece("market_slate", "96232447116331", { 74, 78, 84 }, "Slate"),
+		piece("market_fabric_rojo", "72499930980203", { 196, 56, 43 }, "Fabric"),
+		piece("market_fabric_crema", "93106015393941", { 237, 229, 211 }, "Fabric"),
+		piece("market_glass", "72511729495772", { 46, 74, 99 }, "Glass", 0.25),
+	},
+	Duel = {
+		piece("duel_brick", "79233786586745", { 176, 102, 74 }, "Brick"),
+		piece("duel_fabric_blanco", "137879002030650", { 237, 229, 211 }, "Fabric"),
+		piece("duel_fabric_rojo", "101325639174869", { 196, 56, 43 }, "Fabric"),
+		piece("duel_glass", "73437766301686", { 46, 74, 99 }, "Glass", 0.25),
+		piece("duel_limestone", "132569779467401", { 210, 201, 180 }, "Limestone"),
+		piece("duel_metal", "103787952491235", { 168, 174, 180 }, "Metal"),
+		piece("duel_slate", "78596978477632", { 74, 78, 84 }, "Slate"),
+		piece("duel_wood", "100223656590086", { 107, 74, 46 }, "Wood"),
+	},
+	Billboard = {
+		piece("billboard_brick", "79615566866266", { 176, 102, 74 }, "Brick"),
+		piece("billboard_limestone", "125909523676391", { 210, 201, 180 }, "Limestone"),
+		piece("billboard_slate", "82098468089767", { 74, 78, 84 }, "Slate"),
+		piece("billboard_metal", "79679307288969", { 168, 174, 180 }, "Metal"),
+		piece("billboard_glass", "78343241515679", { 46, 74, 99 }, "Glass", 0.25),
+		piece("billboard_wood", "75246279936484", { 107, 74, 46 }, "Wood"),
+		piece("billboard_screen", "95117790846806", { 46, 51, 56 }, "SmoothPlastic"),
+	},
+	Tribunal = {
+		piece("tribunal_limestone", "91157678753908", { 210, 201, 180 }, "Limestone"),
+		piece("tribunal_slate", "80430480871253", { 74, 78, 84 }, "Slate"),
+	},
+	Tax = {
+		piece("tax_brick", "83298664398939", { 176, 102, 74 }, "Brick"),
+		piece("tax_limestone", "94591087817688", { 210, 201, 180 }, "Limestone"),
+		piece("tax_slate", "76551452650805", { 74, 78, 84 }, "Slate"),
+		piece("tax_wood", "74581550163105", { 107, 74, 46 }, "Wood"),
+		piece("tax_glass", "129691264796307", { 46, 74, 99 }, "Glass", 0.25),
+		piece("tax_metal", "89471811192640", { 168, 174, 180 }, "Metal"),
+		piece("tax_smoothplastic_rojo", "85466395562184", { 196, 56, 43 }, "SmoothPlastic"),
+		piece("tax_smoothplastic_blanco", "124494972089768", { 237, 229, 211 }, "SmoothPlastic"),
+	},
+} :: { [string]: { Piece } }
+
+-- Actores de escena. El casco se apoya en la cabeza, como la gorra del policía.
+ArtAssets.actors = {
+	workerHelmet = {
+		piece("helmet_yellow", "84923319544992", { 245, 197, 24 }, "SmoothPlastic"),
+		piece("helmet_dark", "110955419283523", { 42, 46, 51 }, "SmoothPlastic"),
+	},
+	Crane = {
+		piece("crane_amarillo", "116627134152467", { 245, 197, 24 }, "SmoothPlastic"),
+		piece("crane_acero", "82595165382245", { 168, 174, 180 }, "Metal"),
+		piece("crane_asfalto", "138494115720626", { 42, 46, 51 }, "SmoothPlastic"),
+	},
+	TowTruck = {
+		piece("towtruck_asfalto", "97143215210376", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_amarillo", "124306935009599", { 245, 197, 24 }, "SmoothPlastic"),
+		piece("towtruck_acero", "71402940919668", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_cristal", "86695196638253", { 46, 74, 99 }, "Glass", 0.25),
+		piece("towtruck_wheel_fl", "105150362948008", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_wheel_fr", "132935080410986", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_wheel_ml", "126678252302660", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_wheel_mr", "127218893026857", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_wheel_rl", "100811372708938", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_wheel_rr", "79819354283520", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("towtruck_hub_fl", "124866178234368", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_hub_fr", "132280338906078", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_hub_ml", "100339933242954", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_hub_mr", "100943728062020", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_hub_rl", "113826954340351", { 168, 174, 180 }, "Metal"),
+		piece("towtruck_hub_rr", "80278404432363", { 168, 174, 180 }, "Metal"),
+	},
+	ArmoredTruck = {
+		piece("armored_steel", "97182244920546", { 168, 174, 180 }, "Metal"),
+		piece("armored_asphalt", "121058855576865", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("armored_glass", "108412584867920", { 46, 74, 99 }, "Glass", 0.25),
+		piece("armored_limestone", "128601398110056", { 210, 201, 180 }, "Limestone"),
+	},
+	WreckingBall = {
+		piece("wrecking_dark", "116107338754335", { 35, 39, 44 }, "SmoothPlastic"),
+		piece("wrecking_steel", "94272395177777", { 168, 174, 180 }, "Metal"),
+		piece("wrecking_orange", "94350779867532", { 224, 122, 60 }, "SmoothPlastic"),
+		piece("wrecking_glass", "111475953971599", { 127, 178, 217 }, "Glass", 0.25),
+		piece("wrecking_ball", "131013545753933", { 82, 88, 96 }, "Metal"),
+		piece("wrecking_chain", "138838066689207", { 168, 174, 180 }, "Metal"),
+	},
+} :: { [string]: { Piece } }
+
+-- Iconos de las casillas especiales, en blanco para teñirlos como la pintura del suelo.
+ArtAssets.roadIcons = {
+	Start = "rbxassetid://72746191594420",
+	Spin = "rbxassetid://85118532225000",
+	Market = "rbxassetid://121692747139889",
+	Duel = "rbxassetid://96119133814108",
+	Portal = "rbxassetid://104882717221409",
+	Billboard = "rbxassetid://95083914232117",
+	Tribunal = "rbxassetid://125704852762651",
+	Tax = "rbxassetid://105821566238218",
+} :: { [string]: string }
 
 -- Mobiliario de la calle, por el `kind` que da `CityLayout.dressingFor`. Su origen es el centro de la base.
 ArtAssets.street = {
@@ -1497,7 +1792,15 @@ function ArtAssets.all(): { Piece }
 			table.move(addon, 1, #addon, #pieces + 1, pieces)
 		end
 	end
-	table.move(ArtAssets.taxi, 1, #ArtAssets.taxi, #pieces + 1, pieces)
+	for _, token in ArtAssets.tokens do
+		table.move(token.pieces, 1, #token.pieces, #pieces + 1, pieces)
+	end
+	for _, kind in ArtAssets.squares do
+		table.move(kind, 1, #kind, #pieces + 1, pieces)
+	end
+	for _, actor in ArtAssets.actors do
+		table.move(actor, 1, #actor, #pieces + 1, pieces)
+	end
 	for _, kind in ArtAssets.street do
 		table.move(kind, 1, #kind, #pieces + 1, pieces)
 	end
@@ -1523,8 +1826,10 @@ function ArtAssets.loadOrder(): { Piece }
 
 	add(ArtAssets.mojon.stone)
 	add(ArtAssets.mojon.ring)
-	for _, part in ArtAssets.taxi do
-		add(part)
+	for _, token in ArtAssets.tokens do
+		for _, part in token.pieces do
+			add(part)
+		end
 	end
 
 	-- Las propiedades en orden de nombre, para que el orden sea siempre el mismo.

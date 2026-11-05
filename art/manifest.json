@@ -470,6 +470,27 @@
       ]
     },
     {
+      "id": "square-icons",
+      "category": "CityBackdrop",
+      "source": "art/generators/road_icons.py",
+      "triangles": 0,
+      "lods": [],
+      "textures": 8,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "art/generators/road_icons.py",
+      "assetId": "rbxassetid://72746191594420",
+      "assetIds": [
+        "rbxassetid://85118532225000",
+        "rbxassetid://121692747139889",
+        "rbxassetid://96119133814108",
+        "rbxassetid://104882717221409",
+        "rbxassetid://95083914232117",
+        "rbxassetid://125704852762651",
+        "rbxassetid://105821566238218"
+      ]
+    },
+    {
       "id": "pasaje-burbuja",
       "category": "Building",
       "source": "art/blender/buildings/cian/pasaje-burbuja.py",

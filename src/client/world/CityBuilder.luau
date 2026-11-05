@@ -51,6 +51,10 @@ local NAME_PIXELS_PER_STUD = 16
 local NAME_TEXT_SIZE = 70
 local NAME_PAINT = Color3.fromRGB(222, 216, 200)
 local OWNER_PLATE = "OwnerPlate"
+-- Icono de una casilla especial: va sobre la pintura, un poco hacia la calle para no pisar el nombre.
+local ICON_SIZE = 14
+local ICON_OFFSET = -3
+local ICON_TRANSPARENCY = 0.05
 
 local CityBuilder = {}
 
@@ -227,9 +231,30 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 		paint.Parent = frame
 	end
 
+	-- Señalética del tipo de casilla: el icono blanco de `art/textures/casillas/iconos`, teñido como la
+	-- pintura del nombre. Va en su propia pieza para no tocar el desgaste de la pintura de la zona.
+	local inward = Vector3.new(-forward.Z, 0, forward.X)
+	local iconId = ArtAssets.roadIcons[slot.kind]
+	if iconId ~= nil then
+		local middle = Vector3.new(slot.position.x, PAINT_HEIGHT / 2 + 0.01, slot.position.z)
+			+ inward * ICON_OFFSET
+		local icon = makePart({
+			Name = "RoadIcon",
+			Size = Vector3.new(ICON_SIZE, PAINT_HEIGHT, ICON_SIZE),
+			CFrame = CFrame.lookAt(middle, middle + forward),
+			Transparency = 1,
+		})
+		icon.Parent = tile
+		local decal = Instance.new("Decal")
+		decal.Face = Enum.NormalId.Top
+		decal.Texture = iconId
+		decal.Color3 = NAME_PAINT
+		decal.Transparency = ICON_TRANSPARENCY
+		decal.Parent = icon
+	end
+
 	-- El nombre va pintado en el carril libre, junto a la casilla: la ficha nunca lo tapa. Mira hacia el
 	-- interior del anillo, que es desde donde mira la cámara.
-	local inward = Vector3.new(-forward.Z, 0, forward.X)
 	local namePosition = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
 		+ inward * FRAMED_NAME_SIDE
 	-- Dentro del marco, el rótulo deja margen para no tocar el contorno.
