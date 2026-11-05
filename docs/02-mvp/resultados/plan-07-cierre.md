@@ -10,9 +10,9 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
 | 1. Trazado de barrios | A medias | Ciudad, puentes, mobiliario y las 34 propiedades; capturas de la porción vertical | Captura de la ruta completa en S/M/L y aprobación |
 | 2. Propiedades por zona | Casi | 34 propiedades modeladas; 32 entradas de propiedad en el manifiesto, todas `Approved` o `InGame` | 13 capturas de propiedad y la prueba de cámara a nivel 5 |
 | 3. Casillas especiales | Código hecho | 8 lugares, iconos y capturas en Studio; Zona Caliente con banda y contorno; revisión de la tarea aprobada | Captura real con 2 jugadores y aprobación |
-| 4. Maqueta | Código hecho | Plinto, miniatura, tarjetas, marcadores y cámara; revisión con 3 importantes corregidos | Medir < 1 s y verla en Studio |
+| 4. Maqueta | Código hecho | Plinto, miniatura, tarjetas, marcadores y cámara; revisión aprobada tras corregir la clave, el clon y el foco | Medir < 1 s y verla en Studio |
 | 5. Ocho fichas | Código hecho | Elección con intercambio, animaciones y avatares extremos; revisión aprobada | Prueba en partida real y aprobación |
-| 6. Actores de escena | Código hecho | `Actors.spawn/despawn/pose`, pool y 17 pruebas; vuelta de corrección aplicada | Prueba de 100 ciclos en Studio y aprobación |
+| 6. Actores de escena | Código hecho | `Actors.spawn/despawn/pose`, pool y 20 pruebas; revisión aprobada tras corregir los seis importantes | Prueba de 100 ciclos en Studio y aprobación |
 | 7. Rendimiento | Abierta | Check de partes temporales y manifiesto | Medición de 8 jugadores en móvil, omitida por el responsable; ver [rendimiento-ciudad.md](rendimiento-ciudad.md) |
 
 ## Lo que está verificado
