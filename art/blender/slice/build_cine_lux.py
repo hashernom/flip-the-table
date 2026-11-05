@@ -1,4 +1,4 @@
-"""Cine Lux de Medianoche: primera propiedad de la porción vertical.
+"""Cine Lux: primera propiedad de la porción vertical.
 
 Cada propiedad es un edificio fijo (R-P50). El cuerpo no cambia: cada nivel le suma un añadido, y junto
 a él se ponen los marcadores de mejora. Art déco de Centro: caliza en el cuerpo central, ladrillo en los

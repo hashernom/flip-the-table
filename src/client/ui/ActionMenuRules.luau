@@ -180,7 +180,7 @@ function ActionMenuRules.clampBid(previous: number?, control: BidControl): numbe
 end
 
 -- Un lado de un trato: dinero, casillas, las dos cosas o «nada». Con `squareName` las casillas se
--- nombran («Plaza Halcyon»); sin él se enseña su número, como en las pruebas de forma.
+-- nombran («Caldas»); sin él se enseña su número, como en las pruebas de forma.
 local function offerSide(cash: number, squares: { number }, squareName: ((number) -> string)?): string
 	local parts: { string } = {}
 	if cash > 0 then

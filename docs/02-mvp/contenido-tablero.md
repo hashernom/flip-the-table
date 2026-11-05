@@ -27,19 +27,19 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 
 **Cobre (2)**
 
-1. Calle del Estaño
+1. Barbería Morro
 2. Callejón del Hojalatero
 
 **Cian (3)**
 
 3. Pasaje Burbuja
 4. Calle del Cable
-5. Plaza Halcyon
+5. Caldas
 
 **Magenta (3)**
 
-6. Avenida Kestrel
-7. Bulevar Sable
+6. Centro Páez
+7. Neo Mundo
 8. Plaza del Neón
 
 **Naranja (3)**
@@ -51,13 +51,13 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 **Carmesí (3)**
 
 12. Plaza del Jazz
-13. Cine Lux de Medianoche
+13. Cine Lux
 14. Bodega La Reserva
 
 **Limón (3)**
 
-15. Galería Km 0
-16. Circo Mariposa
+15. Vereda La Mata
+16. Villa Margarita
 17. Panadería La Espiga
 
 **Esmeralda (3)**
@@ -74,20 +74,20 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 **Añil (3)**
 
 23. Observatorio Cerro Azul
-24. Planetario Kepler
-25. Residencia Orión
+24. D.T
+25. Torres de Aragón
 
 **Blanca (3)**
 
-26. Terraza Mistral
-27. Jardín de Invierno
-28. Balneario Nébula
+26. Tajamar
+27. Cacique
+28. Monviso
 
 **Grafito (3)**
 
 29. Fundición Vulcano
 30. Chatarrería El Imán
-31. Estación de Carga Norte
+31. Estación de Metrolínea
 
 **Ocre (3)**
 
