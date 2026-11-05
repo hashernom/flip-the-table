@@ -2135,6 +2135,33 @@
         "rbxassetid://82595165382245",
         "rbxassetid://138494115720626"
       ]
+    },
+    {
+      "id": "scene-blindado",
+      "category": "SceneCharacter",
+      "source": "art/blender/scene-props/blindado.py",
+      "triangles": 2716,
+      "lods": [
+        272
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art\\blender\\scene-props\\blindado",
+      "assetId": "rbxassetid://97182244920546",
+      "assetIds": [
+        "rbxassetid://121058855576865",
+        "rbxassetid://108412584867920",
+        "rbxassetid://128601398110056",
+        "rbxassetid://92268409433776",
+        "rbxassetid://115939304246759",
+        "rbxassetid://116152594726687",
+        "rbxassetid://95448606509254",
+        "rbxassetid://78973832625158",
+        "rbxassetid://92114121153643",
+        "rbxassetid://84694265974677",
+        "rbxassetid://94980658088478"
+      ]
     }
   ]
 }
