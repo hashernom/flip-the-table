@@ -21,7 +21,7 @@ function TokenMenu.create(playerGui: Instance, onChoose: (tokenId: string) -> ()
 	notice.BackgroundTransparency = 1
 	notice.Size = UDim2.fromScale(1, 0)
 	notice.AutomaticSize = Enum.AutomaticSize.Y
-	notice.Font = Theme.font
+	notice.FontFace = Theme.font.text
 	notice.TextSize = 15
 	notice.TextWrapped = true
 	notice.TextColor3 = Theme.muted
