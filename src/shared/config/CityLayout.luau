@@ -269,11 +269,6 @@ function CityLayout.lotCenter(slot: Slot): Vector3Like
 	return outward(slot, STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2)
 end
 
--- Sitio del rótulo de la casilla: en la acera, para no estorbar en la calzada.
-function CityLayout.signCenter(slot: Slot): Vector3Like
-	return outward(slot, STREET_WIDTH / 2 + SIDEWALK / 2)
-end
-
 -- Cada propiedad es un edificio fijo que existe desde el inicio (R-P50). Las medidas son de la ciudad
 -- gris: el plan 07 las cambia por el modelo de cada propiedad. `along` va a lo largo de la calle, `front`
 -- hacia el fondo del solar (negativo, hacia la calle) e `y` es la altura de la base de la pieza.

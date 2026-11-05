@@ -39,8 +39,11 @@ local PAVEMENT = Color3.fromRGB(128, 123, 112)
 local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
-local POST_HEIGHT = 12
-local LABEL_DISTANCE = 400
+local NAME_GAP = 0.8
+local NAME_DEPTH = 6
+local NAME_PIXELS_PER_STUD = 16
+local NAME_TEXT_SIZE = 70
+local NAME_PAINT = Color3.fromRGB(222, 216, 200)
 local OWNER_PLATE = "OwnerPlate"
 
 local CityBuilder = {}
@@ -72,39 +75,6 @@ local function makePart(properties: { [string]: any }): Part
 end
 
 -- Rótulo que se lee desde la calle: mira siempre a la cámara y se apaga a lo lejos para no gastar.
-local function makeLabel(text: string, color: Color3): BillboardGui
-	local billboard = Instance.new("BillboardGui")
-	billboard.Name = "Label"
-	billboard.Size = UDim2.fromScale(16, 4)
-	billboard.StudsOffsetWorldSpace = Vector3.new(0, POST_HEIGHT + 2, 0)
-	billboard.MaxDistance = LABEL_DISTANCE
-	billboard.AlwaysOnTop = false
-	billboard.LightInfluence = 0
-
-	local frame = Instance.new("Frame")
-	frame.Size = UDim2.fromScale(1, 1)
-	frame.BackgroundColor3 = color
-	frame.BackgroundTransparency = 0.15
-	frame.BorderSizePixel = 0
-	frame.Parent = billboard
-
-	local corner = Instance.new("UICorner")
-	corner.CornerRadius = UDim.new(0, 8)
-	corner.Parent = frame
-
-	local label = Instance.new("TextLabel")
-	label.Size = UDim2.fromScale(1, 1)
-	label.BackgroundTransparency = 1
-	label.Font = Enum.Font.GothamBold
-	label.TextScaled = true
-	label.TextColor3 = Color3.fromRGB(245, 245, 245)
-	label.TextStrokeTransparency = 0.4
-	label.Text = text
-	label.Parent = frame
-
-	return billboard
-end
-
 -- Base del anillo y, para los tableros grandes, el agua de las islas exteriores. Es una sola pieza
 -- grande por color: abarata el prototipo y no hace falta detalle.
 local function makeGround(model: Model, sizeId: SizeId)
@@ -226,18 +196,31 @@ local function makeSquare(model: Model, slot: CityLayout.Slot): Part
 	})
 	tile.Parent = model
 
-	local sign = CityLayout.signCenter(slot)
-	local post = makePart({
-		Name = "Marker",
-		Size = Vector3.new(2, POST_HEIGHT, 2),
-		CFrame = CFrame.new(sign.x, POST_HEIGHT / 2, sign.z),
-		Color = color,
+	-- El nombre va pintado en el carril libre, junto a la casilla: la ficha nunca lo tapa. Mira hacia el
+	-- interior del anillo, que es desde donde mira la cámara.
+	local inward = Vector3.new(-forward.Z, 0, forward.X)
+	local namePosition = position + inward * (CityLayout.SLOT_DEPTH_STUDS / 2 + NAME_GAP + NAME_DEPTH / 2)
+	local plate = makePart({
+		Name = "NamePaint",
+		Size = Vector3.new(NAME_DEPTH, PAINT_HEIGHT, CityLayout.SLOT_LENGTH_STUDS),
+		CFrame = CFrame.lookAt(namePosition, namePosition + forward),
+		Transparency = 1,
 	})
-	post.Parent = tile
-
-	local label = makeLabel(Strings.squareLabel(toSquare(slot), slot.ordinal), color)
-	label.Adornee = post
-	label.Parent = post
+	plate.Parent = tile
+	local surface = Instance.new("SurfaceGui")
+	surface.Face = Enum.NormalId.Top
+	surface.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+	surface.CanvasSize = Vector2.new(CityLayout.SLOT_LENGTH_STUDS, NAME_DEPTH) * NAME_PIXELS_PER_STUD
+	surface.LightInfluence = 1
+	surface.Parent = plate
+	local text = Instance.new("TextLabel")
+	text.BackgroundTransparency = 1
+	text.Size = UDim2.fromScale(1, 1)
+	text.Font = Enum.Font.GothamBold
+	text.TextSize = NAME_TEXT_SIZE
+	text.TextColor3 = NAME_PAINT
+	text.Text = Strings.squareLabel(toSquare(slot), slot.ordinal)
+	text.Parent = surface
 
 	return tile
 end

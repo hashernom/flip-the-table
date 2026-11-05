@@ -323,9 +323,16 @@ def build_addon(level, mats):
         parts.append(box("blade", (1.9, 0.5, 11.0), (blade_x, front - 1.0, 21.0), mats["cream"]))
         for order, char in enumerate("LUX"):
             parts.append(letters(char, 2.2, (blade_x, front - 1.28, 24.6 - order * 3.4), mats["red"]))
-    addon = join(parts, f"cine-lux_addon{level}")
-    uv_unwrap(addon)
-    return addon
+    # Una malla por material: en Roblox cada malla lleva uno solo.
+    groups = {}
+    for part in parts:
+        groups.setdefault(part.data.materials[0].name.split(".")[0], []).append(part)
+    meshes = []
+    for material, members in groups.items():
+        mesh = join(members, f"cine-lux_addon{level}_{material}")
+        uv_unwrap(mesh)
+        meshes.append(mesh)
+    return meshes
 
 
 def build_marker(kind, mats):
@@ -430,7 +437,7 @@ def stage(mats, base, addons, markers):
         x = (level - 2.5) * SPACING
         place(base, x, building_y)
         for order in range(1, level + 1):
-            place([addons[order]], x, building_y)
+            place(addons[order], x, building_y)
         # La casilla: pintura de zona en el carril del edificio, con filete y asfalto hasta la siguiente.
         box("slot", (SLOT_LENGTH, SLOT_DEPTH, 0.04), (x, SLOT_SIDE, 0.03), mats["zone"])
         for sign in (-1, 1):
@@ -521,14 +528,15 @@ def main():
     addons = {level: build_addon(level, mats) for level in range(1, 6)}
     markers = {kind: build_marker(kind, mats) for kind in ("house", "hotel", "tower")}
 
-    whole = base + list(addons.values())
+    whole = base + [mesh for meshes in addons.values() for mesh in meshes]
     lod = lod_of(whole, "cine-lux_LOD1")
     marker_lods = {kind: lod_of([marker], f"marker-{kind}_LOD1") for kind, marker in markers.items()}
 
     for obj, name in ((wall, "base_wall"), (trim, "base_trim"), (glass, "base_glass"), (roof, "base_roof"), (sign, "base_sign")):
         export(obj, f"cine-lux_{name}.fbx")
-    for level, addon in addons.items():
-        export(addon, f"cine-lux_addon{level}.fbx")
+    for meshes in addons.values():
+        for mesh in meshes:
+            export(mesh, f"{mesh.name}.fbx")
     export(lod, "cine-lux_LOD1.fbx")
     for kind, marker in markers.items():
         export(marker, f"marker-{kind}.fbx")

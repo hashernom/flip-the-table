@@ -83,7 +83,7 @@
       "source": "art/blender/slice/build_cine_lux.py",
       "triangles": 3042,
       "lods": [
-        1317
+        1354
       ],
       "textures": 6,
       "status": "Draft",
@@ -95,11 +95,24 @@
         "rbxassetid://121921872087774",
         "rbxassetid://114543760508825",
         "rbxassetid://76583737990361",
-        "rbxassetid://82226622101441",
-        "rbxassetid://99052113424773",
-        "rbxassetid://129785060528007",
-        "rbxassetid://88472314777632",
-        "rbxassetid://137972332815794"
+        "rbxassetid://122262308128677",
+        "rbxassetid://108306691423975",
+        "rbxassetid://113491450572214",
+        "rbxassetid://86646242275127",
+        "rbxassetid://118332360564004",
+        "rbxassetid://110049613209192",
+        "rbxassetid://123554905698866",
+        "rbxassetid://84747055926971",
+        "rbxassetid://96942026871016",
+        "rbxassetid://71012732247378",
+        "rbxassetid://123115517950109",
+        "rbxassetid://115619028441877",
+        "rbxassetid://98250470333975",
+        "rbxassetid://135807504654840",
+        "rbxassetid://122258833131116",
+        "rbxassetid://97550408016054",
+        "rbxassetid://100335150180826",
+        "rbxassetid://88574969270990"
       ]
     },
     {

@@ -21,7 +21,7 @@ Tu ficha, con tu avatar encima, recorre una avenida de asfalto, de día, y la c�
 - Cada casilla conserva su color y su sitio, como pintura vial sobre el carril junto a su edificio.
 - Mide **30 de largo por 16 de fondo**: la otra mitad de la calzada queda libre, y entre una casilla y la siguiente se ven **10 studs de asfalto**. Las casillas no son gigantes: el asfalto y la separación entre edificios se tienen que apreciar.
 - Lleva un filete claro, y el símbolo de su zona pintado, para quien no distingue el color.
-- El nombre va en una placa en la acera.
+- El nombre va pintado en el asfalto, en el carril libre junto a la casilla, para que ninguna ficha lo tape. No hay postes ni textos flotando (decisión del responsable, 2026-11-04).
 
 ### 3. Cada propiedad es un edificio real y propio
 

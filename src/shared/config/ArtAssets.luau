@@ -52,14 +52,37 @@ ArtAssets.properties = {
 			piece("cine-sign", "76583737990361", RED, "SmoothPlastic"),
 		},
 		addons = {
-			piece("cine-addon1", "82226622101441", STONE, "Limestone"),
-			piece("cine-addon2", "99052113424773", STONE, "Limestone"),
-			piece("cine-addon3", "129785060528007", BRICK, "Brick"),
-			piece("cine-addon4", "88472314777632", STONE, "Metal"),
-			piece("cine-addon5", "137972332815794", STONE, "Limestone"),
+			{
+				piece("cine-addon1-hedge", "122262308128677", { 75, 107, 58 }, "Grass"),
+				piece("cine-addon1-limestone", "108306691423975", STONE, "Limestone"),
+				piece("cine-addon1-red", "113491450572214", RED, "Fabric"),
+			},
+			{
+				piece("cine-addon2-cream", "86646242275127", { 237, 229, 211 }, "SmoothPlastic"),
+				piece("cine-addon2-limestone", "118332360564004", STONE, "Limestone"),
+				piece("cine-addon2-red", "110049613209192", RED, "Fabric"),
+			},
+			{
+				piece("cine-addon3-brick", "123554905698866", BRICK, "Brick"),
+				piece("cine-addon3-glass", "84747055926971", GLASS, "Glass", 0.25),
+				piece("cine-addon3-limestone", "96942026871016", STONE, "Limestone"),
+			},
+			{
+				piece("cine-addon4-cream", "71012732247378", { 237, 229, 211 }, "SmoothPlastic"),
+				piece("cine-addon4-gold", "123115517950109", { 201, 162, 39 }, "Metal"),
+				piece("cine-addon4-red", "115619028441877", RED, "Fabric"),
+				piece("cine-addon4-steel", "98250470333975", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("cine-addon5-cream", "135807504654840", { 237, 229, 211 }, "SmoothPlastic"),
+				piece("cine-addon5-gold", "122258833131116", { 201, 162, 39 }, "Metal"),
+				piece("cine-addon5-limestone", "97550408016054", STONE, "Limestone"),
+				piece("cine-addon5-red", "100335150180826", RED, "Fabric"),
+				piece("cine-addon5-steel", "88574969270990", { 168, 174, 180 }, "Metal"),
+			},
 		},
 	},
-} :: { [string]: { base: { Piece }, addons: { Piece } } }
+} :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
 ArtAssets.markers = {
 	House = piece("marker-house", "109373087404235", STONE, "Limestone"),
@@ -75,7 +98,7 @@ function ArtAssets.piecesFor(name: string, level: number): { Piece }?
 	end
 	local pieces = table.clone(property.base)
 	for order = 1, math.min(level, #property.addons) do
-		table.insert(pieces, property.addons[order])
+		table.move(property.addons[order], 1, #property.addons[order], #pieces + 1, pieces)
 	end
 	return pieces
 end
@@ -85,7 +108,9 @@ function ArtAssets.all(): { Piece }
 	local pieces: { Piece } = {}
 	for _, property in ArtAssets.properties do
 		table.move(property.base, 1, #property.base, #pieces + 1, pieces)
-		table.move(property.addons, 1, #property.addons, #pieces + 1, pieces)
+		for _, addon in property.addons do
+			table.move(addon, 1, #addon, #pieces + 1, pieces)
+		end
 	end
 	for _, marker in ArtAssets.markers do
 		table.insert(pieces, marker)
