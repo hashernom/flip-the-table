@@ -47,8 +47,9 @@ describe("ActionMenuRules.buttonsFor", function()
 		local legal = { { type = "Build", index = 7 } }
 		local buttons = ActionMenuRules.buttonsFor(legal)
 		expect(#buttons).toBe(1)
-		expect(buttons[1].action.index).toBe(7)
-		expect(buttons[1].action.type).toBe("Build")
+		local action: any = buttons[1].action
+		expect(action.index).toBe(7)
+		expect(action.type).toBe("Build")
 	end)
 
 	it("varias acciones del mismo tipo dan un botón por cada una", function()
