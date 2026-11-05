@@ -986,7 +986,15 @@
     "billboard_slate": "rbxassetid://82098468089767",
     "billboard_wood": "rbxassetid://75246279936484",
     "helmet_dark": "rbxassetid://110955419283523",
-    "helmet_yellow": "rbxassetid://84923319544992"
+    "helmet_yellow": "rbxassetid://84923319544992",
+    "tax_brick": "rbxassetid://83298664398939",
+    "tax_glass": "rbxassetid://129691264796307",
+    "tax_limestone": "rbxassetid://94591087817688",
+    "tax_metal": "rbxassetid://89471811192640",
+    "tax_slate": "rbxassetid://76551452650805",
+    "tax_smoothplastic_blanco": "rbxassetid://124494972089768",
+    "tax_smoothplastic_rojo": "rbxassetid://85466395562184",
+    "tax_wood": "rbxassetid://74581550163105"
   },
   "cc0": {
     "brick_red": {

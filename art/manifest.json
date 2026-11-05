@@ -2073,6 +2073,29 @@
       "assetIds": [
         "rbxassetid://110955419283523"
       ]
+    },
+    {
+      "id": "square-impuesto",
+      "category": "Building",
+      "source": "art/blender/squares/impuesto.py",
+      "triangles": 2528,
+      "lods": [
+        830
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/squares/impuesto.py",
+      "assetId": "rbxassetid://83298664398939",
+      "assetIds": [
+        "rbxassetid://94591087817688",
+        "rbxassetid://76551452650805",
+        "rbxassetid://74581550163105",
+        "rbxassetid://129691264796307",
+        "rbxassetid://89471811192640",
+        "rbxassetid://85466395562184",
+        "rbxassetid://124494972089768"
+      ]
     }
   ]
 }
