@@ -126,11 +126,11 @@ ArtAssets.markers = {
 
 -- La ficha taxi: su origen es la base de la ficha.
 ArtAssets.taxi = {
-	piece("taxi_cream", "76594417795070", { 237, 229, 211 }, "SmoothPlastic"),
-	piece("taxi_dark", "82340607719997", { 42, 46, 51 }, "SmoothPlastic"),
-	piece("taxi_glass", "93908522228720", GLASS, "Glass", 0.25),
-	piece("taxi_steel", "140377905627840", { 168, 174, 180 }, "Metal"),
-	piece("taxi_taxi", "120568558035679", { 245, 197, 24 }, "SmoothPlastic"),
+	piece("taxi_cream", "109034949932647", { 237, 229, 211 }, "SmoothPlastic"),
+	piece("taxi_dark", "90234802967497", { 42, 46, 51 }, "SmoothPlastic"),
+	piece("taxi_glass", "100862088195781", GLASS, "Glass", 0.25),
+	piece("taxi_steel", "91742839184724", { 168, 174, 180 }, "Metal"),
+	piece("taxi_taxi", "124072967548133", { 245, 197, 24 }, "SmoothPlastic"),
 } :: { Piece }
 
 -- Mallas de una propiedad en un nivel, o nil si aún no tiene modelo real.

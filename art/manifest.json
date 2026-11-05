@@ -213,20 +213,20 @@
       "id": "taxi",
       "category": "Token",
       "source": "art/blender/slice/build_slice_props.py",
-      "triangles": 168,
+      "triangles": 476,
       "lods": [
-        70
+        202
       ],
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
       "generatedWith": "Blender 5.2, art/blender/slice/build_slice_props.py",
-      "assetId": "rbxassetid://76594417795070",
+      "assetId": "rbxassetid://109034949932647",
       "assetIds": [
-        "rbxassetid://82340607719997",
-        "rbxassetid://93908522228720",
-        "rbxassetid://140377905627840",
-        "rbxassetid://120568558035679"
+        "rbxassetid://90234802967497",
+        "rbxassetid://100862088195781",
+        "rbxassetid://91742839184724",
+        "rbxassetid://124072967548133"
       ]
     }
   ]

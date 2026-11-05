@@ -25,7 +25,7 @@ function Overview.create(playerGui: Instance): Handles
 	panel.AnchorPoint = Vector2.new(0, 0.5)
 	panel.Position = UDim2.new(0, 12, 0.5, 30)
 	-- Tamaño propio: sin él, un Frame mide 100 × 100 y la maqueta se veía como un cuadrado (M17).
-	panel.Size = UDim2.fromScale(0.3, 0.75)
+	panel.Size = UDim2.fromScale(0.26, 0.75)
 	panel.AutomaticSize = Enum.AutomaticSize.None
 	panel.Visible = false
 	Theme.limitWidth(panel)

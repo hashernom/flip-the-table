@@ -84,8 +84,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	end
 
 	local function overviewTarget(): CFrame
-		local eye = CameraRules.overviewPose({ x = cityCenter.X, y = 0, z = cityCenter.Z }, citySpan, spin)
-		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), cityCenter)
+		local eye, focus =
+			CameraRules.overviewPose({ x = cityCenter.X, y = 0, z = cityCenter.Z }, citySpan, spin)
+		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
 
 	-- Hasta que cada escena tenga su cámara (plan 08), se ve desde el plano del turno.

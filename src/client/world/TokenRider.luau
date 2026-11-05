@@ -13,8 +13,8 @@ local CityLayout = require("../../shared/config/CityLayout")
 
 type SizeId = CityLayout.SizeId
 
-local BODY_SIZE = Vector3.new(6, 9, 6)
-local SEAT_THICKNESS = 0.6
+local BODY_SIZE = Vector3.new(6, 5, 6)
+local SEAT_THICKNESS = 0.3
 local BODY_COLOR = Color3.fromRGB(96, 100, 106)
 local SEAT_COLOR = Color3.fromRGB(58, 62, 68)
 local ArtAssets = require("../../shared/config/ArtAssets")
@@ -125,8 +125,12 @@ function TokenRider.dress(token: Model)
 	body.Transparency = 1
 	local stripe = token:FindFirstChild("Stripe")
 	if stripe ~= nil and stripe:IsA("BasePart") then
-		stripe.Size = Vector3.new(6.4, 0.6, 6.4)
-		stripe.CFrame = origin * CFrame.new(0, 0.5, 0)
+		-- En el taxi, el color del asiento pasa a la placa del techo, bajo el avatar.
+		local seat = token:FindFirstChild("Seat")
+		if seat ~= nil and seat:IsA("BasePart") then
+			seat.Color = stripe.Color
+		end
+		stripe.Transparency = 1
 	end
 end
 

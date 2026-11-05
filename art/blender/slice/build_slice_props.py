@@ -7,13 +7,14 @@ Uso: blender --background --factory-startup --python art/blender/slice/build_sli
 """
 
 import json
+import math
 import os
 import sys
 
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from build_cine_lux import HERE, box, count, export, flat, join, lod_of, perforate, textured, uv_unwrap  # noqa: E402
+from build_cine_lux import HERE, box, count, export, flat, join, lod_of, perforate, select_only, textured, uv_unwrap  # noqa: E402
 
 WIDTH = 32.0
 DEPTH = 18.0
@@ -100,23 +101,52 @@ def build_addons(mats):
     return {level: by_material(parts, f"bodega_addon{level}") for level, parts in levels.items()}
 
 
+def profile(name, points, half_width, mat):
+    """Prisma con el perfil lateral `points` (y, z), de lado a lado del coche."""
+    verts = [(-half_width, y, z) for y, z in points] + [(half_width, y, z) for y, z in points]
+    n = len(points)
+    faces = [tuple(range(n)), tuple(range(2 * n - 1, n - 1, -1))]
+    faces += [(i, (i + 1) % n, n + (i + 1) % n, n + i) for i in range(n)]
+    mesh = bpy.data.meshes.new(name)
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new(name, mesh)
+    bpy.context.collection.objects.link(obj)
+    mesh.materials.append(mat)
+    select_only(obj)
+    bpy.ops.object.mode_set(mode="EDIT")
+    bpy.ops.mesh.select_all(action="SELECT")
+    bpy.ops.mesh.normals_make_consistent(inside=False)
+    bpy.ops.object.mode_set(mode="OBJECT")
+    return obj
+
+
 def build_taxi(mats):
-    """Ficha taxi sobre su peana: mide 9 de alto, como el cuerpo, y el avatar va encima."""
+    """Taxi sobre el asfalto. El morro mira a -Y y el avatar va de pie en el techo, a 5 de altura."""
     parts = [
-        box("plinth", (6.0, 6.0, 1.0), (0, 0, 0.5), mats["dark"]),
-        box("stem", (2.0, 2.0, 2.0), (0, 0, 2.0), mats["steel"]),
-        box("chassis", (4.6, 8.0, 1.5), (0, 0, 3.75), mats["taxi"]),
-        box("hood", (4.4, 2.0, 0.3), (0, -2.9, 4.65), mats["taxi"]),
-        box("cabin", (4.0, 4.2, 1.6), (0, 0.3, 5.3), mats["glass"]),
-        box("roof", (4.2, 4.4, 0.3), (0, 0.3, 6.25), mats["taxi"]),
-        box("sign", (1.8, 0.8, 0.6), (0, 0.3, 6.7), mats["cream"]),
-        box("bumper_f", (4.8, 0.3, 0.4), (0, -4.1, 3.4), mats["steel"]),
-        box("bumper_b", (4.8, 0.3, 0.4), (0, 4.1, 3.4), mats["steel"]),
-        box("mount", (3.0, 3.0, 2.0), (0, 0.3, 8.0), mats["dark"]),
+        profile(
+            "body",
+            [(-5.5, 0.9), (-5.5, 2.3), (-5.0, 2.7), (-2.9, 3.0), (-1.5, 5.0), (2.0, 5.0), (3.5, 3.1), (5.2, 2.8), (5.5, 2.3), (5.5, 0.9)],
+            2.9,
+            mats["taxi"],
+        ),
+        profile("cabin", [(-2.75, 3.08), (-1.42, 4.8), (1.92, 4.8), (3.32, 3.15)], 2.95, mats["glass"]),
+        box("bumper_f", (6.0, 0.4, 0.6), (0, -5.6, 1.3), mats["steel"]),
+        box("bumper_b", (6.0, 0.4, 0.6), (0, 5.6, 1.3), mats["steel"]),
+        box("sign", (2.2, 0.7, 0.7), (0, -1.0, 5.3), mats["cream"]),
     ]
-    for x in (-2.4, 2.4):
-        for y in (-2.6, 2.6):
-            parts.append(box("wheel", (0.7, 1.7, 1.7), (x, y, 3.3), mats["dark"]))
+    # Damero del lateral: lo que hace que se lea como taxi desde el aire.
+    for side in (-1, 1):
+        for order in range(7):
+            parts.append(box("check", (0.06, 0.8, 0.4), (side * 2.92, -3.6 + order * 1.2, 2.0), mats["dark"]))
+    for x in (-2.7, 2.7):
+        for y in (-3.4, 3.4):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=1.0, depth=0.8, location=(x, y, 1.0), rotation=(0, math.radians(90), 0))
+            wheel = bpy.context.active_object
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            wheel.data.materials.append(mats["dark"])
+            parts.append(wheel)
+            parts.append(box("hub", (0.84, 0.8, 0.8), (x, y, 1.0), mats["steel"]))
     return by_material(parts, "taxi")
 
 

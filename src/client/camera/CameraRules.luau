@@ -71,12 +71,17 @@ function CameraRules.overviewPose(
 	yaw: number
 ): (CityLayout.Vector3Like, CityLayout.Vector3Like)
 	local back = span * CameraShots.overview.backPerSpan
+	-- Se aparta a la izquierda de la pantalla para que el tablero quede fuera del panel lateral.
+	local shift = span * CameraShots.overview.panelShiftPerSpan
+	local sine, cosine = math.sin(yaw), math.cos(yaw)
+	local focusX, focusZ = center.x - cosine * shift, center.z + sine * shift
+	local focus = { x = focusX, y = center.y, z = focusZ }
 	local eye = {
-		x = center.x + math.sin(yaw) * back,
+		x = focusX + sine * back,
 		y = center.y + span * CameraShots.overview.heightPerSpan,
-		z = center.z + math.cos(yaw) * back,
+		z = focusZ + cosine * back,
 	}
-	return eye, center
+	return eye, focus
 end
 
 -- Giro de la vista general tras arrastrar `pixels`. Un valor roto no la mueve.
