@@ -1,0 +1,253 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "huella": {
+    "ancho": 32.0,
+    "fondo": 18.0
+  },
+  "cuerpo": {
+    "alto_masa_principal": 17.5,
+    "alto_nivel_0": 19.6
+  },
+  "piezas": [
+    {
+      "clave": "vereda_body_grass",
+      "nivel": 0,
+      "material": "Grass",
+      "rgb": "4B6B3A",
+      "triangulos": 36
+    },
+    {
+      "clave": "vereda_body_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 404
+    },
+    {
+      "clave": "vereda_body_brick",
+      "nivel": 0,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 204
+    },
+    {
+      "clave": "vereda_body_wood",
+      "nivel": 0,
+      "material": "Wood",
+      "rgb": "5A3A24",
+      "triangulos": 808
+    },
+    {
+      "clave": "vereda_body_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 36
+    },
+    {
+      "clave": "vereda_body_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 72
+    },
+    {
+      "clave": "vereda_addon1_metal_acero",
+      "nivel": 1,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 300
+    },
+    {
+      "clave": "vereda_addon1_fabric_rojo",
+      "nivel": 1,
+      "material": "Fabric",
+      "rgb": "C4382B",
+      "triangulos": 24
+    },
+    {
+      "clave": "vereda_addon2_grass",
+      "nivel": 2,
+      "material": "Grass",
+      "rgb": "4B6B3A",
+      "triangulos": 72
+    },
+    {
+      "clave": "vereda_addon2_limestone",
+      "nivel": 2,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 120
+    },
+    {
+      "clave": "vereda_addon3_wood",
+      "nivel": 3,
+      "material": "Wood",
+      "rgb": "5A3A24",
+      "triangulos": 168
+    },
+    {
+      "clave": "vereda_addon4_glass",
+      "nivel": 4,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 36
+    },
+    {
+      "clave": "vereda_addon4_wood",
+      "nivel": 4,
+      "material": "Wood",
+      "rgb": "5A3A24",
+      "triangulos": 108
+    },
+    {
+      "clave": "vereda_addon4_limestone",
+      "nivel": 4,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 52
+    },
+    {
+      "clave": "vereda_addon4_brick",
+      "nivel": 4,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 60
+    },
+    {
+      "clave": "vereda_addon4_slate",
+      "nivel": 4,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 8
+    },
+    {
+      "clave": "vereda_addon5_limestone",
+      "nivel": 5,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 48
+    },
+    {
+      "clave": "vereda_addon5_brick",
+      "nivel": 5,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 12
+    },
+    {
+      "clave": "vereda_addon5_metal_acero",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 44
+    },
+    {
+      "clave": "vereda_addon5_metal_limon",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "FACC15",
+      "triangulos": 44
+    },
+    {
+      "clave": "vereda_addon5_metal_oro",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "C9A227",
+      "triangulos": 42
+    }
+  ],
+  "niveles": {
+    "0": {
+      "triangulos_propios": 1560,
+      "triangulos_acumulados": 1560,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.35,
+        "alto": 19.6,
+        "alto_maximo_sobre_suelo": 19.6,
+        "frente": -9.45,
+        "fondo_maximo": 8.9,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    },
+    "1": {
+      "triangulos_propios": 324,
+      "triangulos_acumulados": 1884,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.73,
+        "alto": 19.6,
+        "alto_maximo_sobre_suelo": 19.6,
+        "frente": -9.83,
+        "fondo_maximo": 8.9,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    },
+    "2": {
+      "triangulos_propios": 192,
+      "triangulos_acumulados": 2076,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.73,
+        "alto": 19.6,
+        "alto_maximo_sobre_suelo": 19.6,
+        "frente": -9.83,
+        "fondo_maximo": 8.9,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    },
+    "3": {
+      "triangulos_propios": 168,
+      "triangulos_acumulados": 2244,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.73,
+        "alto": 19.6,
+        "alto_maximo_sobre_suelo": 19.6,
+        "frente": -9.83,
+        "fondo_maximo": 8.9,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    },
+    "4": {
+      "triangulos_propios": 264,
+      "triangulos_acumulados": 2508,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.73,
+        "alto": 19.6,
+        "alto_maximo_sobre_suelo": 19.6,
+        "frente": -9.83,
+        "fondo_maximo": 8.9,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    },
+    "5": {
+      "triangulos_propios": 190,
+      "triangulos_acumulados": 2698,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 19.28,
+        "alto": 32.4,
+        "alto_maximo_sobre_suelo": 32.4,
+        "frente": -9.83,
+        "fondo_maximo": 9.45,
+        "x_minimo": -16.0,
+        "x_maximo": 16.0
+      }
+    }
+  },
+  "total_triangulos": 2698,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "triangulos": 1171,
+    "porcentaje_del_total": 43.4
+  },
+  "referencia_cine_lux_nivel5": 3042
+}
