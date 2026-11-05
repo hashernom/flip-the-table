@@ -37,6 +37,10 @@ local ArtAssets = {}
 
 ArtAssets.FOLDER = "ArtAssets"
 ArtAssets.READY_ATTRIBUTE = "Ready"
+-- Mallas que el servidor pide a la vez a `InsertService`, que tarda bastante en cada una.
+ArtAssets.LOAD_WORKERS = 16
+-- Cada cuántos segundos el cliente revisa los solares que aún esperan su edificio real.
+ArtAssets.REFRESH_SEC = 1
 
 -- Lo que el edificio se retrasa en el solar: delante van los marcadores.
 ArtAssets.FRONT_OFFSET = 2
@@ -1503,6 +1507,42 @@ function ArtAssets.all(): { Piece }
 	table.move(ArtAssets.officerCap, 1, #ArtAssets.officerCap, #pieces + 1, pieces)
 	table.move(ArtAssets.jail, 1, #ArtAssets.jail, #pieces + 1, pieces)
 	return pieces
+end
+
+-- Orden de carga: primero el mojón, el taxi y el cuerpo de cada propiedad, que es lo que la ciudad necesita
+-- para verse; después el resto de `all()` (añadidos, calle, patrulla, gorra y cárcel). Sin repetir.
+function ArtAssets.loadOrder(): { Piece }
+	local parts: { Piece } = {}
+	local added: { [string]: boolean } = {}
+	local function add(part: Piece)
+		if not added[part.key] then
+			added[part.key] = true
+			table.insert(parts, part)
+		end
+	end
+
+	add(ArtAssets.mojon.stone)
+	add(ArtAssets.mojon.ring)
+	for _, part in ArtAssets.taxi do
+		add(part)
+	end
+
+	-- Las propiedades en orden de nombre, para que el orden sea siempre el mismo.
+	local names: { string } = {}
+	for name in ArtAssets.properties do
+		table.insert(names, name)
+	end
+	table.sort(names)
+	for _, name in names do
+		for _, part in ArtAssets.properties[name].base do
+			add(part)
+		end
+	end
+
+	for _, part in ArtAssets.all() do
+		add(part)
+	end
+	return parts
 end
 
 return ArtAssets

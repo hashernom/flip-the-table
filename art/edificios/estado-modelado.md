@@ -123,3 +123,8 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
   una partida de 7–8 jugadores o de un tablero L. No se inventan: sus filas lo dicen.
 - **Integración:** la rama `plan-07-ciudad-y-fichas` se fusiona en `main` con los 11 commits de zona y
   este de aprobación. Sin push y sin publicar en Roblox.
+- **Prueba en el tablero L (2026-11-05):** servidor y 8 clientes en Studio, partida de 8 jugadores en
+  `City_L`: 34 de 34 propiedades con su edificio real y ninguna en gris. Con los añadidos de nivel 5 colocados
+  por script, ningún rayo de la cámara de turno queda bloqueado en las 56 casillas. El responsable revisó las
+  zonas 09 a 12 en el juego y dio el visto bueno. No se guardaron capturas, así que esas 12 siguen en `InGame`
+  en el manifiesto. La espera de arranque se alargó solo durante la prueba.

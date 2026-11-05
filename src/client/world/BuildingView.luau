@@ -22,6 +22,8 @@ local buildings: { [number]: Model } = {}
 local levels: { [number]: number } = {}
 local lastProperties: { [number]: any }? = nil
 local owners: { [number]: { name: string, color: Color3 }? } = {}
+-- Solares que tienen piezas reales pero se dibujaron en gris porque sus mallas aún no habían llegado.
+local pending: { [number]: boolean } = {}
 local tagsVisible = false
 
 local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance)
@@ -36,6 +38,13 @@ local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Col
 	piece.Size = size
 	piece.CFrame = cframe
 	piece.Parent = parent
+end
+
+-- Comprueba que la malla ya está en la carpeta de la que copia `placeMesh`.
+local function meshReady(key: string): boolean
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local source = if folder ~= nil then folder:FindFirstChild(key) else nil
+	return source ~= nil and source:IsA("BasePart")
 end
 
 -- Copia una malla real colocada respecto a `origin`. Sin cargar todavía, devuelve nil.
@@ -136,6 +145,12 @@ function BuildingView.setLevel(index: number, level: number)
 			)
 		end
 	end
+	-- Pendiente solo si había piezas reales que no pudieron colocarse: el modelo real se pone al llegar.
+	if real ~= nil and not placedReal then
+		pending[index] = true
+	else
+		pending[index] = nil
+	end
 	for order, marker in CityLayout.levelMarkers(level) do
 		local origin = lot * CFrame.new(marker.along, 0, marker.front)
 		local stone = placeMesh(ArtAssets.mojon.stone, origin, model)
@@ -169,6 +184,35 @@ function BuildingView.refreshArt()
 	end
 end
 
+-- Cambia el gris por el modelo real en los solares pendientes cuyas mallas ya están todas cargadas. Los demás
+-- se quedan como están: no se borra nada hasta comprobar que la copia completa va a salir bien.
+function BuildingView.refreshPending()
+	local handles = city
+	if handles == nil then
+		return
+	end
+	for index in table.clone(pending) do
+		local level = levels[index]
+		if level == nil then
+			continue
+		end
+		local real = ArtAssets.piecesFor(handles.labelOf(index), level)
+		local complete = real ~= nil
+		if real ~= nil then
+			for _, piece in real do
+				if not meshReady(piece.key) then
+					complete = false
+					break
+				end
+			end
+		end
+		if complete then
+			levels[index] = nil
+			BuildingView.setLevel(index, level)
+		end
+	end
+end
+
 -- Enseña u oculta las etiquetas: solo se ven en la vista general.
 function BuildingView.setTagsVisible(visible: boolean)
 	if tagsVisible == visible then
@@ -187,6 +231,7 @@ function BuildingView.bind(handles: CityBuilder.CityHandles)
 	buildings = {}
 	levels = {}
 	owners = {}
+	pending = {}
 	lastProperties = nil
 	for _, slot in CityLayout.routeFor(handles.sizeId) do
 		if slot.kind == "Property" then

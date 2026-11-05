@@ -303,8 +303,10 @@ local function boot()
 		if art == nil then
 			return
 		end
+		-- Mientras llegan las mallas, los solares que esperan su edificio real se cambian en cuanto están listos.
 		while not art:GetAttribute(ArtAssets.READY_ATTRIBUTE) do
-			art.AttributeChanged:Wait()
+			BuildingView.refreshPending()
+			task.wait(ArtAssets.REFRESH_SEC)
 		end
 		BuildingView.refreshArt()
 		if city ~= nil then

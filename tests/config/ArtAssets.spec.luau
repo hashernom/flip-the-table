@@ -79,4 +79,57 @@ describe("ArtAssets", function()
 			seen[piece.key] = true
 		end
 	end)
+
+	it("el orden de carga tiene exactamente las mismas mallas que all(), sin repetir", function()
+		local expected: { [string]: boolean } = {}
+		for _, piece in ArtAssets.all() do
+			expected[piece.key] = true
+		end
+		local order = ArtAssets.loadOrder()
+		expect(#order).toBe(#ArtAssets.all())
+		local seen: { [string]: boolean } = {}
+		for _, piece in order do
+			expect(seen[piece.key]).toBe(nil)
+			seen[piece.key] = true
+		end
+		for key, _ in expected do
+			expect(seen[key]).toBe(true)
+		end
+	end)
+
+	it("mojón, taxi y los base de cada propiedad van antes que cualquier añadido", function()
+		local early: { [string]: boolean } = {}
+		for _, property in ArtAssets.properties do
+			for _, piece in property.base do
+				early[piece.key] = true
+			end
+		end
+		for _, piece in ArtAssets.taxi do
+			early[piece.key] = true
+		end
+		early[ArtAssets.mojon.stone.key] = true
+		early[ArtAssets.mojon.ring.key] = true
+
+		local addon: { [string]: boolean } = {}
+		for _, property in ArtAssets.properties do
+			for _, list in property.addons do
+				for _, piece in list do
+					addon[piece.key] = true
+				end
+			end
+		end
+
+		local lastEarly = 0
+		local firstAddon = math.huge
+		for index, piece in ArtAssets.loadOrder() do
+			if early[piece.key] then
+				lastEarly = index
+			end
+			if addon[piece.key] and index < firstAddon then
+				firstAddon = index
+			end
+		end
+		expect(lastEarly > 0).toBe(true)
+		expect(lastEarly < firstAddon).toBe(true)
+	end)
 end)
