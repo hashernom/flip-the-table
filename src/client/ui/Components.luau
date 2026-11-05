@@ -436,8 +436,8 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 	arrow.Size = UDim2.fromScale(1, 1)
 	arrow.ZIndex = 3
 	arrow.Visible = false
-	local function arrowPiece(name: string, fromX: number, toX: number): ImageLabel
-		local piece = icon(arrow, name, "plate-arrow")
+	local function arrowPiece(pieceName: string, fromX: number, toX: number): ImageLabel
+		local piece = icon(arrow, pieceName, "plate-arrow")
 		piece.ScaleType = Enum.ScaleType.Stretch
 		piece.ImageRectOffset = Vector2.new(fromX, 0)
 		piece.ImageRectSize = Vector2.new(toX - fromX, Ui.arrowImageHeight)

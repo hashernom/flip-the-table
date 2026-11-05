@@ -315,7 +315,8 @@ function ActionMenu.create(playerGui: Instance): Handles
 		for _, option in view.options do
 			table.insert(parts, option.label)
 		end
-		for _, extra in extras or {} do
+		local extraList: { any } = if extras ~= nil then extras else {}
+		for _, extra in extraList do
 			table.insert(parts, extra.label)
 		end
 		return table.concat(parts, "|")
