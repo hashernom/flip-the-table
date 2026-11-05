@@ -314,6 +314,18 @@
         "rbxassetid://71989356457981",
         "rbxassetid://134654656395339"
       ]
+    },
+    {
+      "id": "city-day-ambience",
+      "category": "Sound",
+      "source": "Creator Store, https://create.roblox.com/store/asset/9112758856 (ProSoundEffects, City Day Ambience 1 (SFX), 36 s, bucle)",
+      "triangles": 0,
+      "lods": [],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Audio de terceros de la biblioteca de Roblox (Creator Store), ProSoundEffects. Licencia para publicar sin confirmar.",
+      "assetId": "rbxassetid://9112758856"
     }
   ]
 }

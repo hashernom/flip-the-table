@@ -163,7 +163,15 @@ ArtAssets.street = {
 -- Tráfico: la pieza que se pinta de cada color y los colores, apagados y sin amarillo para que ningún coche
 -- se confunda con un taxi de jugador.
 ArtAssets.CAR_BODY = "car_carbody"
-ArtAssets.carColors = { { 52, 70, 94 }, { 110, 44, 44 }, { 150, 152, 150 }, { 205, 198, 180 } }
+ArtAssets.carColors = {
+	{ 52, 70, 94 },
+	{ 110, 44, 44 },
+	{ 150, 152, 150 },
+	{ 205, 198, 180 },
+	{ 68, 84, 72 },
+	{ 88, 76, 96 },
+	{ 60, 62, 66 },
+}
 
 -- Zonas con la calle ya ambientada: la de la porción vertical. El plan 07 añade las demás.
 ArtAssets.dressedZones = { "carmesi" }

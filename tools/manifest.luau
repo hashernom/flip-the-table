@@ -4,7 +4,7 @@
 --
 -- Uso desde tools/check y desde tests. El detalle de la tubería está en art/PIPELINE.md.
 
-export type Category = "Building" | "Token" | "SceneCharacter" | "RepeatedProp" | "CityBackdrop"
+export type Category = "Building" | "Token" | "SceneCharacter" | "RepeatedProp" | "CityBackdrop" | "Sound"
 export type Status = "Draft" | "InGame" | "Approved"
 
 export type Budget = { triangles: number, lodRequired: boolean, label: string }
@@ -34,6 +34,7 @@ local BUDGETS: { [string]: Budget } = {
 	SceneCharacter = { triangles = 5000, lodRequired = true, label = "Personaje de escena" },
 	RepeatedProp = { triangles = 2000, lodRequired = true, label = "Objeto repetido" },
 	CityBackdrop = { triangles = 3000, lodRequired = false, label = "Fondo de ciudad" },
+	Sound = { triangles = 0, lodRequired = false, label = "Sonido" },
 }
 
 local STATUSES: { [string]: boolean } = {

@@ -49,6 +49,7 @@ local function boot()
 	local StreetDressing = require("./world/StreetDressing")
 	local BuildingView = require("./world/BuildingView")
 	local Look = require("./world/Look")
+	local Ambience = require("./world/Ambience")
 	local CityBuilder = require("./world/CityBuilder")
 	local TokenRider = require("./world/TokenRider")
 	local WorldRules = require("./world/WorldRules")
@@ -259,6 +260,7 @@ local function boot()
 	-- cuando empieza una escena, la petición queda guardada y se abre al terminar. Una escena no se
 	-- interrumpe nunca.
 	Look.apply()
+	Ambience.start()
 	task.spawn(function()
 		local art = ReplicatedStorage:WaitForChild(ArtAssets.FOLDER, REMOTE_WAIT_SEC)
 		if art == nil then
