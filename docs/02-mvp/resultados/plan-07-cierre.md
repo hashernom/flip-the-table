@@ -12,7 +12,7 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
 | 3. Casillas especiales | Código hecho | 8 lugares, iconos y capturas en Studio; Zona Caliente con banda y contorno; revisión de la tarea aprobada | Captura real con 2 jugadores y aprobación |
 | 4. Maqueta | Código hecho | Plinto, miniatura, tarjetas, marcadores y cámara; revisión aprobada tras corregir la clave, el clon y el foco | Medir < 1 s y verla en Studio |
 | 5. Ocho fichas | Código hecho | Elección con intercambio, animaciones y avatares extremos; revisión aprobada | Prueba en partida real y aprobación |
-| 6. Actores de escena | Código hecho | `Actors.spawn/despawn/pose`, pool y 20 pruebas; revisión aprobada tras corregir los seis importantes | Prueba de 100 ciclos en Studio y aprobación |
+| 6. Actores de escena | Código hecho | `Actors.spawn/despawn/pose`, pool y 20 pruebas; revisión aprobada; **100 ciclos por tipo en Studio sin fallos** | Aprobación |
 | 7. Rendimiento | Abierta | Check de partes temporales y manifiesto | Medición de 8 jugadores en móvil, omitida por el responsable; ver [rendimiento-ciudad.md](rendimiento-ciudad.md) |
 
 ## Lo que está verificado
@@ -24,6 +24,9 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
   manifiesto).
 - Capturas de apoyo en `art/render/ingame/`: fichas, casillas, avatares extremos y Zona Caliente.
   Las de partida real siguen pendientes porque la partida exige 2 jugadores.
+- **Actores, 100 ciclos por tipo** (Studio Play, Rojo sincronizado a esta rama): 8 tipos × 100
+  `spawn`/`despawn`, **0 fallos**, 0 modelos activos al final, `Actors.clear()` deja 0 y el heap de
+  Lua queda en 6,2 MB. Resultado del 2026-11-05.
 
 ## Lo que falta para la puerta
 
