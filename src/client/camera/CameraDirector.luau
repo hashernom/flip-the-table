@@ -24,6 +24,9 @@ export type Director = {
 	-- `facing`; sin él, la cámara se aleja con el plano por defecto. Sin posición se limpia el foco. Con
 	-- `snap` la cámara va directa al plano, sin suavizado: para cortes y para seguir algo muy rápido.
 	setSceneFocus: (position: Vector3?, shot: CameraShots.Shot?, facing: number?, snap: boolean?) -> (),
+	-- Foco de la vista general: centro y mitad del ancho de lo que se enseña. Sin centro vuelve a la
+	-- ciudad entera; lo usa la maqueta para que la cámara la encuadre a ella y no al tablero.
+	setOverviewFocus: (position: Vector3?, radius: number?) -> (),
 	setSize: (sizeId: SizeId) -> (),
 	destroy: () -> (),
 }
@@ -58,6 +61,8 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	local sceneFacing = 0
 	local sceneSnap = false
 	local spin = 0
+	local overviewFocus: Vector3? = nil
+	local overviewRadius: number? = nil
 	player.CameraMode = Enum.CameraMode.Classic
 
 	local function bodyOf(token: Model?): BasePart?
@@ -90,8 +95,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	end
 
 	local function overviewTarget(): CFrame
-		local eye, focus =
-			CameraRules.overviewPose({ x = cityCenter.X, y = 0, z = cityCenter.Z }, citySpan, spin)
+		local center = overviewFocus or cityCenter
+		local span = if overviewRadius ~= nil then overviewRadius * 2 else citySpan
+		local eye, focus = CameraRules.overviewPose({ x = center.X, y = center.Y, z = center.Z }, span, spin)
 		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
 
@@ -137,6 +143,10 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		end,
 		rotateOverview = function(pixels: number)
 			spin = CameraRules.overviewYaw(spin, pixels)
+		end,
+		setOverviewFocus = function(position: Vector3?, radius: number?)
+			overviewFocus = position
+			overviewRadius = radius
 		end,
 		mode = function(): Mode
 			return mode

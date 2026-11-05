@@ -69,6 +69,7 @@ local function boot()
 	local TokenMenu = require("./ui/TokenMenu")
 	local MiniMap = require("./ui/MiniMap")
 	local Overview = require("./ui/Overview")
+	local ModelCity = require("./world/ModelCity")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local TradeMenu = require("./ui/TradeMenu")
@@ -172,6 +173,7 @@ local function boot()
 		city = nil
 		tokens = {}
 		myToken = nil
+		ModelCity.destroy()
 		if previous ~= nil then
 			previous.destroy()
 		end
@@ -373,11 +375,25 @@ local function boot()
 		overviewWanted = not overviewWanted
 		director.requestOverview(overviewWanted)
 	end)
+	local maquetaOpen = false
 	task.spawn(function()
 		while true do
 			local open = overviewWanted and director.mode() == "Overview"
 			overview.setOpen(open)
 			BuildingView.setTagsVisible(open)
+			local handles = city
+			local view = StateStore.view(queue.state)
+			if open and handles ~= nil and view ~= nil then
+				ModelCity.show(handles, view, names)
+				if not maquetaOpen then
+					director.setOverviewFocus(ModelCity.focus(), ModelCity.radius())
+					maquetaOpen = true
+				end
+			elseif maquetaOpen then
+				ModelCity.hide()
+				director.setOverviewFocus(nil, nil)
+				maquetaOpen = false
+			end
 			task.wait(0.1)
 		end
 	end)
