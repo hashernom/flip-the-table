@@ -169,15 +169,52 @@ describe("ActorsRules: huecos que no llegan a usarse", function()
 	it("cancel deshace un take que no llegó a crear mallas", function()
 		local state = { active = 0, free = 0, max = 1 }
 		expect(ActorsRules.take(state)).toBe("create")
-		ActorsRules.cancel(state)
+		ActorsRules.cancel(state, "create")
 		expect(state.active).toBe(0)
 		expect(state.free).toBe(0)
 		expect(ActorsRules.take(state)).toBe("create")
 	end)
 
+	it("cancel de un reuse devuelve también el hueco libre", function()
+		local state = { active = 0, free = 0, max = 1 }
+		expect(ActorsRules.take(state)).toBe("create")
+		ActorsRules.drop(state)
+		expect(ActorsRules.take(state)).toBe("reuse")
+		ActorsRules.cancel(state, "reuse")
+		expect(state.active).toBe(0)
+		expect(state.free).toBe(1)
+		expect(ActorsRules.take(state)).toBe("reuse")
+	end)
+
+	it("abandon descuenta el activo sin inventar un libre", function()
+		local state = { active = 0, free = 0, max = 2 }
+		ActorsRules.take(state)
+		ActorsRules.abandon(state)
+		expect(state.active).toBe(0)
+		expect(state.free).toBe(0)
+	end)
+
+	it("activos y libres nunca pasan del tope tras una secuencia mixta", function()
+		local state = { active = 0, free = 0, max = 3 }
+		for step = 1, 100 do
+			local slot = ActorsRules.take(state)
+			if slot ~= nil then
+				if step % 3 == 0 then
+					ActorsRules.drop(state)
+				elseif step % 5 == 0 then
+					ActorsRules.abandon(state)
+				else
+					ActorsRules.cancel(state, slot :: ActorsRules.Slot)
+				end
+			end
+			expect(state.active + state.free <= state.max).toBe(true)
+			expect(state.active >= 0 and state.free >= 0).toBe(true)
+		end
+	end)
+
 	it("cancel sin activos no deja la cuenta en negativo", function()
 		local state = { active = 0, free = 0, max = 1 }
-		ActorsRules.cancel(state)
+		ActorsRules.cancel(state, "create")
 		expect(state.active).toBe(0)
 	end)
 

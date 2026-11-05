@@ -1,16 +1,16 @@
 --!strict
 -- Actores de escena (plan 07, tarea 6): policías, patrullas, multitud, obreros, grúa y los vehículos que
--- piden las escenas del plan 08. Cada `spawn` devuelve un `Model` anclado y sin colisión, con su origen
--- en `at`, y todas sus piezas cuelgan de él: en Workspace solo queda la carpeta que los agrupa.
+-- piden las escenas del plan 08. `spawn` devuelve un `Model?`: un modelo anclado y sin colisión con su
+-- origen en `at`, o nil si el tipo está al tope o falta su arte (y avisa por `warn`).
 --
 -- Las personas salen de `Robloxian`, con el uniforme de policía o de obrero y la multitud vestida con la
 -- paleta de abajo; los vehículos y la grúa, de las mallas de `ReplicatedStorage.ArtAssets` que describe
--- `ArtAssets.actors`, y la patrulla, de `ArtAssets.patrol`. No hay mallas nuevas: si falta el arte,
--- `spawn` devuelve nil y la escena se queda sin ese actor.
+-- `ArtAssets.actors`, y la patrulla, de `ArtAssets.patrol`. No hay mallas nuevas.
 --
 -- El recuento lo lleva `ActorsRules`, que es puro: aquí solo se guardan los modelos libres de cada tipo y
 -- se reciclan. `despawn` devuelve el modelo al pool o lo destruye si no cabe, y `clear` lo borra todo al
--- acabar la escena.
+-- acabar la escena. `clear` es global a propósito: `SceneDirector` reproduce una escena cada vez, así que
+-- dos escenas no comparten actores; si algún día se solapan, hará falta una carpeta por escena.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
@@ -94,13 +94,13 @@ local function clonePieces(
 	model: Model,
 	art: Instance,
 	group: { Piece },
-	at: CFrame,
 	parts: { BasePart },
 	offsets: { CFrame }
 ): boolean
 	for _, piece in group do
 		local source = sourceOf(art, piece.key)
 		if source == nil then
+			warn(`Actors: falta la pieza {piece.key} de {model.Name}`)
 			return false
 		end
 		local mesh = source:Clone() :: BasePart
@@ -108,7 +108,6 @@ local function clonePieces(
 		mesh.CanCollide = false
 		mesh.CanTouch = false
 		mesh.CanQuery = false
-		mesh.CFrame = at * source.CFrame
 		mesh.Parent = model
 		table.insert(parts, mesh)
 		table.insert(offsets, source.CFrame)
@@ -157,8 +156,8 @@ local function buildPerson(model: Model, kind: Kind, art: Instance?): Person?
 	return Robloxian.create(model, { body = look[1], shirt = look[2] })
 end
 
--- Crea el modelo de un tipo con su origen en `at`. `nil` si falta el arte de un vehículo.
-local function build(kind: Kind, at: CFrame): Record?
+-- Crea el modelo de un tipo. Su sitio lo pone `place`. `nil` si falta el arte de un vehículo.
+local function build(kind: Kind): Record?
 	local art = artFolder()
 	local group: { Piece }? = VEHICLES[kind]
 	local model = Instance.new("Model")
@@ -168,11 +167,20 @@ local function build(kind: Kind, at: CFrame): Record?
 	local offsets: { CFrame } = {}
 	local person: Person? = nil
 	if group ~= nil then
-		if art == nil or not clonePieces(model, art, group, at, parts, offsets) then
+		if art == nil or not clonePieces(model, art, group, parts, offsets) then
 			model:Destroy()
 			return nil
 		end
 	else
+		-- La gorra y el casco se resuelven al crear la persona. Sin el arte cargado, la persona se
+		-- quedaría sin ellos para siempre al reciclarse, así que no se crea hasta que el arte está listo.
+		if
+			(kind == "Police" or kind == "Worker")
+			and (art == nil or art:GetAttribute(ArtAssets.READY_ATTRIBUTE) ~= true)
+		then
+			model:Destroy()
+			return nil
+		end
 		person = buildPerson(model, kind, art)
 		if person == nil then
 			model:Destroy()
@@ -222,12 +230,32 @@ local function reuse(kind: Kind, at: CFrame): Model?
 	end
 	local record = records[model]
 	if record == nil then
+		-- La lista tenía un modelo que ya no es un actor: se descarta para que no vuelva a salir.
+		model:Destroy()
 		return nil
 	end
 	record.pooled = false
 	place(record, at)
 	record.model.Parent = actorsFolder()
 	return model
+end
+
+-- Un actor desapareció por fuera (la escena lo destruyó sin `despawn`): se olvida y se descuenta.
+local function forget(model: Model)
+	local record = records[model]
+	if record == nil then
+		return
+	end
+	records[model] = nil
+	if record.pooled then
+		local list = free[record.kind]
+		local index = table.find(list, model)
+		if index ~= nil then
+			table.remove(list, index)
+		end
+	else
+		ActorsRules.abandon(pools[record.kind])
+	end
 end
 
 local Actors = {}
@@ -237,11 +265,13 @@ local Actors = {}
 function Actors.spawn(kind: Kind, at: CFrame): Model?
 	local known: Kind? = ActorsRules.kindOf(kind)
 	if known == nil then
+		warn(`Actors: tipo desconocido "{kind}"`)
 		return nil
 	end
 	local state = pools[known]
 	local slot = ActorsRules.take(state)
 	if slot == nil then
+		warn(`Actors: {known} ya tiene {state.max} actores vivos`)
 		return nil
 	end
 	if slot == "reuse" then
@@ -249,17 +279,23 @@ function Actors.spawn(kind: Kind, at: CFrame): Model?
 		if model ~= nil then
 			return model
 		end
-		-- Cuenta descuadrada: no había nada que reciclar.
-		ActorsRules.cancel(state)
+		-- La lista no tenía el modelo que la cuenta prometía: la lista manda y se resincroniza.
+		state.free = #free[known]
+		ActorsRules.cancel(state, "create")
+		warn(`Actors: el pool de {known} no tenía el modelo que decía la cuenta`)
 		return nil
 	end
-	local record = build(known, at)
+	local record = build(known)
 	if record == nil then
-		ActorsRules.cancel(state)
+		ActorsRules.cancel(state, "create")
+		warn(`Actors: no se pudo construir {known} (falta arte o aún no está listo)`)
 		return nil
 	end
 	place(record, at)
 	records[record.model] = record
+	record.model.Destroying:Connect(function()
+		forget(record.model)
+	end)
 	record.model.Parent = actorsFolder()
 	return record.model
 end
@@ -282,26 +318,40 @@ function Actors.despawn(model: Model)
 	record.model:Destroy()
 end
 
--- Borra todos los actores, vacía el pool y las cuentas. Cada escena lo llama al terminar.
+-- Borra todos los actores, vacía el pool y las cuentas. Cada escena lo llama al terminar; `SceneDirector`
+-- las reproduce de una en una, así que no hay dos escenas compartiendo esta carpeta.
 function Actors.clear()
 	local models: { Model } = {}
 	for model in records do
 		table.insert(models, model)
 	end
+	-- Se vacía antes de destruir para que los avisos de `Destroying` no toquen cuentas ya limpiadas.
+	table.clear(records)
 	for _, model in models do
 		model:Destroy()
 	end
-	table.clear(records)
 	for _, list in free do
 		table.clear(list)
 	end
 	ActorsRules.clearAll(pools)
+	crowdIndex = 0
 	if sceneFolder ~= nil then
 		if sceneFolder.Parent ~= nil then
 			sceneFolder:Destroy()
 		end
 		sceneFolder = nil
 	end
+end
+
+-- Anima a una persona: `root` es la cadera, `swing` balancea brazos y piernas y `reach` (0 a 1) adelanta
+-- los brazos. Devuelve false si el modelo no es una persona o ya no existe.
+function Actors.pose(model: Model, root: CFrame, swing: number, reach: number?): boolean
+	local record = records[model]
+	if record == nil or record.person == nil then
+		return false
+	end
+	record.person.pose(root, swing, reach)
+	return true
 end
 
 return Actors

@@ -104,9 +104,21 @@ function ActorsRules.take(state: State): Slot?
 	return nil
 end
 
--- Deshace un `take` que no llegó a crear ni a reciclar nada (faltaba el arte). No llena el pool, porque
--- no hay modelo que guardar.
-function ActorsRules.cancel(state: State)
+-- Deshace un `take` que no llegó a crear ni a reciclar nada (faltaba el arte o la lista del pool no
+-- cuadraba con la cuenta). Si el hueco venía de `reuse`, devuelve también el libre: la cuenta vuelve a
+-- como estaba. La lista de modelos es la que manda; `Actors` la resincroniza tras un fallo de reciclado.
+function ActorsRules.cancel(state: State, slot: Slot)
+	if state.active > 0 then
+		state.active -= 1
+	end
+	if slot == "reuse" and state.free < state.max then
+		state.free += 1
+	end
+end
+
+-- Un actor activo desapareció por fuera (una escena lo destruyó sin llamar a `despawn`): se descuenta
+-- el activo y no se inventa un libre, porque ya no hay modelo que guardar.
+function ActorsRules.abandon(state: State)
 	if state.active > 0 then
 		state.active -= 1
 	end
