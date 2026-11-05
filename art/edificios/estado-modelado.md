@@ -82,16 +82,24 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Tajamar | En juego; captura en juego pendiente (tablero S) | 27,0; nivel 0 27,9 | 46,0 | 2 814 | 1 259 | [niveles](../render/blanca/tajamar/tajamar-niveles.png) · [comparación](../render/blanca/tajamar/tajamar-comparacion.png) |
+| Cacique | En juego; captura en juego pendiente (tablero S) | 30,5; nivel 0 32,0 | 46,0 | 2 992 | 1 447 | [niveles](../render/blanca/cacique/cacique-niveles.png) · [comparación](../render/blanca/cacique/cacique-comparacion.png) |
+| Monviso | En juego; captura en juego pendiente (tablero S) | 24,0; nivel 0 26,4 | 46,0 | 2 934 | 1 290 | [niveles](../render/blanca/monviso/monviso-niveles.png) · [comparación](../render/blanca/monviso/monviso-comparacion.png) |
 
 ## Zona 11 · Grafito (`grafito`)
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Fundición Vulcano | En juego; captura en juego pendiente (tablero S) | 20,0; nivel 0 24,4 | 39,9 | 2 932 | 1 383 | [niveles](../render/grafito/fundicion-vulcano/fundicion-vulcano-niveles.png) · [comparación](../render/grafito/fundicion-vulcano/fundicion-vulcano-comparacion.png) |
+| Chatarrería El Imán | En juego; captura en juego pendiente (tablero S) | 15,0; nivel 0 17,1 | 38,2 | 2 530 | 1 145 | [niveles](../render/grafito/chatarreria-el-iman/chatarreria-el-iman-niveles.png) · [comparación](../render/grafito/chatarreria-el-iman/chatarreria-el-iman-comparacion.png) |
+| Estación de Metrolínea | En juego; captura en juego pendiente (tablero S) | 17,5; nivel 0 19,4 | 38,9 | 2 732 | 1 261 | [niveles](../render/grafito/estacion-de-metrolinea/estacion-de-metrolinea-niveles.png) · [comparación](../render/grafito/estacion-de-metrolinea/estacion-de-metrolinea-comparacion.png) |
 
 ## Zona 12 · Ocre (`ocre`)
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Almacén El Ladrillo | En juego; captura en juego pendiente (tablero S) | 16,0; nivel 0 20,5 | 36,1 | 2 074 | 954 | [niveles](../render/ocre/almacen-el-ladrillo/almacen-el-ladrillo-niveles.png) · [comparación](../render/ocre/almacen-el-ladrillo/almacen-el-ladrillo-comparacion.png) |
+| Curtiembre Los Nogales | En juego; captura en juego pendiente (tablero S) | 19,0; nivel 0 23,8 | 39,7 | 2 725 | 1 182 | [niveles](../render/ocre/curtiembre-los-nogales/curtiembre-los-nogales-niveles.png) · [comparación](../render/ocre/curtiembre-los-nogales/curtiembre-los-nogales-comparacion.png) |
 
 ## Notas
 
