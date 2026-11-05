@@ -49,6 +49,27 @@ describe("ArtAssets", function()
 		expect(crosswalks > 0).toBe(true)
 	end)
 
+	it("el tráfico da la vuelta sin saltos, en su carril y mirando hacia donde va", function()
+		local span = CityLayout.spanFor("S")
+		local length = CityLayout.trafficLength("S")
+		local lane = CityLayout.TRAFFIC_LANE_STUDS
+		local lastX, lastZ = CityLayout.trafficPose("S", 0)
+		local step = 1
+		for distance = step, length, step do
+			local x, z, forwardX, forwardZ = CityLayout.trafficPose("S", distance)
+			expect(math.abs(math.sqrt(forwardX ^ 2 + forwardZ ^ 2) - 1) < 1e-6).toBe(true)
+			expect(math.sqrt((x - lastX) ^ 2 + (z - lastZ) ^ 2) <= step + 1e-6).toBe(true)
+			expect((x - lastX) * forwardX + (z - lastZ) * forwardZ > 0).toBe(true)
+			-- Siempre dentro del anillo y nunca más cerca del borde que el carril.
+			expect(x >= lane - 1e-6 and x <= span - lane + 1e-6).toBe(true)
+			expect(z >= lane - 1e-6 and z <= span - lane + 1e-6).toBe(true)
+			lastX, lastZ = x, z
+		end
+		local endX, endZ = CityLayout.trafficPose("S", length)
+		local startX, startZ = CityLayout.trafficPose("S", 0)
+		expect(math.abs(endX - startX) < 1e-6 and math.abs(endZ - startZ) < 1e-6).toBe(true)
+	end)
+
 	it("no carga dos veces la misma malla", function()
 		local seen: { [string]: boolean } = {}
 		for _, piece in ArtAssets.all() do

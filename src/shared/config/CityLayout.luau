@@ -340,6 +340,49 @@ function CityLayout.dressingFor(sizeId: SizeId, zoneId: string): { Dressing }
 	return items
 end
 
+-- Tráfico: un rectángulo de esquinas redondeadas por el carril libre, entre los nombres pintados y la acera
+-- interior, en el mismo sentido que la ruta.
+local TRAFFIC_LANE = 12
+local TRAFFIC_TURN = 6
+
+CityLayout.TRAFFIC_LANE_STUDS = TRAFFIC_LANE
+
+-- Largo de una vuelta completa de tráfico.
+function CityLayout.trafficLength(sizeId: SizeId): number
+	local straight = CityLayout.spanFor(sizeId) - 2 * (TRAFFIC_LANE + TRAFFIC_TURN)
+	return 4 * (straight + math.pi * TRAFFIC_TURN / 2)
+end
+
+-- Dónde está un coche tras recorrer `distance` y hacia dónde va. Calcula el primer lado y lo gira alrededor
+-- del centro de la ciudad, porque los cuatro lados son iguales.
+function CityLayout.trafficPose(sizeId: SizeId, distance: number): (number, number, number, number)
+	local span = CityLayout.spanFor(sizeId)
+	local straight = span - 2 * (TRAFFIC_LANE + TRAFFIC_TURN)
+	local stretch = straight + math.pi * TRAFFIC_TURN / 2
+	local along = distance % (4 * stretch)
+	local side = math.floor(along / stretch)
+	local t = along - side * stretch
+	local start = TRAFFIC_LANE + TRAFFIC_TURN
+
+	local x, z, forwardX, forwardZ
+	if t <= straight then
+		x, z, forwardX, forwardZ = start + t, TRAFFIC_LANE, 1, 0
+	else
+		local angle = (t - straight) / TRAFFIC_TURN
+		x = start + straight + TRAFFIC_TURN * math.sin(angle)
+		z = start - TRAFFIC_TURN * math.cos(angle)
+		forwardX, forwardZ = math.cos(angle), math.sin(angle)
+	end
+
+	local center = span / 2
+	local dx, dz = x - center, z - center
+	for _ = 1, side do
+		dx, dz = -dz, dx
+		forwardX, forwardZ = -forwardZ, forwardX
+	end
+	return center + dx, center + dz, forwardX, forwardZ
+end
+
 -- Cada propiedad es un edificio fijo que existe desde el inicio (R-P50). Las medidas son de la ciudad
 -- gris: el plan 07 las cambia por el modelo de cada propiedad. `along` va a lo largo de la calle, `front`
 -- hacia el fondo del solar (negativo, hacia la calle) e `y` es la altura de la base de la pieza.

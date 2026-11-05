@@ -152,7 +152,18 @@ ArtAssets.street = {
 	Crosswalk = {
 		piece("crosswalk_paint", "119936557977117", { 222, 216, 200 }, "Concrete"),
 	},
+	Car = {
+		piece("car_carbody", "80791874972658", { 52, 70, 94 }, "SmoothPlastic"),
+		piece("car_glass", "130598677913277", GLASS, "Glass", 0.25),
+		piece("car_dark", "71989356457981", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("car_steel", "134654656395339", { 168, 174, 180 }, "Metal"),
+	},
 } :: { [string]: { Piece } }
+
+-- Tráfico: la pieza que se pinta de cada color y los colores, apagados y sin amarillo para que ningún coche
+-- se confunda con un taxi de jugador.
+ArtAssets.CAR_BODY = "car_carbody"
+ArtAssets.carColors = { { 52, 70, 94 }, { 110, 44, 44 }, { 150, 152, 150 }, { 205, 198, 180 } }
 
 -- Zonas con la calle ya ambientada: la de la porción vertical. El plan 07 añade las demás.
 ArtAssets.dressedZones = { "carmesi" }

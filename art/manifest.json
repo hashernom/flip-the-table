@@ -295,6 +295,25 @@
       "screenshots": [],
       "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
       "assetId": "rbxassetid://119936557977117"
+    },
+    {
+      "id": "street-car",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_street_props.py",
+      "triangles": 320,
+      "lods": [
+        152
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
+      "assetId": "rbxassetid://80791874972658",
+      "assetIds": [
+        "rbxassetid://130598677913277",
+        "rbxassetid://71989356457981",
+        "rbxassetid://134654656395339"
+      ]
     }
   ]
 }

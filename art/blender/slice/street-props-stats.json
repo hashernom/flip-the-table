@@ -6,5 +6,7 @@
   "bench": 204,
   "bench_lod": 82,
   "crosswalk": 156,
-  "crosswalk_lod": 68
+  "crosswalk_lod": 68,
+  "car": 320,
+  "car_lod": 152
 }

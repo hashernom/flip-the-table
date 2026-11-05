@@ -74,7 +74,11 @@
     "lamp_lamp": "rbxassetid://138721299588070",
     "bench_iron": "rbxassetid://110425970866167",
     "bench_wood": "rbxassetid://87236384992095",
-    "crosswalk_paint": "rbxassetid://119936557977117"
+    "crosswalk_paint": "rbxassetid://119936557977117",
+    "car_carbody": "rbxassetid://80791874972658",
+    "car_glass": "rbxassetid://130598677913277",
+    "car_dark": "rbxassetid://71989356457981",
+    "car_steel": "rbxassetid://134654656395339"
   },
   "cc0": {
     "brick_red": {

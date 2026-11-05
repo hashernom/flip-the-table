@@ -17,7 +17,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from build_cine_lux import HERE, box, count, export, flat, lod_of  # noqa: E402
-from build_slice_props import by_material  # noqa: E402
+from build_slice_props import by_material, profile  # noqa: E402
 
 
 def cylinder(radius1, radius2, depth, location, mat, vertices=8, rotation=(0, 0, 0)):
@@ -106,6 +106,32 @@ def build_crosswalk(mats):
     return by_material(parts, "crosswalk")
 
 
+def build_car(mats):
+    """Sedán de tráfico, más bajo que el taxi y sin rótulo ni damero: no se confunde con una ficha."""
+    parts = [
+        profile(
+            "body",
+            [(-5.6, 0.8), (-5.6, 2.0), (-5.1, 2.4), (-2.7, 2.7), (-1.2, 4.3), (2.1, 4.3), (3.7, 2.8), (5.3, 2.6), (5.6, 2.0), (5.6, 0.8)],
+            2.8,
+            mats["car"],
+        ),
+        profile("cabin", [(-2.55, 2.78), (-1.12, 4.12), (2.02, 4.12), (3.5, 2.85)], 2.85, mats["glass"]),
+        box("bumper_f", (5.7, 0.35, 0.5), (0, -5.7, 1.2), mats["dark"]),
+        box("bumper_b", (5.7, 0.35, 0.5), (0, 5.7, 1.2), mats["dark"]),
+        box("light_l", (1.0, 0.1, 0.35), (-1.9, -5.62, 1.95), mats["steel"]),
+        box("light_r", (1.0, 0.1, 0.35), (1.9, -5.62, 1.95), mats["steel"]),
+    ]
+    for x in (-2.6, 2.6):
+        for y in (-3.4, 3.4):
+            bpy.ops.mesh.primitive_cylinder_add(vertices=12, radius=0.95, depth=0.8, location=(x, y, 0.95), rotation=(0, math.radians(90), 0))
+            wheel = bpy.context.active_object
+            bpy.ops.object.transform_apply(location=False, rotation=True, scale=False)
+            wheel.data.materials.append(mats["dark"])
+            parts.append(wheel)
+            parts.append(box("hub", (0.84, 0.7, 0.7), (x, y, 0.95), mats["steel"]))
+    return by_material(parts, "car")
+
+
 def main():
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.scene.unit_settings.system = "NONE"
@@ -119,6 +145,10 @@ def main():
         "lamp": flat("lamp", "EDE5D3", 0.4),
         "wood": flat("wood", "7A5433", 0.8),
         "paint": flat("paint", "DED8C8", 0.8),
+        "car": flat("carbody", "34465E", 0.35),
+        "glass": flat("glass", "2E4A63", 0.12, 0.25),
+        "dark": flat("dark", "2A2E33", 0.6),
+        "steel": flat("steel", "A8AEB4", 0.25, 0.8),
     }
     stats = {}
     for name, builder in (
@@ -126,6 +156,7 @@ def main():
         ("lamp", build_lamp),
         ("bench", build_bench),
         ("crosswalk", build_crosswalk),
+        ("car", build_car),
     ):
         meshes = builder(mats)
         stats[name] = sum(count(mesh) for mesh in meshes)

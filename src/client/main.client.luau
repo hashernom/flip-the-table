@@ -144,6 +144,7 @@ local function boot()
 		size = sizeId
 		BuildingView.bind(handles)
 		StreetDressing.build(handles)
+		StreetDressing.startTraffic(handles)
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
 
@@ -269,6 +270,7 @@ local function boot()
 		BuildingView.refreshArt()
 		if city ~= nil then
 			StreetDressing.build(city)
+			StreetDressing.startTraffic(city)
 		end
 		for _, token in tokens do
 			TokenRider.dress(token)
