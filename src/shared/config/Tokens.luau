@@ -1,10 +1,9 @@
 --!strict
 -- Catálogo de las ocho fichas: qué malla es cada una y dónde se sube el avatar.
 --
--- El reparto por asiento es provisional y determinista, para que las ocho se vean en una partida sin
--- depender de una pantalla de elección que aún no existe: el asiento 1 lleva el taxi, el 2 la limusina
--- y así hasta el 8. Cuando el lobby deje elegir, `forSeat` se cambia por la elección del jugador y el
--- resto del cliente no se toca.
+-- `forSeat` da el reparto inicial, determinista: el asiento 1 lleva el taxi, el 2 la limusina y así
+-- hasta el 8. Luego cada jugador puede cambiarla con `TokenMenu`; `TokenChoice` mantiene que no se
+-- repitan y el cliente usa `forSeat` solo mientras no le llega el reparto del servidor.
 local ArtAssets = require("./ArtAssets")
 
 export type Token = {

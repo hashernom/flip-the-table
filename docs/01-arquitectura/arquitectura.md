@@ -85,12 +85,13 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `Comeback` | Furia y Espectros | 03 |
 | `Awards` | Premios del final | 03 |
 | `View` | Vista filtrada por jugador | 04 |
+| `TokenChoice` | Reparto de fichas sin repetir, con intercambio; no es regla del motor sino de presentación | 07 |
 
 `Board.zoneOrder` da las zonas en orden de ruta. Al elegir una zona con `Rng`, se usa esa lista: un diccionario no tiene orden estable y rompería el determinismo. `tools/pure-rules` también prohíbe `math.random`, `os.time` y `os.clock` en el motor.
 
 ### Datos: `src/shared/config`
 
-`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings` y `CityLayout`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
+`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings`, `CityLayout`, `ArtAssets`, `Tokens`, `TokenAnim`, `Ui` y `UiIcons`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
 
 ### Servidor
 
@@ -115,6 +116,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `server/lobby/Teleport` | Teletransporte a servidor reservado y vuelta al lobby | 04 |
 | `server/lobby/PartyService` | Códigos de party y servidor reservado | 04 |
 | `server/lobby/PublicQueue` | Partidas públicas | 04 |
+| `server/match/TokenChoiceService` | Reparto de fichas: impide repetirlas y avisa a todos; se cierra cuando alguien sale de la Salida | 07 |
 
 ### Cliente
 
@@ -127,12 +129,16 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/camera/CameraDirector` | Aplica el modo elegido a la cámara del jugador | 05 |
 | `client/ui/MiniMap` | Minimapa siempre visible y detalle de cada casilla | 06 |
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
-| `client/world/TokenRider` | Sube el avatar a la ficha y recorre la ruta | 05 |
+| `client/world/TokenRider` | Sube el avatar a la ficha, recorre la ruta y anima reposo, marcha y celebración | 05 y 07 |
+| `client/world/SquareView` | Lugar propio de cada casilla especial y brillo de la Zona Caliente | 07 |
+| `client/world/ModelCity` | Maqueta de la vista general: `show(city, view, names)`, `hide`, `focus` y `radius`; `ModelCityRules` es su parte pura | 07 |
 | `client/world/WorldRules` | Reglas puras de la ciudad: propiedades que cambiaron y sitio de cada ficha | 06 |
 | `client/world/BuildingView` | Muestra cada edificio con su dueño, marcadores y añadidos | 06 |
 | `client/state/ViewWire` | Devuelve claves de número a lo que un remoto convierte a texto | 06 |
 | `client/scenes/SceneDirector` | Reproduce escenas en orden, con la duración de `Scenes` | 05 y 08 |
 | `client/scenes/PlaceholderScene` | Escena provisional: el nombre del evento mientras dura | 05 |
+| `client/scenes/Actors` | Actores de escena con pool: `spawn(kind, at)`, `despawn`, `pose` y `clear`; `ActorsRules` lleva la cuenta pura | 07 |
+| `client/ui/TokenMenu` | Elegir ficha antes de salir de la Salida | 07 |
 | `client/ui/Theme` | Piezas comunes de la interfaz gris: colores, medidas táctiles y zona segura | 05 |
 | `client/ui/Hud` y menús | Interacción táctil y de PC; `ActionMenuRules` decide qué botones existen | 05 y 09 |
 | `client/audio/AudioDirector` | Música y efectos | 09 |
@@ -204,11 +210,15 @@ Protocol.REMOTES = {
     Notice = "LobbyNotice",  -- { kind: Protocol.NOTICE_KINDS, message: string }
     -- Emotes (subfase 05): petición del cliente y reenvío del servidor por el mismo remoto.
     Emote = "EmoteRequest",
+    -- Fichas (subfase 07): el cliente pide una ficha (o, sin id, el reparto actual) y el servidor
+    -- difunde el reparto, con un aviso si rechazó la petición.
+    TokenChoice = "TokenChoiceRequest", TokenAssigned = "TokenAssigned",
 }
 Protocol.validate(action: any): (boolean, string?)
 Protocol.validateLobby(request: any): (boolean, string?)
 Protocol.validateRematch(vote: any): (boolean, string?)
 Protocol.validateEmote(emote: any): boolean
+Protocol.validateTokenChoice(tokenId: any): boolean
 Protocol.EMOTES = { "😀", "😱", "🤑", "😡", "🤝", "🗡️" }
 Protocol.newLimiter(perSecond: number?): { allow: (playerId: string, now: number) -> boolean }
 -- El limitador es puro y recibe el reloj. Sin argumento usa Economy.actionsPerSecond (10); el lobby

@@ -157,7 +157,7 @@
 - Modificar: `src/client/world/TokenRider.luau`, `art/manifest.json`
 
 **Interfaces:**
-- Produce: `Tokens.all = { { id: string, asset: string, seatOffset: Vector3Like } }`.
+- Produce: `Tokens.all(): { { id: string, label: string, art: ArtAssets.TokenArt } }`, con `Tokens.get(id)` y `Tokens.forSeat(seat)`. El asiento del avatar va en `ArtAssets.tokens[id]`, junto a la malla. (Sustituye a la interfaz prevista, `Tokens.all = { { id, asset, seatOffset } }`.)
 
 **Criterios de aceptación:**
 - [ ] Las 8 fichas son vehículos gigantes con un punto claro donde va el avatar.
