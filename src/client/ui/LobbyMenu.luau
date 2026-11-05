@@ -22,7 +22,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 	notice.BackgroundTransparency = 1
 	notice.Size = UDim2.fromScale(1, 0)
 	notice.AutomaticSize = Enum.AutomaticSize.Y
-	notice.Font = Theme.font
+	notice.FontFace = Theme.font.text
 	notice.TextSize = 15
 	notice.TextWrapped = true
 	notice.TextColor3 = Theme.muted
@@ -36,7 +36,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 	codeBox.BorderSizePixel = 0
 	codeBox.Size = UDim2.fromScale(1, 0)
 	codeBox.AutomaticSize = Enum.AutomaticSize.Y
-	codeBox.Font = Theme.fontBold
+	codeBox.FontFace = Theme.font.road
 	codeBox.TextSize = 22
 	codeBox.TextColor3 = Theme.text
 	codeBox.PlaceholderText = "Código de party"

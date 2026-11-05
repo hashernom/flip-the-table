@@ -55,7 +55,7 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 	detail.Position = UDim2.fromScale(0.5, 0.5)
 	detail.Size = UDim2.fromScale(0.68, 0.68)
 	detail.BackgroundTransparency = 1
-	detail.Font = Theme.font
+	detail.FontFace = Theme.font.text
 	detail.TextColor3 = Theme.text
 	detail.TextSize = 12
 	detail.TextWrapped = true

@@ -73,7 +73,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 	bidValue.LayoutOrder = 5
 	bidValue.Size = UDim2.new(1, -4 * (math.max(Theme.MIN_TOUCH, 50) + 6), 1, 0)
 	bidValue.BackgroundTransparency = 1
-	bidValue.Font = Theme.fontBold
+	bidValue.FontFace = Theme.font.road
 	bidValue.TextSize = 18
 	bidValue.TextWrapped = true
 	bidValue.TextXAlignment = Enum.TextXAlignment.Left

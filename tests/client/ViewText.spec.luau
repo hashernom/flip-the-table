@@ -20,6 +20,23 @@ local ViewText = require("../../src/client/ui/ViewText")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
+describe("ViewText.seatName: el nombre de la placa", function()
+	local view = {
+		playerId = "1",
+		players = { { id = "1", isBot = false }, { id = "2", isBot = true }, { id = "3", isBot = false } },
+	}
+
+	it("marca al propio jugador y no repite que es un bot", function()
+		local names = { ["1"] = "Ana", ["2"] = "Cami" }
+		expect(ViewText.seatName(view, names, "1")).toBe("Ana (tú)")
+		expect(ViewText.seatName(view, names, "2")).toBe("Cami")
+	end)
+
+	it("sin nombre conocido usa el asiento", function()
+		expect(ViewText.seatName(view, {}, "3")).toBe("Jugador 3")
+	end)
+end)
+
 local NAMES: { [string]: string } = { P1 = "Ana", P2 = "Beto", P3 = "Cleo", P4 = "Dani" }
 
 local function contains(text: string, part: string): boolean

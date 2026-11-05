@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-05T00:00:00Z",
+  "title": "Design System: Flip the Table",
+  "extensions": {
+    "colorMeta": {
+      "asphalt": { "role": "neutral", "displayName": "Asfalto", "canonical": "#23272C", "tonalRamp": ["#080B10", "#23272C", "#44484E", "#65696F", "#8B9096", "#B0B5BB", "#CFD5DB", "#EAEFF6"] },
+      "asphalt-deep": { "role": "neutral", "displayName": "Asfalto profundo", "canonical": "#14171A", "tonalRamp": ["#090B0E", "#24272A", "#45484C", "#66696D", "#8C9094", "#B1B5B9", "#D0D5D9", "#EBEFF3"] },
+      "asphalt-hot": { "role": "neutral", "displayName": "Asfalto de apoyo (fuera de guía §2.1)", "canonical": "#3A4047", "tonalRamp": ["#070C11", "#21272D", "#42484F", "#636A71", "#899098", "#AEB5BD", "#CED5DE", "#E8EFF8"] },
+      "limestone": { "role": "neutral", "displayName": "Caliza", "canonical": "#EDE5D3", "tonalRamp": ["#100A01", "#2C2618", "#4E4738", "#6F6858", "#968E7E", "#BBB4A2", "#DBD4C2", "#F6EEDC"] },
+      "limestone-dim": { "role": "neutral", "displayName": "Caliza apagada", "canonical": "#CFC5AE", "tonalRamp": ["#110A00", "#2D2513", "#4F4733", "#716853", "#988E79", "#BDB39D", "#DED3BC", "#F8EED6"] },
+      "taxi-yellow": { "role": "primary", "displayName": "Amarillo taxi", "canonical": "#F5C518", "tonalRamp": ["#100A00", "#312501", "#584501", "#806609", "#AE8B04", "#DAAF15", "#FECE2C", "#FFEEBE"] },
+      "taxi-lip": { "role": "primary", "displayName": "Labio taxi", "canonical": "#B8920F", "tonalRamp": ["#100A00", "#312501", "#594502", "#816501", "#AF8A08", "#D6AF3E", "#F7D062", "#FFEDC0"] },
+      "signal-red": { "role": "secondary", "displayName": "Rojo señal", "canonical": "#C4382B", "tonalRamp": ["#1F0000", "#4F0100", "#8B0100", "#BA2D22", "#E85A4A", "#FF9181", "#FFC4BA", "#FFE9E5"] },
+      "works-orange": { "role": "secondary", "displayName": "Naranja obra", "canonical": "#E07A3C", "tonalRamp": ["#180500", "#411901", "#733202", "#A54B00", "#D57030", "#FE9559", "#FEC6A9", "#FFEADF"] },
+      "steel": { "role": "neutral", "displayName": "Acero", "canonical": "#A8AEB4", "tonalRamp": ["#080C10", "#22272C", "#43484D", "#646A6F", "#8A9096", "#AFB5BB", "#CFD5DB", "#E9EFF6"] },
+      "navy": { "role": "tertiary", "displayName": "Azul marino", "canonical": "#1B3A6B", "tonalRamp": ["#000924", "#052453", "#274779", "#48699E", "#6D90C8", "#91B6F0", "#BCD6FE", "#E5EFFF"] }
+    },
+    "typographyMeta": {
+      "shout": { "displayName": "Grito", "purpose": "Solo verbos de acción (COMPRAR, PAGAR). Único uso construido: botón principal, 38 px. Guía: 28–72 px, nunca bajo 28." },
+      "road": { "displayName": "Vía", "purpose": "Sellos, teclas, botones secundarios, pestaña y pie de la escritura: 12–14 px." },
+      "road-bold": { "displayName": "Vía negrita", "purpose": "Nombres de jugador (14–17 px), segundos del plazo (22), precio (30), título de escritura (33)." },
+      "text": { "displayName": "Texto", "purpose": "Filas de renta y reglas de la escritura (14–15 px)." },
+      "text-bold": { "displayName": "Texto negrita", "purpose": "Cifras del taxímetro (19, 22 o 25 px según el tramo)." }
+    },
+    "shadows": [
+      { "name": "plate-lip", "value": "frame: offset (-2px, +3px), size +4px, asphalt-deep at 45% transparency, radius 18px (not a box-shadow)", "purpose": "Grosor sólido de la chapa de jugador. Sin desenfoque, sin cambio por estado." },
+      { "name": "plate-ring", "value": "frame: offset (-2px, -2px), size +4px, asphalt, radius 18px (not a box-shadow)", "purpose": "Aro de asfalto entre el labio y el borde de caliza." },
+      { "name": "deed-lip", "value": "frame: offset (0px, +7px), asphalt-deep at 50% transparency, radius 14px (not a box-shadow)", "purpose": "Grosor del papel de la escritura." },
+      { "name": "button-lip", "value": "band: taxi-lip, 8px below the face, asphalt stroke 3px (not a box-shadow)", "purpose": "Labio del botón principal. La cara se hunde 7px al pulsar; el labio no cambia." }
+    ],
+    "motion": [
+      { "name": "press", "value": "0.08s, Quint Out", "purpose": "Desplazamiento de la cara del botón principal: 2px al pasar el cursor, 7px al pulsar." },
+      { "name": "money-roll", "value": "0.6s, cubic ease-out (1-(1-a)^3)", "purpose": "Cifra del taxímetro rueda de la anterior a la nueva." },
+      { "name": "money-float", "value": "1.8s; fade starts at 60%, ±3deg tilt", "purpose": "Etiqueta de ganancia o pérdida que sube y se desvanece." },
+      { "name": "plate-shift", "value": "0.25s, Quint Out", "purpose": "La placa que deja de ser turno vuelve a 0°." },
+      { "name": "turn-sway", "value": "3.2s period, Sine InOut, ±1deg", "purpose": "Balanceo de la flecha del turno. Las demás placas quietas." }
+    ],
+    "breakpoints": [
+      { "name": "reference", "value": "1440x900" },
+      { "name": "ui-scale-min", "value": "1 (never shrinks)" },
+      { "name": "ui-scale-max", "value": "1.6" },
+      { "name": "deadline-warn", "value": "5s" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Única placa amarilla por pantalla: el botón de acción que se hunde al pulsarlo.",
+      "html": "<button class=\"ds-btn-primary\"><span>COMPRAR</span></button>",
+      "css": ".ds-btn-primary { position: relative; border: 0; background: transparent; padding: 0; cursor: pointer; width: 100%; height: 56px; font-family: 'Luckiest Guy', Oswald, 'Arial Narrow', sans-serif; } .ds-btn-primary::before { content: ''; position: absolute; left: 0; right: 0; top: 8px; bottom: 0; background: #B8920F; border: 3px solid #23272C; border-radius: 18px; } .ds-btn-primary .ds-face { position: absolute; left: 0; right: 0; top: 0; bottom: 8px; background: #F5C518; border: 3px solid #23272C; border-radius: 18px; color: #23272C; font-size: 38px; line-height: 1; display: flex; align-items: center; justify-content: center; transition: transform 0.08s cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-primary:hover .ds-face { transform: translateY(2px); } .ds-btn-primary:active .ds-face { transform: translateY(7px); } .ds-btn-primary:focus-visible { outline: 3px solid #EDE5D3; outline-offset: 3px; } .ds-btn-primary:disabled { opacity: 0.45; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Píldora de contorno de caliza sobre asfalto. Nunca amarilla.",
+      "html": "<button class=\"ds-btn-secondary\"><span>NO COMPRAR</span><kbd>N</kbd></button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; gap: 8px; padding: 0 14px; height: 44px; background: #23272C; color: #EDE5D3; border: 2px solid #EDE5D3; border-radius: 27px; font-family: Oswald, 'Arial Narrow', sans-serif; font-size: 14px; text-transform: uppercase; cursor: pointer; transition: background 0.08s; } .ds-btn-secondary:hover { background: #3A4047; } .ds-btn-secondary:focus-visible { outline: 2px solid #EDE5D3; outline-offset: 3px; } .ds-btn-secondary:disabled { color: #A8AEB4; border-color: #A8AEB4; } .ds-btn-secondary kbd { font: 700 12px Oswald, sans-serif; background: #EDE5D3; color: #23272C; border-radius: 5px; padding: 0 6px; line-height: 20px; }"
+    },
+    {
+      "name": "Plate",
+      "kind": "card",
+      "refersTo": "plate",
+      "description": "Chapa esmaltada de la columna de jugadores: cuerpo de asfalto, borde de caliza y labio sólido.",
+      "html": "<div class=\"ds-plate\"><span class=\"ds-plate-name\">ANA</span><span class=\"ds-plate-money\">1.240</span></div>",
+      "css": ".ds-plate { position: relative; isolation: isolate; width: 240px; height: 80px; background: #23272C; color: #EDE5D3; border: 3px solid #EDE5D3; border-radius: 16px; padding: 8px 14px; display: flex; flex-direction: column; justify-content: center; } .ds-plate::before { content: ''; position: absolute; left: -2px; top: 3px; width: calc(100% + 4px); height: calc(100% + 4px); background: #14171A; opacity: 0.45; border-radius: 18px; z-index: -1; } .ds-plate-name { font: 700 15px Oswald, sans-serif; text-transform: uppercase; } .ds-plate-money { font: 700 22px 'Source Sans Pro', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; background: #14171A; border-radius: 6px; padding: 0 4px; align-self: flex-start; } .ds-plate[data-ghost] { border-color: #CFC5AE; }"
+    },
+    {
+      "name": "Stamp",
+      "kind": "chip",
+      "refersTo": "stamp-loss",
+      "description": "Sello de goma: la forma dice la rareza. Pérdida y legendaria en relleno rojo, rara con filete marino, común con filete de asfalto.",
+      "html": "<span class=\"ds-stamp ds-stamp-loss\">TRAIDOR</span>",
+      "css": ".ds-stamp { display: inline-block; padding: 1px 6px; border-radius: 3px; font: 400 12px Oswald, sans-serif; text-transform: uppercase; } .ds-stamp-loss { background: #C4382B; color: #EDE5D3; transform: rotate(-6deg); } .ds-stamp-rare { color: #1B3A6B; border: 2px solid #1B3A6B; transform: rotate(-4deg); } .ds-stamp-common { color: #23272C; border: 1px solid #23272C; }"
+    },
+    {
+      "name": "Deed",
+      "kind": "card",
+      "refersTo": "deed",
+      "description": "Escritura de propiedad: bloque de zona a sangre, precio en barra, tabla de rentas y pie de código.",
+      "html": "<article class=\"ds-deed\"><header class=\"ds-deed-zone\"><span class=\"ds-deed-tab\">DISTRITO CARMESÍ</span><h3>CINE LUX</h3></header><div class=\"ds-deed-price\"><span>PRECIO</span><strong>260</strong></div><footer class=\"ds-deed-foot\"><span>ESCRITURA</span><span>L-05 · 17</span></footer></article>",
+      "css": ".ds-deed { position: relative; isolation: isolate; width: 262px; background: #EDE5D3; color: #23272C; border: 3px solid #23272C; border-radius: 14px; overflow: hidden; font-family: Oswald, sans-serif; } .ds-deed::before { content: ''; position: absolute; left: 0; top: 7px; width: 100%; height: 100%; background: #14171A; opacity: 0.5; border-radius: 14px; z-index: -1; } .ds-deed-zone { background: #DC2626; min-height: 100px; position: relative; padding: 38px 12px 12px; } .ds-deed-tab { position: absolute; left: 12px; top: 12px; background: #23272C; color: #EDE5D3; border-radius: 9px; padding: 2px 8px; font-size: 12px; text-transform: uppercase; } .ds-deed-zone h3 { margin: 0; font: 700 33px/0.95 Oswald, sans-serif; text-transform: uppercase; color: #EDE5D3; } .ds-deed-price { display: flex; justify-content: space-between; align-items: center; background: #23272C; color: #EDE5D3; padding: 0 12px; height: 40px; } .ds-deed-price strong { font: 700 30px Oswald, sans-serif; } .ds-deed-foot { display: flex; justify-content: space-between; background: #23272C; color: #EDE5D3; font-size: 12px; text-transform: uppercase; padding: 0 12px; height: 22px; align-items: center; }"
+    },
+    {
+      "name": "Money Meter",
+      "kind": "custom",
+      "refersTo": "money-meter",
+      "description": "Taxímetro: cada cifra en su ventana de ancho fijo para que el importe no baile al cambiar.",
+      "html": "<div class=\"ds-meter\"><span class=\"ds-meter-cell\">1</span><span class=\"ds-meter-cell ds-meter-dot\">.</span><span class=\"ds-meter-cell\">2</span><span class=\"ds-meter-cell\">4</span><span class=\"ds-meter-cell\">0</span></div>",
+      "css": ".ds-meter { display: inline-flex; background: #14171A; color: #EDE5D3; border-radius: 6px; padding: 0 4px; height: 26px; align-items: center; font: 700 22px 'Source Sans Pro', 'Segoe UI', sans-serif; font-variant-numeric: tabular-nums; } .ds-meter-cell { display: inline-block; width: 11px; text-align: center; } .ds-meter-dot { width: 6px; }"
+    },
+    {
+      "name": "Road Timer",
+      "kind": "custom",
+      "refersTo": "road-timer",
+      "description": "Calzada del plazo: franja de asfalto en el pie, trazos naranja que se gastan y un vehículo que avanza hasta el cono.",
+      "html": "<div class=\"ds-road\"><div class=\"ds-road-lane\"><i></i><i></i><i class=\"ds-spent\"></i><i class=\"ds-spent\"></i></div><span class=\"ds-road-seconds\">14 s</span></div>",
+      "css": ".ds-road { position: relative; height: 36px; background: #23272C; border-top: 4px solid #EDE5D3; box-sizing: border-box; display: flex; align-items: center; padding: 0 14px 0 20px; font-family: Oswald, sans-serif; } .ds-road-lane { flex: 1; display: flex; gap: 16px; align-items: center; } .ds-road-lane i { display: inline-block; width: 28px; height: 7px; border-radius: 4px; background: #E07A3C; } .ds-road-lane i.ds-spent { background: #14171A; } .ds-road-seconds { font: 700 22px Oswald, sans-serif; color: #EDE5D3; } .ds-road.ds-warn .ds-road-seconds { color: #E07A3C; } .ds-road:focus-within { outline: none; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La señal de la avenida",
+    "overview": "La interfaz no inventa un lenguaje: toma el de una avenida de Manhattan (placas esmaltadas, franjas de calzada, toldos, la librea del taxi) y lo ordena para una partida de 2 a 8 amigos que deciden en segundos. Cada elemento se lee como una señal de calle: la placa de un jugador es una chapa con su tornillo, el dinero es un taxímetro, el plazo es una calzada que el vehículo recorre hasta el cono, y una escritura es un papel de calle con el nombre de la zona a sangre.\n\nLa densidad es alta pero ordenada. Los jugadores van en una sola columna a la izquierda, todos con el mismo ancho; la derecha es el sitio de decidir; el centro queda libre para la ciudad. La jerarquía la hacen tres cosas, en este orden: el único amarillo, el tamaño de la cifra y la forma de la marca. El color nunca carga la información solo.\n\nRechazos confirmados por la guía (§9): verde fieltro y estética de casino (fichas, naipes, dados, neón), degradados, sombras difusas, logotipo, personaje o tablero de Monopoly, tipografías que no vienen integradas en Roblox, y emoji o glifos de fuente como iconos.",
+    "keyCharacteristics": [
+      "Chapa esmaltada: esquinas troqueladas, aro de asfalto, borde de caliza de 3 px y labio sólido.",
+      "Un solo amarillo, el del botón de acción.",
+      "Cifras en ventanas de taxímetro, de ancho fijo.",
+      "Marcas por forma: sello, pieza torcida, icono, texto. Nunca solo color.",
+      "El plazo es una calzada.",
+      "Una columna de jugadores a la izquierda; la derecha, para decidir."
+    ],
+    "rules": [
+      { "name": "The One Yellow Rule", "body": "El amarillo no decora: señala. Un solo amarillo por pantalla, sobre algo que el jugador puede o debe hacer. Hoy solo el botón principal lo pinta.", "section": "colors" },
+      { "name": "The Meter Window Rule", "body": "Cada cifra de dinero va en su propia ventana de ancho fijo: un dígito ocupa la mitad del tamaño de letra y el punto, 0,28 de ese tamaño. Así el importe no baila al rodar. El dinero se escribe con punto de miles y signo de resta (−), como 1.240 y −50.", "section": "typography" },
+      { "name": "The Shout Rule", "body": "Luckiest Guy solo en verbos, en mayúsculas, nunca en párrafo y nunca por debajo de 28 px.", "section": "typography" },
+      { "name": "The Column Rule", "body": "Los jugadores van en una sola columna a la izquierda, todos con el mismo ancho. La derecha es el sitio de decidir y el centro queda para la ciudad.", "section": "layout" },
+      { "name": "The Lip Is Thickness Rule", "body": "El labio es el grosor de la placa, no una sombra: sólido, sin difuminar, sin degradado y fijo entre estados. Lo que se mueve al pulsar es la cara, nunca la sombra.", "section": "elevation" },
+      { "name": "The Stamp Tilt Rule", "body": "Lo que la calle tiene torcido se tuerce: los sellos (0°, −4° en raro, −6° en legendario y pérdida) y el balanceo de la flecha del turno. Las placas de jugador no se giran; el build las devuelve a 0° al dejar de ser turno.", "section": "shapes" },
+      { "name": "The Marks By Shape Rule", "body": "Las marcas se distinguen por forma: sello con filete, pieza torcida, icono, texto. El color repite la información, nunca la lleva solo.", "section": "components" },
+      { "name": "The Road Clock Rule", "body": "El plazo es la calzada: el vehículo recorre el pie y el tiempo se lee en el recorrido y en la cifra, no en una barra gris.", "section": "components" }
+    ],
+    "dos": [
+      "Do usar el amarillo una sola vez por pantalla, en el botón principal (#F5C518, texto asfalto, Luckiest Guy 38 px).",
+      "Do distinguir zona, rareza y estado por forma además del color: símbolo, borde del sello, marca de texto, icono.",
+      "Do escribir el dinero en un taxímetro de ventanas fijas, con punto de miles y signo de resta (−).",
+      "Do dejar la columna de jugadores con un solo ancho común y una altura por tramo (92, 80 o 62 px).",
+      "Do construir pantallas nuevas con Components (PrimaryButton, SecondaryButton, Panel, PlayerChip, Deed, Timer), no con Theme.button ni Theme.panel.",
+      "Do tomar la tinta de un texto sobre color de zona por contraste WCAG (HudRules.inkFor)."
+    ],
+    "donts": [
+      "Don't usar un segundo amarillo, ni pintar en amarillo texto informativo.",
+      "Don't usar verde fieltro, neón, degradados, sombras difusas ni brillos de casino.",
+      "Don't usar rojo señal para texto pequeño: sobre caliza da 4,2:1 y solo pasa como texto grande.",
+      "Don't escribir Luckiest Guy en párrafos, en minúsculas o por debajo de 28 px.",
+      "Don't usar emoji ni glifos de fuente como iconos: los iconos son geometría propia de art/ui/icons/.",
+      "Don't llevar la paleta de la ciudad (caliza de material #D2C9B4, ladrillo, cristal) a la interfaz: son dos paletas distintas.",
+      "Don't añadir colores fuera de la paleta de la guía; el asfalto de apoyo es la única excepción y queda anotada."
+    ]
+  }
+}

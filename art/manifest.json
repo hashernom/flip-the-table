@@ -1684,6 +1684,126 @@
         "rbxassetid://123178909531514",
         "rbxassetid://90538873541186"
       ]
+    },
+    {
+      "id": "ui-icon-cards",
+      "category": "UiImage",
+      "source": "art/ui/icons/cards.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://125667363618342"
+    },
+    {
+      "id": "ui-icon-cone",
+      "category": "UiImage",
+      "source": "art/ui/icons/cone.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://136350223683630"
+    },
+    {
+      "id": "ui-icon-crown",
+      "category": "UiImage",
+      "source": "art/ui/icons/crown.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://97538628578507"
+    },
+    {
+      "id": "ui-icon-face",
+      "category": "UiImage",
+      "source": "art/ui/icons/face.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://91804487153257"
+    },
+    {
+      "id": "ui-icon-flame",
+      "category": "UiImage",
+      "source": "art/ui/icons/flame.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://76197658385239"
+    },
+    {
+      "id": "ui-icon-ghost",
+      "category": "UiImage",
+      "source": "art/ui/icons/ghost.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://98423541980282"
+    },
+    {
+      "id": "ui-icon-map",
+      "category": "UiImage",
+      "source": "art/ui/icons/map.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://80315277868422"
+    },
+    {
+      "id": "ui-icon-plate-arrow",
+      "category": "UiImage",
+      "source": "art/ui/icons/plate-arrow.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://98990116718617"
+    },
+    {
+      "id": "ui-icon-smile",
+      "category": "UiImage",
+      "source": "art/ui/icons/smile.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://98779544976322"
+    },
+    {
+      "id": "ui-icon-taxi-side",
+      "category": "UiImage",
+      "source": "art/ui/icons/taxi-side.png",
+      "triangles": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ui/hud-tarea1-studio.jpg"
+      ],
+      "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
+      "assetId": "rbxassetid://76952528758720"
     }
   ]
 }

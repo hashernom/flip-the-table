@@ -38,7 +38,7 @@ function RematchMenu.create(playerGui: Instance): Handles
 	status.BackgroundTransparency = 1
 	status.Size = UDim2.fromScale(1, 0)
 	status.AutomaticSize = Enum.AutomaticSize.Y
-	status.Font = Theme.font
+	status.FontFace = Theme.font.text
 	status.TextSize = 16
 	status.TextWrapped = true
 	status.TextXAlignment = Enum.TextXAlignment.Left

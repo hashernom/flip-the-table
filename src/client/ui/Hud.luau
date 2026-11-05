@@ -78,7 +78,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		label.BackgroundTransparency = 1
 		label.Size = UDim2.fromOffset(0, 32)
 		label.AutomaticSize = Enum.AutomaticSize.X
-		label.Font = Theme.fontBold
+		label.FontFace = Theme.font.road
 		label.TextSize = 20
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextColor3 = Theme.text
@@ -102,7 +102,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	overviewButton.Size = UDim2.fromOffset(150, math.max(Theme.MIN_TOUCH, 52))
 	overviewButton.BackgroundColor3 = Theme.buttonColor
 	overviewButton.BorderSizePixel = 0
-	overviewButton.Font = Theme.fontBold
+	overviewButton.FontFace = Theme.font.road
 	overviewButton.TextSize = 16
 	overviewButton.TextColor3 = Theme.text
 	overviewButton.Text = "Vista general"
@@ -116,7 +116,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	emoteButton.Size = UDim2.fromOffset(60, math.max(Theme.MIN_TOUCH, 52))
 	emoteButton.BackgroundColor3 = Theme.buttonColor
 	emoteButton.BorderSizePixel = 0
-	emoteButton.Font = Theme.fontBold
+	emoteButton.FontFace = Theme.font.road
 	emoteButton.TextSize = 22
 	emoteButton.TextColor3 = Theme.text
 	emoteButton.Text = "🙂"
@@ -149,7 +149,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	banner.BackgroundColor3 = Theme.background
 	banner.BackgroundTransparency = 0.15
 	banner.BorderSizePixel = 0
-	banner.Font = Theme.fontBold
+	banner.FontFace = Theme.font.road
 	banner.TextScaled = true
 	banner.TextColor3 = Theme.text
 	banner.Text = ""
@@ -168,7 +168,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	toast.BackgroundColor3 = Theme.danger
 	toast.BackgroundTransparency = 0.1
 	toast.BorderSizePixel = 0
-	toast.Font = Theme.fontBold
+	toast.FontFace = Theme.font.road
 	toast.TextSize = 16
 	toast.TextWrapped = true
 	toast.TextColor3 = Theme.text
@@ -224,7 +224,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				label.Size = UDim2.new(1, -8, 0, 20)
 				label.AutomaticSize = Enum.AutomaticSize.Y
 				label.LayoutOrder = order
-				label.Font = if bold then Theme.fontBold else Theme.font
+				label.FontFace = if bold then Theme.font.road else Theme.font.text
 				label.TextSize = 15
 				label.TextWrapped = true
 				label.TextXAlignment = Enum.TextXAlignment.Left

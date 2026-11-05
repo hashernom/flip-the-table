@@ -80,6 +80,23 @@ function ViewText.playerName(view: any, names: Names?, id: PlayerId): string
 	return text
 end
 
+-- Nombre para la placa de la mesa: el bot se ve por su antena y su marca, así que solo se añade «(tú)».
+function ViewText.seatName(view: any, names: Names?, id: PlayerId): string
+	local known = if names ~= nil then names[id] else nil
+	local text: string = known or ""
+	if text == "" then
+		for index, seated in view.players do
+			if seated.id == id then
+				text = `Jugador {index}`
+			end
+		end
+	end
+	if text == "" then
+		text = "Alguien"
+	end
+	return if id == view.playerId then `{text} (tú)` else text
+end
+
 -- Nombre de una casilla: el de la propiedad (por su ordinal dentro de la zona) o el de su tipo.
 function ViewText.squareName(view: any, index: number): string
 	local board = ViewText.board(view.sizeId)
