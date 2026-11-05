@@ -197,11 +197,29 @@ function Manifest.unknownAssets(manifest: Manifest, refs: { string }): { string 
 	return missing
 end
 
--- Problemas de un archivo de código: cada id de asset sin registrar, con el archivo donde está.
+-- Marca que deja un `Part` de relleno mientras no llega su malla. Es explícita para que el check no
+-- confunda un comentario con arte temporal: `part:SetAttribute("Temporary", true)`.
+Manifest.TEMPORARY_MARKER = 'SetAttribute("Temporary", true)'
+
+-- Línea donde un archivo marca una parte como temporal, o nil si no hay ninguna.
+function Manifest.temporaryPart(source: string): string?
+	for line in string.gmatch(source, "[^\r\n]+") do
+		if string.find(line, Manifest.TEMPORARY_MARKER, 1, true) ~= nil then
+			return line
+		end
+	end
+	return nil
+end
+
+-- Problemas de un archivo de código: cada id de asset sin registrar y cada parte temporal, con el
+-- archivo donde está.
 function Manifest.sourceProblems(manifest: Manifest, path: string, source: string): { string }
 	local problems: { string } = {}
 	for _, ref in Manifest.unknownAssets(manifest, Manifest.assetRefs(source)) do
 		table.insert(problems, `{path}: {ref} no está en el manifiesto`)
+	end
+	if Manifest.temporaryPart(source) ~= nil then
+		table.insert(problems, `{path}: Part marcado como temporal`)
 	end
 	return problems
 end

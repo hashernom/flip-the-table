@@ -144,6 +144,21 @@ describe("Manifest: ids de asset en el código", function()
 	end)
 end)
 
+describe("Manifest: partes temporales", function()
+	it("señala un Part marcado como temporal", function()
+		local source = 'local p = Instance.new("Part")\np:SetAttribute("Temporary", true)\n'
+		expect(Manifest.temporaryPart(source) ~= nil).toBe(true)
+		local problems = Manifest.sourceProblems({ assets = {} }, "src/x.luau", source)
+		expect(problems).toEqual({ "src/x.luau: Part marcado como temporal" })
+	end)
+
+	it("no señala una parte normal ni un comentario que mencione temporal", function()
+		local source = '-- arte temporal\nlocal p = Instance.new("Part")\n'
+		expect(Manifest.temporaryPart(source)).toBe(nil)
+		expect(Manifest.sourceProblems({ assets = {} }, "src/x.luau", source)).toEqual({})
+	end)
+end)
+
 describe("Manifest.validate con datos rotos", function()
 	it("nombra el asset sin triángulos en vez de reventar", function()
 		local problems = validate(entry({ triangles = "muchos" }))
