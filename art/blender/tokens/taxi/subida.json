@@ -1,0 +1,17 @@
+{
+  "taxi_body_cream": "rbxassetid://137708554774758",
+  "taxi_body_dark": "rbxassetid://126187163151566",
+  "taxi_body_glass": "rbxassetid://126221105256296",
+  "taxi_body_red": "rbxassetid://135043097064829",
+  "taxi_body_steel": "rbxassetid://117224687992090",
+  "taxi_body_taxi": "rbxassetid://133679178418934",
+  "taxi_hub_fl": "rbxassetid://101935644262910",
+  "taxi_hub_fr": "rbxassetid://118064728432243",
+  "taxi_hub_rl": "rbxassetid://74648570844846",
+  "taxi_hub_rr": "rbxassetid://93761344485243",
+  "taxi_plate": "rbxassetid://107338938974746",
+  "taxi_wheel_fl": "rbxassetid://99627256194187",
+  "taxi_wheel_fr": "rbxassetid://115685131189268",
+  "taxi_wheel_rl": "rbxassetid://96023591534927",
+  "taxi_wheel_rr": "rbxassetid://117716876824341"
+}
