@@ -297,20 +297,20 @@ describe("LobbyRules datos de teletransporte", function()
 end)
 
 describe("LobbyRules: elección de ficha", function()
-	local function party()
+	local function twoPlayerParty()
 		local base = LobbyRules.newParty("AB3K9Z", 1, "", 0)
 		return (LobbyRules.join(base, 2, 0)) :: LobbyRules.Party
 	end
 
 	it("guarda la elección sin mutar la party que recibe", function()
-		local original = party()
+		local original = twoPlayerParty()
 		local updated = LobbyRules.chooseToken(original, 1, "moto") :: LobbyRules.Party
 		expect((updated.tokens :: any)["1"]).toBe("moto")
 		expect(original.tokens).toBe(nil)
 	end)
 
 	it("rechaza una ficha ajena, una inexistente y a quien no es miembro", function()
-		local updated = LobbyRules.chooseToken(party(), 1, "moto") :: LobbyRules.Party
+		local updated = LobbyRules.chooseToken(twoPlayerParty(), 1, "moto") :: LobbyRules.Party
 		local taken, takenReason = LobbyRules.chooseToken(updated, 2, "moto")
 		expect(taken).toBe(nil)
 		expect(type(takenReason)).toBe("string")
@@ -320,7 +320,7 @@ describe("LobbyRules: elección de ficha", function()
 	end)
 
 	it("quien se va libera su ficha", function()
-		local updated = LobbyRules.chooseToken(party(), 1, "moto") :: LobbyRules.Party
+		local updated = LobbyRules.chooseToken(twoPlayerParty(), 1, "moto") :: LobbyRules.Party
 		local left = LobbyRules.leave(updated, 1) :: LobbyRules.Party
 		expect(left.tokens ~= nil and (left.tokens :: any)["1"]).toBe(nil)
 		expect(LobbyRules.chooseToken(left, 2, "moto") ~= nil).toBe(true)
