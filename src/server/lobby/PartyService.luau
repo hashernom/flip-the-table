@@ -9,6 +9,7 @@ local Players = game:GetService("Players")
 local Lobby = require("../../shared/config/Lobby")
 local Places = require("../../shared/config/Places")
 local Rng = require("../../shared/rules/Rng")
+local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
 local LobbyRules = require("./LobbyRules")
 local PartyCode = require("./PartyCode")
@@ -259,6 +260,32 @@ function PartyService.join(player: Player, code: string): (boolean, string?)
 	return true, nil
 end
 
+-- Guarda la ficha que elige un miembro. `update` es atómico: dos miembros que piden la misma a la
+-- vez no pueden quedarse los dos con ella. Quien no está en una party no tiene nada que elegir: en la
+-- cola pública las fichas se reparten al empezar.
+function PartyService.chooseToken(player: Player, tokenId: string): (boolean, string?)
+	local config = current()
+	local code: string? = codeByUser[player.UserId]
+	if code == nil then
+		local message = "Crea o únete a una party para elegir ficha."
+		notify(player, message, "Error")
+		return false, message
+	end
+	local updated, reason = config.store.update(
+		code,
+		function(party: LobbyRules.Party?): (LobbyRules.Party?, string?)
+			return LobbyRules.chooseToken(party, player.UserId, tokenId)
+		end
+	)
+	if updated == nil then
+		local message = reason or "No se pudo elegir esa ficha."
+		notify(player, message, "Error")
+		return false, message
+	end
+	notify(player, `Tu ficha: {Strings.token(tokenId)}.`, "Info")
+	return true, nil
+end
+
 -- Arranca la partida de la party. Solo el anfitrión, con el código vigente y al menos 2 miembros.
 -- Con el lugar de partida sin publicar no se intenta teletransportar: se contesta que falta
 -- publicarlo (R-P31). Un fallo del teletransporte se reintenta y, si persiste, el grupo sigue en
@@ -310,7 +337,7 @@ function PartyService.start(host: Player, endMode: Types.EndMode): (boolean, str
 	end
 
 	starting[code] = true
-	local data = LobbyRules.partyData(config.seed(), code, endMode, #players)
+	local data = LobbyRules.partyData(config.seed(), code, endMode, #players, party.tokens)
 	local ok, failure = LobbyRules.retry(function(): (boolean, string?)
 		return config.teleport.reserve(players, data)
 	end, Lobby.teleportAttempts, task.wait)

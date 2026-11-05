@@ -31,6 +31,7 @@ type JoinData = {
 	endMode: EndMode,
 	code: string?,
 	size: number?,
+	tokens: { [string]: string }?,
 }
 
 -- Rango del estado de Rng (31 bits): la semilla del motor no puede salir de ahí.
@@ -77,11 +78,24 @@ local function readJoinData(player: Player): JoinData?
 	then
 		size = nil
 	end
+	-- Las elecciones son datos del cliente en tránsito: solo se copian textos. Que la ficha exista y
+	-- no se repita lo decide `TokenRules.assign` al crear la partida.
+	local tokens: { [string]: string }? = nil
+	if type(teleportData.tokens) == "table" then
+		local clean: { [string]: string } = {}
+		for playerId, tokenId in teleportData.tokens do
+			if type(playerId) == "string" and type(tokenId) == "string" then
+				clean[playerId] = tokenId
+			end
+		end
+		tokens = clean
+	end
 	return {
 		seed = math.floor(seed),
 		endMode = endMode :: EndMode,
 		code = if type(code) == "string" then code else nil,
 		size = size :: number?,
+		tokens = tokens,
 	}
 end
 
@@ -147,7 +161,7 @@ local function tryStart()
 	-- `starting` cubre el hueco entre el aviso de PlayerAdded y el bucle de espera: MatchService
 	-- no debe arrancar dos veces la misma partida.
 	starting = true
-	local ok, err = pcall(MatchService.start, group, seed, endMode)
+	local ok, err = pcall(MatchService.start, group, seed, endMode, if data ~= nil then data.tokens else nil)
 	starting = false
 	if not ok then
 		warn(`Lugar de partida: no se pudo empezar la partida: {err}`)

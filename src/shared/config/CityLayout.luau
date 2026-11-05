@@ -223,24 +223,34 @@ CityLayout.SIDEWALK_STUDS = SIDEWALK
 CityLayout.SLOT_LENGTH_STUDS = SLOT_LENGTH
 CityLayout.SLOT_DEPTH_STUDS = SLOT_DEPTH
 CityLayout.SLOT_SIDE_STUDS = SLOT_SIDE
--- Marco pintado de una casilla: ocupa todo el ancho del asfalto. A lo largo de la calle es algo más estrecho, y aun
--- así caben las ocho fichas. Una esquina ocupa el cuadrado entero del cruce.
+-- Marco pintado de una casilla: ocupa todo el ancho del asfalto y, a lo largo de la calle, lo que
+-- deja la separación entre casillas. Una esquina ocupa el cuadrado entero del cruce. Las fichas
+-- pueden salirse algo del marco a lo ancho; lo que no puede es invadir la casilla vecina.
 CityLayout.PAINT_ACROSS_STUDS = STREET_WIDTH - 1
 CityLayout.PAINT_ALONG_STUDS = 28
 
--- Reparto de las fichas que comparten casilla: cuatro a lo largo y dos filas, con la base de
--- `art/escala.md`. Caben las ocho de una partida llena dentro de la pintura.
+-- Reparto de las fichas que comparten casilla. Los vehículos de `art/blender/tokens` miden unos
+-- 6,5 de ancho por 12,4 de largo (`TOKEN_WIDTH` y `TOKEN_LENGTH`), así que a lo largo se pisarían
+-- con menos de 13,5 studs. Las filas a lo ancho de la calle (`side`) se llenan primero, hasta tres;
+-- solo cuando hacen falta más, se añade otra posición a lo largo (`along`).
 local TOKEN_BASE = 6
-local TOKEN_LANES = 4
-local TOKEN_LANE_STUDS = 7
-local TOKEN_ROW_STUDS = 7.5
+local TOKEN_WIDTH = 6.5
+local TOKEN_LENGTH = 12.4
+local TOKEN_LANES = 3
+local TOKEN_ROW_STUDS = 7
+local TOKEN_LANE_STUDS = 13.5
 
 CityLayout.TOKEN_BASE_STUDS = TOKEN_BASE
-CityLayout.TOKEN_LANE_STUDS = TOKEN_LANE_STUDS
+CityLayout.TOKEN_WIDTH_STUDS = TOKEN_WIDTH
+CityLayout.TOKEN_LENGTH_STUDS = TOKEN_LENGTH
+CityLayout.TOKEN_LANES = TOKEN_LANES
 CityLayout.TOKEN_ROW_STUDS = TOKEN_ROW_STUDS
+CityLayout.TOKEN_LANE_STUDS = TOKEN_LANE_STUDS
 
 -- Sitio de la ficha número `order` de las `count` que hay en una casilla, medido desde el eje de la
--- calle: `side` hacia la derecha de la marcha y `along` hacia delante.
+-- calle: `side` hacia la derecha de la marcha y `along` hacia delante. El grupo queda centrado en
+-- SLOT_SIDE a lo ancho (según las filas ocupadas, como mucho `TOKEN_LANES`) y en el centro de la
+-- casilla a lo largo (según cuántas posiciones a lo largo hacen falta).
 function CityLayout.tokenOffset(order: number, count: number): TokenOffset
 	if count <= 1 then
 		return { side = SLOT_SIDE, along = 0 }
@@ -250,8 +260,8 @@ function CityLayout.tokenOffset(order: number, count: number): TokenOffset
 	local lane = (order - 1) % TOKEN_LANES
 	local row = (order - 1) // TOKEN_LANES
 	return {
-		side = SLOT_SIDE + ((rows - 1) / 2 - row) * TOKEN_ROW_STUDS,
-		along = (lane - (lanes - 1) / 2) * TOKEN_LANE_STUDS,
+		side = SLOT_SIDE + (lane - (lanes - 1) / 2) * TOKEN_ROW_STUDS,
+		along = ((rows - 1) / 2 - row) * TOKEN_LANE_STUDS,
 	}
 end
 

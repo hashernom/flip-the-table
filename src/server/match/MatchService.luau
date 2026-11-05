@@ -503,7 +503,12 @@ end
 
 -- Empieza una partida con los jugadores dados. Falla con un mensaje claro si ya hay otra en
 -- curso; una terminada se puede sustituir (R-P21).
-function MatchService.start(players: { Player }, seed: number, endMode: EndMode): Match
+function MatchService.start(
+	players: { Player },
+	seed: number,
+	endMode: EndMode,
+	tokens: { [PlayerId]: string }?
+): Match
 	if current and not current.finished then
 		error("MatchService.start: ya hay una partida en curso; termínala o abandónala antes", 2)
 	end
@@ -516,7 +521,7 @@ function MatchService.start(players: { Player }, seed: number, endMode: EndMode)
 		byId[playerId] = player
 	end
 	-- State.create valida de 2 a 8 jugadores, ids repetidos y el modo de partida.
-	local state = State.create({ playerIds = playerIds, seed = seed, endMode = endMode })
+	local state = State.create({ playerIds = playerIds, seed = seed, endMode = endMode, tokens = tokens })
 	local match = newMatch(state, byId, seed, now)
 	-- `current` se publica al final: si el arranque falla (remotos, vista inicial o latido), el
 	-- servidor no queda con una partida actual a medias que bloquee la siguiente.

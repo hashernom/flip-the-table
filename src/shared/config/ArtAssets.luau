@@ -45,6 +45,23 @@ ArtAssets.REFRESH_SEC = 1
 -- Lo que el edificio se retrasa en el solar: delante van los marcadores.
 ArtAssets.FRONT_OFFSET = 2
 
+-- Fichas finales por id de `Tokens`. Hasta registrar las suyas, una ficha se ve con `ArtAssets.taxi`.
+-- `seat` y `axle` van en studs y en ejes de Roblox, respecto al centro de la base: la conversión desde
+-- los `stats.json` de Blender se hace al registrar los datos.
+export type TokenWheel = {
+	wheel: Piece,
+	hub: Piece?,
+	axle: { x: number, y: number, z: number },
+	radius: number,
+}
+export type TokenArt = {
+	body: { Piece },
+	plate: Piece?,
+	seat: { x: number, y: number, z: number },
+	wheels: { TokenWheel },
+}
+ArtAssets.tokens = {} :: { [string]: TokenArt }
+
 -- Por el nombre que da `Strings.squareLabel`. Los añadidos, en orden de nivel.
 ArtAssets.properties = {
 	["Barbería Morro"] = {
@@ -1498,6 +1515,18 @@ function ArtAssets.all(): { Piece }
 		end
 	end
 	table.move(ArtAssets.taxi, 1, #ArtAssets.taxi, #pieces + 1, pieces)
+	for _, token in ArtAssets.tokens do
+		table.move(token.body, 1, #token.body, #pieces + 1, pieces)
+		if token.plate ~= nil then
+			table.insert(pieces, token.plate)
+		end
+		for _, wheel in token.wheels do
+			table.insert(pieces, wheel.wheel)
+			if wheel.hub ~= nil then
+				table.insert(pieces, wheel.hub)
+			end
+		end
+	end
 	for _, kind in ArtAssets.street do
 		table.move(kind, 1, #kind, #pieces + 1, pieces)
 	end

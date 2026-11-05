@@ -6,12 +6,15 @@ local HotZone = require("./HotZone")
 local Perks = require("./Perks")
 local Rng = require("./Rng")
 local Score = require("./Score")
+local TokenRules = require("./TokenRules")
 local Types = require("./Types")
 
 export type CreateOptions = {
 	playerIds: { Types.PlayerId },
 	seed: number,
 	endMode: Types.EndMode?,
+	-- Ficha elegida por cada jugador. Quien no eligió, bots incluidos, recibe una libre.
+	tokens: { [Types.PlayerId]: string }?,
 }
 
 local State = {}
@@ -26,9 +29,10 @@ local function endModeOf(endMode: Types.EndMode?): Types.EndMode
 	error(`State.create: el modo de partida "{endMode}" no existe; usa "Rounds" o "Endless"`, 3)
 end
 
-local function newPlayer(id: Types.PlayerId): Types.Player
+local function newPlayer(id: Types.PlayerId, tokenId: string): Types.Player
 	return {
 		id = id,
+		tokenId = tokenId,
 		isBot = false,
 		status = "Active",
 		cash = Economy.startingCash,
@@ -75,11 +79,14 @@ function State.create(opts: CreateOptions): Types.GameState
 	-- El orden barajado es el orden de turnos: state.players lo conserva.
 	local order = Rng.shuffle(rng, opts.playerIds)
 
+	-- Se reparte sin tocar `rng`: elegir ficha no puede cambiar la partida de una semilla.
+	local tokens = TokenRules.assign(opts.playerIds, opts.tokens or {})
+
 	local players: { Types.Player } = {}
 	local stats: Types.MatchStats = {}
 	local perkUses: { [Types.PlayerId]: { [string]: number } } = {}
 	for index, id in order do
-		players[index] = newPlayer(id)
+		players[index] = newPlayer(id, tokens[id])
 		stats[id] = {}
 		perkUses[id] = {}
 	end

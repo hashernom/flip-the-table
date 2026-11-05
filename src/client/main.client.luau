@@ -176,7 +176,7 @@ local function boot()
 
 	-- Una ficha por asiento del servidor, también para los bots: el resto del grupo tiene que ver a todo
 	-- el mundo sobre su casilla, no solo a quien tiene cliente.
-	local function ensureToken(id: string, seat: number, index: number): Model?
+	local function ensureToken(id: string, seat: number, index: number, tokenId: string?): Model?
 		local existing = tokens[id]
 		if existing then
 			return existing
@@ -185,7 +185,7 @@ local function boot()
 		if handles == nil then
 			return nil
 		end
-		local token = TokenRider.create(id, handles.sizeId, seatColor(seat), handles.tokens)
+		local token = TokenRider.create(id, handles.sizeId, seatColor(seat), handles.tokens, tokenId)
 		TokenRider.place(token, index)
 		tokens[id] = token
 		if id == playerId then
@@ -215,7 +215,7 @@ local function boot()
 		end
 		local offsets = WorldRules.tokenOffsets(view.players)
 		for seat, seated in view.players do
-			local token = ensureToken(seated.id, seat, seated.position)
+			local token = ensureToken(seated.id, seat, seated.position, seated.tokenId)
 			-- Un detenido se queda donde la escena lo deja hasta que acaba: no se le recoloca ni se le remonta.
 			if arrest.holds(seated.id) then
 				continue
@@ -298,6 +298,7 @@ local function boot()
 	-- interrumpe nunca.
 	Look.apply()
 	Ambience.start()
+	TokenRider.startMotion()
 	task.spawn(function()
 		local art = ReplicatedStorage:WaitForChild(ArtAssets.FOLDER, REMOTE_WAIT_SEC)
 		if art == nil then

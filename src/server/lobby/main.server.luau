@@ -131,6 +131,16 @@ Remotes.remote(Protocol.REMOTES.PartyStart).OnServerEvent:Connect(function(playe
 	end)
 end)
 
+Remotes.remote(Protocol.REMOTES.TokenChoose).OnServerEvent:Connect(function(player: Player, packet: any)
+	local accepted = accept(player, packet)
+	if accepted == nil then
+		return
+	end
+	forward("elegir ficha", function()
+		PartyService.chooseToken(player, accepted.tokenId)
+	end)
+end)
+
 Remotes.remote(Protocol.REMOTES.QueueJoin).OnServerEvent:Connect(function(player: Player, packet: any)
 	if accept(player, packet) == nil then
 		return

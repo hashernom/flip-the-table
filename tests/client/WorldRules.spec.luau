@@ -113,21 +113,48 @@ describe("WorldRules.tokenOffsets", function()
 end)
 
 describe("CityLayout.tokenOffset", function()
-	it("ocho fichas caben en su casilla pintada sin pisarse", function()
-		local token = CityLayout.TOKEN_BASE_STUDS / 2
-		local seen: { [string]: boolean } = {}
-		for order = 1, 8 do
-			local offset = CityLayout.tokenOffset(order, 8)
-			expect(math.abs(offset.along) + token <= CityLayout.SLOT_LENGTH_STUDS / 2).toBe(true)
-			expect(
-				math.abs(offset.side - CityLayout.SLOT_SIDE_STUDS) + token <= CityLayout.SLOT_DEPTH_STUDS / 2
-			).toBe(true)
-			local key = `{offset.side},{offset.along}`
-			expect(seen[key]).toBe(nil)
-			seen[key] = true
+	it("ningún par de fichas se solapa con un rectángulo de ancho × largo de ficha", function()
+		for count = 1, 8 do
+			for first = 1, count do
+				for second = first + 1, count do
+					local a = CityLayout.tokenOffset(first, count)
+					local b = CityLayout.tokenOffset(second, count)
+					local overlap = math.abs(a.side - b.side) < CityLayout.TOKEN_WIDTH_STUDS
+						and math.abs(a.along - b.along) < CityLayout.TOKEN_LENGTH_STUDS
+					expect(overlap).toBe(false)
+				end
+			end
 		end
-		expect(CityLayout.TOKEN_LANE_STUDS >= CityLayout.TOKEN_BASE_STUDS).toBe(true)
-		expect(CityLayout.TOKEN_ROW_STUDS >= CityLayout.TOKEN_BASE_STUDS).toBe(true)
+	end)
+
+	it("ninguna ficha invade la casilla vecina a lo largo de la calle", function()
+		for count = 1, 8 do
+			for order = 1, count do
+				local offset = CityLayout.tokenOffset(order, count)
+				local reach = math.abs(offset.along) + CityLayout.TOKEN_LENGTH_STUDS / 2
+				expect(reach <= CityLayout.SQUARE_SPACING_STUDS / 2).toBe(true)
+			end
+		end
+	end)
+
+	it("cada ficha de una casilla ocupa un sitio distinto", function()
+		for count = 1, 8 do
+			local seen: { [string]: boolean } = {}
+			for order = 1, count do
+				local offset = CityLayout.tokenOffset(order, count)
+				local key = `{offset.side},{offset.along}`
+				expect(seen[key]).toBe(nil)
+				seen[key] = true
+			end
+		end
+	end)
+
+	it("con hasta tres fichas, todas van en la misma fila a lo ancho de la calle", function()
+		for count = 1, 3 do
+			for order = 1, count do
+				expect(CityLayout.tokenOffset(order, count).along).toBe(0)
+			end
+		end
 	end)
 
 	it("el grupo queda centrado en la casilla", function()
@@ -267,13 +294,9 @@ describe("CityLayout.lotCenter", function()
 end)
 
 Harness.describe("CityLayout: marco pintado de la casilla", function()
-	Harness.it("cruza el asfalto sin salirse, y caben las ocho fichas a lo largo", function()
+	Harness.it("cruza el asfalto sin salirse y no pasa de su casilla", function()
 		Harness.expect(CityLayout.PAINT_ACROSS_STUDS <= CityLayout.STREET_WIDTH_STUDS).toBe(true)
 		Harness.expect(CityLayout.PAINT_ALONG_STUDS <= CityLayout.SQUARE_SPACING_STUDS).toBe(true)
-		for order = 1, 8 do
-			local offset = CityLayout.tokenOffset(order, 8)
-			Harness.expect(math.abs(offset.along) + 3 <= CityLayout.PAINT_ALONG_STUDS / 2).toBe(true)
-		end
 	end)
 end)
 

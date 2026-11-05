@@ -58,6 +58,7 @@ export type PropertyState = {
 
 export type Player = {
 	id: PlayerId,
+	tokenId: string,
 	isBot: boolean,
 	status: PlayerStatus,
 	cash: number,
@@ -123,6 +124,7 @@ export type ApplyResult = { ok: true, events: { Event } } | { ok: false, error: 
 -- se sabe (View.forPlayer es el único sitio que decide).
 export type ViewPlayer = {
 	id: PlayerId,
+	tokenId: string,
 	isBot: boolean,
 	status: PlayerStatus,
 	cash: number,

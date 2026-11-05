@@ -56,6 +56,17 @@ local function asParty(value: any): Party?
 		end
 		members[index] = member
 	end
+	-- Una elección corrupta se pierde sola: el miembro recibe una ficha libre al empezar.
+	local tokens: { [string]: string }? = nil
+	if type(value.tokens) == "table" then
+		local clean: { [string]: string } = {}
+		for playerId, tokenId in value.tokens do
+			if type(playerId) == "string" and type(tokenId) == "string" then
+				clean[playerId] = tokenId
+			end
+		end
+		tokens = clean
+	end
 	return {
 		code = code,
 		hostId = hostId,
@@ -63,6 +74,7 @@ local function asParty(value: any): Party?
 		serverId = serverId,
 		createdAt = createdAt,
 		expiresAt = expiresAt,
+		tokens = tokens,
 	}
 end
 

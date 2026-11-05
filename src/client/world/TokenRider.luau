@@ -1,14 +1,17 @@
 --!strict
--- Ficha provisional del jugador y recorrido por la ruta. Arte gris: una caja con un asiento, sin
--- detalle, que solo sirve para comprobar que el avatar sube y que la ficha recorre la calle en el
--- tiempo previsto.
+-- Ficha del jugador y recorrido por la ruta. La base es una caja gris con un asiento que comprueba
+-- que el avatar sube y que la ficha recorre la calle en el tiempo previsto; `dress` la viste con su
+-- vehículo real en cuanto sus mallas están cargadas.
 --
 -- La ficha guarda su tamaño en un atributo, así que `ride` y `place` resuelven sus posiciones con
 -- `CityLayout` sin que nadie les pase la ciudad: la geometría tiene una sola fuente. El cuerpo es la
 -- parte principal y las demás van soldadas a él, así que mover el cuerpo mueve la ficha entera.
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local CameraRules = require("../camera/CameraRules")
+local TokenMotion = require("./TokenMotion")
+local Tokens = require("../../shared/config/Tokens")
 local CityLayout = require("../../shared/config/CityLayout")
 
 type SizeId = CityLayout.SizeId
@@ -22,8 +25,37 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local WELD_NAME = "TokenWeld"
 local RIDE_STEP = 1 / 30
+local DRESSED_NAME = "Vehicle"
 
 local TokenRider = {}
+
+-- Estado de movimiento de cada ficha de este cliente. `base` es donde está sin rebotes: el reposo, la
+-- marcha y la celebración se aplican encima y no se acumulan. Las ruedas van ancladas y se colocan
+-- respecto al cuerpo en cada cambio: soldadas no podrían girar.
+type SpinningWheel = { parts: { BasePart }, axle: Vector3, radius: number }
+type Motion = {
+	base: CFrame,
+	phase: number,
+	riding: boolean,
+	celebrateStart: number?,
+	rolled: number,
+	wheels: { SpinningWheel },
+}
+local motions: { [Model]: Motion } = {}
+local motionConnection: RBXScriptConnection? = nil
+
+-- Coloca las ruedas de una ficha según lo que ha rodado.
+local function placeWheels(motion: Motion, body: BasePart)
+	local origin = body.CFrame * CFrame.new(0, -BODY_SIZE.Y / 2, 0)
+	for _, wheel in motion.wheels do
+		local pose = origin
+			* CFrame.new(wheel.axle)
+			* CFrame.Angles(-TokenMotion.wheelAngle(motion.rolled, wheel.radius), 0, 0)
+		for _, mesh in wheel.parts do
+			mesh.CFrame = pose
+		end
+	end
+end
 
 -- Altura del asiento sobre la base de la ficha, que es donde se apoyan los pies del avatar.
 function TokenRider.seatHeight(): number
@@ -73,7 +105,13 @@ end
 -- Crea la ficha gris de un asiento. `ownerId` es el id del jugador en el motor (el userId en texto),
 -- que también vale para un bot: una ficha no necesita un `Player` para existir. `color` es la franja
 -- que la identifica; el resto va en gris.
-function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, parent: Instance): Model
+function TokenRider.create(
+	ownerId: string,
+	sizeId: SizeId,
+	color: Color3,
+	parent: Instance,
+	tokenId: string?
+): Model
 	local model = Instance.new("Model")
 	model.Name = `Token_{ownerId}`
 
@@ -91,6 +129,21 @@ function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, paren
 
 	model:SetAttribute("SizeId", sizeId)
 	model:SetAttribute("Index", 1)
+	model:SetAttribute(
+		"TokenId",
+		if tokenId ~= nil and Tokens.byId(tokenId) ~= nil then tokenId else Tokens.DEFAULT_ID
+	)
+	motions[model] = {
+		base = body.CFrame,
+		phase = TokenMotion.phaseOf(ownerId),
+		riding = false,
+		celebrateStart = nil,
+		rolled = 0,
+		wheels = {},
+	}
+	model.Destroying:Once(function()
+		motions[model] = nil
+	end)
 	model.Parent = parent
 	TokenRider.dress(model)
 	return model
@@ -134,49 +187,121 @@ function TokenRider.isHidden(token: Model): boolean
 	return token:GetAttribute(HIDDEN_ATTRIBUTE) == true
 end
 
--- Viste la ficha con el taxi real si ya está cargado. Sin él sigue siendo la gris; se puede repetir.
-function TokenRider.dress(token: Model)
-	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
-	local body = token.PrimaryPart
-	if folder == nil or body == nil or token:FindFirstChild("Taxi") ~= nil then
-		return
-	end
-	local origin = body.CFrame * CFrame.new(0, -BODY_SIZE.Y / 2, 0)
-	local dressed = Instance.new("Folder")
-	dressed.Name = "Taxi"
-	local pieces: { BasePart } = {}
-	for _, piece in ArtAssets.taxi do
+-- Las mallas de una lista, copiadas y colocadas respecto a `origin`, o nil si falta alguna por cargar.
+local function cloneAll(
+	pieces: { ArtAssets.Piece },
+	folder: Instance,
+	origin: CFrame,
+	parent: Instance
+): { BasePart }?
+	local clones: { BasePart } = {}
+	for _, piece in pieces do
 		local source = folder:FindFirstChild(piece.key)
 		if source == nil or not source:IsA("BasePart") then
-			dressed:Destroy()
-			return
+			return nil
 		end
 		local mesh = source:Clone()
 		mesh.CFrame = origin * source.CFrame
 		mesh.Anchored = false
-		mesh.Parent = dressed
-		table.insert(pieces, mesh)
+		mesh.Parent = parent
+		table.insert(clones, mesh)
+	end
+	return clones
+end
+
+-- Viste la ficha con su vehículo real si ya está cargado; sin el suyo, con el taxi. Sin ninguno sigue
+-- siendo la gris. Se puede repetir.
+function TokenRider.dress(token: Model)
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local body = token.PrimaryPart
+	if folder == nil or body == nil or token:FindFirstChild(DRESSED_NAME) ~= nil then
+		return
+	end
+	local origin = body.CFrame * CFrame.new(0, -BODY_SIZE.Y / 2, 0)
+	local dressed = Instance.new("Folder")
+	dressed.Name = DRESSED_NAME
+	local tokenId = token:GetAttribute("TokenId")
+	local art = if type(tokenId) == "string" then ArtAssets.tokens[tokenId] else nil
+
+	local pieces = cloneAll(if art ~= nil then art.body else ArtAssets.taxi, folder, origin, dressed)
+	if pieces == nil then
+		dressed:Destroy()
+		return
+	end
+	local wheels: { SpinningWheel } = {}
+	local plate: BasePart? = nil
+	if art ~= nil then
+		if art.plate ~= nil then
+			local plates = cloneAll({ art.plate }, folder, origin, dressed)
+			if plates == nil then
+				dressed:Destroy()
+				return
+			end
+			plate = plates[1]
+			table.insert(pieces, plates[1])
+		end
+		for _, wheel in art.wheels do
+			local list = { wheel.wheel }
+			if wheel.hub ~= nil then
+				table.insert(list, wheel.hub)
+			end
+			local parts = cloneAll(list, folder, origin, dressed)
+			if parts == nil then
+				dressed:Destroy()
+				return
+			end
+			for _, mesh in parts do
+				mesh.Anchored = true
+			end
+			table.insert(wheels, {
+				parts = parts,
+				axle = Vector3.new(wheel.axle.x, wheel.axle.y, wheel.axle.z),
+				radius = wheel.radius,
+			})
+		end
 	end
 	weldTo(pieces, body)
 	dressed.Parent = token
+	local motion = motions[token]
+	if motion ~= nil then
+		motion.wheels = wheels
+		placeWheels(motion, body)
+	end
 	-- El cuerpo sigue moviendo la ficha, pero ya no se ve.
 	body.Transparency = 1
+	local seat = token:FindFirstChild("Seat")
 	local stripe = token:FindFirstChild("Stripe")
 	if stripe ~= nil and stripe:IsA("BasePart") then
-		-- En el taxi, el color del asiento pasa a la placa del techo, bajo el avatar.
-		local seat = token:FindFirstChild("Seat")
 		if seat ~= nil and seat:IsA("BasePart") then
-			seat.Color = stripe.Color
+			-- El color del jugador pasa a la placa bajo el avatar: la malla si la hay, o el asiento.
+			if plate ~= nil then
+				plate.Color = stripe.Color
+			else
+				seat.Color = stripe.Color
+			end
 		end
 		stripe.Transparency = 1
 	end
-	-- Si la ficha estaba oculta, el taxi recién puesto también se oculta. El cuerpo y la franja ya son
+	if art ~= nil and seat ~= nil and seat:IsA("BasePart") then
+		-- La malla de la placa sustituye al asiento gris, que sigue siendo el punto de soldadura del avatar.
+		local weld = seat:FindFirstChild(WELD_NAME)
+		if weld ~= nil then
+			weld:Destroy()
+		end
+		seat.CFrame = origin * CFrame.new(art.seat.x, art.seat.y - SEAT_THICKNESS / 2, art.seat.z)
+		weldTo({ seat }, body)
+		seat.Transparency = 1
+	end
+	-- Si la ficha estaba oculta, el vehículo recién puesto también se oculta. El cuerpo y la franja ya son
 	-- invisibles, así que se guardan con transparencia 1: `show` no debe devolverlos visibles.
 	if TokenRider.isHidden(token) then
 		body:SetAttribute(SAVED_TRANSPARENCY, 1)
 		local hiddenStripe = token:FindFirstChild("Stripe")
 		if hiddenStripe ~= nil and hiddenStripe:IsA("BasePart") then
 			hiddenStripe:SetAttribute(SAVED_TRANSPARENCY, 1)
+		end
+		if art ~= nil and seat ~= nil and seat:IsA("BasePart") then
+			seat:SetAttribute(SAVED_TRANSPARENCY, 1)
 		end
 		TokenRider.hide(token)
 	end
@@ -227,7 +352,13 @@ end
 
 -- Coloca la ficha en una casilla sin animación. Se usa al entrar en la partida y al resincronizar.
 function TokenRider.place(token: Model, index: number, offset: CityLayout.TokenOffset?)
-	bodyOf(token).CFrame = cframeAt(slotAt(token, index), offset)
+	local body = bodyOf(token)
+	body.CFrame = cframeAt(slotAt(token, index), offset)
+	local motion = motions[token]
+	if motion ~= nil then
+		motion.base = body.CFrame
+		placeWheels(motion, body)
+	end
 	remember(token, index, offset)
 end
 
@@ -408,10 +539,15 @@ function TokenRider.ride(
 		return 0
 	end
 
+	local motion = motions[token]
+	if motion ~= nil then
+		motion.riding = true
+		motion.celebrateStart = nil
+	end
 	local step = seconds / #targets
 	for order, index in targets do
 		local offset = if order == #targets then arrival else nil
-		local from = body.CFrame
+		local from = if motion ~= nil then motion.base else body.CFrame
 		local to = cframeAt(route[index] :: CityLayout.Slot, offset)
 		local elapsed = 0
 		while elapsed < step do
@@ -419,12 +555,67 @@ function TokenRider.ride(
 			local alpha = math.min(1, elapsed / step)
 			-- Suavizado para que el arranque y la frenada no den tirones.
 			local eased = alpha * alpha * (3 - 2 * alpha)
-			body.CFrame = from:Lerp(to, eased)
+			local pose = from:Lerp(to, eased)
+			if motion ~= nil then
+				motion.rolled += (pose.Position - motion.base.Position).Magnitude
+				motion.base = pose
+				body.CFrame = pose * CFrame.new(0, TokenMotion.rideLift(motion.rolled), 0)
+				placeWheels(motion, body)
+			else
+				body.CFrame = pose
+			end
 		end
 		body.CFrame = to
+		if motion ~= nil then
+			motion.base = to
+			placeWheels(motion, body)
+		end
 		remember(token, index, offset)
 	end
+	if motion ~= nil then
+		motion.riding = false
+	end
 	return seconds
+end
+
+-- Salto de celebración con una vuelta. Lo aplica el latido de `startMotion`; no bloquea a quien lo llama y
+-- la marcha lo cancela. Termina exactamente donde empezó.
+function TokenRider.celebrate(token: Model)
+	local motion = motions[token]
+	if motion ~= nil and not motion.riding then
+		motion.celebrateStart = os.clock()
+	end
+end
+
+-- Latido del reposo y la celebración, una sola vez por cliente. Solo mueve fichas quietas y visibles: la
+-- marcha se mueve sola y una ficha oculta está en plena escena.
+function TokenRider.startMotion()
+	if motionConnection ~= nil then
+		return
+	end
+	motionConnection = RunService.Heartbeat:Connect(function()
+		local now = os.clock()
+		for token, motion in motions do
+			local body = token.PrimaryPart
+			if body == nil or motion.riding or TokenRider.isHidden(token) then
+				continue
+			end
+			local started = motion.celebrateStart
+			if started ~= nil then
+				local progress = (now - started) / Tokens.motion.celebrateSec
+				if progress >= 1 then
+					motion.celebrateStart = nil
+				else
+					local lift, yaw = TokenMotion.celebrate(progress)
+					body.CFrame = motion.base * CFrame.new(0, lift, 0) * CFrame.Angles(0, yaw, 0)
+					placeWheels(motion, body)
+					continue
+				end
+			end
+			body.CFrame = motion.base * CFrame.new(0, TokenMotion.idleLift(now, motion.phase), 0)
+			placeWheels(motion, body)
+		end
+	end)
 end
 
 -- Burbuja efímera sobre la ficha: es como se ven los emotes del grupo. Se destruye sola; dos seguidos

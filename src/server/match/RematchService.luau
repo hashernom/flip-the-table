@@ -176,7 +176,18 @@ local function applyDecision(match: Match, decision: Decision)
 
 	if decision == "Start" and #accepted >= Lobby.minPlayers then
 		local seed = nextSeed(match.seed)
-		local ok: boolean, err: any = (pcall :: any)(MatchService.start, accepted, seed, match.state.endMode)
+		-- Quien sigue conserva su ficha: es la suya, no se vuelve a repartir.
+		local tokens: { [string]: string } = {}
+		for _, seated in match.state.players do
+			tokens[seated.id] = seated.tokenId
+		end
+		local ok: boolean, err: any = (pcall :: any)(
+			MatchService.start,
+			accepted,
+			seed,
+			match.state.endMode,
+			tokens
+		)
 		if ok then
 			print(
 				`RematchService: revancha con {#accepted} jugadores, semilla {seed}, `

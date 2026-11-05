@@ -144,6 +144,17 @@ local DUEL_CHOICES: { [string]: string } = {
 	Scissors = "Tijera",
 }
 
+local TOKENS: { [string]: string } = {
+	taxi = "Taxi",
+	limusina = "Limusina",
+	moto = "Moto",
+	deportivo = "Deportivo",
+	["food-truck"] = "Food truck",
+	["camion-helados"] = "Camión de helados",
+	grua = "Grúa",
+	autobus = "Autobús",
+}
+
 local Strings = {}
 
 -- Nombre del barrio, que es la agrupación de zonas que la ciudad muestra en la calle.
@@ -171,6 +182,11 @@ function Strings.property(zoneId: string, ordinal: number): string
 		error(`Strings: la zona {zoneId} no tiene una propiedad {ordinal}`, 2)
 	end
 	return name
+end
+
+-- Nombre de una ficha. Un id desconocido se devuelve tal cual: debe verse feo, no romper el aviso.
+function Strings.token(tokenId: string): string
+	return TOKENS[tokenId] or tokenId
 end
 
 function Strings.kind(kind: SquareKind): string

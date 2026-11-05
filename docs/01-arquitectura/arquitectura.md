@@ -90,7 +90,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 
 ### Datos: `src/shared/config`
 
-`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings` y `CityLayout`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
+`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings`, `CityLayout` y `Tokens`. Todo número ajustable vive aquí, nunca en la lógica. `Tokens` es el catálogo de las ocho fichas: id, prefijo de malla y asiento del avatar. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
 
 ### Servidor
 

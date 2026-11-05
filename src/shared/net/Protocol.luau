@@ -9,6 +9,8 @@ export type Limiter = {
 	allow: (playerId: string, now: number) -> boolean,
 }
 
+local Tokens = require("../config/Tokens")
+
 local Protocol = {}
 
 -- Los remotos de la subfase 04. El gateway del lugar de partida crea Action, Batch y Resync, y el
@@ -25,6 +27,7 @@ Protocol.REMOTES = {
 	PartyCreate = "PartyCreateRequest",
 	PartyJoin = "PartyJoinRequest",
 	PartyStart = "PartyStartRequest",
+	TokenChoose = "TokenChooseRequest",
 	QueueJoin = "QueueJoinRequest",
 	Notice = "LobbyNotice",
 	-- Emotes del cliente (plan 05): no son una acción del motor, así que no pasan por la puerta de
@@ -238,10 +241,16 @@ local END_MODES = { "Rounds", "Endless" }
 -- Peticiones del lobby (R-P29). Viven en Protocol, igual que las acciones de la partida, para que
 -- el nombre y la forma tengan una sola fuente de verdad. El lobby no las valida con
 -- Protocol.validate: un tipo de partida no debe colarse por el remoto del lobby ni al revés.
+-- Una de las ocho fichas del catálogo: lo que no está en la lista no llega a la party.
+local function isTokenId(value: any): boolean
+	return type(value) == "string" and Tokens.byId(value) ~= nil
+end
+
 local LOBBY_SPECS: { [string]: ActionSpec } = {
 	PartyCreate = { required = {}, fields = {} },
 	PartyJoin = { required = { "code" }, fields = { code = isPartyCode } },
 	PartyStart = { required = { "endMode" }, fields = { endMode = oneOf(END_MODES) } },
+	TokenChoose = { required = { "tokenId" }, fields = { tokenId = isTokenId } },
 	QueueJoin = { required = {}, fields = {} },
 }
 

@@ -33,6 +33,7 @@ end
 local function viewPlayer(player: Types.Player, viewerId: PlayerId): ViewPlayer
 	local result: ViewPlayer = {
 		id = player.id,
+		tokenId = player.tokenId,
 		isBot = player.isBot,
 		status = player.status,
 		cash = player.cash,

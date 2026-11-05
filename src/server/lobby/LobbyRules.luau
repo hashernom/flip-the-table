@@ -3,6 +3,7 @@
 -- datos del teletransporte y reintentos de reserva. No usa game, task ni relojes: el instante y
 -- la espera entran por parámetro, así que Lune las prueba igual que Roblox.
 local Lobby = require("../../shared/config/Lobby")
+local TokenRules = require("../../shared/rules/TokenRules")
 local Types = require("../../shared/rules/Types")
 
 -- Una fiesta: código, anfitrión, miembros en orden de llegada, servidor del lobby donde vive el
@@ -15,6 +16,8 @@ export type Party = {
 	serverId: string,
 	createdAt: number,
 	expiresAt: number,
+	-- Ficha elegida por cada miembro, con el userId en texto, que es el id del jugador en el motor.
+	tokens: { [string]: string }?,
 }
 
 -- Datos que viajan al lugar de partida (R-P30): semilla, modo, código cuando es una party y
@@ -25,6 +28,8 @@ export type MatchData = {
 	endMode: Types.EndMode,
 	code: string?,
 	size: number,
+	-- Fichas elegidas en la party. La cola pública no lleva: se reparten al empezar.
+	tokens: { [string]: string }?,
 }
 
 -- Datos del salto lobby → lobby cuando la fiesta vive en otro servidor: solo el código, para que
@@ -43,6 +48,7 @@ local function copyParty(party: Party): Party
 		serverId = party.serverId,
 		createdAt = party.createdAt,
 		expiresAt = party.expiresAt,
+		tokens = if party.tokens ~= nil then table.clone(party.tokens) else nil,
 	}
 end
 
@@ -122,7 +128,29 @@ function LobbyRules.leave(party: Party, userId: number): Party?
 	if LobbyRules.isHost(party, userId) then
 		updated.hostId = remaining[1]
 	end
+	-- Su ficha vuelve a estar libre para los que se quedan.
+	if updated.tokens ~= nil then
+		updated.tokens[tostring(userId)] = nil
+	end
 	return updated
+end
+
+-- Fiesta con la ficha elegida por ese miembro, o nil y el motivo. Dos miembros no comparten ficha.
+function LobbyRules.chooseToken(party: Party?, userId: number, tokenId: string): (Party?, string?)
+	if party == nil then
+		return nil, "No estás en ninguna party."
+	end
+	if not LobbyRules.isMember(party, userId) then
+		return nil, "No estás en esta party."
+	end
+	local updated = copyParty(party)
+	local tokens = updated.tokens or {}
+	local accepted, reason = TokenRules.choose(tokens, tostring(userId), tokenId)
+	if not accepted then
+		return nil, reason
+	end
+	updated.tokens = tokens
+	return updated, nil
 end
 
 -- ¿Puede este jugador arrancar la partida? Solo el anfitrión, con el código vigente y al menos
@@ -163,8 +191,14 @@ end
 
 -- Datos de una party: el código para el registro del servidor de partida y el modo que eligió el
 -- anfitrión.
-function LobbyRules.partyData(seed: number, code: string, endMode: Types.EndMode, size: number): MatchData
-	return { seed = seed, endMode = endMode, code = code, size = size }
+function LobbyRules.partyData(
+	seed: number,
+	code: string,
+	endMode: Types.EndMode,
+	size: number,
+	tokens: { [string]: string }?
+): MatchData
+	return { seed = seed, endMode = endMode, code = code, size = size, tokens = tokens }
 end
 
 -- Reintenta `attempt` hasta `attempts` veces, esperando Lobby.teleportRetrySec entre intentos.
