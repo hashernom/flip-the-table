@@ -148,6 +148,16 @@ function ModelCityRules.seatColor(seat: number): string
 	return SEAT_COLORS[(seat - 1) % #SEAT_COLORS + 1]
 end
 
+-- Color estable para un dueño que ya no está sentado (o que aún no tiene ficha): sale de su id, así que
+-- dos dueños ausentes no comparten el mismo color por defecto.
+function ModelCityRules.colorForOwner(ownerId: string): string
+	local hash = 0
+	for index = 1, #ownerId do
+		hash = (hash * 31 + string.byte(ownerId, index)) % #SEAT_COLORS
+	end
+	return SEAT_COLORS[hash + 1]
+end
+
 local function seatOf(players: { any }, id: string): number?
 	for seat, seated in players do
 		if seated.id == id then
@@ -169,7 +179,7 @@ function ModelCityRules.cards(view: any, names: ViewText.Names?): { [number]: Ca
 		if ownerId == nil then
 			continue
 		end
-		local seat = seatOf(view.players or {}, ownerId)
+		local seat = seatOf(view.players, ownerId)
 		local seated = if seat ~= nil then view.players[seat] else nil
 		local cash = if seated ~= nil then seated.cash else 0
 		local level = property.level or 0
@@ -181,7 +191,9 @@ function ModelCityRules.cards(view: any, names: ViewText.Names?): { [number]: Ca
 			cash = cash,
 			level = level,
 			detail = `{cash} · {Strings.buildingLevel(level)}`,
-			color = if seat ~= nil then ModelCityRules.seatColor(seat) else SEAT_COLORS[1],
+			color = if seat ~= nil
+				then ModelCityRules.seatColor(seat)
+				else ModelCityRules.colorForOwner(ownerId),
 		}
 	end
 	return cards

@@ -7,8 +7,14 @@
 -- La escala, la colocación del plinto y lo que dice cada tarjeta salen de `ModelCityRules`, que es puro
 -- y se prueba con Lune. Aquí solo se convierten en `Instance`. La cámara y el botón son de `Overview` y
 -- `main.client`: esta maqueta solo aparece y desaparece, y `hide` la aparca sin dejar instancias sueltas.
+--
+-- La ciudad real sigue alrededor, visible: no se oculta porque esconder cientos de piezas no se ha
+-- medido y no es cosa de esta maqueta. Si se decide ocultarla, se hace desde `main.client`, que es quien
+-- manda en la ciudad, y se mide antes.
 local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+local ArtAssets = require("../../shared/config/ArtAssets")
 local CityBuilder = require("./CityBuilder")
 local CityLayout = require("../../shared/config/CityLayout")
 local ModelCityRules = require("./ModelCityRules")
@@ -74,6 +80,25 @@ local MARKER_BALL_RATIO = 0.85
 -- Altura a la que se mira la maqueta desde la cámara, sobre la cara del plinto.
 local FOCUS_LIFT = 14
 
+-- Clases que no viajan a la miniatura: etiquetas de pantalla (la maqueta pone las suyas), focos,
+-- partículas y sonidos (la ciudad real ya los tiene y duplicarlos cuesta). Se quedan los `SurfaceGui`
+-- de los nombres pintados y los `Decal` de la calzada: son parte del aspecto de la ciudad y a escala
+-- siguen aportando.
+local CLONE_STRIPPED = {
+	"BillboardGui",
+	"Highlight",
+	"PointLight",
+	"SpotLight",
+	"SurfaceLight",
+	"ParticleEmitter",
+	"Fire",
+	"Smoke",
+	"Sparkles",
+	"Beam",
+	"Trail",
+	"Sound",
+}
+
 type CardHandle = {
 	anchor: Part,
 	name: TextLabel,
@@ -85,16 +110,18 @@ local root: Model? = nil
 local miniature: Model? = nil
 local plinth: Plinth? = nil
 local builtSize: ModelCityRules.SizeId? = nil
+-- Último tamaño pedido. Es el respaldo de `focus` si la primera apertura falla antes de tener plinto.
+local lastSize: ModelCityRules.SizeId? = nil
 -- Ciudad exacta de la que se copió la miniatura, y resumen con el que se decidió volver a copiarla.
 local builtFrom: Model? = nil
 local builtKey: string? = nil
+-- La sube `invalidate` para forzar otra copia sin recorrer la ciudad.
+local version = 0
 local cards: { [number]: CardHandle } = {}
 local lastCards: { [number]: CardData }? = nil
 local markersKey: string? = nil
 local plaqueEffects: { TextLabel } = {}
 local open = false
-local lastView: any = nil
-local lastNames: Names? = nil
 
 local ModelCity = {}
 
@@ -612,21 +639,42 @@ local function ensureMarkers(city: CityHandles, view: any, geometry: Plinth)
 	markersKey = key
 end
 
--- Resumen de lo que se ve en la ciudad. La miniatura se vuelve a copiar solo si cambió: dueños,
--- niveles, Zona Caliente o el número de piezas (arte que acaba de cargar).
-local function cityKey(city: CityHandles, view: any): string
+-- ¿Ya están las mallas reales? Es una sola consulta al atributo que deja el cargador, no un recorrido
+-- del modelo; sin esto, una miniatura copiada antes de cargar el arte se quedaría gris.
+local function artReady(): boolean
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	return folder ~= nil and folder:GetAttribute(ArtAssets.READY_ATTRIBUTE) == true
+end
+
+local function isStripped(instance: Instance): boolean
+	for _, className in CLONE_STRIPPED do
+		if instance:IsA(className) then
+			return true
+		end
+	end
+	return false
+end
+
+-- Clave de la vista, sin recorrer la ciudad: dueños y niveles, Zona Caliente, número de propiedades, la
+-- versión que sube `invalidate` y si el arte ya está. Se vuelve a copiar la miniatura solo cuando cambia
+-- algo de eso; con la vista abierta, un lote que solo mueve dinero no reescala nada.
+local function viewKey(view: any): string
 	local props: { string } = {}
+	local count = 0
 	for index, property in view.properties or {} do
+		count += 1
 		table.insert(props, `{index}:{property.ownerId or ""}:{property.level}`)
 	end
 	table.sort(props)
-	return `{#city.model:GetDescendants()}|{table.concat(props, ",")}|{tostring(view.hotZoneId)}`
+	local art = if artReady() then "art" else "grey"
+	return `{count}|{table.concat(props, ",")}|{tostring(view.hotZoneId)}|{version}|{art}`
 end
 
--- Copia la ciudad, la escala y la apoya en el cristal. Se quitan las fichas reales y las etiquetas de
--- pantalla del clon: la maqueta pone las suyas, y un `BillboardGui` clonado se vería gigante.
+-- Copia la ciudad, la escala y la apoya en el cristal. Al clon se le quitan las fichas reales, las
+-- etiquetas de pantalla, los focos, las partículas y los sonidos; los nombres pintados (`SurfaceGui`) y
+-- el desgaste de la calzada (`Decal`) se quedan, porque son la ciudad que se quiere enseñar.
 local function ensureMiniature(city: CityHandles, view: any, geometry: Plinth)
-	local key = cityKey(city, view)
+	local key = viewKey(view)
 	if miniature ~= nil and builtKey == key and builtFrom == city.model then
 		return
 	end
@@ -643,7 +691,7 @@ local function ensureMiniature(city: CityHandles, view: any, geometry: Plinth)
 		tokens:Destroy()
 	end
 	for _, descendant in clone:GetDescendants() do
-		if descendant:IsA("BillboardGui") or descendant:IsA("Highlight") then
+		if isStripped(descendant) then
 			descendant:Destroy()
 		elseif descendant:IsA("BasePart") then
 			descendant.Anchored = true
@@ -699,6 +747,7 @@ end
 
 local function showNow(city: CityHandles, view: any, names: Names?)
 	local sizeId: ModelCityRules.SizeId = city.sizeId
+	lastSize = sizeId
 	local geometry = ModelCityRules.plinthFor(sizeId)
 	if root == nil or builtSize ~= sizeId then
 		ModelCity.destroy()
@@ -715,16 +764,12 @@ local function showNow(city: CityHandles, view: any, names: Names?)
 		current.Parent = Workspace
 	end
 	open = true
-	lastView = view
-	lastNames = names
 end
 
--- Monta o actualiza la maqueta y la enseña. Es idempotente: si la vista no cambió, no hace nada.
+-- Monta o actualiza la maqueta y la enseña. Repetirla con la misma vista es barato: la clave decide si
+-- hay que volver a copiar la ciudad y las tarjetas solo se tocan si cambiaron.
 function ModelCity.show(city: CityBuilder.CityHandles, view: any, names: ViewText.Names?)
 	if city == nil or view == nil then
-		return
-	end
-	if open and root ~= nil and root.Parent ~= nil and lastView == view and lastNames == names then
 		return
 	end
 	local ok: boolean, err: any = pcall(showNow, city, view, names)
@@ -741,12 +786,16 @@ function ModelCity.hide()
 		current.Parent = nil
 	end
 	open = false
-	lastView = nil
-	lastNames = nil
 end
 
 function ModelCity.isOpen(): boolean
 	return open and root ~= nil and root.Parent ~= nil
+end
+
+-- Fuerza a volver a copiar la ciudad en la siguiente llamada a `show`. Para cambios que la vista no
+-- cuenta: por ejemplo, retoques de la ciudad o arte que no pasa por el atributo de cargado.
+function ModelCity.invalidate()
+	version += 1
 end
 
 -- Libera la maqueta. `hide` basta para cerrarla; esto es para cuando la ciudad desaparece (revancha o
@@ -767,14 +816,26 @@ function ModelCity.destroy()
 	markersKey = nil
 	plaqueEffects = {}
 	open = false
-	lastView = nil
-	lastNames = nil
+end
+
+-- Geometría del plinto para la cámara: la de la maqueta o, si la primera apertura falló antes de
+-- tenerla, la del último tamaño pedido.
+local function focusGeometry(): Plinth?
+	local geometry = plinth
+	if geometry ~= nil then
+		return geometry
+	end
+	local sizeId = lastSize
+	if sizeId == nil then
+		return nil
+	end
+	return ModelCityRules.plinthFor(sizeId :: any)
 end
 
 -- Punto al que debe mirar la cámara de la vista general, y radio que tiene que abarcar. No son parte de
 -- la interfaz mínima: están para que el cableado de la cámara no tenga que repetir las medidas.
 function ModelCity.focus(): Vector3?
-	local geometry = plinth
+	local geometry = focusGeometry()
 	if geometry == nil then
 		return nil
 	end
@@ -782,7 +843,7 @@ function ModelCity.focus(): Vector3?
 end
 
 function ModelCity.radius(): number?
-	local geometry = plinth
+	local geometry = focusGeometry()
 	if geometry == nil then
 		return nil
 	end
