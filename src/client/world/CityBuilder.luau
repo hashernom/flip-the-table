@@ -217,7 +217,12 @@ local function makeSquare(model: Model, slot: CityLayout.Slot): Part
 	text.BackgroundTransparency = 1
 	text.Size = UDim2.fromScale(1, 1)
 	text.Font = Enum.Font.GothamBold
-	text.TextSize = NAME_TEXT_SIZE
+	-- Se encoge y parte en dos líneas si no cabe: un nombre largo no puede pisar el de al lado.
+	text.TextScaled = true
+	text.TextWrapped = true
+	local limit = Instance.new("UITextSizeConstraint")
+	limit.MaxTextSize = NAME_TEXT_SIZE
+	limit.Parent = text
 	text.TextColor3 = NAME_PAINT
 	text.Text = Strings.squareLabel(toSquare(slot), slot.ordinal)
 	text.Parent = surface

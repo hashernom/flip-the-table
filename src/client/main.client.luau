@@ -46,6 +46,7 @@ local function boot()
 
 	local CameraDirector = require("./camera/CameraDirector")
 	local ArtAssets = require("../shared/config/ArtAssets")
+	local StreetDressing = require("./world/StreetDressing")
 	local BuildingView = require("./world/BuildingView")
 	local Look = require("./world/Look")
 	local CityBuilder = require("./world/CityBuilder")
@@ -142,6 +143,7 @@ local function boot()
 		city = handles
 		size = sizeId
 		BuildingView.bind(handles)
+		StreetDressing.build(handles)
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
 
@@ -265,6 +267,9 @@ local function boot()
 			art.AttributeChanged:Wait()
 		end
 		BuildingView.refreshArt()
+		if city ~= nil then
+			StreetDressing.build(city)
+		end
 		for _, token in tokens do
 			TokenRider.dress(token)
 		end

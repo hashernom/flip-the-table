@@ -49,6 +49,16 @@ export type BuildingBlock = {
 	height: number,
 }
 
+-- Un objeto de la calle: dónde va su base y hacia dónde mira.
+export type Dressing = {
+	kind: string,
+	x: number,
+	y: number,
+	z: number,
+	lookX: number,
+	lookZ: number,
+}
+
 export type LevelMarker = {
 	along: number,
 	front: number,
@@ -267,6 +277,67 @@ CityLayout.LOT_DEPTH_STUDS = LOT_DEPTH
 -- Centro del solar de una casilla.
 function CityLayout.lotCenter(slot: Slot): Vector3Like
 	return outward(slot, STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2)
+end
+
+-- Mobiliario de una manzana: va en las aceras y, en la junta entre dos casillas, sin pisar su pintura.
+-- Los árboles van en las juntas, a ambos lados: así no tapan fachadas ni nombres desde el interior del
+-- anillo, que es desde donde mira la cámara. La cebra cierra los dos extremos.
+local SIDEWALK_TOP = 0.4
+local JOINT_ALONG = SQUARE_SPACING / 2
+local LAMP_ALONG, LAMP_OUT = -13, 18
+local BENCH_ALONG, BENCH_OUT = 9, 22.6
+local TREE_OUT = 19.5
+local INNER_TREE_OUT = -20.5
+
+-- Todo lo que amuebla las casillas de `zoneId`, de la primera a la última, con las de en medio incluidas.
+function CityLayout.dressingFor(sizeId: SizeId, zoneId: string): { Dressing }
+	local route = CityLayout.routeFor(sizeId)
+	local first, last = math.huge, -math.huge
+	for _, slot in route do
+		if slot.zoneId == zoneId then
+			first, last = math.min(first, slot.index), math.max(last, slot.index)
+		end
+	end
+	local items: { Dressing } = {}
+	if first > last then
+		return items
+	end
+
+	local function place(kind: string, slot: Slot, along: number, out: number, y: number)
+		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
+		-- Mira a la calle desde cualquiera de las dos aceras.
+		local towardStreet = if out > 0 then -1 else 1
+		table.insert(items, {
+			kind = kind,
+			x = slot.position.x + math.sin(slot.facing) * along + outX * out,
+			y = y,
+			z = slot.position.z + math.cos(slot.facing) * along + outZ * out,
+			lookX = outX * towardStreet,
+			lookZ = outZ * towardStreet,
+		})
+	end
+
+	for index = first, last do
+		local slot = route[index]
+		local before, after = route[index - 1], route[index + 1]
+		-- Una junta solo existe si la casilla vecina sigue en la misma recta: en la esquina no hay acera.
+		local straightBefore = before ~= nil and before.facing == slot.facing
+		local straightAfter = after ~= nil and after.facing == slot.facing
+		place("Lamp", slot, LAMP_ALONG, LAMP_OUT, SIDEWALK_TOP)
+		place("Bench", slot, BENCH_ALONG, BENCH_OUT, SIDEWALK_TOP)
+		if straightAfter then
+			if index < last then
+				place("Tree", slot, JOINT_ALONG, TREE_OUT, SIDEWALK_TOP)
+				place("Tree", slot, JOINT_ALONG, INNER_TREE_OUT, SIDEWALK_TOP)
+			else
+				place("Crosswalk", slot, JOINT_ALONG, 0, 0)
+			end
+		end
+		if index == first and straightBefore then
+			place("Crosswalk", slot, -JOINT_ALONG, 0, 0)
+		end
+	end
+	return items
 end
 
 -- Cada propiedad es un edificio fijo que existe desde el inicio (R-P50). Las medidas son de la ciudad

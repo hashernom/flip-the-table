@@ -228,6 +228,73 @@
         "rbxassetid://91742839184724",
         "rbxassetid://124072967548133"
       ]
+    },
+    {
+      "id": "street-tree",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_street_props.py",
+      "triangles": 608,
+      "lods": [
+        300
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
+      "assetId": "rbxassetid://74174494792219",
+      "assetIds": [
+        "rbxassetid://78926284968999",
+        "rbxassetid://119620634089187",
+        "rbxassetid://135956577114680"
+      ]
+    },
+    {
+      "id": "street-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_street_props.py",
+      "triangles": 264,
+      "lods": [
+        132
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
+      "assetId": "rbxassetid://120735512294385",
+      "assetIds": [
+        "rbxassetid://138721299588070"
+      ]
+    },
+    {
+      "id": "street-bench",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_street_props.py",
+      "triangles": 204,
+      "lods": [
+        82
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
+      "assetId": "rbxassetid://110425970866167",
+      "assetIds": [
+        "rbxassetid://87236384992095"
+      ]
+    },
+    {
+      "id": "street-crosswalk",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_street_props.py",
+      "triangles": 156,
+      "lods": [
+        68
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_street_props.py",
+      "assetId": "rbxassetid://119936557977117"
     }
   ]
 }

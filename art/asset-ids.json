@@ -65,7 +65,16 @@
     "taxi_dark": "rbxassetid://90234802967497",
     "taxi_glass": "rbxassetid://100862088195781",
     "taxi_steel": "rbxassetid://91742839184724",
-    "taxi_taxi": "rbxassetid://124072967548133"
+    "taxi_taxi": "rbxassetid://124072967548133",
+    "tree_bark": "rbxassetid://74174494792219",
+    "tree_leaf": "rbxassetid://78926284968999",
+    "tree_limestone": "rbxassetid://119620634089187",
+    "tree_soil": "rbxassetid://135956577114680",
+    "lamp_iron": "rbxassetid://120735512294385",
+    "lamp_lamp": "rbxassetid://138721299588070",
+    "bench_iron": "rbxassetid://110425970866167",
+    "bench_wood": "rbxassetid://87236384992095",
+    "crosswalk_paint": "rbxassetid://119936557977117"
   },
   "cc0": {
     "brick_red": {

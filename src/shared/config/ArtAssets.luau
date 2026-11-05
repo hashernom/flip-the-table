@@ -133,6 +133,30 @@ ArtAssets.taxi = {
 	piece("taxi_taxi", "124072967548133", { 245, 197, 24 }, "SmoothPlastic"),
 } :: { Piece }
 
+-- Mobiliario de la calle, por el `kind` que da `CityLayout.dressingFor`. Su origen es el centro de la base.
+ArtAssets.street = {
+	Tree = {
+		piece("tree_bark", "74174494792219", { 74, 58, 44 }, "Wood"),
+		piece("tree_leaf", "78926284968999", { 75, 107, 58 }, "Grass"),
+		piece("tree_limestone", "119620634089187", STONE, "Limestone"),
+		piece("tree_soil", "135956577114680", { 47, 42, 37 }, "Ground"),
+	},
+	Lamp = {
+		piece("lamp_iron", "120735512294385", { 35, 40, 43 }, "Metal"),
+		piece("lamp_lamp", "138721299588070", { 237, 229, 211 }, "SmoothPlastic"),
+	},
+	Bench = {
+		piece("bench_iron", "110425970866167", { 35, 40, 43 }, "Metal"),
+		piece("bench_wood", "87236384992095", { 122, 84, 51 }, "Wood"),
+	},
+	Crosswalk = {
+		piece("crosswalk_paint", "119936557977117", { 222, 216, 200 }, "Concrete"),
+	},
+} :: { [string]: { Piece } }
+
+-- Zonas con la calle ya ambientada: la de la porción vertical. El plan 07 añade las demás.
+ArtAssets.dressedZones = { "carmesi" }
+
 -- Mallas de una propiedad en un nivel, o nil si aún no tiene modelo real.
 function ArtAssets.piecesFor(name: string, level: number): { Piece }?
 	local property = ArtAssets.properties[name]
@@ -156,6 +180,9 @@ function ArtAssets.all(): { Piece }
 		end
 	end
 	table.move(ArtAssets.taxi, 1, #ArtAssets.taxi, #pieces + 1, pieces)
+	for _, kind in ArtAssets.street do
+		table.move(kind, 1, #kind, #pieces + 1, pieces)
+	end
 	for _, marker in ArtAssets.markers do
 		table.insert(pieces, marker)
 	end

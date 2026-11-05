@@ -1,6 +1,7 @@
 --!strict
 local Harness = require("../harness")
 local ArtAssets = require("../../src/shared/config/ArtAssets")
+local CityLayout = require("../../src/shared/config/CityLayout")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 describe("ArtAssets", function()
@@ -13,6 +14,39 @@ describe("ArtAssets", function()
 		local top = ArtAssets.piecesFor("Cine Lux de Medianoche", 5) :: { ArtAssets.Piece }
 		expect(#top >= #base + 5).toBe(true)
 		expect(top[1].key).toBe(base[1].key)
+	end)
+
+	it("todo el mobiliario se carga y cada zona ambientada coloca piezas que existen", function()
+		local loaded: { [string]: boolean } = {}
+		for _, piece in ArtAssets.all() do
+			loaded[piece.key] = true
+		end
+		for _, zone in ArtAssets.dressedZones do
+			local items = CityLayout.dressingFor("S", zone)
+			expect(#items > 0).toBe(true)
+			for _, item in items do
+				for _, piece in ArtAssets.street[item.kind] do
+					expect(loaded[piece.key]).toBe(true)
+				end
+			end
+		end
+	end)
+
+	it("el mobiliario va en la acera y la cebra en la calzada", function()
+		local span = CityLayout.spanFor("S")
+		local crosswalks = 0
+		for _, item in CityLayout.dressingFor("S", "carmesi") do
+			local fromAxis =
+				math.min(math.abs(item.x), math.abs(item.z), math.abs(item.x - span), math.abs(item.z - span))
+			if item.kind == "Crosswalk" then
+				crosswalks += 1
+				expect(fromAxis).toBe(0)
+			else
+				expect(fromAxis >= CityLayout.STREET_WIDTH_STUDS / 2).toBe(true)
+				expect(fromAxis <= CityLayout.STREET_WIDTH_STUDS / 2 + CityLayout.SIDEWALK_STUDS).toBe(true)
+			end
+		end
+		expect(crosswalks > 0).toBe(true)
 	end)
 
 	it("no carga dos veces la misma malla", function()
