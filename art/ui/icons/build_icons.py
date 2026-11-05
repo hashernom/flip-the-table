@@ -149,14 +149,13 @@ def plate_arrow():
     image, draw = canvas(width, height)
 
     def shape(layer, inset, fill, dy=0):
-        top, bottom = 12 + inset + dy, height - 24 - inset + dy
-        middle = (top + bottom) / 2
-        body_right = width - 170
-        layer.rounded_rectangle(box(12 + inset, top, body_right, bottom), radius=max(6, 44 - inset) * SS, fill=fill)
-        tip = [(body_right - 40, top), (body_right, top), (width - 16 - inset * 1.5, middle), (body_right, bottom), (body_right - 40, bottom)]
-        layer.polygon(pts(tip), fill=fill)
-        joint = pts([(body_right, top), (width - 16 - inset * 1.5, middle), (body_right, bottom)])
-        layer.line(joint, fill=fill, width=int(10 * SS), joint="curve")
+        # Todos los contornos son paralelos: la punta retrocede sqrt(2) por cada pixel hacia dentro.
+        top, bottom = 10 + inset + dy, height - 26 - inset + dy
+        half = (bottom - top) / 2
+        tip_x = width - 10 - inset * 1.4142
+        shoulder = tip_x - half
+        layer.rounded_rectangle(box(12 + inset, top, shoulder + 4, bottom), radius=max(6, 44 - inset) * SS, fill=fill)
+        layer.polygon(pts([(shoulder - 44, top), (shoulder, top), (tip_x, top + half), (shoulder, bottom), (shoulder - 44, bottom)]), fill=fill)
 
     shape(draw, 0, (20, 23, 26, 115), dy=12)
     shape(draw, 0, ASPHALT)

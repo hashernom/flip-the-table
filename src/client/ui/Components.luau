@@ -643,13 +643,14 @@ export type HangingSign = { root: Frame, row: Frame }
 function Components.HangingSign(parent: Instance, name: string, width: number): HangingSign
 	local root = frame(parent, name)
 	root.AnchorPoint = Vector2.new(0.5, 0)
-	root.Position = UDim2.new(0.5, 0, 0, 14)
+	root.Position = UDim2.new(0.5, 0, 0, Ui.signTop)
 	root.Size = UDim2.fromOffset(width, 54)
 	for _, x in { 0.14, 0.86 } do
 		local cord = frame(root, "Cord", color.asphalt)
 		cord.AnchorPoint = Vector2.new(0.5, 1)
 		cord.Position = UDim2.fromScale(x, 0)
-		cord.Size = UDim2.fromOffset(4, 16)
+		-- Llega hasta el borde de la ventana: de ahí cuelga.
+		cord.Size = UDim2.fromOffset(4, Ui.signTop + 4)
 	end
 	local plate = Components.Panel(root, "Plate", Ui.radius.pill)
 	plate.root.Size = UDim2.fromScale(1, 1)

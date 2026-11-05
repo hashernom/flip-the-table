@@ -15,11 +15,10 @@ return {
 	maxPanelHeightFraction = 0.6,
 	-- Ancho máximo, en píxeles, de los paneles y los modales; en pantallas estrechas mandan los 90 %.
 	maxPanelWidth = 460,
-	-- Minimapa: lado como fracción de la altura de la pantalla, con un tope en píxeles, y distancia
-	-- desde arriba para no pisar la barra.
-	miniMapHeightFraction = 0.27,
-	miniMapMaxSize = 220,
-	miniMapTop = 70,
+	-- Minimapa: lado y distancia a los bordes de la ventana.
+	miniMapSize = 192,
+	miniMapTop = 12,
+	miniMapRight = 12,
 
 	-- Paleta de art/guia-de-estilo.md §2.1, en `#RRGGBB` porque `Color3` es de Roblox. Las variantes
 	-- son la misma chapa en sombra: el labio del botón, el fondo del taxímetro y el tornillo.
@@ -53,9 +52,9 @@ return {
 	plateColumnLeft = 44,
 	plateColumnTop = 70,
 	plateTiers = {
-		large = { upTo = 3, plateHeight = 92, step = 104, disc = 78, name = 17, money = 25, arrow = 122 },
-		normal = { upTo = 5, plateHeight = 80, step = 92, disc = 68, name = 15, money = 22, arrow = 104 },
-		compact = { upTo = 8, plateHeight = 62, step = 70, disc = 54, name = 14, money = 19, arrow = 84 },
+		large = { upTo = 3, plateHeight = 70, step = 80, disc = 58, name = 15, money = 20, arrow = 84 },
+		normal = { upTo = 5, plateHeight = 66, step = 75, disc = 56, name = 14, money = 19, arrow = 80 },
+		compact = { upTo = 8, plateHeight = 60, step = 67, disc = 52, name = 14, money = 18, arrow = 74 },
 	},
 
 	-- Chapa de la flecha del turno: alto de la imagen y tramo que se estira a lo ancho.
@@ -67,7 +66,11 @@ return {
 
 	-- Letrero de ronda, título de escena y aviso.
 	roundSignWidth = 560,
-	bannerTop = 84,
+	-- El letrero cuelga del borde superior de la ventana.
+	signTop = 12,
+	bannerTop = 22,
+	-- Lo que dura en pantalla el título de un evento, aunque su escena siga.
+	bannerSeconds = 1.6,
 	bannerWidth = 420,
 	toastWidth = 460,
 

@@ -47,6 +47,56 @@ describe("Strings.get", function()
 	end)
 end)
 
+describe("Strings.eventTitle", function()
+	it("todo evento del motor tiene título en español, y el recorrido no lleva", function()
+		local events = {
+			"RoundStarted",
+			"FinalRoundsStarted",
+			"PerkDrafted",
+			"DiceRolled",
+			"PassedStart",
+			"PropertyBought",
+			"RentPaid",
+			"AuctionStarted",
+			"AuctionWon",
+			"AuctionNoSale",
+			"BuildingChanged",
+			"TradeCompleted",
+			"PlayerArrested",
+			"TribunalVerdict",
+			"BankruptcyDeclared",
+			"GhostActed",
+			"GhostResurrected",
+			"CardDrawn",
+			"CardDiscarded",
+			"CardPlayed",
+			"CardBlocked",
+			"HotZoneMoved",
+			"BillboardResult",
+			"DuelResolved",
+			"PortalUsed",
+			"MarketBought",
+			"PactFormed",
+			"PactEnded",
+			"PactBroken",
+			"CrownMoved",
+			"FuryFilled",
+			"GameEnded",
+		}
+		for _, id in events do
+			local title = Strings.eventTitle(id)
+			expect(#title > 0).toBe(true)
+			expect(title ~= id).toBe(true)
+		end
+		expect(Strings.eventTitle("TokenMoved")).toBe("")
+	end)
+
+	it("una carta se anuncia por su nombre y un id desconocido no se enseña", function()
+		expect(Strings.eventTitle("Hurricane")).toBe("Huracán")
+		expect(Strings.eventTitle("NoExiste")).toBe("")
+	end)
+end)
+
 describe("Strings.upper", function()
 	it("pasa a mayúsculas las vocales con tilde y la eñe", function()
 		expect(Strings.upper("María José")).toBe("MARÍA JOSÉ")

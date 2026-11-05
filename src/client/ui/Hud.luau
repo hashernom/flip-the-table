@@ -1,206 +1,264 @@
 --!strict
--- Barra de estado del cliente: ronda, fase, temporizador de la decisión, dinero de cada asiento y los
--- dos botones que no son una acción del motor: la vista general y los emotes. Es arte gris: texto y
--- rectángulos, nada más.
+-- HUD de la partida. Pinta la mesa en la columna izquierda (`Components.PlayerChip`, una placa por asiento),
+-- el letrero de ronda arriba, la mano en abanico y la calzada del plazo. Durante una escena se aparta para
+-- que se vea la ciudad, y vuelve al terminar. Las decisiones viven en `ActionMenu`, a la derecha.
 --
--- El temporizador se calcula con el reloj del servidor (`remainingSeconds`), así que dos clientes
--- enseñan la misma cuenta atrás aunque uno vaya un poco por detrás.
+-- El plazo se calcula con el reloj del servidor, así que dos clientes ven el mismo vehículo en el mismo
+-- trazo aunque uno vaya un poco por detrás.
+local StarterGui = game:GetService("StarterGui")
+local UserInputService = game:GetService("UserInputService")
+
 local ActionMenuRules = require("./ActionMenuRules")
+local Cards = require("../../shared/config/Cards")
+local Components = require("./Components")
+local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Protocol = require("../../shared/net/Protocol")
+local Strings = require("../../shared/config/Strings")
 local Theme = require("./Theme")
 local Ui = require("../../shared/config/Ui")
 local ViewText = require("./ViewText")
 
+local color = Theme.color
+local font = Theme.font
+
 export type Handles = {
 	gui: ScreenGui,
-	-- Fija la vista: ronda, fase, quién decide, y de cada asiento su dinero, casilla y marcas (Corona,
-	-- Traidor, Furia, perks, cartas), más tu mano. `names` resuelve los `playerId` a nombres.
 	setView: (view: any, names: ViewText.Names?) -> (),
-	-- Plazo de la decisión en tiempo del servidor; nil esconde la cuenta atrás.
+	-- Plazo de la decisión en tiempo del servidor; nil esconde la calzada.
 	setDeadline: (deadline: number?) -> (),
-	-- Rótulo de la escena en curso. Vacío lo esconde.
+	-- Título de la escena en curso. Vacío lo esconde.
 	setBanner: (text: string) -> (),
 	-- Aviso breve (una acción rechazada). Se esconde solo a los `Ui.toastSeconds`.
 	setToast: (text: string) -> (),
+	-- Durante una escena la interfaz se aparta.
+	setSceneMode: (active: boolean) -> (),
 	onOverview: (callback: () -> ()) -> (),
 	onEmote: (callback: (emote: string) -> ()) -> (),
 	destroy: (() -> ())?,
 }
 
-local PHASES: { [string]: string } = {
-	PerkDraft = "Elegir perk",
-	AwaitRoll = "Tirar dados",
-	AwaitBuy = "Comprar",
-	Auction = "Subasta",
-	Reaction = "Reacción",
-	Tribunal = "Tribunal",
-	Duel = "Duelo",
-	Market = "Mercado Negro",
-	AwaitEnd = "Fin del turno",
-	GhostTurn = "Turno de espectro",
-	GameOver = "Fin de la partida",
-}
-
 local Hud = {}
+
+-- Ronda en el círculo del letrero: «7/12», o solo el número en Sin Fin.
+local function roundShort(view: any): string
+	local max = view.maxRounds
+	if type(max) == "number" and max > 0 then
+		return `{math.min(view.round, max)}/{max}`
+	end
+	return tostring(view.round)
+end
+
+local RARITY_STAMP: { [string]: Components.StampKind } = {
+	Common = "Common",
+	Rare = "Rare",
+	Legendary = "Legendary",
+}
 
 function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	local gui = Theme.screenGui(playerGui, "Hud", 5)
 
-	-- Fila superior: ronda, fase, cuenta atrás y los dos botones fijos.
-	local top = Instance.new("Frame")
-	top.Name = "Top"
-	top.BackgroundColor3 = Theme.background
-	top.BackgroundTransparency = 0.1
-	top.BorderSizePixel = 0
-	top.Position = UDim2.fromOffset(0, 0)
-	top.Size = UDim2.new(1, 0, 0, 64)
-	top.Parent = gui
-	Theme.corner(top, 0)
+	-- La mesa ya dice quién hay y cómo va: la lista y la vida de Roblox sobran y ocupan ese rincón.
+	pcall(function()
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+	end)
 
-	-- Los textos van en una lista horizontal que ocupa lo que deja libre la botonera: en una pantalla
-	-- estrecha se aprietan en vez de solaparse o salirse por el borde.
-	local labels = Instance.new("Frame")
-	labels.Name = "Labels"
-	labels.BackgroundTransparency = 1
-	labels.Position = UDim2.fromOffset(12, 8)
-	labels.Size = UDim2.new(1, -260, 1, -16)
-	labels.Parent = top
+	-- La mesa: cuelga de la acera izquierda. Se aparta entera durante una escena.
+	local tableFrame = Instance.new("Frame")
+	tableFrame.Name = "Table"
+	tableFrame.BackgroundTransparency = 1
+	tableFrame.Size = UDim2.fromScale(1, 1)
+	tableFrame.Parent = gui
 
-	local labelLayout = Instance.new("UIListLayout")
-	labelLayout.FillDirection = Enum.FillDirection.Horizontal
-	labelLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-	labelLayout.Padding = UDim.new(0, 18)
-	labelLayout.Parent = labels
+	local chips: { [string]: Components.PlayerChip } = {}
+	local lastCash: { [string]: number } = {}
 
-	local function topLabel(name: string): TextLabel
-		local label = Instance.new("TextLabel")
-		label.Name = name
-		label.BackgroundTransparency = 1
-		label.Size = UDim2.fromOffset(0, 32)
-		label.AutomaticSize = Enum.AutomaticSize.X
-		label.FontFace = Theme.font.road
-		label.TextSize = 20
-		label.TextXAlignment = Enum.TextXAlignment.Left
-		label.TextColor3 = Theme.text
-		label.Text = ""
-		label.Parent = labels
-		return label
+	-- Letrero de ronda.
+	local sign = Components.HangingSign(gui, "RoundSign", Ui.roundSignWidth)
+	local roundDisc = Components.label(sign.row, "Round", "", {
+		face = font.roadBold,
+		size = 19,
+		tint = color.asphalt,
+		align = Enum.TextXAlignment.Center,
+	})
+	roundDisc.BackgroundTransparency = 0
+	roundDisc.BackgroundColor3 = color.limestone
+	roundDisc.Size = UDim2.fromOffset(62, 40)
+	roundDisc.LayoutOrder = 1
+	roundDisc.ZIndex = 5
+	local roundCorner = Instance.new("UICorner")
+	roundCorner.CornerRadius = UDim.new(0.5, 0)
+	roundCorner.Parent = roundDisc
+
+	local headline = Components.label(sign.row, "Headline", "", { face = font.road, size = 15, wrap = true })
+	headline.Size = UDim2.fromOffset(Ui.roundSignWidth - 62 - 190 - 116 - 56, 40)
+	headline.LayoutOrder = 2
+	headline.ZIndex = 5
+
+	local overviewButton = Components.SecondaryButton(
+		sign.row,
+		"OverviewButton",
+		Strings.get("hud.overview"),
+		Strings.get("hud.overviewKey"),
+		"map"
+	)
+	overviewButton.root.Size = UDim2.fromOffset(190, 44)
+	overviewButton.root.LayoutOrder = 3
+
+	local emoteButton =
+		Components.SecondaryButton(sign.row, "EmoteButton", Strings.get("hud.emotes"), nil, "smile")
+	emoteButton.root.Size = UDim2.fromOffset(116, 44)
+	emoteButton.root.LayoutOrder = 4
+
+	for _, button in { overviewButton.root, emoteButton.root } do
+		button.ZIndex = 5
+		for _, child in button:GetDescendants() do
+			if child:IsA("GuiObject") then
+				child.ZIndex = 5
+			end
+		end
 	end
 
-	local roundLabel = topLabel("Round")
-	roundLabel.LayoutOrder = 1
-	local phaseLabel = topLabel("Phase")
-	phaseLabel.LayoutOrder = 2
-	local timerLabel = topLabel("Timer")
-	timerLabel.LayoutOrder = 3
-	timerLabel.TextColor3 = Theme.accent
+	-- Mano en abanico: asoma de la calzada. Es solo lectura: jugar una carta va por el menú de acciones.
+	local hand = Instance.new("Frame")
+	hand.Name = "Hand"
+	hand.BackgroundTransparency = 1
+	hand.AnchorPoint = Vector2.new(0, 1)
+	hand.Position = UDim2.new(0, Ui.handLeft, 1, 0)
+	hand.Size = UDim2.fromOffset(Ui.handCardStep * Ui.handMaxCards, Ui.handVisibleHeight + Ui.roadHeight)
+	hand.Parent = gui
+	local handKey = ""
 
-	local overviewButton = Instance.new("TextButton")
-	overviewButton.Name = "OverviewButton"
-	overviewButton.AnchorPoint = Vector2.new(1, 0)
-	overviewButton.Position = UDim2.new(1, -12, 0, 6)
-	overviewButton.Size = UDim2.fromOffset(150, math.max(Theme.MIN_TOUCH, 52))
-	overviewButton.BackgroundColor3 = Theme.buttonColor
-	overviewButton.BorderSizePixel = 0
-	overviewButton.FontFace = Theme.font.road
-	overviewButton.TextSize = 16
-	overviewButton.TextColor3 = Theme.text
-	overviewButton.Text = "Vista general"
-	overviewButton.Parent = top
-	Theme.corner(overviewButton, 8)
+	-- Calzada del plazo.
+	local timer = Components.Timer(gui, "Road")
+	timer.root.ZIndex = 4
+	timer.root.Visible = false
 
-	local emoteButton = Instance.new("TextButton")
-	emoteButton.Name = "EmoteButton"
-	emoteButton.AnchorPoint = Vector2.new(1, 0)
-	emoteButton.Position = UDim2.new(1, -170, 0, 6)
-	emoteButton.Size = UDim2.fromOffset(60, math.max(Theme.MIN_TOUCH, 52))
-	emoteButton.BackgroundColor3 = Theme.buttonColor
-	emoteButton.BorderSizePixel = 0
-	emoteButton.FontFace = Theme.font.road
-	emoteButton.TextSize = 22
-	emoteButton.TextColor3 = Theme.text
-	emoteButton.Text = "🙂"
-	emoteButton.Parent = top
-	Theme.corner(emoteButton, 8)
+	-- Título de la escena: Luckiest Guy sobre asfalto con la barra de calzada debajo (guía §4).
+	local bannerPlate = Components.Panel(gui, "SceneBanner", Ui.radius.card)
+	bannerPlate.root.AnchorPoint = Vector2.new(0.5, 0)
+	bannerPlate.root.Position = UDim2.new(0.5, 0, 0, Ui.bannerTop)
+	bannerPlate.root.Size = UDim2.fromOffset(Ui.bannerWidth, 64)
+	bannerPlate.root.Visible = false
+	local bannerText = Components.label(bannerPlate.root, "Text", "", {
+		face = font.shout,
+		size = 32,
+		align = Enum.TextXAlignment.Center,
+		wrap = true,
+	})
+	bannerText.Size = UDim2.new(1, -24, 1, -6)
+	bannerText.Position = UDim2.fromOffset(12, 0)
+	bannerText.ZIndex = 5
+	local bannerBar = Instance.new("Frame")
+	bannerBar.Name = "RoadBar"
+	bannerBar.BorderSizePixel = 0
+	bannerBar.BackgroundColor3 = color.taxi
+	bannerBar.AnchorPoint = Vector2.new(0.5, 1)
+	bannerBar.Position = UDim2.new(0.5, 0, 1, -6)
+	bannerBar.Size = UDim2.fromOffset(120, 5)
+	bannerBar.ZIndex = 5
+	bannerBar.Parent = bannerPlate.root
 
-	-- Lista de asientos: quién decide, dinero y casilla de cada uno con sus marcas, y tu mano. Con ocho
-	-- asientos no cabe en un móvil, así que la lista hace scroll a partir de un alto máximo.
-	local seats = Instance.new("Frame")
-	seats.Name = "Seats"
-	seats.AnchorPoint = Vector2.new(0, 0)
-	seats.Position = UDim2.fromOffset(12, 72)
-	seats.Size = UDim2.fromOffset(300, 10)
-	seats.AutomaticSize = Enum.AutomaticSize.Y
-	seats.BackgroundColor3 = Theme.panelColor
-	seats.BackgroundTransparency = 0.1
-	seats.BorderSizePixel = 0
-	seats.Parent = gui
-	Theme.corner(seats)
-	Theme.padding(seats, 8)
-
-	local seatList = Theme.scrollList(seats, "List", 1)
-
-	-- Rótulo de escena: lo que está pasando ahora mismo, para todo el grupo.
-	local banner = Instance.new("TextLabel")
-	banner.Name = "SceneBanner"
-	banner.AnchorPoint = Vector2.new(0.5, 0)
-	banner.Position = UDim2.new(0.5, 0, 0, 80)
-	banner.Size = UDim2.fromOffset(420, 54)
-	banner.BackgroundColor3 = Theme.background
-	banner.BackgroundTransparency = 0.15
-	banner.BorderSizePixel = 0
-	banner.FontFace = Theme.font.road
-	banner.TextScaled = true
-	banner.TextColor3 = Theme.text
-	banner.Text = ""
-	banner.Visible = false
-	banner.Parent = gui
-	Theme.corner(banner)
-
-	-- Aviso breve de la barra: el motivo de una acción rechazada, que el jugador debe leer sin que
-	-- le tape la mesa ni le robe el foco.
-	local toast = Instance.new("TextLabel")
-	toast.Name = "Toast"
-	toast.AnchorPoint = Vector2.new(0.5, 0)
-	toast.Position = UDim2.new(0.5, 0, 0, 140)
-	toast.Size = UDim2.fromScale(0.9, 0)
-	toast.AutomaticSize = Enum.AutomaticSize.Y
-	toast.BackgroundColor3 = Theme.danger
-	toast.BackgroundTransparency = 0.1
-	toast.BorderSizePixel = 0
-	toast.FontFace = Theme.font.road
-	toast.TextSize = 16
-	toast.TextWrapped = true
-	toast.TextColor3 = Theme.text
-	toast.Text = ""
-	toast.Visible = false
-	toast.Parent = gui
-	Theme.corner(toast)
-	Theme.padding(toast, 6)
-	local toastLimit = Instance.new("UISizeConstraint")
-	toastLimit.MaxSize = Vector2.new(Ui.maxPanelWidth, math.huge)
-	toastLimit.Parent = toast
+	-- Aviso breve: una acción rechazada. Es una pérdida pequeña, así que va en rojo.
+	local toastPlate = Components.Panel(gui, "Toast", Ui.radius.card, color.signal)
+	toastPlate.root.AnchorPoint = Vector2.new(0.5, 0)
+	toastPlate.root.Position = UDim2.new(0.5, 0, 0, Ui.signTop + 66)
+	toastPlate.root.Size = UDim2.fromOffset(Ui.toastWidth, 44)
+	toastPlate.root.Visible = false
+	local toastText = Components.label(toastPlate.root, "Text", "", {
+		face = font.textBold,
+		size = 16,
+		align = Enum.TextXAlignment.Center,
+		wrap = true,
+	})
+	toastText.Size = UDim2.new(1, -24, 1, 0)
+	toastText.Position = UDim2.fromOffset(12, 0)
+	toastText.ZIndex = 5
 	local toastToken = 0
+	local bannerToken = 0
 
-	-- Emotes: una fila corta que se abre y se cierra con el botón de la barra.
+	-- Emotes: una fila de discos que se despliega del letrero.
 	local emoteBar = Instance.new("Frame")
 	emoteBar.Name = "Emotes"
-	emoteBar.AnchorPoint = Vector2.new(1, 0)
-	emoteBar.Position = UDim2.new(1, -12, 0, 66)
-	emoteBar.Size = UDim2.fromOffset(300, math.max(Theme.MIN_TOUCH, 48))
 	emoteBar.BackgroundTransparency = 1
+	emoteBar.AnchorPoint = Vector2.new(0.5, 0)
+	emoteBar.Position = UDim2.new(0.5, 0, 0, Ui.signTop + 62)
+	emoteBar.Size = UDim2.fromOffset(#Protocol.EMOTES * 56, 48)
 	emoteBar.Visible = false
 	emoteBar.Parent = gui
-
 	local emoteLayout = Instance.new("UIListLayout")
 	emoteLayout.FillDirection = Enum.FillDirection.Horizontal
-	emoteLayout.Padding = UDim.new(0, 6)
-	emoteLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	emoteLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	emoteLayout.Padding = UDim.new(0, 8)
 	emoteLayout.Parent = emoteBar
 
-	-- Plazo de la decisión vigente. La cuenta atrás lo lee cada 0,2 s; el resto de la barra cambia con
-	-- cada lote.
 	local deadline: number? = nil
+	local deadlineTotal = 0
+	local sceneActive = false
+
+	local function refreshTimer()
+		local remaining = ActionMenuRules.remainingSeconds(deadline, serverNow())
+		if remaining == nil or sceneActive then
+			timer.set(nil, nil)
+		else
+			timer.set(remaining, deadlineTotal)
+		end
+	end
+
+	local overviewListeners: { () -> () } = {}
+	overviewButton.onActivated(function()
+		for _, listener in overviewListeners do
+			listener()
+		end
+	end)
+	local connections: { RBXScriptConnection } = {}
+	table.insert(
+		connections,
+		UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+			if not processed and input.KeyCode == Enum.KeyCode.M then
+				for _, listener in overviewListeners do
+					listener()
+				end
+			end
+		end)
+	)
+
+	local function drawHand(view: any)
+		local own: any = nil
+		for _, seated in view.players do
+			if seated.id == view.playerId then
+				own = seated
+			end
+		end
+		local cards = if own ~= nil and own.hand ~= nil then own.hand else {}
+		local key = table.concat(cards, ",")
+		if key == handKey then
+			return
+		end
+		handKey = key
+		for _, child in hand:GetChildren() do
+			child:Destroy()
+		end
+		local count = #cards
+		for index, cardId in cards do
+			local def = Cards.byId[cardId]
+			if def ~= nil then
+				local stamp: Components.StampKind = RARITY_STAMP[def.rarity] or "Common"
+				local card = Components.Card(
+					hand,
+					`Card{index}`,
+					Strings.get(`card.{cardId}.name`),
+					stamp,
+					Strings.get(`rarity.{def.rarity}`)
+				)
+				local offset = index - (count + 1) / 2
+				card.Position =
+					UDim2.fromOffset((index - 1) * Ui.handCardStep, math.abs(offset) * Ui.handFanDrop)
+				card.Rotation = offset * Ui.handFanDegrees
+			end
+		end
+	end
 
 	local handles: Handles = {
 		gui = gui,
@@ -208,87 +266,159 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			if view == nil then
 				return
 			end
-			roundLabel.Text = ViewText.roundText(view)
-			local phase = PHASES[view.phase] or view.phase
-			phaseLabel.Text = phase
+			roundDisc.Text = roundShort(view)
+			headline.Text = Strings.upper(ViewText.headline(view, names))
 
-			for _, child in seatList:GetChildren() do
-				if child:IsA("TextLabel") then
-					child:Destroy()
+			local count = #view.players
+			local turnIndex = if view.phase ~= "GameOver" then view.turnIndex else nil
+			local pending = if view.pending ~= nil then view.pending else {}
+			local slots = HudRules.slots(count, turnIndex)
+
+			local rows: { Components.PlayerChipData } = {}
+			local widths: { number } = {}
+			for index, seated in view.players do
+				local data: Components.PlayerChipData = {
+					name = ViewText.seatName(view, names, seated.id),
+					cash = seated.cash,
+					tint = Color3.fromHex(Ui.seatColors[(index - 1) % #Ui.seatColors + 1]),
+					userId = if seated.isBot == true then nil else tonumber(seated.id),
+					isTurn = slots[index].isTurn,
+					isGhost = seated.status == "Ghost",
+					isBot = seated.isBot == true,
+					hasLeft = seated.status == "Left",
+					crown = pending.crownId == seated.id,
+					traitor = seated.traitorUntilRound ~= nil and view.round <= seated.traitorUntilRound,
+					fury = seated.fury,
+					furyMax = Economy.furyThreshold,
+					cards = seated.handCount,
+					skipTurn = seated.skipTurns > 0,
+				}
+				rows[index] = data
+				table.insert(widths, Components.chipContentWidth(data, count))
+			end
+			local width = HudRules.columnWidth(widths)
+
+			local seen: { [string]: boolean } = {}
+			for index, seated in view.players do
+				seen[seated.id] = true
+				local chip = chips[seated.id]
+				local isNew = chip == nil
+				if chip == nil then
+					chip = Components.PlayerChip(tableFrame, `Seat{index}`)
+					chips[seated.id] = chip
+				end
+				local goal = UDim2.fromOffset(Ui.plateColumnLeft, slots[index].y)
+				if isNew then
+					chip.root.Position = goal
+				else
+					Components.tween(chip.root, Ui.motion.plateShift, { Position = goal })
+				end
+				local previous = lastCash[seated.id]
+				chip.set(rows[index], count, width, previous ~= nil)
+				if previous ~= nil and previous ~= seated.cash then
+					chip.floatMoney(seated.cash - previous)
+				end
+				lastCash[seated.id] = seated.cash
+			end
+			for id, chip in chips do
+				if not seen[id] then
+					chip.destroy()
+					chips[id] = nil
+					lastCash[id] = nil
 				end
 			end
-			local function line(name: string, text: string, order: number, color: Color3, bold: boolean)
-				local label = Instance.new("TextLabel")
-				label.Name = name
-				label.BackgroundTransparency = 1
-				label.Size = UDim2.new(1, -8, 0, 20)
-				label.AutomaticSize = Enum.AutomaticSize.Y
-				label.LayoutOrder = order
-				label.FontFace = if bold then Theme.font.road else Theme.font.text
-				label.TextSize = 15
-				label.TextWrapped = true
-				label.TextXAlignment = Enum.TextXAlignment.Left
-				label.TextColor3 = color
-				label.Text = text
-				label.Parent = seatList
-			end
-			line("Headline", ViewText.headline(view, names), 0, Theme.accent, true)
-			for index, seated in view.players do
-				local color = if seated.status == "Active" then Theme.text else Theme.muted
-				line(`Seat_{index}`, ViewText.seatLine(view, names, index), index, color, false)
-			end
-			for index, text in ViewText.ownLines(view, names) do
-				line(`Own_{index}`, text, 100 + index, Theme.muted, false)
-			end
+
+			drawHand(view)
 		end,
 		setDeadline = function(value: number?)
 			deadline = value
 			local remaining = ActionMenuRules.remainingSeconds(value, serverNow())
-			timerLabel.Text = if remaining ~= nil then `{math.ceil(remaining)} s` else ""
+			deadlineTotal = if remaining ~= nil then remaining else 0
+			refreshTimer()
 		end,
 		setBanner = function(text: string)
-			banner.Text = text
-			banner.Visible = text ~= ""
+			bannerText.Text = Strings.upper(text)
+			local show = text ~= ""
+			bannerToken += 1
+			local mine = bannerToken
+			if show then
+				-- El título anuncia y se va: la escena sigue sola, sin nada encima.
+				task.delay(Ui.bannerSeconds, function()
+					if bannerToken == mine then
+						bannerPlate.root.Visible = false
+					end
+				end)
+			end
+			if show and not bannerPlate.root.Visible then
+				bannerPlate.root.Position = UDim2.new(0.5, 0, 0, Ui.bannerTop - 18)
+				Components.tween(bannerPlate.root, Ui.motion.open, {
+					Position = UDim2.new(0.5, 0, 0, Ui.bannerTop),
+				})
+			end
+			bannerPlate.root.Visible = show
 		end,
 		setToast = function(text: string)
 			toastToken += 1
 			local mine = toastToken
-			toast.Text = text
-			toast.Visible = text ~= ""
+			toastText.Text = text
+			toastPlate.root.Visible = text ~= ""
 			if text ~= "" then
 				-- Un aviso nuevo reinicia la cuenta: el viejo no puede esconder al reciente.
 				task.delay(Ui.toastSeconds, function()
 					if toastToken == mine then
-						toast.Visible = false
+						toastPlate.root.Visible = false
 					end
 				end)
 			end
 		end,
+		setSceneMode = function(active: boolean)
+			sceneActive = active
+			local shift = if active then -(Ui.plateColumnLeft + Ui.plateMaxWidth + Ui.arrowTipWidth) else 0
+			Components.tween(tableFrame, Ui.motion.open, { Position = UDim2.fromOffset(shift, 0) })
+			Components.tween(hand, Ui.motion.open, {
+				Position = UDim2.new(
+					0,
+					Ui.handLeft,
+					1,
+					if active then Ui.handVisibleHeight + Ui.roadHeight else 0
+				),
+			})
+			Components.tween(sign.root, Ui.motion.open, {
+				Position = UDim2.new(0.5, 0, 0, if active then -(Ui.signTop + 70) else Ui.signTop),
+			})
+			emoteBar.Visible = false
+			refreshTimer()
+		end,
 		onOverview = function(callback: () -> ())
-			overviewButton.MouseButton1Click:Connect(callback)
+			table.insert(overviewListeners, callback)
 		end,
 		onEmote = function(callback: (emote: string) -> ())
-			emoteButton.MouseButton1Click:Connect(function()
+			emoteButton.onActivated(function()
 				emoteBar.Visible = not emoteBar.Visible
 			end)
 			for index, emote in Protocol.EMOTES do
-				Theme.button(emoteBar, emote, index, function()
+				local item = Theme.button(emoteBar, emote, index, function()
 					emoteBar.Visible = false
 					callback(emote)
-				end).Size =
-					UDim2.fromOffset(math.max(Theme.MIN_TOUCH, 46), math.max(Theme.MIN_TOUCH, 46))
+				end)
+				item.Size = UDim2.fromOffset(48, 48)
 			end
+		end,
+		destroy = function()
+			for _, connection in connections do
+				connection:Disconnect()
+			end
+			gui:Destroy()
 		end,
 	}
 
-	-- La cuenta atrás se refresca sola: los segundos que quedan no llegan por lote.
+	-- El plazo se mueve solo: los segundos que quedan no llegan por lote.
 	task.spawn(function()
 		while gui.Parent do
 			if deadline ~= nil then
-				local remaining = ActionMenuRules.remainingSeconds(deadline, serverNow())
-				timerLabel.Text = if remaining ~= nil then `{math.ceil(remaining)} s` else ""
+				refreshTimer()
 			end
-			task.wait(0.2)
+			task.wait(0.1)
 		end
 	end)
 

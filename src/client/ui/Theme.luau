@@ -68,9 +68,9 @@ function Theme.screenGui(playerGui: Instance, name: string, displayOrder: number
 	gui.IgnoreGuiInset = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = displayOrder
-	-- CoreUISafeInsets suma la muesca del móvil y la barra superior de Roblox: sin eso, la barra de
-	-- estado queda debajo de los botones del menú del motor.
-	gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+	-- R-P52: la interfaz usa toda la ventana, también la franja de la barra de Roblox. Lo que va arriba a
+	-- la izquierda deja sitio a sus botones. El móvil revisará la muesca cuando le toque.
+	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	gui.Parent = playerGui
 
 	-- Toda la interfaz escala a la vez con la pantalla. Solo crece: la letra nunca baja de lo diseñado.

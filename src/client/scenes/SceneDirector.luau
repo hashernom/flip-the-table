@@ -37,6 +37,8 @@ export type Director = {
 	scenes: { [string]: Scene },
 	-- Cuántas veces se ha visto cada tipo de evento en esta partida: acorta las escenas repetidas.
 	seen: { [string]: number },
+	-- Hay un título en pantalla, puesto por una escena de este director.
+	titled: boolean,
 }
 
 local SceneDirector = {}
@@ -46,13 +48,20 @@ local SceneDirector = {}
 SceneDirector.MIN_LATE_SEC = 0.2
 
 function SceneDirector.new(options: Options): Director
-	return {
+	local show = options.show or function(_text: string) end
+	local director: Director = nil :: any
+	director = {
 		wait = options.wait,
-		show = options.show or function(_text: string) end,
+		show = function(text: string)
+			director.titled = text ~= ""
+			show(text)
+		end,
 		log = options.log or function(_message: string) end,
 		scenes = {},
 		seen = {},
+		titled = false,
 	}
+	return director
 end
 
 -- Una partida nueva vuelve a ver sus escenas enteras: el servidor estrena su reloj con cada partida y
@@ -116,6 +125,11 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 			end,
 		}
 
+		-- Una escena definitiva se ve sola: no se queda encima el título del evento anterior.
+		if scene ~= nil and director.titled then
+			director.titled = false
+			director.show("")
+		end
 		local target: Scene = scene or PlaceholderScene
 		local ok, err = (pcall :: any)(target.run, ctx, event)
 		if not ok then

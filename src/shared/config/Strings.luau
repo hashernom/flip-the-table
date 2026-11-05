@@ -247,6 +247,44 @@ function Strings.get(key: string, args: { [string]: any }?): string
 	)
 end
 
+-- Título que anuncia un evento en pantalla. Corto: va en la voz grande. `TokenMoved` no lleva: el
+-- recorrido se ve solo.
+local EVENT_TITLES: { [string]: string } = {
+	RoundStarted = "Nueva ronda",
+	FinalRoundsStarted = "Última ronda",
+	PerkDrafted = "Perk elegido",
+	DiceRolled = "¡Dados!",
+	TokenMoved = "",
+	PassedStart = "Salida",
+	PropertyBought = "¡Comprada!",
+	RentPaid = "Renta",
+	AuctionStarted = "Subasta",
+	AuctionWon = "Subasta ganada",
+	AuctionNoSale = "Sin ventas",
+	BuildingChanged = "Obras",
+	TradeCompleted = "Trato cerrado",
+	PlayerArrested = "¡Arrestado!",
+	TribunalVerdict = "Veredicto",
+	BankruptcyDeclared = "Bancarrota",
+	GhostActed = "Espectro",
+	GhostResurrected = "¡Resucita!",
+	CardDrawn = "Carta robada",
+	CardDiscarded = "Descarte",
+	CardPlayed = "Carta jugada",
+	CardBlocked = "¡Bloqueada!",
+	HotZoneMoved = "Zona Caliente",
+	BillboardResult = "Cartelera",
+	DuelResolved = "Duelo",
+	PortalUsed = "Portal",
+	MarketBought = "Mercado Negro",
+	PactFormed = "Pacto firmado",
+	PactEnded = "Pacto terminado",
+	PactBroken = "¡Traición!",
+	CrownMoved = "Nueva Corona",
+	FuryFilled = "¡Furia!",
+	GameEnded = "Fin de la partida",
+}
+
 -- Mayúsculas del español. `string.upper` solo entiende ASCII y dejaría «MARíA JOSé».
 local UPPER = {
 	["á"] = "Á",
@@ -264,6 +302,15 @@ function Strings.upper(text: string): string
 		out = (string.gsub(out, lower, upper))
 	end
 	return out
+end
+
+-- Título de un evento o de una carta jugada. Un id que no se conoce no enseña nada: nunca un nombre interno.
+function Strings.eventTitle(id: string): string
+	local title = EVENT_TITLES[id]
+	if title ~= nil then
+		return title
+	end
+	return TEXTS[`card.{id}.name`] or ""
 end
 
 -- Nombre del barrio, que es la agrupación de zonas que la ciudad muestra en la calle.

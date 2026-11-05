@@ -46,6 +46,13 @@ local function batch(events: { any }): any
 end
 
 describe("SceneDirector.play", function()
+	it("una escena final limpia el título que dejó el evento anterior", function()
+		local record = recorder()
+		SceneDirector.register(record.director, "PlayerArrested", { run = function() end })
+		SceneDirector.play(record.director, batch({ { type = "DiceRolled" }, { type = "PlayerArrested" } }))
+		expect(record.labels).toEqual({ "DiceRolled", "" })
+	end)
+
 	it("un evento sin escena final muestra su nombre durante su duración real", function()
 		local record = recorder()
 		SceneDirector.play(record.director, batch({ { type = "DiceRolled" } }))
