@@ -1897,6 +1897,38 @@
         "rbxassetid://116487059231740",
         "rbxassetid://117976189269343"
       ]
+    },
+    {
+      "id": "token-taxi",
+      "category": "Token",
+      "source": "art/blender/tokens/taxi.py",
+      "triangles": 2580,
+      "lods": [
+        336
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [
+        "art/render/ingame/token-taxi.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/tokens/taxi.py",
+      "assetId": "rbxassetid://133679178418934",
+      "assetIds": [
+        "rbxassetid://126187163151566",
+        "rbxassetid://126221105256296",
+        "rbxassetid://137708554774758",
+        "rbxassetid://117224687992090",
+        "rbxassetid://135043097064829",
+        "rbxassetid://107338938974746",
+        "rbxassetid://97597231499402",
+        "rbxassetid://116008906030895",
+        "rbxassetid://128722054419235",
+        "rbxassetid://130188908974894",
+        "rbxassetid://95528865461443",
+        "rbxassetid://93413293531770",
+        "rbxassetid://83438224235139",
+        "rbxassetid://75695399375147"
+      ]
     }
   ]
 }

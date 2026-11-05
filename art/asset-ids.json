@@ -932,7 +932,22 @@
     "bus_wheel_fl": "rbxassetid://106046077217011",
     "bus_wheel_fr": "rbxassetid://136667030447978",
     "bus_wheel_rl": "rbxassetid://124780908396106",
-    "bus_wheel_rr": "rbxassetid://116487059231740"
+    "bus_wheel_rr": "rbxassetid://116487059231740",
+    "taxi_body_cream": "rbxassetid://137708554774758",
+    "taxi_body_dark": "rbxassetid://126187163151566",
+    "taxi_body_glass": "rbxassetid://126221105256296",
+    "taxi_body_red": "rbxassetid://135043097064829",
+    "taxi_body_steel": "rbxassetid://117224687992090",
+    "taxi_body_taxi": "rbxassetid://133679178418934",
+    "taxi_hub_fl": "rbxassetid://116008906030895",
+    "taxi_hub_fr": "rbxassetid://130188908974894",
+    "taxi_hub_rl": "rbxassetid://93413293531770",
+    "taxi_hub_rr": "rbxassetid://75695399375147",
+    "taxi_plate": "rbxassetid://107338938974746",
+    "taxi_wheel_fl": "rbxassetid://97597231499402",
+    "taxi_wheel_fr": "rbxassetid://128722054419235",
+    "taxi_wheel_rl": "rbxassetid://95528865461443",
+    "taxi_wheel_rr": "rbxassetid://83438224235139"
   },
   "cc0": {
     "brick_red": {
