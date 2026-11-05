@@ -1686,14 +1686,14 @@ ArtAssets.actors = {
 
 -- Iconos de las casillas especiales, en blanco para teñirlos como la pintura del suelo.
 ArtAssets.roadIcons = {
-	Start = "rbxassetid://72746191594420",
-	Spin = "rbxassetid://85118532225000",
-	Market = "rbxassetid://121692747139889",
-	Duel = "rbxassetid://96119133814108",
-	Portal = "rbxassetid://104882717221409",
-	Billboard = "rbxassetid://95083914232117",
-	Tribunal = "rbxassetid://125704852762651",
-	Tax = "rbxassetid://105821566238218",
+	Start = "rbxassetid://86736829344761",
+	Spin = "rbxassetid://119503715562152",
+	Market = "rbxassetid://137730332869458",
+	Duel = "rbxassetid://82978670776915",
+	Portal = "rbxassetid://72663580164365",
+	Billboard = "rbxassetid://80406292463796",
+	Tribunal = "rbxassetid://82716426401831",
+	Tax = "rbxassetid://95776990078843",
 } :: { [string]: string }
 
 -- Mobiliario de la calle, por el `kind` que da `CityLayout.dressingFor`. Su origen es el centro de la base.
