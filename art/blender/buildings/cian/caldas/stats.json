@@ -1,0 +1,260 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "huella": {
+    "ancho": 32.0,
+    "fondo": 18.0
+  },
+  "piezas": [
+    {
+      "clave": "caldas_body_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 108
+    },
+    {
+      "clave": "caldas_body_metal_acero",
+      "nivel": 0,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 480
+    },
+    {
+      "clave": "caldas_body_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 704
+    },
+    {
+      "clave": "caldas_body_brick",
+      "nivel": 0,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 184
+    },
+    {
+      "clave": "caldas_body_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 48
+    },
+    {
+      "clave": "caldas_body_grass",
+      "nivel": 0,
+      "material": "Grass",
+      "rgb": "4B6B3A",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon1_limestone",
+      "nivel": 1,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 320
+    },
+    {
+      "clave": "caldas_addon1_slate",
+      "nivel": 1,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon2_glass",
+      "nivel": 2,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon2_metal_acero",
+      "nivel": 2,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 156
+    },
+    {
+      "clave": "caldas_addon2_slate",
+      "nivel": 2,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon3_brick",
+      "nivel": 3,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 24
+    },
+    {
+      "clave": "caldas_addon3_glass",
+      "nivel": 3,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 24
+    },
+    {
+      "clave": "caldas_addon3_metal_acero",
+      "nivel": 3,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 72
+    },
+    {
+      "clave": "caldas_addon3_limestone",
+      "nivel": 3,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 128
+    },
+    {
+      "clave": "caldas_addon3_slate",
+      "nivel": 3,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 42
+    },
+    {
+      "clave": "caldas_addon3_metal_cobre",
+      "nivel": 3,
+      "material": "Metal",
+      "rgb": "C97B3A",
+      "triangulos": 28
+    },
+    {
+      "clave": "caldas_addon4_glass",
+      "nivel": 4,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 36
+    },
+    {
+      "clave": "caldas_addon4_metal_acero",
+      "nivel": 4,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 108
+    },
+    {
+      "clave": "caldas_addon4_limestone",
+      "nivel": 4,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 64
+    },
+    {
+      "clave": "caldas_addon4_brick",
+      "nivel": 4,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 60
+    },
+    {
+      "clave": "caldas_addon4_slate",
+      "nivel": 4,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 8
+    },
+    {
+      "clave": "caldas_addon5_limestone",
+      "nivel": 5,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 132
+    },
+    {
+      "clave": "caldas_addon5_brick",
+      "nivel": 5,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon5_glass",
+      "nivel": 5,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 12
+    },
+    {
+      "clave": "caldas_addon5_metal_cobre",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "C97B3A",
+      "triangulos": 46
+    }
+  ],
+  "niveles": {
+    "0": {
+      "triangulos_propios": 1536,
+      "triangulos_acumulados": 1536,
+      "limites": {
+        "ancho": 32.4,
+        "fondo": 18.7,
+        "alto": 14.5,
+        "alto_maximo_sobre_suelo": 14.5
+      }
+    },
+    "1": {
+      "triangulos_propios": 332,
+      "triangulos_acumulados": 1868,
+      "limites": {
+        "ancho": 32.4,
+        "fondo": 19.14,
+        "alto": 14.5,
+        "alto_maximo_sobre_suelo": 14.5
+      }
+    },
+    "2": {
+      "triangulos_propios": 180,
+      "triangulos_acumulados": 2048,
+      "limites": {
+        "ancho": 32.4,
+        "fondo": 19.14,
+        "alto": 14.5,
+        "alto_maximo_sobre_suelo": 14.5
+      }
+    },
+    "3": {
+      "triangulos_propios": 318,
+      "triangulos_acumulados": 2366,
+      "limites": {
+        "ancho": 32.4,
+        "fondo": 19.14,
+        "alto": 27.8,
+        "alto_maximo_sobre_suelo": 27.8
+      }
+    },
+    "4": {
+      "triangulos_propios": 276,
+      "triangulos_acumulados": 2642,
+      "limites": {
+        "ancho": 32.45,
+        "fondo": 19.14,
+        "alto": 27.8,
+        "alto_maximo_sobre_suelo": 27.8
+      }
+    },
+    "5": {
+      "triangulos_propios": 202,
+      "triangulos_acumulados": 2844,
+      "limites": {
+        "ancho": 32.45,
+        "fondo": 19.14,
+        "alto": 33.65,
+        "alto_maximo_sobre_suelo": 33.65
+      }
+    }
+  },
+  "total_triangulos": 2844,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "triangulos": 1209,
+    "porcentaje_del_total": 42.5
+  },
+  "referencia_cine_lux_nivel5": 3042
+}

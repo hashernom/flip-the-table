@@ -1,0 +1,194 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "huella": {
+    "ancho": 32.0,
+    "fondo": 18.0
+  },
+  "cuerpo": {
+    "altura": 25.0,
+    "base": 13.6
+  },
+  "piezas": [
+    {
+      "clave": "observatorio_body_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 1548
+    },
+    {
+      "clave": "observatorio_body_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 12
+    },
+    {
+      "clave": "observatorio_body_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 80
+    },
+    {
+      "clave": "observatorio_body_metal_acero",
+      "nivel": 0,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 330
+    },
+    {
+      "clave": "observatorio_addon1_metal_acero",
+      "nivel": 1,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 48
+    },
+    {
+      "clave": "observatorio_addon1_metal_oro",
+      "nivel": 1,
+      "material": "Metal",
+      "rgb": "C9A227",
+      "triangulos": 12
+    },
+    {
+      "clave": "observatorio_addon2_limestone",
+      "nivel": 2,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 60
+    },
+    {
+      "clave": "observatorio_addon2_metal_acero",
+      "nivel": 2,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 48
+    },
+    {
+      "clave": "observatorio_addon3_metal_acero",
+      "nivel": 3,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 56
+    },
+    {
+      "clave": "observatorio_addon3_metal_oro",
+      "nivel": 3,
+      "material": "Metal",
+      "rgb": "C9A227",
+      "triangulos": 44
+    },
+    {
+      "clave": "observatorio_addon4_limestone",
+      "nivel": 4,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 28
+    },
+    {
+      "clave": "observatorio_addon4_slate",
+      "nivel": 4,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 12
+    },
+    {
+      "clave": "observatorio_addon4_glass",
+      "nivel": 4,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 12
+    },
+    {
+      "clave": "observatorio_addon5_metal_acero",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 248
+    },
+    {
+      "clave": "observatorio_addon5_limestone",
+      "nivel": 5,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 88
+    },
+    {
+      "clave": "observatorio_addon5_metal_oro",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "C9A227",
+      "triangulos": 42
+    }
+  ],
+  "niveles": {
+    "0": {
+      "triangulos_propios": 1970,
+      "triangulos_acumulados": 1970,
+      "limites": {
+        "ancho": 24.4,
+        "fondo": 16.8,
+        "alto": 25.0,
+        "alto_maximo_sobre_suelo": 25.0
+      }
+    },
+    "1": {
+      "triangulos_propios": 60,
+      "triangulos_acumulados": 2030,
+      "limites": {
+        "ancho": 24.4,
+        "fondo": 17.92,
+        "alto": 25.0,
+        "alto_maximo_sobre_suelo": 25.0
+      }
+    },
+    "2": {
+      "triangulos_propios": 108,
+      "triangulos_acumulados": 2138,
+      "limites": {
+        "ancho": 24.4,
+        "fondo": 17.92,
+        "alto": 25.0,
+        "alto_maximo_sobre_suelo": 25.0
+      }
+    },
+    "3": {
+      "triangulos_propios": 100,
+      "triangulos_acumulados": 2238,
+      "limites": {
+        "ancho": 24.4,
+        "fondo": 17.92,
+        "alto": 27.58,
+        "alto_maximo_sobre_suelo": 27.58
+      }
+    },
+    "4": {
+      "triangulos_propios": 52,
+      "triangulos_acumulados": 2290,
+      "limites": {
+        "ancho": 29.05,
+        "fondo": 17.92,
+        "alto": 27.58,
+        "alto_maximo_sobre_suelo": 27.58
+      }
+    },
+    "5": {
+      "triangulos_propios": 378,
+      "triangulos_acumulados": 2668,
+      "limites": {
+        "ancho": 29.05,
+        "fondo": 17.92,
+        "alto": 38.95,
+        "alto_maximo_sobre_suelo": 38.95
+      }
+    }
+  },
+  "total_triangulos": 2668,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "triangulos": 1260,
+    "porcentaje_del_total": 47.2
+  },
+  "referencia_cine_lux_nivel5": 3042
+}

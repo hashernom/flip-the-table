@@ -1,0 +1,276 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "huella": {
+    "ancho": 32.0,
+    "fondo": 18.0
+  },
+  "cuerpo_alto": 24.0,
+  "altura_maxima_permitida": 46.0,
+  "nivel_0_maximo": 29.0,
+  "torres": {
+    "filas": 2,
+    "por_fila": 3,
+    "ancho": 8.0,
+    "alto": 24.0
+  },
+  "piezas": [
+    {
+      "clave": "monviso_body_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 372
+    },
+    {
+      "clave": "monviso_body_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 624
+    },
+    {
+      "clave": "monviso_body_metal_hueso",
+      "nivel": 0,
+      "material": "Metal",
+      "rgb": "EDE5D3",
+      "triangulos": 12
+    },
+    {
+      "clave": "monviso_body_smoothplastic_amarillo",
+      "nivel": 0,
+      "material": "SmoothPlastic",
+      "rgb": "C9A227",
+      "triangulos": 72
+    },
+    {
+      "clave": "monviso_body_smoothplastic_blanco",
+      "nivel": 0,
+      "material": "SmoothPlastic",
+      "rgb": "F7F5F0",
+      "triangulos": 144
+    },
+    {
+      "clave": "monviso_body_smoothplastic_gris",
+      "nivel": 0,
+      "material": "SmoothPlastic",
+      "rgb": "A0A8B0",
+      "triangulos": 570
+    },
+    {
+      "clave": "monviso_body_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 108
+    },
+    {
+      "clave": "monviso_addon1_glass",
+      "nivel": 1,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 36
+    },
+    {
+      "clave": "monviso_addon1_grass",
+      "nivel": 1,
+      "material": "Grass",
+      "rgb": "4B6B3A",
+      "triangulos": 24
+    },
+    {
+      "clave": "monviso_addon1_limestone",
+      "nivel": 1,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 36
+    },
+    {
+      "clave": "monviso_addon1_metal_acero",
+      "nivel": 1,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 48
+    },
+    {
+      "clave": "monviso_addon1_metal_hueso",
+      "nivel": 1,
+      "material": "Metal",
+      "rgb": "EDE5D3",
+      "triangulos": 12
+    },
+    {
+      "clave": "monviso_addon1_wood",
+      "nivel": 1,
+      "material": "Wood",
+      "rgb": "6B4A2E",
+      "triangulos": 48
+    },
+    {
+      "clave": "monviso_addon2_grass",
+      "nivel": 2,
+      "material": "Grass",
+      "rgb": "4B6B3A",
+      "triangulos": 132
+    },
+    {
+      "clave": "monviso_addon2_limestone",
+      "nivel": 2,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 48
+    },
+    {
+      "clave": "monviso_addon2_slate",
+      "nivel": 2,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 36
+    },
+    {
+      "clave": "monviso_addon2_wood",
+      "nivel": 2,
+      "material": "Wood",
+      "rgb": "6B4A2E",
+      "triangulos": 72
+    },
+    {
+      "clave": "monviso_addon3_glass",
+      "nivel": 3,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 24
+    },
+    {
+      "clave": "monviso_addon3_limestone",
+      "nivel": 3,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 12
+    },
+    {
+      "clave": "monviso_addon3_metal_acero",
+      "nivel": 3,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 24
+    },
+    {
+      "clave": "monviso_addon3_smoothplastic_blanco",
+      "nivel": 3,
+      "material": "SmoothPlastic",
+      "rgb": "F7F5F0",
+      "triangulos": 62
+    },
+    {
+      "clave": "monviso_addon3_slate",
+      "nivel": 3,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 12
+    },
+    {
+      "clave": "monviso_addon4_limestone",
+      "nivel": 4,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 108
+    },
+    {
+      "clave": "monviso_addon4_slate",
+      "nivel": 4,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 108
+    },
+    {
+      "clave": "monviso_addon5_metal_acero",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 140
+    },
+    {
+      "clave": "monviso_addon5_metal_cobre",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "C97B3A",
+      "triangulos": 22
+    },
+    {
+      "clave": "monviso_addon5_metal_oro",
+      "nivel": 5,
+      "material": "Metal",
+      "rgb": "C9A227",
+      "triangulos": 28
+    }
+  ],
+  "niveles": {
+    "0": {
+      "triangulos_propios": 1902,
+      "triangulos_acumulados": 1902,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 17.85,
+        "alto": 26.41,
+        "alto_maximo_sobre_suelo": 26.41
+      }
+    },
+    "1": {
+      "triangulos_propios": 204,
+      "triangulos_acumulados": 2106,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 17.85,
+        "alto": 26.41,
+        "alto_maximo_sobre_suelo": 26.41
+      }
+    },
+    "2": {
+      "triangulos_propios": 288,
+      "triangulos_acumulados": 2394,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.15,
+        "alto": 26.41,
+        "alto_maximo_sobre_suelo": 26.41
+      }
+    },
+    "3": {
+      "triangulos_propios": 134,
+      "triangulos_acumulados": 2528,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.15,
+        "alto": 30.48,
+        "alto_maximo_sobre_suelo": 30.48
+      }
+    },
+    "4": {
+      "triangulos_propios": 216,
+      "triangulos_acumulados": 2744,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.15,
+        "alto": 30.48,
+        "alto_maximo_sobre_suelo": 30.48
+      }
+    },
+    "5": {
+      "triangulos_propios": 190,
+      "triangulos_acumulados": 2934,
+      "limites": {
+        "ancho": 32.0,
+        "fondo": 18.15,
+        "alto": 46.0,
+        "alto_maximo_sobre_suelo": 46.0
+      }
+    }
+  },
+  "total_triangulos": 2934,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "triangulos": 1290,
+    "porcentaje_del_total": 44.0
+  },
+  "referencia_cine_lux_nivel5": 3042
+}

@@ -6,7 +6,9 @@ local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 describe("ArtAssets", function()
 	it("una propiedad sin modelo se queda en gris", function()
-		expect(ArtAssets.piecesFor("Pasaje Burbuja", 3)).toBe(nil)
+		-- Las 34 propiedades del tablero ya tienen modelo (zonas 01 a 12), así que el caso «sin
+		-- modelo» se comprueba con un nombre que no está registrado: `piecesFor` debe devolver nil.
+		expect(ArtAssets.piecesFor("Propiedad Sin Modelo", 3)).toBe(nil)
 	end)
 
 	it("cada nivel suma su añadido y nunca quita el cuerpo", function()
