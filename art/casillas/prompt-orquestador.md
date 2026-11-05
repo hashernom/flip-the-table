@@ -90,7 +90,7 @@ Devuelve problemas concretos, con medida y sitio, nunca un «mejóralo». Hasta 
 1. Sube cada FBX aceptado, sin el LOD. Lanza las subidas en segundo plano y exige moderación `Approved`. La clave ya está en el entorno; nunca la muestres:
    `pwsh -NoProfile -File art/generators/upload_model.ps1 -Path <fbx> -Name square-<clave>`
 2. Guarda los ids en `art/blender/squares/<id>/subida.json`.
-3. Sube los iconos como pide `art/PIPELINE.md` para las imágenes, igual que se subió la pintura (`ArtAssets.roadPaint`), y guarda sus ids en `art/textures/casillas/iconos/subida.json`.
+3. Sube cada icono con `pwsh -NoProfile -File art/generators/upload_model.ps1 -Path <png> -Name icon-<id> -ContentType image/png -AssetType Decal`, comprueba en Studio que se ve con el mismo tipo de id que la pintura (`ArtAssets.roadPaint`) y guarda los ids en `art/textures/casillas/iconos/subida.json`. Esta subida de imágenes no está documentada en `art/PIPELINE.md`: si falla, cuenta el error y sigue con el resto.
 4. Mira cada lugar en Studio en modo Edit: cárgalo con `InsertService:LoadAsset` en una carpeta temporal junto a una figura de 6, captura en `art/render/ingame/square-<id>.jpg` y borra la carpeta. Si no consigues capturarlo, dilo: no inventes el resultado.
 5. Añade cada id a `art/asset-ids.json` y una entrada por lugar en `art/manifest.json`: id `square-<id>`, categoría `Building`, estado `Draft`, con `triangles`, `lods`, `source`, `assetId` y `assetIds`. Nunca pongas `InGame` ni `Approved`: aún no están en el juego.
 6. Ejecuta `lune run tools/manifest` y haz un commit local por pieza: `feat: casilla <id>`. Sin push.
