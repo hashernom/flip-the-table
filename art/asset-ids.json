@@ -1001,9 +1001,9 @@
     "wrecking_glass": "rbxassetid://111475953971599",
     "wrecking_orange": "rbxassetid://94350779867532",
     "wrecking_steel": "rbxassetid://94272395177777",
-    "crane_acero": "rbxassetid://82595165382245",
-    "crane_amarillo": "rbxassetid://116627134152467",
-    "crane_asfalto": "rbxassetid://138494115720626",
+    "crane_acero": "rbxassetid://78248014310043",
+    "crane_amarillo": "rbxassetid://96341121113276",
+    "crane_asfalto": "rbxassetid://88161254318032",
     "armored_asphalt": "rbxassetid://121058855576865",
     "armored_glass": "rbxassetid://108412584867920",
     "armored_hub_fl": "rbxassetid://115939304246759",
@@ -1031,7 +1031,13 @@
     "towtruck_wheel_ml": "rbxassetid://126678252302660",
     "towtruck_wheel_mr": "rbxassetid://127218893026857",
     "towtruck_wheel_rl": "rbxassetid://100811372708938",
-    "towtruck_wheel_rr": "rbxassetid://79819354283520"
+    "towtruck_wheel_rr": "rbxassetid://79819354283520",
+    "portal_brick": "rbxassetid://79632352278286",
+    "portal_glass": "rbxassetid://76329100756924",
+    "portal_interior": "rbxassetid://126759595488759",
+    "portal_limestone": "rbxassetid://121384792631419",
+    "portal_slate": "rbxassetid://112995365871327",
+    "portal_steel": "rbxassetid://115328452150343"
   },
   "cc0": {
     "brick_red": {

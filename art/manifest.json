@@ -2040,6 +2040,27 @@
       ]
     },
     {
+      "id": "square-portal",
+      "category": "Building",
+      "source": "art/blender/squares/portal.py",
+      "triangles": 1834,
+      "lods": [
+        675
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/squares/portal.py",
+      "assetId": "rbxassetid://121384792631419",
+      "assetIds": [
+        "rbxassetid://112995365871327",
+        "rbxassetid://126759595488759",
+        "rbxassetid://115328452150343",
+        "rbxassetid://76329100756924",
+        "rbxassetid://79632352278286"
+      ]
+    },
+    {
       "id": "square-tribunal",
       "category": "Building",
       "source": "art/blender/squares/tribunal.py",
@@ -2143,18 +2164,18 @@
       "id": "scene-grua-obra",
       "category": "SceneCharacter",
       "source": "art/blender/scene-props/grua-obra.py",
-      "triangles": 1988,
+      "triangles": 2012,
       "lods": [
-        768
+        772
       ],
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
       "generatedWith": "Blender 5.2, art\\blender\\scene-props\\grua-obra",
-      "assetId": "rbxassetid://116627134152467",
+      "assetId": "rbxassetid://96341121113276",
       "assetIds": [
-        "rbxassetid://82595165382245",
-        "rbxassetid://138494115720626"
+        "rbxassetid://78248014310043",
+        "rbxassetid://88161254318032"
       ]
     },
     {

@@ -1568,8 +1568,7 @@ ArtAssets.tokens = {
 -- Fichas: el taxi es la primera y `ArtAssets.taxi` se queda como alias de su lista.
 ArtAssets.taxi = ArtAssets.tokens.taxi.pieces
 
--- Casillas especiales, por el `kind` de `CityLayout`. Falta Portal: su modelo está en
--- `art/blender/squares/portal/`, pero no se ha subido y no tiene ids en `subida.json`.
+-- Casillas especiales, por el `kind` de `CityLayout`.
 ArtAssets.squares = {
 	Start = {
 		piece("start_limestone", "93362661254990", { 210, 201, 180 }, "Limestone"),
@@ -1607,6 +1606,14 @@ ArtAssets.squares = {
 		piece("duel_slate", "78596978477632", { 74, 78, 84 }, "Slate"),
 		piece("duel_wood", "100223656590086", { 107, 74, 46 }, "Wood"),
 	},
+	Portal = {
+		piece("portal_limestone", "121384792631419", { 210, 201, 180 }, "Limestone"),
+		piece("portal_slate", "112995365871327", { 74, 78, 84 }, "Slate"),
+		piece("portal_interior", "126759595488759", { 46, 51, 56 }, "SmoothPlastic"),
+		piece("portal_steel", "115328452150343", { 168, 174, 180 }, "Metal"),
+		piece("portal_glass", "76329100756924", { 46, 74, 99 }, "Glass", 0.25),
+		piece("portal_brick", "79632352278286", { 176, 102, 74 }, "Brick"),
+	},
 	Billboard = {
 		piece("billboard_brick", "79615566866266", { 176, 102, 74 }, "Brick"),
 		piece("billboard_limestone", "125909523676391", { 210, 201, 180 }, "Limestone"),
@@ -1639,9 +1646,9 @@ ArtAssets.actors = {
 		piece("helmet_dark", "110955419283523", { 42, 46, 51 }, "SmoothPlastic"),
 	},
 	Crane = {
-		piece("crane_amarillo", "116627134152467", { 245, 197, 24 }, "SmoothPlastic"),
-		piece("crane_acero", "82595165382245", { 168, 174, 180 }, "Metal"),
-		piece("crane_asfalto", "138494115720626", { 42, 46, 51 }, "SmoothPlastic"),
+		piece("crane_amarillo", "96341121113276", { 245, 197, 24 }, "SmoothPlastic"),
+		piece("crane_acero", "78248014310043", { 168, 174, 180 }, "Metal"),
+		piece("crane_asfalto", "88161254318032", { 42, 46, 51 }, "SmoothPlastic"),
 	},
 	TowTruck = {
 		piece("towtruck_asfalto", "97143215210376", { 42, 46, 51 }, "SmoothPlastic"),
