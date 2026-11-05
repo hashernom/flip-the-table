@@ -4,12 +4,106 @@
 -- casillas especiales. La fuente de verdad es docs/02-mvp/contenido-tablero.md.
 local Harness = require("../harness")
 local Boards = require("../../src/shared/config/Boards")
+local Cards = require("../../src/shared/config/Cards")
+local Perks = require("../../src/shared/config/Perks")
 local Types = require("../../src/shared/rules/Types")
 local Strings = require("../../src/shared/config/Strings")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 local SIZES = { "S", "M", "L" } :: { Types.SizeId }
+
+describe("Strings.get", function()
+	it("una clave desconocida es un error, no un texto vacío", function()
+		expect(function()
+			Strings.get("no.existe")
+		end).toThrow()
+	end)
+
+	it("sustituye los argumentos con nombre", function()
+		expect(Strings.get("hud.round", { current = 7, max = 12 })).toBe("Ronda 7/12")
+	end)
+
+	it("un argumento que falta es un error: no se enseña una llave al jugador", function()
+		expect(function()
+			Strings.get("hud.round", { current = 7 })
+		end).toThrow()
+	end)
+
+	it("toda carta tiene nombre y descripción", function()
+		expect(#Cards.all).toBe(20)
+		for _, card in Cards.all do
+			expect(Strings.get(`card.{card.id}.name`)).toBe(card.name)
+			expect(#Strings.get(`card.{card.id}.description`) > 0).toBe(true)
+		end
+	end)
+
+	it("todo perk tiene nombre y descripción", function()
+		expect(#Perks.all).toBe(12)
+		for _, perk in Perks.all do
+			expect(Strings.get(`perk.{perk.id}.name`)).toBe(perk.name)
+			expect(Strings.get(`perk.{perk.id}.description`)).toBe(perk.description)
+		end
+	end)
+end)
+
+describe("Strings.eventTitle", function()
+	it("todo evento del motor tiene título en español, y el recorrido no lleva", function()
+		local events = {
+			"RoundStarted",
+			"FinalRoundsStarted",
+			"PerkDrafted",
+			"DiceRolled",
+			"PassedStart",
+			"PropertyBought",
+			"RentPaid",
+			"AuctionStarted",
+			"AuctionWon",
+			"AuctionNoSale",
+			"BuildingChanged",
+			"TradeCompleted",
+			"PlayerArrested",
+			"TribunalVerdict",
+			"BankruptcyDeclared",
+			"GhostActed",
+			"GhostResurrected",
+			"CardDrawn",
+			"CardDiscarded",
+			"CardPlayed",
+			"CardBlocked",
+			"HotZoneMoved",
+			"BillboardResult",
+			"DuelResolved",
+			"PortalUsed",
+			"MarketBought",
+			"PactFormed",
+			"PactEnded",
+			"PactBroken",
+			"CrownMoved",
+			"FuryFilled",
+			"GameEnded",
+		}
+		for _, id in events do
+			local title = Strings.eventTitle(id)
+			expect(#title > 0).toBe(true)
+			expect(title ~= id).toBe(true)
+		end
+		expect(Strings.eventTitle("TokenMoved")).toBe("")
+	end)
+
+	it("una carta se anuncia por su nombre y un id desconocido no se enseña", function()
+		expect(Strings.eventTitle("Hurricane")).toBe("Huracán")
+		expect(Strings.eventTitle("NoExiste")).toBe("")
+	end)
+end)
+
+describe("Strings.upper", function()
+	it("pasa a mayúsculas las vocales con tilde y la eñe", function()
+		expect(Strings.upper("María José")).toBe("MARÍA JOSÉ")
+		expect(Strings.upper("Año común")).toBe("AÑO COMÚN")
+		expect(Strings.upper("Distrito Carmesí")).toBe("DISTRITO CARMESÍ")
+	end)
+end)
 
 describe("Strings: zonas", function()
 	it("cada zona de la arquitectura tiene nombre, color y barrio", function()

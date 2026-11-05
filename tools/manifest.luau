@@ -35,6 +35,7 @@ local BUDGETS: { [string]: Budget } = {
 	RepeatedProp = { triangles = 2000, lodRequired = true, label = "Objeto repetido" },
 	CityBackdrop = { triangles = 3000, lodRequired = false, label = "Fondo de ciudad" },
 	Sound = { triangles = 0, lodRequired = false, label = "Sonido" },
+	UiImage = { triangles = 0, lodRequired = false, label = "Imagen de interfaz" },
 }
 
 local STATUSES: { [string]: boolean } = {

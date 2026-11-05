@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Mesa a la izquierda</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--asfalto:#23272C;--asfalto2:#14171A;--caliza:#EDE5D3;--caliza2:#CFC5AE;--amarillo:#F5C518;--amarillo2:#B8920F;--rojo:#C4382B;--naranja:#E07A3C}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:#3a4a5e}
+body{position:relative;font-family:'Source Sans 3',sans-serif;color:var(--caliza)}
+.bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:34% 50%}
+.osw{font-family:Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+
+/* Placa: esmalte grueso, esquinas de chapa troquelada, tornillos */
+.placa{position:absolute;width:252px;height:var(--h);background:var(--asfalto);border-radius:16px;border:3px solid var(--caliza);box-shadow:0 0 0 2px var(--asfalto),0 5px 0 2px rgba(20,23,26,.55)}
+.izq .placa{left:44px;padding:var(--pad) 12px 0 calc(var(--d)/2 + 12px)}
+.der .placa{left:1144px;padding:8px 46px 0 14px}
+.tornillo{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--caliza2);top:6px}
+.izq .tornillo{right:7px}.der .tornillo{left:7px}
+.nombre{font:600 var(--nm)/1.2 Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.fila2{display:flex;align-items:center;gap:8px;margin-top:var(--gap)}
+/* Taxímetro: cada cifra en su ventanita, como el contador de un taxi. El dinero rueda ahí. */
+.metro{display:inline-flex;align-items:center;background:var(--asfalto2);border-radius:6px;padding:2px 4px;font:700 var(--me)/1.18 'Source Sans 3',sans-serif;color:var(--caliza)}
+.metro i{font-style:normal;display:inline-block;width:.6em;text-align:center}
+.metro i.pt{width:.28em;opacity:.7}
+.marcas{display:flex;align-items:center;gap:6px;font:500 12px/14px Oswald,sans-serif;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap}
+.sello{display:inline-block;background:var(--rojo);color:var(--caliza);padding:2px 7px;transform:rotate(-6deg);border-radius:3px;outline:1px solid var(--caliza);outline-offset:-3px;font-weight:600}
+.furia{display:inline-flex;gap:2px;align-items:center}
+.furia b{display:block;width:6px;height:13px;border-radius:2px;background:rgba(237,229,211,.22);transform:skewX(-12deg)}
+.furia b.on{background:var(--naranja)}
+.cartas{display:inline-flex;align-items:center;gap:3px}
+
+/* Disco del avatar: como una señal redonda, sobresale de la placa */
+.disco{position:absolute;width:var(--d);height:var(--d);border-radius:50%;background:var(--caliza);border:5px solid var(--c);box-shadow:0 0 0 3px var(--asfalto);top:50%;margin-top:calc(var(--d)/-2);overflow:visible}
+.izq .disco{left:calc(48px - var(--d)/2)}.der .disco{left:1358px}
+.disco svg.cara{position:absolute;left:0;top:0;width:100%;height:100%;border-radius:50%}
+.corona{position:absolute;left:17%;top:-30%;width:68%;height:44%;transform:rotate(-14deg)}
+.bot{position:absolute;left:24px;top:-15px;width:22px;height:18px}
+
+.espectro .placa{background:rgba(35,39,44,.72);border-style:dashed;border-color:var(--caliza2);box-shadow:none}
+.espectro .disco{background:#5b6168;border-style:dashed;--c:var(--caliza2)!important}
+
+/* La placa del turno: flecha troquelada que apunta a la ciudad, en esmalte claro */
+.flecha{position:absolute;left:20px;top:0;width:calc(var(--fl)*3.08);height:var(--fl);transform:rotate(-1.6deg);transform-origin:40px 50%;animation:vaiven 3.2s ease-in-out infinite}
+.flecha svg.chapa{position:absolute;left:0;top:0}
+.flecha .txt{position:absolute;left:calc(var(--d) + 2px);top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;color:var(--asfalto)}
+.flecha .nombre{font-size:calc(var(--nm) + 4px);font-weight:700}
+.flecha .metro{background:var(--asfalto);font-size:calc(var(--me) + 2px);color:var(--caliza)}
+.flecha .marcas{color:var(--asfalto);font-weight:600}
+.flecha .disco{left:-8px!important;top:50%}
+@keyframes vaiven{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(.4deg)}}
+
+/* Importe que sale de una placa cuando cambia el dinero */
+.delta{position:absolute;font:600 20px/24px Oswald,sans-serif;letter-spacing:.02em;padding:1px 9px;border-radius:8px;background:var(--rojo);color:var(--caliza);transform:rotate(3deg);border:2px solid var(--asfalto);animation:sube 2.4s ease-out infinite}
+@keyframes sube{0%{opacity:0;translate:0 14px}15%{opacity:1;translate:0 0}70%{opacity:1;translate:0 -6px}100%{opacity:0;translate:0 -18px}}
+
+/* Letrero colgante de ronda */
+.colgante{position:absolute;left:50%;top:0;transform:translateX(-50%)}
+.cuerda{position:absolute;top:0;width:4px;height:14px;background:var(--asfalto)}
+.letrero{margin-top:12px;display:flex;align-items:center;gap:10px;height:54px;padding:0 8px 0 6px;background:var(--asfalto);border:3px solid var(--caliza);border-radius:27px;box-shadow:0 0 0 2px var(--asfalto),0 5px 0 2px rgba(20,23,26,.55);white-space:nowrap}
+.ronda{width:62px;height:40px;border-radius:20px;background:var(--caliza);color:var(--asfalto);display:flex;align-items:center;justify-content:center;font:700 19px/1 Oswald,sans-serif}
+.estado{font:600 15px/1 Oswald,sans-serif;letter-spacing:.1em;padding-right:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 14px;border-radius:22px;border:2px solid var(--caliza);font:500 14px/1 Oswald,sans-serif;letter-spacing:.08em}
+.chip svg{width:18px;height:18px;fill:none;stroke:var(--caliza);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Minimapa */
+.mapa{position:absolute;left:1218px;top:16px;width:192px;height:192px;background:var(--asfalto);border:3px solid var(--caliza);border-radius:22px;box-shadow:0 0 0 2px var(--asfalto),0 5px 0 2px rgba(20,23,26,.55);transform:rotate(1deg)}
+.mapa svg{position:absolute;inset:6px;width:174px;height:174px}
+
+/* Escritura: cartón con la esquina redonda, ladeada, encima del botón */
+.carta{position:absolute;left:1150px;top:226px;width:262px;background:var(--caliza);border-radius:14px;border:3px solid var(--asfalto);box-shadow:0 7px 0 rgba(20,23,26,.5);transform:rotate(-2.2deg);overflow:hidden;color:var(--asfalto)}
+.zona{position:relative;height:112px;background:#DC2626;padding:10px 12px}
+.pest{display:inline-block;background:var(--asfalto);color:var(--caliza);padding:2px 8px;border-radius:9px;font:500 12px/15px Oswald,sans-serif;letter-spacing:.08em}
+.tit{display:block;margin-top:9px;color:var(--caliza);font:700 33px/1 Oswald,sans-serif;letter-spacing:.04em}
+.llama{position:absolute;right:10px;top:8px;width:26px;height:32px}
+.precio{height:42px;background:var(--asfalto);color:var(--caliza);display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.precio span{font:500 12px Oswald,sans-serif;letter-spacing:.1em}
+.precio b{font:700 30px/1 Oswald,sans-serif;color:var(--caliza)}
+.tabla{padding:5px 0 6px;font:400 14.5px/25px 'Source Sans 3',sans-serif}
+.tf{display:flex;justify-content:space-between;padding:0 12px 0 10px;border-left:3px solid transparent}
+.tf b{font-weight:700}
+.casa{border-left-color:var(--rojo)}
+.tf.alta{font-weight:600}
+.cierre{border-top:2px solid var(--asfalto);margin:2px 12px 0}
+
+/* Botón: placa amarilla gruesa con la librea del taxi. Se hunde al pulsar. */
+.comprar{position:absolute;left:1126px;top:606px;width:296px;height:74px;transform:rotate(1.2deg);cursor:pointer}
+.comprar .labio{position:absolute;left:0;right:0;top:7px;bottom:0;border-radius:18px;background:var(--amarillo2);border:3px solid var(--asfalto)}
+.comprar .cara{position:absolute;left:0;right:0;top:0;height:66px;border-radius:18px;background:var(--amarillo);border:3px solid var(--asfalto);overflow:hidden;display:flex;align-items:center;justify-content:center;transition:top .08s}
+.comprar:hover .cara{top:3px}.comprar:active .cara{top:6px}
+.comprar .txt{font:400 38px/1 'Luckiest Guy',sans-serif;color:var(--asfalto);margin-top:-3px;padding-top:6px}
+.cuadros{position:absolute;left:0;right:0;bottom:0;height:12px;background:conic-gradient(var(--asfalto) 25%,transparent 0 50%,var(--asfalto) 0 75%,transparent 0) 0 0/12px 12px}
+.no{position:absolute;left:1158px;top:690px;width:236px;height:44px;border-radius:22px;background:var(--asfalto);border:2px solid var(--caliza);color:var(--caliza);display:flex;align-items:center;justify-content:center;font:500 14px/1 Oswald,sans-serif;letter-spacing:.08em;transform:rotate(-.8deg)}
+.tecla{display:inline-block;background:var(--caliza);color:var(--asfalto);border-radius:5px;padding:2px 6px;font:600 12px/14px Oswald,sans-serif;margin-left:8px}
+
+/* Mano en abanico que asoma de la calle */
+.naipe{position:absolute;width:104px;height:150px;background:var(--caliza);border:3px solid var(--asfalto);border-radius:11px;box-shadow:0 0 0 2px var(--caliza2);color:var(--asfalto);padding:7px 8px;transform-origin:50% 120%}
+.naipe .nn{font:600 13px/15px Oswald,sans-serif;letter-spacing:.05em}
+.naipe .sl{display:inline-block;margin-top:5px;font:500 12px/13px Oswald,sans-serif;letter-spacing:.06em;padding:1px 5px}
+.s-com{border:1px solid var(--asfalto)}
+.s-rara{border:3px double #1b3a6b;color:#1b3a6b;transform:rotate(-4deg)}
+.s-leg{background:var(--rojo);color:var(--caliza);transform:rotate(-7deg);outline:1px solid var(--caliza);outline-offset:-3px}
+
+/* Plazo: la calzada al pie de la pantalla. El vehículo del turno se come los trazos. */
+.calle{position:absolute;left:0;right:0;bottom:0;height:36px;background:var(--asfalto);border-top:4px solid var(--caliza)}
+.calle svg.traz{position:absolute;left:0;top:0}
+.ficha{position:absolute;top:-14px;width:66px;height:36px;animation:rueda 1.1s ease-in-out infinite}
+@keyframes rueda{50%{translate:0 -1px}}
+.cono{position:absolute;left:1336px;top:-22px;width:30px;height:44px}
+.segs{position:absolute;right:14px;top:1px;font:700 22px/30px Oswald,sans-serif;color:var(--caliza)}
+#sel{position:absolute;left:16px;top:16px;z-index:9;display:flex;align-items:center;gap:4px;background:#fff;color:#111;padding:6px 8px;border-radius:8px;font:600 13px system-ui,sans-serif}
+#sel span{margin-right:6px}
+#sel button{width:26px;height:26px;border:1px solid #999;border-radius:5px;background:#fff;font:600 13px system-ui,sans-serif;cursor:pointer}
+#sel button.on{background:#111;color:#fff;border-color:#111}
+</style>
+</head>
+<body>
+<img class="bg" src="../../art/render/ingame/carmesi-plaza-del-jazz-nivel5.jpg" alt="">
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="cara" viewBox="0 0 68 68"><rect x="15" y="14" width="38" height="36" rx="10" fill="var(--piel,#F2C894)" stroke="#23272C" stroke-width="2.5"/><circle cx="27" cy="29" r="3" fill="#23272C"/><circle cx="41" cy="29" r="3" fill="#23272C"/><path d="M26 39q8 6 16 0" fill="none" stroke="#23272C" stroke-width="2.5" stroke-linecap="round"/><path d="M15 26V20q0-8 10-8h18q10 0 10 8v5q-6-6-19-6t-19 7z" fill="var(--pelo,#5B3A22)"/></symbol>
+  <symbol id="fantasma" viewBox="0 0 68 68"><path d="M16 56V30a18 18 0 0 1 36 0v26l-6-5-6 5-6-5-6 5-6-5z" fill="#EDE5D3" stroke="#23272C" stroke-width="2.5" stroke-linejoin="round"/><circle cx="27" cy="31" r="3.5" fill="#23272C"/><circle cx="41" cy="31" r="3.5" fill="#23272C"/><ellipse cx="34" cy="42" rx="4" ry="5" fill="#23272C"/></symbol>
+  <symbol id="naipes" viewBox="0 0 16 14"><rect x="1" y="2" width="8" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(-10 5 8)"/><rect x="7" y="1" width="8" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(8 11 7)"/></symbol>
+</defs></svg>
+
+<div id="placas"></div>
+<div class="delta" id="delta">−104</div>
+<div id="sel" title="Solo de la maqueta"><span>Maqueta · jugadores</span><button>1</button><button>2</button><button>3</button><button>4</button><button>5</button><button>6</button><button>7</button><button>8</button></div>
+
+<div class="colgante">
+  <div class="cuerda" style="left:44px"></div><div class="cuerda" style="right:44px"></div>
+  <div class="letrero">
+    <div class="ronda">7/12</div>
+    <div class="estado osw">Tu turno</div>
+    <div class="chip osw"><svg viewBox="0 0 20 20"><rect x="3" y="3" width="14" height="14" rx="2"/><rect x="7" y="7" width="6" height="6" rx="1"/></svg>Vista general<span class="tecla">M</span></div>
+    <div class="chip osw"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.5"/><path d="M6.5 11.5q3.5 3.5 7 0M7.5 7.5v.5M12.5 7.5v.5"/></svg>Emotes</div>
+  </div>
+</div>
+
+<div class="mapa"><svg id="mapa" viewBox="0 0 174 174"></svg></div>
+
+<div class="carta">
+  <div class="zona">
+    <span class="pest">DISTRITO CARMESÍ</span>
+    <span class="tit">CINE LUX</span>
+    <svg class="llama" viewBox="0 0 26 32"><path d="M13 2c1 6 9 9 9 18a9 9 0 0 1-18 0c0-4 2-6 4-8 0 3 1 5 3 5 1-5 0-10 2-15z" fill="none" stroke="#EDE5D3" stroke-width="2.4" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="precio"><span>PRECIO</span><b>260</b></div>
+  <div class="tabla">
+    <div class="tf"><span>Sin mejoras</span><b>26</b></div>
+    <div class="tf casa"><span>1 casa</span><b>104</b></div>
+    <div class="tf casa"><span>2 casas</span><b>156</b></div>
+    <div class="tf casa"><span>3 casas</span><b>260</b></div>
+    <div class="tf alta"><span>Hotel</span><b>416</b></div>
+    <div class="tf alta"><span>Rascacielos</span><b>624</b></div>
+    <div class="cierre"></div>
+  </div>
+</div>
+
+<div class="comprar"><div class="labio"></div><div class="cara"><span class="txt">COMPRAR</span><div class="cuadros"></div></div></div>
+<div class="no">NO COMPRAR · SUBASTA<span class="tecla">N</span></div>
+
+<div class="naipe" style="left:352px;top:748px;transform:rotate(-11deg)"><div class="nn">MULTA</div><span class="sl s-com">COMÚN</span></div>
+<div class="naipe" style="left:434px;top:738px;transform:rotate(0deg)"><div class="nn">ESCUDO</div><span class="sl s-com">COMÚN</span></div>
+<div class="naipe" style="left:516px;top:748px;transform:rotate(11deg)"><div class="nn">HURACÁN</div><span class="sl s-leg">LEGENDARIA</span></div>
+
+<div class="calle">
+  <svg class="traz" id="traz" width="1440" height="32"></svg>
+  <svg class="ficha" style="left:440px" viewBox="0 0 66 36"><path d="M4 26v-8q0-3 3-3h9l7-9q1-2 4-2h16q3 0 4 2l5 9h6q4 0 4 4v7z" fill="#F5C518" stroke="#14171A" stroke-width="2.5" stroke-linejoin="round"/><path d="M26 8h8v7H21zM37 8h8l4 7H37z" fill="#7FB2D9" stroke="#14171A" stroke-width="1.5"/><rect x="26" y="1" width="12" height="4" rx="1" fill="#DC2626" stroke="#14171A" stroke-width="1.5"/><path d="M6 21h54" stroke="#14171A" stroke-width="3" stroke-dasharray="3 3"/><circle cx="17" cy="28" r="6" fill="#23272C" stroke="#EDE5D3" stroke-width="2"/><circle cx="50" cy="28" r="6" fill="#23272C" stroke="#EDE5D3" stroke-width="2"/></svg>
+  <svg class="cono" viewBox="0 0 30 44"><path d="M15 3l10 33H5z" fill="#E07A3C" stroke="#14171A" stroke-width="2.5" stroke-linejoin="round"/><path d="M10.5 18h9l2 7h-13z" fill="#EDE5D3"/><rect x="1" y="35" width="28" height="7" rx="2.5" fill="#E07A3C" stroke="#14171A" stroke-width="2.5"/></svg>
+  <div class="segs">14 s</div>
+</div>
+
+<script>
+const dig=s=>[...s].map(c=>c==='.'?'<i class="pt">.</i>':`<i>${c}</i>`).join('');
+const cara=(p,h)=>`<svg class="cara" style="--piel:${p};--pelo:${h}"><use href="#cara"/></svg>`;
+const J=[
+ {s:'izq',y:112,n:'Ana',m:'1.240',c:'#E85D9E',p:'#F2C894',h:'#7A3B1E',extra:`<svg class="corona" viewBox="0 0 46 30"><path d="M4 26L2 7l11 8L23 2l10 13 11-8-2 19z" fill="#F5C518" stroke="#14171A" stroke-width="2.5" stroke-linejoin="round"/><circle cx="23" cy="19" r="2.6" fill="#C4382B"/></svg>`,k:'Corona'},
+ {s:'izq',turno:1,y:204,n:'Santi',t:'Tú',m:'860',c:'#22D3EE',p:'#F7D6B0',h:'#222',k:`<span class="cartas"><svg width="16" height="14"><use href="#naipes"/></svg>2 cartas</span>`},
+ {s:'izq',y:314,n:'María José',m:'2.105',c:'#F59E0B',p:'#D9A066',h:'#2c1a10',k:'<span class="sello">Traidor</span>'},
+ {s:'izq',y:406,n:'Lucas',m:'415',c:'#8B5CF6',p:'#F2C894',h:'#C9802E',k:'<span class="furia"><b class="on"></b><b class="on"></b><b class="on"></b><b></b><b></b></span>Furia'},
+ {s:'der',y:232,n:'Valen',m:'0',c:'#CFC5AE',ghost:1,k:'Espectro'},
+ {s:'der',y:324,n:'Nico',m:'1.030',c:'#10B981',p:'#8D5A3B',h:'#111',k:''},
+ {s:'der',y:416,n:'Cami',m:'780',c:'#4F46E5',p:'#F7D6B0',h:'#A0522D',bot:1,k:'Bot'},
+ {s:'der',y:508,n:'Guillermo Antonio',m:'1.560',c:'#C97B3A',p:'#D9A066',h:'#3a2a1a',k:''},
+];
+function pinta(num){
+// Todos en la columna izquierda; el tamaño de la placa depende de cuántos sean.
+const T=num<=3?{h:92,step:104,d:78,nm:17,me:25,fl:122,pad:10,gap:6}:num<=5?{h:80,step:92,d:68,nm:15,me:22,fl:104,pad:8,gap:5}:{h:62,step:70,d:54,nm:14,me:19,fl:84,pad:4,gap:2};
+const P=document.getElementById('placas');for(const k of ['h','d','nm','me','fl','pad','gap'])P.style.setProperty('--'+k,T[k]+'px');
+let yI=70;
+const lista=J.slice(0,num).map(j=>{const r={...j};r.s='izq';r.y=yI;yI+=r.turno?T.fl+6:T.step;return r;});
+const lucas=lista.find(j=>j.n==='Lucas');
+const d=document.getElementById('delta');d.style.display=lucas?'':'none';
+if(lucas){d.style.left='306px';d.style.top=(lucas.y+T.h/2-14)+'px';}
+const tam=num<=4?{lado:11,r:20}:num<=6?{lado:13,r:15}:{lado:15,r:12};
+document.querySelector('.ronda').textContent='7/'+tam.r;
+mapa(tam.lado,num);
+document.querySelectorAll('#sel button').forEach(b=>b.classList.toggle('on',+b.textContent===num));
+let h='';
+for(const j of lista){
+ const dis=`<div class="disco" style="--c:${j.c};top:${j.turno?T.fl/2:j.y+T.h/2}px">${j.ghost?'<svg class="cara"><use href="#fantasma"/></svg>':cara(j.p,j.h)}${j.extra||''}${j.bot?'<svg class="bot" viewBox="0 0 22 18"><path d="M11 18V7" stroke="#23272C" stroke-width="3"/><circle cx="11" cy="5" r="4" fill="#E07A3C" stroke="#23272C" stroke-width="2"/></svg>':''}</div>`;
+ if(j.turno){
+  h+=`<div class="izq"><div class="flecha" style="top:${j.y}px"><svg class="chapa" width="${T.fl*3.08}" height="${T.fl}" viewBox="0 0 320 104"><path d="M22 6H258q7 0 12 5l44 37q6 5 0 10l-44 37q-5 4-12 4H22Q6 99 6 83V22Q6 6 22 6z" fill="#EDE5D3" stroke="#23272C" stroke-width="5" stroke-linejoin="round"/><path d="M24 14H256q5 0 9 3l38 32q3 3 0 6l-38 32q-4 3-9 3H24Q14 90 14 80V24q0-10 10-10z" fill="none" stroke="#23272C" stroke-width="1.5"/></svg>${dis}<div class="txt"><div class="nombre">${j.n} · ${j.t}</div><div class="fila2"><span class="metro">${dig(j.m)}</span><span class="marcas">${j.k}</span></div></div></div></div>`;
+ } else {
+  h+=`<div class="${j.s}${j.ghost?' espectro':''}"><div class="placa" style="top:${j.y}px"><span class="tornillo"></span><div class="nombre">${j.n}</div><div class="fila2"><span class="metro">${dig(j.m)}</span><span class="marcas">${j.k}</span></div></div>${dis}</div>`;
+ }
+}
+document.getElementById('placas').innerHTML=h;
+}
+
+// Minimapa: anillo del tamaño del tablero (11, 13 o 15 de lado), con colores de zona y dueños de muestra.
+function mapa(n,num){
+const zonas=n===11?8:n===13?10:12;
+const Z=['#C97B3A','#22D3EE','#E85D9E','#F59E0B','#DC2626','#FACC15','#10B981','#8B5CF6','#4F46E5','#E7E5E4','#64748B','#A16207'];
+const s=document.getElementById('mapa');let o='';const c=174/n;const pts=[];
+for(let i=0;i<n;i++)pts.push([i,0]);for(let i=1;i<n;i++)pts.push([n-1,i]);for(let i=n-2;i>=0;i--)pts.push([i,n-1]);for(let i=n-2;i>0;i--)pts.push([0,i]);
+pts.forEach(([x,y],i)=>{const col=Z[Math.floor(i/pts.length*zonas)];const esp=i%5===0;o+=`<rect x="${x*c+1.5}" y="${y*c+1.5}" width="${c-3}" height="${c-3}" rx="2.5" fill="${col}" opacity="${esp?.28:(i%3===0?1:.55)}"/>`;});
+J.slice(0,num).forEach((j,k)=>{const[x,y]=pts[Math.floor((k*7+5)%pts.length)];o+=`<circle cx="${x*c+c/2}" cy="${y*c+c/2}" r="5.5" fill="${j.c}" stroke="#EDE5D3" stroke-width="2"/>`;});
+s.innerHTML=o;
+}
+document.querySelectorAll('#sel button').forEach(b=>b.onclick=()=>pinta(+b.textContent));
+pinta(+(new URLSearchParams(location.search).get('n')||8));
+
+// Solo para ver la maqueta entera en cualquier panel.
+const ajusta=()=>{document.documentElement.style.zoom=Math.min(innerWidth/1440,innerHeight/900)};
+addEventListener('resize',ajusta);ajusta();
+
+// Trazos de la calzada: los ya recorridos se apagan.
+let t='';for(let x=20;x<1320;x+=44){const pas=x<450;t+=`<rect x="${x}" y="12" width="28" height="7" rx="3.5" fill="${pas?'rgba(237,229,211,.18)':'#E07A3C'}"/>`;}
+document.getElementById('traz').innerHTML=t;
+</script>
+</body>
+</html>

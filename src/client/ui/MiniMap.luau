@@ -1,8 +1,9 @@
 --!strict
--- Minimapa siempre en pantalla: todas las casillas con su color, dueño y nivel, y dónde está cada ficha.
--- Pulsar una casilla enseña su detalle sin mover la cámara de nadie. Interfaz gris: el diseño final es del
--- plan 09. Qué se enseña lo decide `MiniMapRules`.
+-- Minimapa siempre en pantalla: una chapa en la esquina con todas las casillas, su color, dueño y nivel, y
+-- dónde está cada ficha. Pulsar una casilla enseña su detalle en el centro, sin mover la cámara de nadie.
+-- Qué se enseña lo decide `MiniMapRules`.
 local CityLayout = require("../../shared/config/CityLayout")
+local Components = require("./Components")
 local MiniMapRules = require("./MiniMapRules")
 local Theme = require("./Theme")
 local Ui = require("../../shared/config/Ui")
@@ -12,12 +13,14 @@ export type Handles = {
 	setView: (view: any, names: ViewText.Names?) -> (),
 }
 
--- Parte de su hueco que ocupa cada celda: el resto deja sitio al contorno, para que no se tape con la vecina.
-local CELL_FILL = 0.78
-local OWNER_STROKE = 3
+-- Parte de su hueco que ocupa cada celda: el resto deja sitio al contorno.
+local CELL_FILL = 0.84
+local OWNER_STROKE = 2
 local TURN_STROKE = 3
-local SPECIAL_FADE = 0.75
-local FREE_FADE = 0.4
+-- Las especiales se apagan y las libres quedan a media luz, para que resalte lo que ya tiene dueño.
+local SPECIAL_FADE = 0.7
+local FREE_FADE = 0.45
+local MAP_PADDING = 10
 
 local MiniMap = {}
 
@@ -33,34 +36,28 @@ end
 function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3): Handles
 	local gui = Theme.screenGui(playerGui, "MiniMap", 5)
 
+	local plate = Components.Panel(gui, "Plate", 22)
+	plate.root.AnchorPoint = Vector2.new(1, 0)
+	plate.root.Position = UDim2.new(1, -Ui.miniMapRight, 0, Ui.miniMapTop)
+	plate.root.Size = UDim2.fromOffset(Ui.miniMapSize, Ui.miniMapSize)
+
 	local holder = Instance.new("Frame")
 	holder.Name = "Holder"
-	holder.AnchorPoint = Vector2.new(1, 0)
-	holder.Position = UDim2.new(1, -Theme.PADDING, 0, Ui.miniMapTop)
-	holder.Size = UDim2.fromScale(Ui.miniMapHeightFraction, Ui.miniMapHeightFraction)
-	holder.SizeConstraint = Enum.SizeConstraint.RelativeYY
-	holder.BackgroundColor3 = Theme.background
-	holder.BackgroundTransparency = 0.45
-	holder.BorderSizePixel = 0
-	holder.Parent = gui
-	Theme.corner(holder)
+	holder.BackgroundTransparency = 1
+	holder.Position = UDim2.fromOffset(MAP_PADDING, MAP_PADDING)
+	holder.Size = UDim2.new(1, -MAP_PADDING * 2, 1, -MAP_PADDING * 2)
+	holder.ZIndex = 5
+	holder.Parent = plate.root
 
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(Ui.miniMapMaxSize, Ui.miniMapMaxSize)
-	limit.Parent = holder
-
-	local detail = Instance.new("TextLabel")
-	detail.Name = "Detail"
+	local detail = Components.label(holder, "Detail", "", {
+		face = Theme.font.text,
+		size = 13,
+		align = Enum.TextXAlignment.Center,
+		wrap = true,
+	})
 	detail.AnchorPoint = Vector2.new(0.5, 0.5)
 	detail.Position = UDim2.fromScale(0.5, 0.5)
-	detail.Size = UDim2.fromScale(0.68, 0.68)
-	detail.BackgroundTransparency = 1
-	detail.Font = Theme.font
-	detail.TextColor3 = Theme.text
-	detail.TextSize = 12
-	detail.TextWrapped = true
-	detail.Text = ""
-	detail.Parent = holder
+	detail.Size = UDim2.fromScale(0.72, 0.72)
 
 	local cells: { [number]: TextButton } = {}
 	local builtFor: string? = nil
@@ -93,6 +90,7 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 			cell.BorderSizePixel = 0
 			cell.Size = UDim2.fromScale(CELL_FILL / side, CELL_FILL / side)
 			cell.Parent = holder
+			Theme.corner(cell, 3)
 			local index = slot.index
 			cell.Activated:Connect(function()
 				selected = if selected == index then nil else index
@@ -127,8 +125,6 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 					local inset = (1 - CELL_FILL) / 2 / side
 					cell.Position = UDim2.fromScale(info.u * room + inset, info.v * room + inset)
 					cell.BackgroundColor3 = Color3.fromHex(info.color)
-					-- Lo importante es de quién es cada propiedad: las casillas especiales se apagan y las
-					-- libres se quedan a media luz, para que resalte lo que ya tiene dueño.
 					cell.BackgroundTransparency = if not info.isProperty
 						then SPECIAL_FADE
 						elseif info.ownerSeat == nil then FREE_FADE
@@ -138,18 +134,19 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 							child:Destroy()
 						end
 					end
-					-- El dueño rodea la casilla con su color; el turno manda sobre él, en amarillo.
+					-- El dueño rodea la casilla con su color. El turno manda, en caliza gruesa: el amarillo es
+					-- de la acción.
 					if info.isTurn or info.ownerSeat ~= nil then
 						local stroke = Instance.new("UIStroke")
 						stroke.Thickness = if info.isTurn then TURN_STROKE else OWNER_STROKE
 						stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 						stroke.Color = if info.isTurn
-							then Theme.accent
+							then Theme.color.limestone
 							else seatColor(info.ownerSeat :: number)
 						stroke.Parent = cell
 					end
 					for _ = 1, info.level do
-						dot(cell, 3, Theme.text)
+						dot(cell, 3, Theme.color.limestone)
 					end
 					for _, seat in info.tokens do
 						dot(cell, 6, seatColor(seat))

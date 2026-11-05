@@ -1,30 +1,59 @@
 --!strict
--- Piezas comunes de la interfaz gris. Todo el arte es temporal: colores planos, sin imágenes, sin
--- iconos. Existe para que los menús no repitan la misma veintena de líneas y para que las medidas
--- táctiles y la zona segura se decidan en un solo sitio.
+-- Tokens de diseño y piezas de maquetación de la interfaz. Los colores, voces y medidas vienen de
+-- art/guia-de-estilo.md por medio de `config/Ui`; los componentes con personalidad están en `Components`.
 local GuiService = game:GetService("GuiService")
 local Workspace = game:GetService("Workspace")
 
+local HudRules = require("./HudRules")
 local Ui = require("../../shared/config/Ui")
 
 local Theme = {}
 
-Theme.background = Color3.fromRGB(28, 30, 34)
-Theme.panelColor = Color3.fromRGB(44, 47, 53)
-Theme.buttonColor = Color3.fromRGB(64, 68, 76)
-Theme.buttonHot = Color3.fromRGB(92, 98, 108)
-Theme.accent = Color3.fromRGB(240, 190, 70)
-Theme.danger = Color3.fromRGB(200, 80, 74)
-Theme.text = Color3.fromRGB(238, 238, 240)
-Theme.muted = Color3.fromRGB(168, 172, 180)
+-- Paleta de la guía. Nunca hay blanco puro, negro puro ni verde fieltro.
+Theme.color = {
+	asphalt = Color3.fromHex(Ui.palette.asphalt),
+	asphaltDeep = Color3.fromHex(Ui.palette.asphaltDeep),
+	limestone = Color3.fromHex(Ui.palette.limestone),
+	limestoneDim = Color3.fromHex(Ui.palette.limestoneDim),
+	taxi = Color3.fromHex(Ui.palette.taxi),
+	taxiLip = Color3.fromHex(Ui.palette.taxiLip),
+	signal = Color3.fromHex(Ui.palette.signal),
+	works = Color3.fromHex(Ui.palette.works),
+	steel = Color3.fromHex(Ui.palette.steel),
+	navy = Color3.fromHex(Ui.palette.navy),
+}
 
-Theme.font = Enum.Font.GothamMedium
-Theme.fontBold = Enum.Font.GothamBold
+-- Las tres voces de la guía, §3. `shout` es solo para verbos, desde 28 px y en mayúsculas.
+Theme.font = {
+	shout = Font.fromEnum(Enum.Font.LuckiestGuy),
+	road = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Regular),
+	roadBold = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Bold),
+	text = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular),
+	textBold = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Bold),
+}
+
+-- Escala de espaciado, en píxeles a tamaño de referencia.
+Theme.space = { xs = 4, s = 8, m = 12, l = 16, xl = 24 }
+
+-- Nombres de las piezas de maquetación de abajo.
+Theme.background = Theme.color.asphaltDeep
+Theme.panelColor = Theme.color.asphalt
+Theme.buttonColor = Theme.color.asphalt
+Theme.buttonHot = Color3.fromRGB(58, 64, 71)
+Theme.accent = Theme.color.taxi
+Theme.danger = Theme.color.signal
+Theme.text = Theme.color.limestone
+Theme.muted = Theme.color.limestoneDim
+
+-- Escala de toda la interfaz para una pantalla. Ver `HudRules.scaleFor`.
+function Theme.scaleFor(viewport: Vector2): number
+	return HudRules.scaleFor(viewport.X, viewport.Y)
+end
 
 -- Medidas táctiles: el dedo no perdona un botón de 20 píxeles. El mínimo es el de la ficha.
 Theme.MIN_TOUCH = 44
 Theme.PADDING = 8
-Theme.RADIUS = 10
+Theme.RADIUS = Ui.radius.plate
 
 -- Inserto de la zona segura: en un móvil con muesca, la interfaz se aparta de los bordes.
 function Theme.inset(): Vector2
@@ -39,10 +68,24 @@ function Theme.screenGui(playerGui: Instance, name: string, displayOrder: number
 	gui.IgnoreGuiInset = false
 	gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 	gui.DisplayOrder = displayOrder
-	-- CoreUISafeInsets suma la muesca del móvil y la barra superior de Roblox: sin eso, la barra de
-	-- estado queda debajo de los botones del menú del motor.
-	gui.ScreenInsets = Enum.ScreenInsets.CoreUISafeInsets
+	-- R-P52: la interfaz usa toda la ventana, también la franja de la barra de Roblox. Lo que va arriba a
+	-- la izquierda deja sitio a sus botones. El móvil revisará la muesca cuando le toque.
+	gui.ScreenInsets = Enum.ScreenInsets.DeviceSafeInsets
 	gui.Parent = playerGui
+
+	-- Toda la interfaz escala a la vez con la pantalla. Solo crece: la letra nunca baja de lo diseñado.
+	local scale = Instance.new("UIScale")
+	local camera = Workspace.CurrentCamera
+	local function fit()
+		if camera ~= nil then
+			scale.Scale = Theme.scaleFor(camera.ViewportSize)
+		end
+	end
+	fit()
+	if camera ~= nil then
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
+	end
+	scale.Parent = gui
 	return gui
 end
 
@@ -85,7 +128,7 @@ function Theme.panel(parent: Instance, name: string, title: string?): Frame
 		label.Name = "Title"
 		label.BackgroundTransparency = 1
 		label.Size = UDim2.new(1, 0, 0, 26)
-		label.Font = Theme.fontBold
+		label.FontFace = Theme.font.road
 		label.TextSize = 20
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextColor3 = Theme.text
@@ -157,7 +200,7 @@ function Theme.header(parent: Instance, text: string, order: number): TextLabel
 	label.BackgroundTransparency = 1
 	label.Size = UDim2.fromScale(1, 0)
 	label.AutomaticSize = Enum.AutomaticSize.Y
-	label.Font = Theme.fontBold
+	label.FontFace = Theme.font.road
 	label.TextSize = 16
 	label.TextWrapped = true
 	label.TextXAlignment = Enum.TextXAlignment.Left
@@ -176,7 +219,7 @@ function Theme.button(parent: Instance, text: string, order: number, onClick: ()
 	button.BackgroundColor3 = Theme.buttonColor
 	button.BorderSizePixel = 0
 	button.Size = UDim2.new(1, 0, 0, math.max(Theme.MIN_TOUCH, 48))
-	button.Font = Theme.fontBold
+	button.FontFace = Theme.font.road
 	button.TextSize = 18
 	button.TextColor3 = Theme.text
 	button.Text = text
@@ -213,7 +256,7 @@ function Theme.row(parent: Instance, order: number): (TextLabel, TextLabel)
 	local key = Instance.new("TextLabel")
 	key.BackgroundTransparency = 1
 	key.Size = UDim2.fromScale(0.6, 1)
-	key.Font = Theme.font
+	key.FontFace = Theme.font.text
 	key.TextSize = 16
 	key.TextXAlignment = Enum.TextXAlignment.Left
 	key.TextColor3 = Theme.muted
@@ -224,7 +267,7 @@ function Theme.row(parent: Instance, order: number): (TextLabel, TextLabel)
 	value.AnchorPoint = Vector2.new(1, 0)
 	value.Position = UDim2.fromScale(1, 0)
 	value.Size = UDim2.fromScale(0.4, 1)
-	value.Font = Theme.fontBold
+	value.FontFace = Theme.font.road
 	value.TextSize = 16
 	value.TextXAlignment = Enum.TextXAlignment.Right
 	value.TextColor3 = Theme.text

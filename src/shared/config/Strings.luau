@@ -4,6 +4,8 @@
 -- La fuente de verdad es docs/02-mvp/contenido-tablero.md; aquí solo se copia para que el cliente
 -- no dependa de un documento. Los colores son cadenas `#RRGGBB` porque `Color3` es de Roblox y esta
 -- carpeta se analiza con la plataforma estándar; el cliente los convierte al construir.
+local Cards = require("./Cards")
+local Perks = require("./Perks")
 local Types = require("../rules/Types")
 
 type SquareKind = Types.SquareKind
@@ -144,7 +146,173 @@ local DUEL_CHOICES: { [string]: string } = {
 	Scissors = "Tijera",
 }
 
+-- Efecto de cada carta, como lo dice la ficha. El nombre vive en `Cards`, junto a sus reglas.
+local CARD_DESCRIPTIONS: { [string]: string } = {
+	Hurricane = "Todas las propiedades vuelven al banco. Sus dueños cobran la mitad de su valor.",
+	WorldFlip = "La ciudad gira en el aire y todas las fichas caen en casillas al azar.",
+	Revolution = "Los dos jugadores más ricos intercambian efectivo con los dos más pobres.",
+	Earthquake = "Todos los edificios de una zona bajan un nivel.",
+	CrownStrike = "El líder pierde 25 % de su efectivo, repartido entre los demás.",
+	Inflation = "Todas las rentas se duplican durante 2 rondas.",
+	Strike = "Una zona no cobra renta durante 2 rondas.",
+	BounceRent = "Reacción: la próxima renta que te cobren la paga otro jugador que elijas.",
+	DeedThief = "Robas una propiedad sin edificios que no complete un grupo.",
+	Backstab = "Rompes un pacto tuyo sin coste y te quedas con la garantía.",
+	Demolition = "Un edificio rival baja un nivel.",
+	Shield = "Reacción: anula la próxima carta que te apunte.",
+	ExtraDie = "Tiras un dado adicional este turno.",
+	Reverse = "Retrocedes lo que sacaste en vez de avanzar.",
+	ForcedTip = "Cada rival te paga 50.",
+	Discount = "Tu próxima compra cuesta la mitad.",
+	Shove = "Mueves a un rival 3 casillas.",
+	Fine = "Un rival paga 100 al banco.",
+	Bribe = "Te libras de un castigo del Tribunal.",
+	Spy = "Ves la mano de un rival.",
+}
+
+-- Textos de la interfaz. `{nombre}` se sustituye con los argumentos de `Strings.get`. Las claves de
+-- cartas y perks se añaden abajo, desde sus catálogos.
+local TEXTS: { [string]: string } = {
+	["hud.round"] = "Ronda {current}/{max}",
+	["hud.roundEndless"] = "Ronda {current}",
+	["hud.yourTurn"] = "Tu turno",
+	["hud.overview"] = "Vista general",
+	["hud.overviewKey"] = "M",
+	["hud.emotes"] = "Emotes",
+	["hud.seconds"] = "{seconds} s",
+	["deed.price"] = "Precio",
+	["deed.footer"] = "Escritura",
+	["deed.fullZone"] = "Zona completa del dueño",
+	["deed.hotZone"] = "Casilla en Zona Caliente",
+	["deed.double"] = "×2",
+	["action.buy"] = "Comprar",
+	["action.roll"] = "Tirar",
+	["action.move"] = "Mover",
+	["action.endTurn"] = "Terminar",
+	["action.bid"] = "Pujar {amount}",
+	["panel.PerkDraft"] = "Elige un perk",
+	["panel.Auction"] = "Subasta",
+	["panel.Reaction"] = "¿Reaccionas?",
+	["panel.Tribunal"] = "Vota el castigo",
+	["panel.Duel"] = "Duelo",
+	["panel.Market"] = "Mercado Negro",
+	["panel.GhostTurn"] = "Turno de espectro",
+	["panel.bidRange"] = "De {min} a {max}",
+	["action.decline"] = "No comprar · Subasta",
+	["rarity.Common"] = "Común",
+	["rarity.Rare"] = "Rara",
+	["rarity.Legendary"] = "Legendaria",
+	["mark.crown"] = "Corona",
+	["mark.traitor"] = "Traidor",
+	["mark.fury"] = "Furia {current}/{max}",
+	["mark.ghost"] = "Espectro",
+	["mark.left"] = "Se fue",
+	["mark.bot"] = "Bot",
+	["mark.you"] = "Tú",
+	["mark.cards"] = "{count} cartas",
+	["mark.oneCard"] = "1 carta",
+	["mark.skipTurn"] = "Pierde turno",
+}
+
+for _, card in Cards.all do
+	local description = CARD_DESCRIPTIONS[card.id]
+	if description == nil then
+		error(`Strings: la carta {card.id} no tiene descripción`)
+	end
+	TEXTS[`card.{card.id}.name`] = card.name
+	TEXTS[`card.{card.id}.description`] = description
+end
+
+for _, perk in Perks.all do
+	TEXTS[`perk.{perk.id}.name`] = perk.name
+	TEXTS[`perk.{perk.id}.description`] = perk.description
+end
+
 local Strings = {}
+
+-- Texto de la interfaz. Una clave o un argumento que falte es un error: durante el desarrollo se ve
+-- enseguida, y ningún jugador llega a leer una clave o una llave sin sustituir.
+function Strings.get(key: string, args: { [string]: any }?): string
+	local text = TEXTS[key]
+	if text == nil then
+		error(`Strings: la clave {key} no existe`, 2)
+	end
+	return (
+		string.gsub(text, "{(%w+)}", function(name: string): string
+			local value = if args ~= nil then args[name] else nil
+			if value == nil then
+				error(`Strings: la clave {key} necesita el argumento {name}`, 2)
+			end
+			return tostring(value)
+		end)
+	)
+end
+
+-- Título que anuncia un evento en pantalla. Corto: va en la voz grande. `TokenMoved` no lleva: el
+-- recorrido se ve solo.
+local EVENT_TITLES: { [string]: string } = {
+	RoundStarted = "Nueva ronda",
+	FinalRoundsStarted = "Última ronda",
+	PerkDrafted = "Perk elegido",
+	DiceRolled = "¡Dados!",
+	TokenMoved = "",
+	PassedStart = "Salida",
+	PropertyBought = "¡Comprada!",
+	RentPaid = "Renta",
+	AuctionStarted = "Subasta",
+	AuctionWon = "Subasta ganada",
+	AuctionNoSale = "Sin ventas",
+	BuildingChanged = "Obras",
+	TradeCompleted = "Trato cerrado",
+	PlayerArrested = "¡Arrestado!",
+	TribunalVerdict = "Veredicto",
+	BankruptcyDeclared = "Bancarrota",
+	GhostActed = "Espectro",
+	GhostResurrected = "¡Resucita!",
+	CardDrawn = "Carta robada",
+	CardDiscarded = "Descarte",
+	CardPlayed = "Carta jugada",
+	CardBlocked = "¡Bloqueada!",
+	HotZoneMoved = "Zona Caliente",
+	BillboardResult = "Cartelera",
+	DuelResolved = "Duelo",
+	PortalUsed = "Portal",
+	MarketBought = "Mercado Negro",
+	PactFormed = "Pacto firmado",
+	PactEnded = "Pacto terminado",
+	PactBroken = "¡Traición!",
+	CrownMoved = "Nueva Corona",
+	FuryFilled = "¡Furia!",
+	GameEnded = "Fin de la partida",
+}
+
+-- Mayúsculas del español. `string.upper` solo entiende ASCII y dejaría «MARíA JOSé».
+local UPPER = {
+	["á"] = "Á",
+	["é"] = "É",
+	["í"] = "Í",
+	["ó"] = "Ó",
+	["ú"] = "Ú",
+	["ü"] = "Ü",
+	["ñ"] = "Ñ",
+}
+
+function Strings.upper(text: string): string
+	local out = string.upper(text)
+	for lower: string, upper: string in pairs(UPPER) do
+		out = (string.gsub(out, lower, upper))
+	end
+	return out
+end
+
+-- Título de un evento o de una carta jugada. Un id que no se conoce no enseña nada: nunca un nombre interno.
+function Strings.eventTitle(id: string): string
+	local title = EVENT_TITLES[id]
+	if title ~= nil then
+		return title
+	end
+	return TEXTS[`card.{id}.name`] or ""
+end
 
 -- Nombre del barrio, que es la agrupación de zonas que la ciudad muestra en la calle.
 Strings.BARRIOS = {

@@ -19,7 +19,8 @@
 **Instrucciones para la sesión:**
 
 - Sigue también las [instrucciones generales](../instrucciones-de-sesion.md).
-- Requiere los planes 05 y 07 terminados, con Studio abierto. Carga la skill `impeccable` antes de la Tarea 1.
+- Cumple el [inventario de la interfaz](plan-09-inventario-interfaz.md): el plan no cierra con nada en gris.
+- Requiere los planes 05 y 07 terminados, con Studio abierto. El responsable autorizó adelantarlo sin el plan 07 terminado (2026-11-05). Carga la skill `impeccable` antes de la Tarea 1.
 - Puede avanzar a la par que el plan 08 solo en ramas separadas, sin tocar los mismos archivos ni usar Studio a la vez.
 - Prueba siempre con la pantalla más pequeña admitida y el texto más largo.
 - Confirma las condiciones de uso comercial antes de generar audio o ilustraciones.
@@ -50,7 +51,8 @@
 **Módulos:** `client/ui/Theme`, `client/ui/Components`, `config/Strings`.
 
 **Archivos:**
-- Crear: `src/client/ui/Theme.luau`, `src/client/ui/Components.luau`, `src/shared/config/Strings.luau`, `tests/config/Strings.spec.luau`
+- Crear: `src/client/ui/Components.luau`, `src/client/ui/HudRules.luau`, `src/shared/config/UiIcons.luau`, `art/ui/icons/`, `tests/client/HudRules.spec.luau`
+- Modificar: `src/client/ui/Theme.luau`, `src/shared/config/Strings.luau`, `src/shared/config/Ui.luau`, `tests/config/Strings.spec.luau`
 
 **Interfaces:**
 - Produce: `Theme.color`, `Theme.font`, `Theme.space`, `Theme.scaleFor(viewport)`.
@@ -58,18 +60,20 @@
 - Produce: `Strings.get(key: string, args: { [string]: any }?): string`.
 
 **Criterios de aceptación:**
-- [ ] Aplica a títulos, fuentes, colores y componentes la identidad de la guía de estilo, siguiendo la skill `impeccable`.
-- [ ] Texto mínimo legible en móvil; objetivos táctiles de 44 píxeles o más.
-- [ ] Los dueños y estados se identifican también por icono o forma, no solo por color.
-- [ ] Todo texto visible pasa por `Strings`.
-- [ ] El responsable aprueba una pantalla de ejemplo.
+- [x] Aplica a títulos, fuentes, colores y componentes la identidad de la guía de estilo, siguiendo la skill `impeccable`.
+- [ ] Texto mínimo legible en móvil; objetivos táctiles de 44 píxeles o más. **Móvil aplazado** por decisión del responsable (2026-11-04); en PC, los botones miden 44 o más.
+- [x] Los dueños y estados se identifican también por icono o forma, no solo por color.
+- [ ] Todo texto visible pasa por `Strings`. Listo para los componentes nuevos; los menús pasan en la Tarea 2.
+- [x] El responsable aprueba una pantalla de ejemplo (2026-11-05, en Studio, turno con compra y 8 jugadores).
 
-- [ ] **Paso 1:** Escribir una prueba: `Strings.get` con una clave desconocida lanza un error; toda carta y perk de `config` tiene nombre y descripción.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Strings`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar tema, componentes y textos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
-- [ ] **Paso 5:** Obtener la aprobación del responsable con capturas en PC y móvil.
-- [ ] **Paso 6:** Hacer commit: `feat: añadir sistema visual`.
+- [x] **Paso 1:** Escribir una prueba: `Strings.get` con una clave desconocida lanza un error; toda carta y perk de `config` tiene nombre y descripción.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Strings`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar tema, componentes y textos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 5:** Obtener la aprobación del responsable con capturas en PC. El móvil queda aplazado.
+- [x] **Paso 6:** Hacer commit: `feat: añadir sistema visual`.
+
+**Pendiente al cerrar la tarea:** la aprobación se dio sobre una copia montada a mano en Studio. `Components.luau` y sus animaciones se ejecutan por primera vez en la Tarea 2, y los iconos siguen en estado `Draft`.
 
 ### Task 2: Interfaz de partida
 

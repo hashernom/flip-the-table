@@ -8,6 +8,9 @@
 -- tipo por nombre.
 local Economy = require("../../shared/config/Economy")
 local Types = require("../../shared/rules/Types")
+local Property = require("../../shared/rules/Property")
+local Strings = require("../../shared/config/Strings")
+local UiIcons = require("../../shared/config/UiIcons")
 local ViewText = require("./ViewText")
 
 type Action = Types.Action
@@ -57,6 +60,20 @@ local LABELS: { [string]: string } = {
 	MarketSkip = "Pasar del mercado",
 	GhostAct = "Actuar como espectro",
 	EndTurn = "Terminar turno",
+}
+
+-- Acciones que pueden ser el botón amarillo, de más a menos importante. Solo hay uno por pantalla.
+local PRIMARY_RANK: { [string]: number } = { Buy = 1, Bid = 2, Roll = 3, EndTurn = 4 }
+
+-- Fases que encabezan el panel con un título.
+local PANEL_TITLES: { [string]: boolean } = {
+	PerkDraft = true,
+	Auction = true,
+	Reaction = true,
+	Tribunal = true,
+	Duel = true,
+	Market = true,
+	GhostTurn = true,
 }
 
 local ActionMenuRules = {}
@@ -205,6 +222,104 @@ end
 function ActionMenuRules.offerText(trade: any, squareName: ((number) -> string)?): string
 	local give = offerSide(trade.giveCash, trade.giveSquares, squareName)
 	return `{give} por {offerSide(trade.wantCash, trade.wantSquares, squareName)}`
+end
+
+-- Datos de la escritura de una casilla. Las cifras salen del motor; la carta solo las pinta.
+function ActionMenuRules.deedFor(view: any, index: number): any?
+	local board = ViewText.board(view.sizeId)
+	local square = board.squares[index]
+	if square == nil or square.kind ~= "Property" or square.zoneId == nil or square.price == nil then
+		return nil
+	end
+	local zone = Strings.zone(square.zoneId)
+	local rents = {}
+	for position, amount in Property.rentTable(square.price) do
+		table.insert(rents, { label = Strings.buildingLevel(position - 1), amount = amount })
+	end
+	local zoneNumber = table.find(board.zoneOrder, square.zoneId) or 0
+	local symbol = `zone-{square.zoneId}`
+	return {
+		zoneName = zone.name,
+		zoneColor = zone.color,
+		symbol = if UiIcons[symbol] ~= nil then symbol else nil,
+		name = ViewText.squareName(view, index),
+		price = Property.priceFor(
+			{ board = board, players = view.players, pending = view.pending } :: any,
+			view.playerId,
+			index
+		),
+		rents = rents,
+		code = `{view.sizeId}-{string.format("%02d", zoneNumber)} · {index}`,
+	}
+end
+
+export type Panel = {
+	title: string?,
+	deed: any?,
+	-- El único botón amarillo de la pantalla, y su texto corto.
+	primary: Button?,
+	primaryText: string?,
+	-- Renuncia a comprar: la segunda salida, con tecla propia.
+	decline: Button?,
+	options: { Button },
+	bid: BidControl?,
+}
+
+-- Qué enseña el panel de decisión. Todo botón legal aparece en algún sitio: lo que no es la acción
+-- principal ni la renuncia se queda en la lista de opciones.
+function ActionMenuRules.panelFor(legal: { Action }, context: Context?): Panel
+	local view: any = if context ~= nil then context.view else nil
+	local pending: any = if view ~= nil and view.pending ~= nil then view.pending else {}
+	local panel: Panel = { options = {} }
+	local buttons = ActionMenuRules.buttonsFor(legal, context)
+	if #buttons == 0 then
+		return panel
+	end
+	panel.bid = ActionMenuRules.bidControl(legal, ActionMenuRules.ownCash(context))
+	if view ~= nil then
+		if view.phase == "AwaitBuy" and type(pending.index) == "number" then
+			panel.deed = ActionMenuRules.deedFor(view, pending.index)
+		elseif view.phase == "Auction" and pending.auction ~= nil then
+			panel.deed = ActionMenuRules.deedFor(view, pending.auction.index)
+		end
+		if PANEL_TITLES[view.phase] then
+			panel.title = Strings.get(`panel.{view.phase}`)
+		end
+	end
+	local chosen: { [string]: Button } = {}
+	for _, button in buttons do
+		local kind = if button.action ~= nil then button.action.type else button.id
+		if PRIMARY_RANK[kind] ~= nil then
+			local current = panel.primary
+			local currentKind = if current ~= nil and current.action ~= nil then current.action.type else ""
+			if current == nil or PRIMARY_RANK[kind] < (PRIMARY_RANK[currentKind] or math.huge) then
+				panel.primary = button
+			end
+		elseif kind == "DeclineBuy" then
+			panel.decline = button
+			chosen[button.id] = button
+		end
+	end
+	local primary = panel.primary
+	if primary ~= nil then
+		chosen[primary.id] = primary
+		local kind = if primary.action ~= nil then primary.action.type else primary.id
+		if kind == "Buy" then
+			panel.primaryText = Strings.get("action.buy")
+		elseif kind == "Roll" then
+			panel.primaryText = Strings.get(if pending.heldRoll ~= nil then "action.move" else "action.roll")
+		elseif kind == "EndTurn" then
+			panel.primaryText = Strings.get("action.endTurn")
+		elseif kind == "Bid" then
+			panel.primaryText = Strings.get("action.bid", { amount = (primary.action :: any).amount })
+		end
+	end
+	for _, button in buttons do
+		if chosen[button.id] == nil then
+			table.insert(panel.options, button)
+		end
+	end
+	return panel
 end
 
 -- Segundos que quedan de una decisión. Sin plazo conocido no hay cuenta atrás: el menú esconde el

@@ -11,17 +11,8 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
--- Color de la franja de cada asiento. Es lo único que distingue una ficha de otra en el arte gris.
-local SEAT_COLORS = {
-	Color3.fromRGB(230, 90, 90),
-	Color3.fromRGB(90, 160, 230),
-	Color3.fromRGB(110, 200, 120),
-	Color3.fromRGB(230, 190, 80),
-	Color3.fromRGB(180, 120, 230),
-	Color3.fromRGB(90, 200, 200),
-	Color3.fromRGB(230, 140, 60),
-	Color3.fromRGB(200, 200, 210),
-}
+-- Color de cada asiento. Se rellena en `boot`, cuando ya se puede leer `config/Ui`.
+local SEAT_COLORS: { Color3 } = {}
 
 -- Tablero con el que se arranca antes de que llegue la primera vista. El tamaño real lo manda el
 -- servidor en `view.sizeId` y la ciudad se reconstruye al recibirlo.
@@ -43,6 +34,10 @@ local function boot()
 	-- R-P17: `shared` se monta junto al código del cliente para que la misma cadena relativa resuelva
 	-- en el disco, en Lune y en el DataModel. Hay que esperarla antes de pedir nada.
 	playerScripts:WaitForChild("shared", SHARED_WAIT_SEC)
+
+	for _, hex in require("../shared/config/Ui").seatColors do
+		table.insert(SEAT_COLORS, Color3.fromHex(hex))
+	end
 
 	local CameraDirector = require("./camera/CameraDirector")
 	local ArtAssets = require("../shared/config/ArtAssets")
@@ -76,6 +71,7 @@ local function boot()
 	local NoticeRules = require("./ui/NoticeRules")
 	local SocialRules = require("./ui/SocialRules")
 	local ViewText = require("./ui/ViewText")
+	local Strings = require("../shared/config/Strings")
 
 	local playerGui = player:WaitForChild("PlayerGui")
 
@@ -111,7 +107,7 @@ local function boot()
 			task.wait(seconds)
 		end,
 		show = function(text: string)
-			hud.setBanner(text)
+			hud.setBanner(Strings.eventTitle(text))
 		end,
 		log = function(message: string)
 			warn(message)
@@ -697,8 +693,10 @@ local function boot()
 	local function playBatch(due: any, now: number)
 		StateStore.apply(queue.state, due)
 		local events = due.events
-		if events ~= nil and #events > 0 then
+		local hasScene = events ~= nil and #events > 0
+		if hasScene then
 			hideMenus()
+			hud.setSceneMode(true)
 		end
 		sceneRunning = true
 		-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
@@ -715,6 +713,9 @@ local function boot()
 			end
 		end
 		hud.setBanner("")
+		if hasScene then
+			hud.setSceneMode(false)
+		end
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
 		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
