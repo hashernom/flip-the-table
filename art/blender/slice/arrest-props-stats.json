@@ -1,0 +1,35 @@
+{
+  "patrol": {
+    "triangles": 408,
+    "meshes": {
+      "patrol_navy": 28,
+      "patrol_glass": 12,
+      "patrol_white": 60,
+      "patrol_dark": 212,
+      "patrol_steel": 72,
+      "patrol_sirenred": 12,
+      "patrol_sirenblue": 12
+    },
+    "lod_triangles": 190
+  },
+  "officer": {
+    "triangles": 144,
+    "meshes": {
+      "officer_cap": 132,
+      "officer_gold": 12
+    },
+    "lod_triangles": 70
+  },
+  "jail": {
+    "triangles": 914,
+    "meshes": {
+      "jail_brick": 94,
+      "jail_glass": 48,
+      "jail_steel": 192,
+      "jail_limestone": 168,
+      "jail_dark": 60,
+      "jail_sign": 352
+    },
+    "lod_triangles": 408
+  }
+}

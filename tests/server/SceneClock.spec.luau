@@ -103,9 +103,16 @@ describe("Scenes", function()
 
 	it("las escenas comunes duran entre 2 y 4 segundos", function()
 		for _, eventType in ARCHITECTURE_EVENTS do
-			local duration = baseDuration(eventType)
-			expect(duration >= 2 and duration <= 4).toBeTruthy()
+			-- La detención es la excepción: lleva la llegada, los policías y la vuelta al mapa (15 s).
+			if eventType ~= "PlayerArrested" then
+				local duration = baseDuration(eventType)
+				expect(duration >= 2 and duration <= 4).toBeTruthy()
+			end
 		end
+	end)
+
+	it("la detención dura 15 segundos: llegada, policías y vuelta al mapa", function()
+		expect(baseDuration("PlayerArrested")).toBe(15)
 	end)
 
 	it("cada evento dura algo, también repetido", function()
@@ -123,12 +130,18 @@ describe("Scenes", function()
 		).toBeTruthy()
 	end)
 
-	it("acorta todas las escenas repetidas", function()
+	it("acorta las escenas repetidas, salvo la detención", function()
 		for _, eventType in ARCHITECTURE_EVENTS do
-			local fresh = Scenes.durationFor({ type = eventType }, 0)
-			expect(Scenes.durationFor({ type = eventType }, 1) < fresh).toBeTruthy()
-			expect(Scenes.durationFor({ type = eventType }, 3) < fresh).toBeTruthy()
+			if eventType ~= "PlayerArrested" then
+				local fresh = Scenes.durationFor({ type = eventType }, 0)
+				expect(Scenes.durationFor({ type = eventType }, 1) < fresh).toBeTruthy()
+				expect(Scenes.durationFor({ type = eventType }, 3) < fresh).toBeTruthy()
+			end
 		end
+	end)
+
+	it("la detención no se acorta al repetirse", function()
+		expect(Scenes.durationFor({ type = "PlayerArrested" }, 5)).toBe(15)
 	end)
 
 	-- Medido en partida (2026-11-04): con la duración fija y el acortado, seis casillas se cruzaban en

@@ -20,7 +20,10 @@ export type Director = {
 	rotateOverview: (pixels: number) -> (),
 	mode: () -> Mode,
 	follow: (token: Model?) -> (),
-	setSceneFocus: (position: Vector3?) -> (),
+	-- Foco de una escena. Con `shot` la cámara toma ese plano desde `position`, mirando hacia
+	-- `facing`; sin él, la cámara se aleja con el plano por defecto. Sin posición se limpia el foco. Con
+	-- `snap` la cámara va directa al plano, sin suavizado: para cortes y para seguir algo muy rápido.
+	setSceneFocus: (position: Vector3?, shot: CameraShots.Shot?, facing: number?, snap: boolean?) -> (),
 	setSize: (sizeId: SizeId) -> (),
 	destroy: () -> (),
 }
@@ -51,6 +54,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	local overviewWanted = false
 	local followToken: Model? = nil
 	local sceneFocus: Vector3? = nil
+	local sceneShot: CameraShots.Shot? = nil
+	local sceneFacing = 0
+	local sceneSnap = false
 	local spin = 0
 	player.CameraMode = Enum.CameraMode.Classic
 
@@ -95,6 +101,11 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		if focus == nil then
 			return shotTarget(CameraShots.turn)
 		end
+		local shot = sceneShot
+		if shot ~= nil then
+			local eye, look = CameraRules.pose(shot, { x = focus.X, y = focus.Y, z = focus.Z }, sceneFacing)
+			return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(look.x, look.y, look.z))
+		end
 		return CFrame.lookAt(focus + Vector3.new(0, 40, 70), focus)
 	end
 
@@ -105,7 +116,10 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 				sceneRunning = ctx.sceneRunning,
 				overviewRequested = overviewWanted,
 			})
-			if mode == "Scene" then
+			if mode == "Scene" and sceneSnap and sceneFocus ~= nil then
+				camera.CameraType = Enum.CameraType.Scriptable
+				camera.CFrame = sceneTarget()
+			elseif mode == "Scene" then
 				apply(sceneTarget(), dt)
 			elseif mode == "Overview" then
 				apply(overviewTarget(), dt)
@@ -131,8 +145,16 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 			followToken = token
 		end,
 		setSize = setSize,
-		setSceneFocus = function(position: Vector3?)
+		setSceneFocus = function(
+			position: Vector3?,
+			shot: CameraShots.Shot?,
+			facing: number?,
+			snap: boolean?
+		)
 			sceneFocus = position
+			sceneShot = if position ~= nil then shot else nil
+			sceneFacing = facing or 0
+			sceneSnap = snap == true and position ~= nil
 		end,
 		destroy = function()
 			camera.CameraType = Enum.CameraType.Custom

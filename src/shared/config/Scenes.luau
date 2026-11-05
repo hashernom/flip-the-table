@@ -12,7 +12,9 @@ type Phase = Types.Phase
 local Scenes = {}
 
 -- Los 33 eventos de la arquitectura («Eventos»). Las escenas comunes duran entre 2 y 4 segundos;
--- CardPlayed usa además la rareza de la carta jugada, que se decide más abajo.
+-- CardPlayed usa además la rareza de la carta jugada, que se decide más abajo. PlayerArrested dura 15 s:
+-- la llegada de las patrullas, los policías, la vuelta entera al mapa y la entrada en la cárcel. La partida
+-- sigue al acabar.
 local BASE_DURATION: { [string]: number } = {
 	RoundStarted = 2.5,
 	FinalRoundsStarted = 3,
@@ -27,7 +29,7 @@ local BASE_DURATION: { [string]: number } = {
 	AuctionNoSale = 2.5,
 	BuildingChanged = 2,
 	TradeCompleted = 2.5,
-	PlayerArrested = 3,
+	PlayerArrested = 15,
 	TribunalVerdict = 4,
 	BankruptcyDeclared = 4,
 	GhostActed = 2.5,
@@ -118,6 +120,10 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 	local base = if event.type == "CardPlayed"
 		then cardDuration(event.cardId)
 		else BASE_DURATION[event.type] or UNKNOWN_DURATION
+	-- La detención tampoco se acorta: es un momento grande de la partida y se ve entera cada vez.
+	if event.type == "PlayerArrested" then
+		return base
+	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
 	return math.max(MIN_DURATION, base * REPEAT_FACTOR ^ seen)
 end

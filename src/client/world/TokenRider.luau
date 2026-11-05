@@ -96,6 +96,44 @@ function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, paren
 	return model
 end
 
+-- Ficha oculta durante una escena (la detención la aparta mientras el detenido va en la patrulla). Cada
+-- pieza guarda su transparencia de antes, así que mostrarla devuelve la ficha tal como estaba: el cuerpo y
+-- la franja del taxi ya son invisibles y siguen así. Se guarda en un atributo de la pieza: en una tabla débil
+-- las Instance se pierden aunque sigan vivas, y la ficha no volvía a verse.
+local HIDDEN_ATTRIBUTE = "Hidden"
+local SAVED_TRANSPARENCY = "SavedTransparency"
+
+-- Oculta la ficha entera. Se puede repetir: las piezas que aparezcan después (el taxi) también se ocultan.
+function TokenRider.hide(token: Model)
+	token:SetAttribute(HIDDEN_ATTRIBUTE, true)
+	for _, piece in token:GetDescendants() do
+		if piece:IsA("BasePart") then
+			if piece:GetAttribute(SAVED_TRANSPARENCY) == nil then
+				piece:SetAttribute(SAVED_TRANSPARENCY, piece.Transparency)
+			end
+			piece.Transparency = 1
+		end
+	end
+end
+
+-- Devuelve la ficha a su transparencia de antes. Sin ocultar, no hace nada.
+function TokenRider.show(token: Model)
+	token:SetAttribute(HIDDEN_ATTRIBUTE, nil)
+	for _, piece in token:GetDescendants() do
+		if piece:IsA("BasePart") then
+			local original = piece:GetAttribute(SAVED_TRANSPARENCY)
+			if type(original) == "number" then
+				piece.Transparency = original
+				piece:SetAttribute(SAVED_TRANSPARENCY, nil)
+			end
+		end
+	end
+end
+
+function TokenRider.isHidden(token: Model): boolean
+	return token:GetAttribute(HIDDEN_ATTRIBUTE) == true
+end
+
 -- Viste la ficha con el taxi real si ya está cargado. Sin él sigue siendo la gris; se puede repetir.
 function TokenRider.dress(token: Model)
 	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
@@ -131,6 +169,16 @@ function TokenRider.dress(token: Model)
 			seat.Color = stripe.Color
 		end
 		stripe.Transparency = 1
+	end
+	-- Si la ficha estaba oculta, el taxi recién puesto también se oculta. El cuerpo y la franja ya son
+	-- invisibles, así que se guardan con transparencia 1: `show` no debe devolverlos visibles.
+	if TokenRider.isHidden(token) then
+		body:SetAttribute(SAVED_TRANSPARENCY, 1)
+		local hiddenStripe = token:FindFirstChild("Stripe")
+		if hiddenStripe ~= nil and hiddenStripe:IsA("BasePart") then
+			hiddenStripe:SetAttribute(SAVED_TRANSPARENCY, 1)
+		end
+		TokenRider.hide(token)
 	end
 end
 
@@ -190,6 +238,34 @@ function TokenRider.isAt(token: Model, index: number, offset: CityLayout.TokenOf
 		and token:GetAttribute("Along") == offset.along
 end
 
+-- Pone el avatar en `idle` o `walk` con las animaciones de su propio `Animate`. Ese script se apaga porque, soldado
+-- y en estado Physics, se queda para siempre en la pose de caída. Sin animaciones, el avatar queda en su pose de
+-- reposo, que también vale. Nunca lanza: un avatar raro no puede parar una escena.
+function TokenRider.setAvatarMotion(player: Player, motion: "idle" | "walk")
+	pcall(function()
+		local character = player.Character
+		local humanoid = character and character:FindFirstChildOfClass("Humanoid")
+		local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+		if character == nil or animator == nil then
+			return
+		end
+		local animate = character:FindFirstChild("Animate")
+		if animate ~= nil and animate:IsA("BaseScript") then
+			animate.Enabled = false
+		end
+		for _, track in animator:GetPlayingAnimationTracks() do
+			track:Stop(0.1)
+		end
+		local folder = animate and animate:FindFirstChild(motion)
+		local animation = folder and folder:FindFirstChildWhichIsA("Animation")
+		if animation ~= nil then
+			local track = animator:LoadAnimation(animation)
+			track.Looped = true
+			track:Play(0.1)
+		end
+	end)
+end
+
 -- Sube el avatar a la ficha: lo deja de pie sobre el asiento y soldado a él, sin poder caminar ni
 -- saltar. Mirar alrededor sigue funcionando porque es cosa de la cámara, no del personaje.
 function TokenRider.mount(player: Player, token: Model)
@@ -226,8 +302,56 @@ function TokenRider.mount(player: Player, token: Model)
 	weld.Part0 = root
 	weld.Part1 = seat
 	weld.Parent = root
+	TokenRider.setAvatarMotion(player, "idle")
 	token:SetAttribute("Rider", player.UserId)
 	return true
+end
+
+-- Pone el avatar de pie sobre `anchor`, una pieza anclada en el suelo, y lo suelda a ella: quien mueva la
+-- pieza mueve al jugador. Es el sitio de la detención antes de subirlo a la patrulla. False si el avatar no
+-- está listo, y entonces el llamador usa otro relleno.
+function TokenRider.standOn(player: Player, anchor: BasePart): boolean
+	local character = player.Character
+	if character == nil then
+		return false
+	end
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	local root = character:FindFirstChild("HumanoidRootPart")
+	if humanoid == nil or root == nil or not root:IsA("BasePart") then
+		return false
+	end
+	humanoid.WalkSpeed = 0
+	humanoid.JumpPower = 0
+	humanoid.JumpHeight = 0
+	humanoid:ChangeState(Enum.HumanoidStateType.Physics)
+
+	local existing = root:FindFirstChild(WELD_NAME)
+	if existing then
+		existing:Destroy()
+	end
+	-- La cadera del avatar queda a la altura que tendría de pie sobre el suelo, con los pies en `anchor`.
+	root.CFrame = anchor.CFrame * CFrame.new(0, humanoid.HipHeight + root.Size.Y / 2, 0)
+	local weld = Instance.new("WeldConstraint")
+	weld.Name = WELD_NAME
+	weld.Part0 = root
+	weld.Part1 = anchor
+	weld.Parent = root
+	TokenRider.setAvatarMotion(player, "idle")
+	return true
+end
+
+-- Oculta o muestra el avatar solo para este cliente (LocalTransparencyModifier): el resto del grupo sigue
+-- viendo el suyo, como debe.
+function TokenRider.setAvatarHidden(player: Player, hidden: boolean)
+	local character = player.Character
+	if character == nil then
+		return
+	end
+	for _, piece in character:GetDescendants() do
+		if piece:IsA("BasePart") then
+			piece.LocalTransparencyModifier = if hidden then 1 else 0
+		end
+	end
 end
 
 -- ¿El avatar del jugador está soldado a esta ficha? Una ciudad reconstruida deja soldaduras a fichas

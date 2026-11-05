@@ -17,7 +17,7 @@ local AmbienceAudio = {}
 AmbienceAudio.cityDay = {
 	name = "City Day Ambience 1",
 	assetId = "rbxassetid://9112758856",
-	volume = 0.5,
+	volume = 0.4,
 } :: Ambience
 
 return AmbienceAudio

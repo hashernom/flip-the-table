@@ -52,6 +52,8 @@ local function boot()
 	local Ambience = require("./world/Ambience")
 	local CityBuilder = require("./world/CityBuilder")
 	local TokenRider = require("./world/TokenRider")
+	local JailView = require("./world/JailView")
+	local Arrest = require("./scenes/Arrest")
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
@@ -126,6 +128,26 @@ local function boot()
 	local city: CityBuilder.CityHandles? = nil
 	local size: string? = nil
 
+	-- La escena de la detención aparta la ficha del detenido mientras dura. El color del asiento viste al
+	-- relleno de un bot detenido.
+	local arrest = Arrest.new({
+		director = director,
+		city = function()
+			return city
+		end,
+		token = function(id: string): Model?
+			return tokens[id]
+		end,
+		colorOf = function(id: string): Color3
+			local view = StateStore.view(queue.state)
+			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
+			return seatColor(seat or 1)
+		end,
+		log = function(message: string)
+			warn(message)
+		end,
+	})
+
 	-- La ciudad se construye con el tamaño que anuncia el servidor. Si la partida es de 5 a 8
 	-- jugadores el tablero es de 48 o 56 casillas, y una ciudad de 40 no sirve: se tira la vieja y se
 	-- levanta la nueva con sus fichas.
@@ -133,6 +155,8 @@ local function boot()
 		if size == sizeId and city ~= nil then
 			return
 		end
+		-- Una ciudad nueva deja sin sitio a las patrullas y a las fichas: cualquier detención en curso acaba aquí.
+		arrest.cancelAll()
 		local previous = city
 		city = nil
 		tokens = {}
@@ -145,6 +169,7 @@ local function boot()
 		size = sizeId
 		BuildingView.bind(handles)
 		StreetDressing.build(handles)
+		JailView.build(handles)
 		StreetDressing.startTraffic(handles)
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
@@ -191,6 +216,10 @@ local function boot()
 		local offsets = WorldRules.tokenOffsets(view.players)
 		for seat, seated in view.players do
 			local token = ensureToken(seated.id, seat, seated.position)
+			-- Un detenido se queda donde la escena lo deja hasta que acaba: no se le recoloca ni se le remonta.
+			if arrest.holds(seated.id) then
+				continue
+			end
 			if token ~= nil and not TokenRider.isAt(token, seated.position, offsets[seated.id]) then
 				TokenRider.place(token, seated.position, offsets[seated.id])
 			end
@@ -221,6 +250,10 @@ local function boot()
 	SceneDirector.register(scenes, "TokenMoved", {
 		run = function(ctx, event)
 			local id = event.playerId
+			-- Si el detenido vuelve a moverse, su detención termina ya: su ficha no puede estar en dos sitios.
+			if type(id) == "string" then
+				arrest.cancelFor(id)
+			end
 			local path = event.path
 			local token = if type(id) == "string" then tokens[id] else nil
 			if token == nil or type(path) ~= "table" or #path == 0 then
@@ -238,6 +271,10 @@ local function boot()
 			ctx.spent(used)
 		end,
 	})
+
+	-- Detención: el detenido se baja de su ficha, llegan dos patrullas y los policías lo meten en una. Dan la vuelta
+	-- al mapa y entran en la cárcel; al acabar la escena reaparece la ficha y sigue la partida.
+	SceneDirector.register(scenes, "PlayerArrested", arrest.scene)
 
 	-- La cámara sigue a la ficha del turno, sea de quien sea: es lo que hace que el resto del grupo vea
 	-- la jugada del activo, como pide la tabla «Qué ve cada jugador».
@@ -272,6 +309,7 @@ local function boot()
 		BuildingView.refreshArt()
 		if city ~= nil then
 			StreetDressing.build(city)
+			JailView.build(city)
 			StreetDressing.startTraffic(city)
 		end
 		for _, token in tokens do
@@ -469,6 +507,7 @@ local function boot()
 		-- En una revancha, este lote es también la señal de partida nueva: la cola, las escenas vistas y
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
+			arrest.cancelAll()
 			EventQueue.resync(queue, batch.view, 0)
 			rematchMenu.setResult({})
 			SceneDirector.reset(scenes)
@@ -486,6 +525,8 @@ local function boot()
 
 	-- Pone la interfaz, las fichas y la cámara al día con la vista de un resync.
 	local function applyResync(batch: any)
+		-- Una vista nueva manda sobre las escenas en curso: las detenciones acaban y las fichas vuelven.
+		arrest.cancelAll()
 		syncTokens(batch.view)
 		applyView(batch.view)
 		followActive(batch.view)
@@ -554,6 +595,7 @@ local function boot()
 		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
 		for _, event in events or {} do
 			if event.type == "GameEnded" then
+				arrest.cancelAll()
 				rematchMenu.setResult(ViewText.podiumLines(event, due.view, names))
 			end
 		end

@@ -9,6 +9,11 @@ return {
 	turn = { back = 26, inward = 34, up = 50, ahead = 42, focusUp = 6 } :: Shot,
 	-- Durante el recorrido: cerca de la ficha y del avatar.
 	ride = { back = 16, inward = 7, up = 13, ahead = 10, focusUp = 8 } :: Shot,
+	-- Primer plano del detenido (PlayerArrested): desde el interior de la calle, para que ninguna patrulla
+	-- quede entre la cámara y el avatar.
+	arrest = { back = 4, inward = 20, up = 8, ahead = 0, focusUp = 3 } :: Shot,
+	-- Seguimiento de la patrulla en su vuelta al mapa: detrás y cerca, mirando hacia donde va.
+	arrestChase = { back = 20, inward = 0, up = 8, ahead = 16, focusUp = 2 } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
 	overview = { heightPerSpan = 1.35, backPerSpan = 0.1, panelShiftPerSpan = 0.14, radiansPerPixel = 0.006 },
 	-- Con qué rapidez se acerca al plano, por segundo: cuanto mayor, más brusco. No depende de los FPS.
