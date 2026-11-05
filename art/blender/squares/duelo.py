@@ -257,10 +257,10 @@ def build_portal(M):
     for sign in (-1, 1):
         for course in range(5):
             along = (course + 0.5) * slope / 5.0
-            lift = (4 - course) * 0.014
+            lift = (4 - course) * 0.030
             slab = box(
                 "roof_course",
-                (PORTAL_W + 0.4, slope / 5.0 * 1.06, 0.14),
+                (PORTAL_W + 0.4, slope / 5.0 * 1.06, 0.18),
                 (
                     0,
                     sign * along * math.cos(angle) - sign * lift * math.sin(angle),
@@ -304,12 +304,12 @@ def build_podiums(M):
             depth = 1.9 - 0.48 * step
             height = (PODIUM_TOP - PAVE) * (step + 1) / 4.0
             parts.append(box("podium_step", (4.8 - 0.04 * step, depth, height), (cx, back + depth / 2.0, PAVE + height / 2.0), M["limestone"]))
-        # Pendón: dos mástiles sobre el podio, travesaño, tela roja y vivo claro al pie.
-        for offset in (-0.75, 0.75):
-            parts.append(box("banner_pole", (0.12, 0.12, 4.2), (cx + side * offset, 1.35, PODIUM_TOP + 2.1), M["metal"]))
-        parts.append(box("banner_rail", (1.7, 0.12, 0.12), (cx, 1.35, PODIUM_TOP + 4.12), M["metal"]))
-        parts.append(box("banner_cloth", (1.40, 0.07, 2.40), (cx, 1.30, PODIUM_TOP + 2.60), M["fabric_rojo"]))
-        parts.append(box("banner_hem", (1.40, 0.05, 0.30), (cx, 1.25, PODIUM_TOP + 1.55), M["fabric_blanco"]))
+        # Pendón: un mástil sobre el podio, brazo volado y tela roja con vivo claro al pie.
+        pole_x = cx + side * 1.5
+        parts.append(box("banner_pole", (0.12, 0.12, 4.2), (pole_x, 0.6, PODIUM_TOP + 2.1), M["metal"]))
+        parts.append(box("banner_arm", (1.85, 0.12, 0.12), (cx + side * 0.6, 0.6, PODIUM_TOP + 4.12), M["metal"]))
+        parts.append(box("banner_cloth", (1.50, 0.07, 2.40), (cx + side * 0.62, 0.66, PODIUM_TOP + 2.85), M["fabric_rojo"]))
+        parts.append(box("banner_hem", (1.50, 0.05, 0.30), (cx + side * 0.62, 0.72, PODIUM_TOP + 1.85), M["fabric_blanco"]))
     return parts
 
 
@@ -497,13 +497,13 @@ def figure(x, y, angle, mat):
         return obj
 
     return [
-        place((1.05, 0.85, 2.40), (0, 0, 0.0)),
-        place((1.50, 0.95, 2.20), (0, 0, 2.40)),
-        place((0.32, 0.70, 1.90), (0.86, 0, 2.55)),
-        place((0.32, 0.70, 1.90), (-0.86, 0, 2.55)),
-        place((0.85, 0.85, 1.05), (0, 0, 4.60)),
-        place((1.00, 1.00, 0.35), (0, 0, 5.65)),
-        place((0.75, 0.35, 0.12), (0, -0.50, 5.76)),
+        place((1.15, 0.90, 2.40), (0, 0, 0.0)),
+        place((1.55, 1.00, 2.20), (0, 0, 2.40)),
+        place((0.35, 0.75, 1.90), (0.95, 0, 2.55)),
+        place((0.35, 0.75, 1.90), (-0.95, 0, 2.55)),
+        place((0.95, 0.95, 1.05), (0, 0, 4.60)),
+        place((1.10, 1.10, 0.35), (0, 0, 5.65)),
+        place((0.85, 0.40, 0.10), (0, -0.55, 5.73)),
     ]
 
 
@@ -671,10 +671,10 @@ def main():
     duelists = figure(-2.3, PODIUM_CY, math.radians(90), M["avatar"]) + figure(2.3, PODIUM_CY, math.radians(-90), M["avatar_b"])
     show(duelists, False)
 
-    render(scene, camera("frontal", (0.0, -50.0, 9.5), (0.0, -1.0, 7.0), 44), f"{RENDER_SUBDIR}/duelo-frontal.png")
-    render(scene, camera("aereo", (0.0, -19.0, 62.0), (0.0, 0.5, 3.0), 50), f"{RENDER_SUBDIR}/duelo-aereo.png")
+    render(scene, camera("frontal", (0.0, -54.0, 11.0), (0.0, -1.5, 7.0), 44), f"{RENDER_SUBDIR}/duelo-frontal.png")
+    render(scene, camera("aereo", (0.0, -12.0, 66.0), (0.0, 1.5, 2.5), 48), f"{RENDER_SUBDIR}/duelo-aereo.png")
     show(duelists, True)
-    render(scene, camera("comparacion", (32.0, -38.0, 22.0), (0.0, -1.5, 5.2), 45), f"{RENDER_SUBDIR}/duelo-comparacion.png")
+    render(scene, camera("comparacion", (34.0, -40.0, 24.0), (0.0, -1.5, 5.6), 45), f"{RENDER_SUBDIR}/duelo-comparacion.png")
 
     # Comprobación final: se abren las FBX exportadas y se miden de verdad.
     expected = [(piece["key"], count(piece["obj"])) for piece in pieces] + [("duel_LOD1", lod_triangles)]

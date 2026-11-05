@@ -68,13 +68,13 @@ CJ_X = 1.1
 CJ_Z0, CJ_Z1 = 31.5, 33.2
 CJ_PANELS = 3
 
-# Cabina: cuelga de una plataforma en el lateral -X, a la altura de la corona de giro.
+# Cabina: cuelga de una plataforma en el lateral -X, bajo la corona de giro, mirando a la pluma.
 CAB_X0, CAB_X1 = -5.4, -2.4
-CAB_Y0, CAB_Y1 = -2.8, 0.4
-CAB_Z0, CAB_Z1 = 30.9, 33.7
-PLAT_X0, PLAT_X1 = -5.5, -2.3
-PLAT_Y0, PLAT_Y1 = -3.1, 0.7
-PLAT_Z0, PLAT_Z1 = 30.6, 30.9
+CAB_Y0, CAB_Y1 = -4.2, -1.0
+CAB_Z0, CAB_Z1 = 28.8, 31.6
+PLAT_X0, PLAT_X1 = -5.5, -2.0
+PLAT_Y0, PLAT_Y1 = -4.5, -0.7
+PLAT_Z0, PLAT_Z1 = 28.5, 28.8
 
 # Contrapeso: tres bloques oscuros apilados en el extremo de la contrapluma.
 CW_Y = 8.4
@@ -90,11 +90,12 @@ TIE_POINTS = ((0.0, -7.0, JIB_Z1 + 0.1), (0.0, -14.5, JIB_Z1 + 0.1), (0.0, 8.8, 
 # Carro, cable y gancho.
 HOOK_Y = -13.2
 TROLLEY_Z = 31.22
-CABLE_Z0, CABLE_Z1 = 30.95, 13.45
-BLOCK_Z = 13.1
+CABLE_Z0, CABLE_Z1 = 30.95, 13.60
+BLOCK_Z = 13.15
 
-# Avatar de referencia de 6 studs (solo render, no se exporta).
-AVATAR_Y = -8.5
+# Avatar de referencia de 6 studs (solo render, no se exporta), girado para que se lea de perfil.
+AVATAR_Y = -6.5
+AVATAR_TURN = 30.0
 
 
 def srgb(hex_color):
@@ -334,7 +335,7 @@ def build_counter_jib(mats):
 
 
 def build_cab(mats):
-    """Cabina: plataforma volada, cuerpo amarillo, techo y dos cristales oscuros."""
+    """Cabina: plataforma volada, cuerpo amarillo, techo y cristales oscuros en las cuatro caras."""
     parts = [
         box(
             "cab_platform",
@@ -343,12 +344,12 @@ def build_cab(mats):
             mats["amarillo"],
         )
     ]
-    for sy in (-1, 1):
+    for y in (-3.7, -1.5):
         parts.append(
             bar(
                 "cab_strut",
-                (-2.3, sy * 1.2, 30.4),
-                (-5.2, sy * 1.2, PLAT_Z0 + 0.04),
+                (-2.1, y, 27.4),
+                (-5.3, y, PLAT_Z0 + 0.02),
                 0.20,
                 mats["acero"],
             )
@@ -372,8 +373,11 @@ def build_cab(mats):
             mats["amarillo"],
         )
     )
-    parts.append(box("cab_glass_front", (2.3, 0.10, 1.55), ((CAB_X0 + CAB_X1) / 2, CAB_Y0 - 0.03, 33.55), mats["asfalto"]))
-    parts.append(box("cab_glass_side", (0.10, 2.3, 1.35), (CAB_X0 - 0.03, (CAB_Y0 + CAB_Y1) / 2, 33.5), mats["asfalto"]))
+    zc = 30.2
+    parts.append(box("cab_glass_front", (2.3, 0.10, 1.50), ((CAB_X0 + CAB_X1) / 2, CAB_Y0 - 0.03, zc), mats["asfalto"]))
+    parts.append(box("cab_glass_left", (0.10, 2.2, 1.40), (CAB_X0 - 0.03, (CAB_Y0 + CAB_Y1) / 2, zc), mats["asfalto"]))
+    parts.append(box("cab_glass_right", (0.10, 2.2, 1.40), (CAB_X1 + 0.03, (CAB_Y0 + CAB_Y1) / 2, zc), mats["asfalto"]))
+    parts.append(box("cab_glass_back", (1.9, 0.10, 1.20), ((CAB_X0 + CAB_X1) / 2, CAB_Y1 + 0.03, zc - 0.05), mats["asfalto"]))
     return parts
 
 
@@ -415,10 +419,10 @@ def build_hook(mats):
     parts = [
         box("trolley", (2.6, 1.0, 0.55), (0.0, HOOK_Y, TROLLEY_Z), mats["acero"]),
         bar("hoist_cable", (0.0, HOOK_Y, CABLE_Z0), (0.0, HOOK_Y, CABLE_Z1), 0.10, mats["acero"]),
-        box("hook_block", (0.55, 0.75, 0.75), (0.0, HOOK_Y, BLOCK_Z), mats["acero"]),
-        box("hook_shank", (0.24, 0.24, 0.85), (0.0, HOOK_Y, 12.32), mats["asfalto"]),
-        box("hook_bend", (0.24, 0.62, 0.24), (0.0, HOOK_Y + 0.25, 11.95), mats["asfalto"]),
-        box("hook_tip", (0.24, 0.24, 0.50), (0.0, HOOK_Y + 0.45, 12.16), mats["asfalto"]),
+        box("hook_block", (0.70, 0.90, 0.90), (0.0, HOOK_Y, BLOCK_Z), mats["acero"]),
+        box("hook_shank", (0.28, 0.28, 0.95), (0.0, HOOK_Y, 12.30), mats["asfalto"]),
+        box("hook_bend", (0.28, 0.72, 0.28), (0.0, HOOK_Y + 0.28, 11.90), mats["asfalto"]),
+        box("hook_tip", (0.28, 0.28, 0.55), (0.0, HOOK_Y + 0.50, 12.12), mats["asfalto"]),
     ]
     return parts
 
@@ -481,6 +485,16 @@ def lod_copy(source, material):
     decimate.ratio = LOD_RATIO
     apply_modifiers(copy)
     return copy
+
+
+def drop_to_ground(obj):
+    """El decimado puede separar la malla del suelo: se baja lo justo para que min_z vuelva a 0."""
+    bpy.context.view_layer.update()
+    lowest = min((obj.matrix_world @ vertex.co).z for vertex in obj.data.vertices)
+    if abs(lowest) > 1e-9:
+        for vertex in obj.data.vertices:
+            vertex.co.z -= lowest
+        obj.data.update()
 
 
 def export(obj, filename):
@@ -614,7 +628,10 @@ def main():
     lod = join(lod_parts, "crane_LOD1")
     select_only(lod)
     bpy.ops.object.material_slot_remove_unused()
+    drop_to_ground(lod)
     assert len(lod.data.materials) == 1, "el LOD1 tiene mas de un material"
+    lod_lo, lod_hi = bounds([(lod, (0.0, 0.0, 0.0))])
+    assert abs(lod_lo[2]) < 1e-6, f"el LOD1 no arranca en z = 0 (min_z = {lod_lo[2]})"
 
     files = {}
     for obj in groups.values():
@@ -628,7 +645,6 @@ def main():
         export(obj, f"{obj.name}.fbx")
     export(lod, "crane_LOD1.fbx")
 
-    lod_lo, lod_hi = bounds([(lod, (0.0, 0.0, 0.0))])
     stats = {
         "modelo": "grua-obra",
         "unidades": "studs (1 unidad de Blender = 1 stud)",
@@ -656,8 +672,13 @@ def main():
             "contrapluma": {"de_y": CJ_Y0, "a_y": CJ_Y1, "de_z": CJ_Z0, "a_z": CJ_Z1, "bloques": len(CW_LEVELS)},
             "cabina": {"x": [CAB_X0, CAB_X1], "y": [CAB_Y0, CAB_Y1], "z": [CAB_Z0, CAB_Z1]},
             "punta": {"z": APEX_Z},
-            "gancho": {"y": HOOK_Y, "bloque_z": BLOCK_Z, "fondo_z": 11.83},
-            "lod1_bbox": {"x": round(lod_hi[0] - lod_lo[0], 3), "y": round(lod_hi[1] - lod_lo[1], 3), "z": round(lod_hi[2] - lod_lo[2], 3)},
+            "gancho": {"y": HOOK_Y, "bloque_z": BLOCK_Z, "fondo_z": 11.76},
+            "lod1_bbox": {
+                "x": round(lod_hi[0] - lod_lo[0], 3),
+                "y": round(lod_hi[1] - lod_lo[1], 3),
+                "z": round(lod_hi[2] - lod_lo[2], 3),
+                "min_z": round(lod_lo[2], 5),
+            },
         },
         "materiales": {
             "crane_amarillo": {"nombre": "amarillo", "hex": "F5C518", "rugosidad": 0.35, "metalico": 0.0},
@@ -681,6 +702,7 @@ def main():
 
     avatar = build_avatar(flat("avatar_ref", "5E636A", 0.8))
     for obj in avatar:
+        obj.rotation_euler = (0.0, 0.0, math.radians(AVATAR_TURN))
         obj.location.y += AVATAR_Y
         obj.hide_render = True
     avatar_lo, avatar_hi = world_bounds(avatar)
@@ -706,9 +728,9 @@ def main():
     scene.view_settings.look = "AgX - Medium High Contrast"
 
     target = ((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2)
-    front = frame_camera("frontal", (-0.55, -0.78, 0.25), target, (lo, hi))
+    front = frame_camera("frontal", (-0.62, -0.74, 0.24), target, (lo, hi), margin=1.06)
     render(scene, front, "grua-obra-3-4-frontal.png")
-    back = frame_camera("trasera", (0.55, 0.78, 0.25), target, (lo, hi))
+    back = frame_camera("trasera", (0.62, 0.74, 0.24), target, (lo, hi), margin=1.06)
     render(scene, back, "grua-obra-3-4-trasero.png")
     for obj in avatar:
         obj.hide_render = False
