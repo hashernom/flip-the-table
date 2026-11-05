@@ -26,6 +26,8 @@ describe("Protocol.REMOTES", function()
 			QueueJoin = "QueueJoinRequest",
 			Emote = "EmoteRequest",
 			Notice = "LobbyNotice",
+			TokenChoice = "TokenChoiceRequest",
+			TokenAssigned = "TokenAssigned",
 		})
 	end)
 end)
@@ -380,5 +382,26 @@ describe("Protocol.validateEmote", function()
 
 	it("el remoto del emote tiene nombre propio y vive con los demás", function()
 		expect(Protocol.REMOTES.Emote).toBe("EmoteRequest")
+	end)
+end)
+
+describe("Protocol.validateTokenChoice", function()
+	it("acepta los ids del catálogo, también con guion", function()
+		for _, tokenId in { "taxi", "limusina", "food-truck", "camion-helados", "autobus" } do
+			expect(Protocol.validateTokenChoice(tokenId)).toBe(true)
+		end
+	end)
+
+	it("rechaza mayúsculas, espacios, vacío y lo que no es cadena", function()
+		expect(Protocol.validateTokenChoice("Taxi")).toBe(false)
+		expect(Protocol.validateTokenChoice("food truck")).toBe(false)
+		expect(Protocol.validateTokenChoice("")).toBe(false)
+		expect(Protocol.validateTokenChoice(nil)).toBe(false)
+		expect(Protocol.validateTokenChoice(7)).toBe(false)
+	end)
+
+	it("los remotos de la elección tienen nombre propio", function()
+		expect(Protocol.REMOTES.TokenChoice).toBe("TokenChoiceRequest")
+		expect(Protocol.REMOTES.TokenAssigned).toBe("TokenAssigned")
 	end)
 end)

@@ -21,6 +21,7 @@ local PresenceService = require("./match/PresenceService")
 local RematchService = require("./match/RematchService")
 local RemoteGateway = require("./match/RemoteGateway")
 local Telemetry = require("./match/Telemetry")
+local TokenChoiceService = require("./match/TokenChoiceService")
 
 type EndMode = Types.EndMode
 
@@ -178,6 +179,10 @@ emoteRemote.OnServerEvent:Connect(function(player: Player, emote: any)
 	end
 	emoteRemote:FireAllClients(tostring(player.UserId), emote)
 end)
+
+-- Elección de ficha: tampoco es una acción del motor. Se engancha al arranque de cada partida para
+-- repartir una ficha por asiento y cerrar la elección cuando la partida echa a andar.
+TokenChoiceService.start()
 
 -- La presencia registra PlayerAdded/PlayerRemoving y se engancha al arranque de cada partida;
 -- debe estar enganchada antes de que la partida empiece para tener los asientos listos.

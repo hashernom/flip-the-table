@@ -30,6 +30,10 @@ Protocol.REMOTES = {
 	-- Emotes del cliente (plan 05): no son una acción del motor, así que no pasan por la puerta de
 	-- acciones. El servidor los reenvía a todo el grupo y el cliente los enseña sobre la ficha.
 	Emote = "EmoteRequest",
+	-- Elección de ficha (plan 07): tampoco es una acción del motor. El servidor solo arbitra que no se
+	-- repita y avisa a todos del reparto.
+	TokenChoice = "TokenChoiceRequest",
+	TokenAssigned = "TokenAssigned",
 }
 
 -- Clases de aviso que viajan por `Notice` (R-P48). El cliente enruta por `kind`: un rechazo de acción es
@@ -345,6 +349,18 @@ function Protocol.validateEmote(emote: any): boolean
 		return false
 	end
 	return table.find(Protocol.EMOTES, emote) ~= nil
+end
+
+-- Id de ficha: minúsculas y guiones, como los del catálogo `Tokens` (food-truck, camion-helados).
+-- El servidor comprueba además que exista; aquí solo se descarta basura.
+function Protocol.validateTokenChoice(tokenId: any): boolean
+	if type(tokenId) ~= "string" then
+		return false
+	end
+	if #tokenId < 1 or #tokenId > 24 then
+		return false
+	end
+	return string.match(tokenId, "^[a-z%-]+$") ~= nil
 end
 
 -- Limitador deslizante: guarda los instantes de las acciones aceptadas y descarta la que haría

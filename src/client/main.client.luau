@@ -66,6 +66,7 @@ local function boot()
 	local ActionMenu = require("./ui/ActionMenu")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
+	local TokenMenu = require("./ui/TokenMenu")
 	local MiniMap = require("./ui/MiniMap")
 	local Overview = require("./ui/Overview")
 	local PactMenu = require("./ui/PactMenu")
@@ -81,6 +82,8 @@ local function boot()
 	-- en cuanto los remotos existen y las clausuras ven el valor nuevo.
 	local sendAction: (action: any) -> () = function() end
 	local sendLobby: (request: any) -> () = function() end
+	local chooseToken: (tokenId: string) -> () = function() end
+	local tokenChoices: { [string]: string } = {}
 
 	local hud = Hud.create(playerGui, function()
 		return Workspace:GetServerTimeNow()
@@ -96,6 +99,9 @@ local function boot()
 	end)
 	local lobbyMenu = LobbyMenu.create(playerGui, function(request: any)
 		sendLobby(request)
+	end)
+	local tokenMenu = TokenMenu.create(playerGui, function(tokenId: string)
+		chooseToken(tokenId)
 	end)
 	local rematchMenu = RematchMenu.create(playerGui)
 
@@ -125,6 +131,8 @@ local function boot()
 	local director = CameraDirector.new(player, START_SIZE)
 	local tokens: { [string]: Model } = {}
 	local myToken: Model? = nil
+	-- Declarada aquí porque el reparto de fichas la necesita; se asigna más abajo.
+	local mountLocal: () -> () = function() end
 	local sceneRunning = false
 	local riding = false
 	local city: CityBuilder.CityHandles? = nil
@@ -177,6 +185,10 @@ local function boot()
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
 
+	local function tokenIdOf(id: string, seat: number): string
+		return tokenChoices[id] or Tokens.forSeat(seat)
+	end
+
 	-- Una ficha por asiento del servidor, también para los bots: el resto del grupo tiene que ver a todo
 	-- el mundo sobre su casilla, no solo a quien tiene cliente.
 	local function ensureToken(id: string, seat: number, index: number): Model?
@@ -189,7 +201,7 @@ local function boot()
 			return nil
 		end
 		local token =
-			TokenRider.create(id, handles.sizeId, seatColor(seat), handles.tokens, Tokens.forSeat(seat))
+			TokenRider.create(id, handles.sizeId, seatColor(seat), handles.tokens, tokenIdOf(id, seat))
 		TokenRider.place(token, index)
 		tokens[id] = token
 		if id == playerId then
@@ -249,10 +261,33 @@ local function boot()
 		end)
 	end
 
+	-- El servidor cambió el reparto de fichas: se tira la que ya no toca y se vuelve a montar. La
+	-- posición la repone `syncTokens` con la vista vigente; el avatar propio se vuelve a soldar.
+	local function refreshTokens(view: any)
+		if view == nil or view.players == nil then
+			return
+		end
+		local changed = false
+		for seat, seated in view.players do
+			local token: Model? = tokens[seated.id]
+			if token ~= nil and token:GetAttribute("TokenId") ~= tokenIdOf(seated.id, seat) then
+				token:Destroy()
+				tokens[seated.id] = nil
+				changed = true
+			end
+		end
+		if changed then
+			syncTokens(view)
+			task.spawn(mountLocal)
+		end
+	end
+
 	-- El recorrido de una ficha es una escena: el grupo entero ve cómo se mueve. `ride` corre por su
 	-- cuenta y devuelve lo que tardó, que el director descuenta del hueco de la escena.
 	SceneDirector.register(scenes, "TokenMoved", {
 		run = function(ctx, event)
+			-- La partida ya echó a andar: la ficha queda como esté hasta la revancha.
+			tokenMenu.setVisible(false)
 			local id = event.playerId
 			-- Si el detenido vuelve a moverse, su detención termina ya: su ficha no puede estar en dos sitios.
 			if type(id) == "string" then
@@ -378,6 +413,8 @@ local function boot()
 	local emoteRemote = remotes:WaitForChild(Protocol.REMOTES.Emote, REMOTE_WAIT_SEC)
 	local eventBatch = remotes:WaitForChild(Protocol.REMOTES.Batch, REMOTE_WAIT_SEC) :: RemoteEvent
 	local resync = remotes:WaitForChild(Protocol.REMOTES.Resync, REMOTE_WAIT_SEC) :: RemoteEvent
+	local tokenRequest = remotes:WaitForChild(Protocol.REMOTES.TokenChoice, REMOTE_WAIT_SEC)
+	local tokenAssigned = remotes:WaitForChild(Protocol.REMOTES.TokenAssigned, REMOTE_WAIT_SEC)
 
 	if actionRemote and actionRemote:IsA("RemoteEvent") then
 		local actionEvent = actionRemote :: RemoteEvent
@@ -386,6 +423,44 @@ local function boot()
 		end
 	else
 		warn("Cliente: falta el remoto de acciones; los menús no podrán jugar")
+	end
+
+	if tokenRequest and tokenRequest:IsA("RemoteEvent") then
+		local requestEvent = tokenRequest :: RemoteEvent
+		chooseToken = function(tokenId: string)
+			requestEvent:FireServer(tokenId)
+		end
+	else
+		warn("Cliente: falta el remoto de elección de ficha; se queda el reparto por asiento")
+	end
+
+	if tokenAssigned and tokenAssigned:IsA("RemoteEvent") then
+		(tokenAssigned :: RemoteEvent).OnClientEvent:Connect(function(assignments: any, message: any)
+			if type(assignments) ~= "table" then
+				return
+			end
+			local clean: { [string]: string } = {}
+			for id, tokenId in assignments do
+				if type(id) == "string" and type(tokenId) == "string" then
+					clean[id] = tokenId
+				end
+			end
+			tokenChoices = clean
+			tokenMenu.setAssignments(tokenChoices, playerId)
+			if type(message) == "string" and message ~= "" then
+				tokenMenu.setNotice(message)
+			end
+			local view = StateStore.view(queue.state)
+			if view ~= nil then
+				refreshTokens(view)
+			end
+		end)
+	end
+
+	-- Pide el reparto actual después de conectar el aviso: si se pidiera antes, la respuesta podría
+	-- llegar cuando nadie escucha.
+	if tokenRequest and tokenRequest:IsA("RemoteEvent") then
+		(tokenRequest :: RemoteEvent):FireServer(nil)
 	end
 
 	-- Peticiones del lobby. En el lugar de partida no hay servicio que las escuche; el lugar del lobby
@@ -501,9 +576,6 @@ local function boot()
 		end
 	end
 
-	-- Declarada aquí porque una partida nueva la necesita; se asigna más abajo.
-	local mountLocal: () -> () = function() end
-
 	-- Durante una escena no se decide nada (R-P39): el servidor descartaría el clic. Los menús vuelven
 	-- con la vista del lote, al terminar la escena.
 	local function hideMenus()
@@ -529,6 +601,10 @@ local function boot()
 			applyView(batch.view)
 			followActive(batch.view)
 			hud.setDeadline(batch.decisionDeadline)
+			-- La partida acaba de empezar: cada jugador elige su ficha. Se cierra al primer movimiento.
+			if batch.view.phase ~= "GameOver" then
+				tokenMenu.setVisible(true)
+			end
 			task.spawn(mountLocal)
 			return
 		end
