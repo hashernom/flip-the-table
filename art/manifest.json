@@ -1837,6 +1837,36 @@
         "rbxassetid://128004742463450",
         "rbxassetid://120862205016509"
       ]
+    },
+    {
+      "id": "token-deportivo",
+      "category": "Token",
+      "source": "art/blender/tokens/deportivo.py",
+      "triangles": 2784,
+      "lods": [
+        772
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/deportivo.py",
+      "assetId": "rbxassetid://136081573678494",
+      "assetIds": [
+        "rbxassetid://117259799926793",
+        "rbxassetid://115296219445586",
+        "rbxassetid://91150373991070",
+        "rbxassetid://130585144325959",
+        "rbxassetid://78496661139150",
+        "rbxassetid://95353151886414",
+        "rbxassetid://132219869563411",
+        "rbxassetid://140069927818554",
+        "rbxassetid://79398872310749",
+        "rbxassetid://86364475189586",
+        "rbxassetid://79543523206457",
+        "rbxassetid://89790819605380",
+        "rbxassetid://109463345865761",
+        "rbxassetid://119034074880914"
+      ]
     }
   ]
 }

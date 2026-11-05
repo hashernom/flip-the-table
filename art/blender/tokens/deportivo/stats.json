@@ -1,0 +1,139 @@
+{
+  "modelo": "deportivo",
+  "unidades": "studs (1 unidad de Blender = 1 stud)",
+  "origen": "centro de la base, a ras de suelo (x = 0, y = 0, z = 0)",
+  "frente": "-Y (morro)",
+  "arriba": "+Z",
+  "triangulos": {
+    "piezas": {
+      "sport_body_rojo": 1304,
+      "sport_body_asfalto": 696,
+      "sport_body_cristal": 48,
+      "sport_body_caliza": 36,
+      "sport_body_naranja": 48,
+      "sport_body_acero": 80,
+      "sport_plate": 108,
+      "sport_wheel_fl": 60,
+      "sport_hub_fl": 56,
+      "sport_wheel_fr": 60,
+      "sport_hub_fr": 56,
+      "sport_wheel_rl": 60,
+      "sport_hub_rl": 56,
+      "sport_wheel_rr": 60,
+      "sport_hub_rr": 56
+    },
+    "total": 2784,
+    "lod1": 772,
+    "lod1_mitad_del_total": 1392.0,
+    "presupuesto_total": 3000,
+    "presupuesto_por_rueda_con_tapacubos": 120
+  },
+  "medidas": {
+    "ancho_x": 6.385,
+    "largo_y": 11.97,
+    "alto_z": 3.549,
+    "min_z": 0.0,
+    "techo_cabina_z": 3.52,
+    "maletero": {
+      "inicio_y": 0.65,
+      "largo": 5.23,
+      "porcentaje_del_largo": 43.7,
+      "z_superior": 2.5
+    },
+    "placa": {
+      "tamano_x": 4.0,
+      "tamano_y": 4.0,
+      "z_inferior": 2.5,
+      "z_superior": 2.6,
+      "centro_xy": [
+        0.0,
+        2.8
+      ]
+    },
+    "aleron": {
+      "y_inicio": 4.95,
+      "y_fin": 5.86,
+      "z": 3.3,
+      "ancho_x": 3.72
+    },
+    "referencia_taxi": {
+      "triangles": 2580,
+      "size_x": 6.4,
+      "size_y": 12.4,
+      "size_z": 5.1
+    }
+  },
+  "seat": [
+    0.0,
+    2.8,
+    2.6
+  ],
+  "ruedas": {
+    "fl": {
+      "archivo": "sport_wheel_fl.fbx",
+      "tapacubos": "sport_hub_fl.fbx",
+      "eje": [
+        -2.42,
+        -3.55,
+        0.88
+      ],
+      "giro": "X",
+      "radio": 0.88,
+      "ancho": 0.82
+    },
+    "fr": {
+      "archivo": "sport_wheel_fr.fbx",
+      "tapacubos": "sport_hub_fr.fbx",
+      "eje": [
+        2.42,
+        -3.55,
+        0.88
+      ],
+      "giro": "X",
+      "radio": 0.88,
+      "ancho": 0.82
+    },
+    "rl": {
+      "archivo": "sport_wheel_rl.fbx",
+      "tapacubos": "sport_hub_rl.fbx",
+      "eje": [
+        -2.42,
+        3.5,
+        0.88
+      ],
+      "giro": "X",
+      "radio": 0.88,
+      "ancho": 0.82
+    },
+    "rr": {
+      "archivo": "sport_wheel_rr.fbx",
+      "tapacubos": "sport_hub_rr.fbx",
+      "eje": [
+        2.42,
+        3.5,
+        0.88
+      ],
+      "giro": "X",
+      "radio": 0.88,
+      "ancho": 0.82
+    }
+  },
+  "materiales": {
+    "sport_body_rojo": "rojo",
+    "sport_body_asfalto": "asfalto",
+    "sport_body_cristal": "cristal",
+    "sport_body_caliza": "caliza",
+    "sport_body_naranja": "naranja",
+    "sport_body_acero": "acero",
+    "sport_plate": "plate",
+    "sport_wheel_fl": "asfalto",
+    "sport_wheel_fr": "asfalto",
+    "sport_wheel_rl": "asfalto",
+    "sport_wheel_rr": "asfalto",
+    "sport_hub_fl": "acero",
+    "sport_hub_fr": "acero",
+    "sport_hub_rl": "acero",
+    "sport_hub_rr": "acero",
+    "sport_LOD1": "rojo"
+  }
+}
