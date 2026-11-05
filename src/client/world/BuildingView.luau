@@ -75,7 +75,7 @@ local function refreshTag(index: number)
 		made.Name = "OwnerTag"
 		made.Adornee = model:FindFirstChild("Base") :: BasePart
 		made.AlwaysOnTop = true
-		made.Size = UDim2.fromOffset(120, 22)
+		made.Size = UDim2.fromOffset(84, 15)
 		made.ExtentsOffsetWorldSpace = Vector3.new(0, 1, 0)
 		local label = Instance.new("TextLabel")
 		label.Name = "Text"

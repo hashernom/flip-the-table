@@ -10,7 +10,7 @@ return {
 	-- Durante el recorrido: cerca de la ficha y del avatar.
 	ride = { back = 16, inward = 7, up = 13, ahead = 10, focusUp = 8 } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
-	overview = { heightPerSpan = 1.7, backPerSpan = 0.6, radiansPerPixel = 0.006 },
+	overview = { heightPerSpan = 1.15, backPerSpan = 0.1, radiansPerPixel = 0.006 },
 	-- Con qué rapidez se acerca al plano, por segundo: cuanto mayor, más brusco. No depende de los FPS.
 	followRate = 5,
 }
