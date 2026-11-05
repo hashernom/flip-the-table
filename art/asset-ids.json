@@ -1000,7 +1000,10 @@
     "wrecking_dark": "rbxassetid://116107338754335",
     "wrecking_glass": "rbxassetid://111475953971599",
     "wrecking_orange": "rbxassetid://94350779867532",
-    "wrecking_steel": "rbxassetid://94272395177777"
+    "wrecking_steel": "rbxassetid://94272395177777",
+    "crane_acero": "rbxassetid://82595165382245",
+    "crane_amarillo": "rbxassetid://116627134152467",
+    "crane_asfalto": "rbxassetid://138494115720626"
   },
   "cc0": {
     "brick_red": {

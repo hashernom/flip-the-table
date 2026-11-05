@@ -2117,6 +2117,24 @@
         "rbxassetid://131013545753933",
         "rbxassetid://138838066689207"
       ]
+    },
+    {
+      "id": "scene-grua-obra",
+      "category": "SceneCharacter",
+      "source": "art/blender/scene-props/grua-obra.py",
+      "triangles": 1988,
+      "lods": [
+        768
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art\\blender\\scene-props\\grua-obra",
+      "assetId": "rbxassetid://116627134152467",
+      "assetIds": [
+        "rbxassetid://82595165382245",
+        "rbxassetid://138494115720626"
+      ]
     }
   ]
 }
