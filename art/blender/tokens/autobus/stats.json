@@ -1,0 +1,136 @@
+{
+  "modelo": "autobus",
+  "unidades": "studs (1 unidad de Blender = 1 stud)",
+  "origen": "centro de la base, a ras de suelo (x = 0, y = 0, z = 0)",
+  "frente": "-Y (morro)",
+  "arriba": "+Z",
+  "triangulos": {
+    "piezas": {
+      "bus_body_bus": 744,
+      "bus_body_dark": 988,
+      "bus_body_cream": 220,
+      "bus_body_glass": 168,
+      "bus_body_steel": 264,
+      "bus_body_red": 24,
+      "bus_plate": 108,
+      "bus_wheel_fl": 60,
+      "bus_hub_fl": 28,
+      "bus_wheel_fr": 60,
+      "bus_hub_fr": 28,
+      "bus_wheel_rl": 60,
+      "bus_hub_rl": 28,
+      "bus_wheel_rr": 60,
+      "bus_hub_rr": 28
+    },
+    "total": 2868,
+    "lod1": 580,
+    "lod1_mitad_del_total": 1434.0,
+    "presupuesto_total": 3000,
+    "presupuesto_por_rueda_con_tapacubos": 120
+  },
+  "medidas": {
+    "ancho_x": 6.48,
+    "largo_y": 15.89,
+    "alto_z": 6.7,
+    "min_z": 0.0,
+    "techo_cabina_z": 6.3,
+    "plantas": 1,
+    "ventanillas": 10,
+    "puertas_plegables": 4,
+    "maletero": {
+      "inicio_y": 3.6,
+      "largo": 4.1,
+      "porcentaje_del_largo": 25.8,
+      "z_superior": 3.06,
+      "nota": "en el autobus es el compartimento del motor, no un maletero de equipaje"
+    },
+    "placa": {
+      "tamano_x": 4.6,
+      "tamano_y": 5.8,
+      "z_inferior": 6.52,
+      "z_superior": 6.64,
+      "centro_xy": [
+        0.0,
+        0.0
+      ]
+    },
+    "limites": {
+      "ancho_x": 6.5,
+      "largo_y": 16.0,
+      "alto_z": 7.5
+    }
+  },
+  "seat": [
+    0.0,
+    0.0,
+    6.64
+  ],
+  "ruedas": {
+    "fl": {
+      "archivo": "bus_wheel_fl.fbx",
+      "tapacubos": "bus_hub_fl.fbx",
+      "eje": [
+        -2.42,
+        -4.4,
+        1.0
+      ],
+      "giro": "X",
+      "radio": 1.0,
+      "ancho": 0.9
+    },
+    "fr": {
+      "archivo": "bus_wheel_fr.fbx",
+      "tapacubos": "bus_hub_fr.fbx",
+      "eje": [
+        2.42,
+        -4.4,
+        1.0
+      ],
+      "giro": "X",
+      "radio": 1.0,
+      "ancho": 0.9
+    },
+    "rl": {
+      "archivo": "bus_wheel_rl.fbx",
+      "tapacubos": "bus_hub_rl.fbx",
+      "eje": [
+        -2.42,
+        5.2,
+        1.0
+      ],
+      "giro": "X",
+      "radio": 1.0,
+      "ancho": 0.9
+    },
+    "rr": {
+      "archivo": "bus_wheel_rr.fbx",
+      "tapacubos": "bus_hub_rr.fbx",
+      "eje": [
+        2.42,
+        5.2,
+        1.0
+      ],
+      "giro": "X",
+      "radio": 1.0,
+      "ancho": 0.9
+    }
+  },
+  "materiales": {
+    "bus_body_bus": "bus",
+    "bus_body_dark": "dark",
+    "bus_body_cream": "cream",
+    "bus_body_glass": "glass",
+    "bus_body_steel": "steel",
+    "bus_body_red": "red",
+    "bus_plate": "plate",
+    "bus_wheel_fl": "dark",
+    "bus_wheel_fr": "dark",
+    "bus_wheel_rl": "dark",
+    "bus_wheel_rr": "dark",
+    "bus_hub_fl": "steel",
+    "bus_hub_fr": "steel",
+    "bus_hub_rl": "steel",
+    "bus_hub_rr": "steel",
+    "bus_LOD1": "bus"
+  }
+}

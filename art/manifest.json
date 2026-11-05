@@ -1867,6 +1867,36 @@
         "rbxassetid://109463345865761",
         "rbxassetid://119034074880914"
       ]
+    },
+    {
+      "id": "token-autobus",
+      "category": "Token",
+      "source": "art/blender/tokens/autobus.py",
+      "triangles": 2868,
+      "lods": [
+        580
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/autobus.py",
+      "assetId": "rbxassetid://125497238852457",
+      "assetIds": [
+        "rbxassetid://126065636378431",
+        "rbxassetid://75461336238466",
+        "rbxassetid://130625169548214",
+        "rbxassetid://94753857181355",
+        "rbxassetid://123729454419227",
+        "rbxassetid://114784370707983",
+        "rbxassetid://106046077217011",
+        "rbxassetid://131694775575542",
+        "rbxassetid://136667030447978",
+        "rbxassetid://96019583172265",
+        "rbxassetid://124780908396106",
+        "rbxassetid://134886663783006",
+        "rbxassetid://116487059231740",
+        "rbxassetid://117976189269343"
+      ]
     }
   ]
 }

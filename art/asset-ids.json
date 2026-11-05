@@ -917,7 +917,22 @@
     "sport_wheel_fl": "rbxassetid://132219869563411",
     "sport_wheel_fr": "rbxassetid://79398872310749",
     "sport_wheel_rl": "rbxassetid://79543523206457",
-    "sport_wheel_rr": "rbxassetid://109463345865761"
+    "sport_wheel_rr": "rbxassetid://109463345865761",
+    "bus_body_bus": "rbxassetid://125497238852457",
+    "bus_body_cream": "rbxassetid://75461336238466",
+    "bus_body_dark": "rbxassetid://126065636378431",
+    "bus_body_glass": "rbxassetid://130625169548214",
+    "bus_body_red": "rbxassetid://123729454419227",
+    "bus_body_steel": "rbxassetid://94753857181355",
+    "bus_hub_fl": "rbxassetid://131694775575542",
+    "bus_hub_fr": "rbxassetid://96019583172265",
+    "bus_hub_rl": "rbxassetid://134886663783006",
+    "bus_hub_rr": "rbxassetid://117976189269343",
+    "bus_plate": "rbxassetid://114784370707983",
+    "bus_wheel_fl": "rbxassetid://106046077217011",
+    "bus_wheel_fr": "rbxassetid://136667030447978",
+    "bus_wheel_rl": "rbxassetid://124780908396106",
+    "bus_wheel_rr": "rbxassetid://116487059231740"
   },
   "cc0": {
     "brick_red": {
