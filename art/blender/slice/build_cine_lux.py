@@ -575,4 +575,5 @@ def main():
     print(json.dumps(stats))
 
 
-main()
+if __name__ == "__main__":
+    main()

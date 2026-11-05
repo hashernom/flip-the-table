@@ -17,6 +17,9 @@ local BODY_SIZE = Vector3.new(6, 9, 6)
 local SEAT_THICKNESS = 0.6
 local BODY_COLOR = Color3.fromRGB(96, 100, 106)
 local SEAT_COLOR = Color3.fromRGB(58, 62, 68)
+local ArtAssets = require("../../shared/config/ArtAssets")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local WELD_NAME = "TokenWeld"
 local RIDE_STEP = 1 / 30
 
@@ -89,7 +92,42 @@ function TokenRider.create(ownerId: string, sizeId: SizeId, color: Color3, paren
 	model:SetAttribute("SizeId", sizeId)
 	model:SetAttribute("Index", 1)
 	model.Parent = parent
+	TokenRider.dress(model)
 	return model
+end
+
+-- Viste la ficha con el taxi real si ya está cargado. Sin él sigue siendo la gris; se puede repetir.
+function TokenRider.dress(token: Model)
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local body = token.PrimaryPart
+	if folder == nil or body == nil or token:FindFirstChild("Taxi") ~= nil then
+		return
+	end
+	local origin = body.CFrame * CFrame.new(0, -BODY_SIZE.Y / 2, 0)
+	local dressed = Instance.new("Folder")
+	dressed.Name = "Taxi"
+	local pieces: { BasePart } = {}
+	for _, piece in ArtAssets.taxi do
+		local source = folder:FindFirstChild(piece.key)
+		if source == nil or not source:IsA("BasePart") then
+			dressed:Destroy()
+			return
+		end
+		local mesh = source:Clone()
+		mesh.CFrame = origin * source.CFrame
+		mesh.Anchored = false
+		mesh.Parent = dressed
+		table.insert(pieces, mesh)
+	end
+	weldTo(pieces, body)
+	dressed.Parent = token
+	-- El cuerpo sigue moviendo la ficha, pero ya no se ve.
+	body.Transparency = 1
+	local stripe = token:FindFirstChild("Stripe")
+	if stripe ~= nil and stripe:IsA("BasePart") then
+		stripe.Size = Vector3.new(6.4, 0.6, 6.4)
+		stripe.CFrame = origin * CFrame.new(0, 0.5, 0)
+	end
 end
 
 local function bodyOf(token: Model): BasePart

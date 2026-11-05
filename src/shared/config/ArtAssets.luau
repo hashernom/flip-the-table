@@ -43,6 +43,40 @@ ArtAssets.FRONT_OFFSET = 2
 
 -- Por el nombre que da `Strings.squareLabel`. Los añadidos, en orden de nivel.
 ArtAssets.properties = {
+	["Bodega La Reserva"] = {
+		base = {
+			piece("bodega_wall", "96062558131335", BRICK, "Brick"),
+			piece("bodega_base_dark", "110655451780948", { 42, 46, 51 }, "SmoothPlastic"),
+			piece("bodega_base_glass", "124003684147313", GLASS, "Glass", 0.25),
+			piece("bodega_base_limestone", "133495296764917", STONE, "Limestone"),
+			piece("bodega_base_slate", "78852868380933", SLATE, "Slate"),
+			piece("bodega_base_wood", "79772933935225", { 107, 74, 46 }, "Wood"),
+		},
+		addons = {
+			{
+				piece("bodega_addon1_red", "84764259555291", RED, "Fabric"),
+				piece("bodega_addon1_wood", "84438214828559", { 107, 74, 46 }, "Wood"),
+			},
+			{
+				piece("bodega_addon2_cream", "131208136447470", { 237, 229, 211 }, "SmoothPlastic"),
+				piece("bodega_addon2_steel", "126665734693506", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("bodega_addon3_brick", "98140695944670", BRICK, "Brick"),
+				piece("bodega_addon3_glass", "114582864770259", GLASS, "Glass", 0.25),
+				piece("bodega_addon3_limestone", "110033467388023", STONE, "Limestone"),
+			},
+			{
+				piece("bodega_addon4_gold", "123392296280782", { 201, 162, 39 }, "Metal"),
+				piece("bodega_addon4_steel", "125781446129874", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("bodega_addon5_gold", "119575846485110", { 201, 162, 39 }, "Metal"),
+				piece("bodega_addon5_limestone", "83408336475066", STONE, "Limestone"),
+				piece("bodega_addon5_steel", "117689058796300", { 168, 174, 180 }, "Metal"),
+			},
+		},
+	},
 	["Cine Lux de Medianoche"] = {
 		base = {
 			piece("cine-wall", "71336473679427", BRICK, "Brick"),
@@ -90,6 +124,15 @@ ArtAssets.markers = {
 	Tower = piece("marker-tower", "94509577031463", { 201, 162, 39 }, "Metal"),
 } :: { [string]: Piece }
 
+-- La ficha taxi: su origen es la base de la ficha.
+ArtAssets.taxi = {
+	piece("taxi_cream", "76594417795070", { 237, 229, 211 }, "SmoothPlastic"),
+	piece("taxi_dark", "82340607719997", { 42, 46, 51 }, "SmoothPlastic"),
+	piece("taxi_glass", "93908522228720", GLASS, "Glass", 0.25),
+	piece("taxi_steel", "140377905627840", { 168, 174, 180 }, "Metal"),
+	piece("taxi_taxi", "120568558035679", { 245, 197, 24 }, "SmoothPlastic"),
+} :: { Piece }
+
 -- Mallas de una propiedad en un nivel, o nil si aún no tiene modelo real.
 function ArtAssets.piecesFor(name: string, level: number): { Piece }?
 	local property = ArtAssets.properties[name]
@@ -112,6 +155,7 @@ function ArtAssets.all(): { Piece }
 			table.move(addon, 1, #addon, #pieces + 1, pieces)
 		end
 	end
+	table.move(ArtAssets.taxi, 1, #ArtAssets.taxi, #pieces + 1, pieces)
 	for _, marker in ArtAssets.markers do
 		table.insert(pieces, marker)
 	end

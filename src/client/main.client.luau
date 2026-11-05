@@ -265,6 +265,9 @@ local function boot()
 			art.AttributeChanged:Wait()
 		end
 		BuildingView.refreshArt()
+		for _, token in tokens do
+			TokenRider.dress(token)
+		end
 	end)
 
 	local overviewWanted = false

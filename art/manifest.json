@@ -175,6 +175,59 @@
         "rbxassetid://113330714001871",
         "rbxassetid://91237438205488"
       ]
+    },
+    {
+      "id": "bodega-la-reserva",
+      "category": "Building",
+      "source": "art/blender/slice/build_slice_props.py",
+      "triangles": 600,
+      "lods": [
+        272
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_slice_props.py",
+      "assetId": "rbxassetid://84764259555291",
+      "assetIds": [
+        "rbxassetid://84438214828559",
+        "rbxassetid://131208136447470",
+        "rbxassetid://126665734693506",
+        "rbxassetid://98140695944670",
+        "rbxassetid://114582864770259",
+        "rbxassetid://110033467388023",
+        "rbxassetid://123392296280782",
+        "rbxassetid://125781446129874",
+        "rbxassetid://119575846485110",
+        "rbxassetid://83408336475066",
+        "rbxassetid://117689058796300",
+        "rbxassetid://110655451780948",
+        "rbxassetid://124003684147313",
+        "rbxassetid://133495296764917",
+        "rbxassetid://78852868380933",
+        "rbxassetid://79772933935225",
+        "rbxassetid://96062558131335"
+      ]
+    },
+    {
+      "id": "taxi",
+      "category": "Token",
+      "source": "art/blender/slice/build_slice_props.py",
+      "triangles": 168,
+      "lods": [
+        70
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_slice_props.py",
+      "assetId": "rbxassetid://76594417795070",
+      "assetIds": [
+        "rbxassetid://82340607719997",
+        "rbxassetid://93908522228720",
+        "rbxassetid://140377905627840",
+        "rbxassetid://120568558035679"
+      ]
     }
   ]
 }
