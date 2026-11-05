@@ -27,6 +27,9 @@ empírica (medida cargando el taxi con `InsertService:LoadAsset`) es:
 El reflejo de X no se nota en el taxi (es simétrico), pero **sí cuenta en detalles asimétricos**
 (escape de la moto, ventanilla del food truck): lo que se modela a -X aparece a +X en Roblox.
 
+El taxi anterior (`art/blender/slice/build_slice_props.py`, `ArtAssets.taxi`) también se modeló con el
+morro en -Y, así que los dos coinciden en -Z y el cambio de malla no gira la ficha.
+
 El `seat` de `stats.json` está en coordenadas de Blender. En Roblox es `(x, z, y)`: el del taxi,
 `[0, 0.8, 4.6]`, se lee `(0, 4.6, 0.8)`.
 
