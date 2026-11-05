@@ -1,0 +1,106 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "huella": {
+    "ancho": 17.4,
+    "fondo": 17.4,
+    "maximo": {
+      "ancho": 32.0,
+      "fondo": 18.0
+    }
+  },
+  "limites": {
+    "ancho": 17.4,
+    "fondo": 17.4,
+    "alto": 13.9,
+    "alto_maximo_sobre_suelo": 13.9,
+    "frente_y_minima": -8.7,
+    "fondo_y_maxima": 8.7
+  },
+  "puerta": {
+    "paso_libre_ancho": 2.9,
+    "paso_libre_alto": 6.6,
+    "hueco_portico": 3.2,
+    "minimo": {
+      "ancho": 2.4,
+      "alto": 6.5
+    }
+  },
+  "rotulo": {
+    "texto": "GIRO",
+    "letras_alto": 1.15,
+    "letras_ancho": 3.81,
+    "z": 8.82,
+    "material": "Slate",
+    "rgb": "4A4E54"
+  },
+  "piezas": [
+    {
+      "clave": "spin_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 728
+    },
+    {
+      "clave": "spin_brick",
+      "nivel": 0,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 64
+    },
+    {
+      "clave": "spin_wood",
+      "nivel": 0,
+      "material": "Wood",
+      "rgb": "6B4A2E",
+      "triangulos": 156
+    },
+    {
+      "clave": "spin_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 36
+    },
+    {
+      "clave": "spin_metal",
+      "nivel": 0,
+      "material": "Metal",
+      "rgb": "C97B3A",
+      "triangulos": 320
+    },
+    {
+      "clave": "spin_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 1640
+    }
+  ],
+  "niveles": {
+    "0": {
+      "triangulos_propios": 2944,
+      "triangulos_acumulados": 2944,
+      "limites": {
+        "ancho": 17.4,
+        "fondo": 17.4,
+        "alto": 13.9,
+        "alto_maximo_sobre_suelo": 13.9,
+        "frente_y_minima": -8.7,
+        "fondo_y_maxima": 8.7
+      }
+    }
+  },
+  "total_triangulos": 2944,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "clave": "spin_LOD1",
+    "triangulos": 1420,
+    "porcentaje_del_total": 48.2,
+    "mallas": 1,
+    "material": "Limestone",
+    "rgb": "D2C9B4"
+  },
+  "altura_maxima": 13.9,
+  "altura_maxima_permitida": 14.0
+}
