@@ -1802,6 +1802,41 @@
         "rbxassetid://133648784746370",
         "rbxassetid://82897371717785"
       ]
+    },
+    {
+      "id": "token-grua",
+      "category": "Token",
+      "source": "art/blender/tokens/grua.py",
+      "triangles": 2836,
+      "lods": [
+        276
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/grua.py",
+      "assetId": "rbxassetid://95053997370747",
+      "assetIds": [
+        "rbxassetid://134314077480826",
+        "rbxassetid://100129015045608",
+        "rbxassetid://102138962592189",
+        "rbxassetid://124638709028401",
+        "rbxassetid://137991435829010",
+        "rbxassetid://104936000375608",
+        "rbxassetid://131002028917702",
+        "rbxassetid://76073551293191",
+        "rbxassetid://101959208863864",
+        "rbxassetid://77185300358917",
+        "rbxassetid://123925876481313",
+        "rbxassetid://73306696008205",
+        "rbxassetid://80838197031263",
+        "rbxassetid://89402250749875",
+        "rbxassetid://122925467180126",
+        "rbxassetid://90955544415570",
+        "rbxassetid://125765712980969",
+        "rbxassetid://128004742463450",
+        "rbxassetid://120862205016509"
+      ]
     }
   ]
 }
