@@ -994,7 +994,13 @@
     "tax_slate": "rbxassetid://76551452650805",
     "tax_smoothplastic_blanco": "rbxassetid://124494972089768",
     "tax_smoothplastic_rojo": "rbxassetid://85466395562184",
-    "tax_wood": "rbxassetid://74581550163105"
+    "tax_wood": "rbxassetid://74581550163105",
+    "wrecking_ball": "rbxassetid://131013545753933",
+    "wrecking_chain": "rbxassetid://138838066689207",
+    "wrecking_dark": "rbxassetid://116107338754335",
+    "wrecking_glass": "rbxassetid://111475953971599",
+    "wrecking_orange": "rbxassetid://94350779867532",
+    "wrecking_steel": "rbxassetid://94272395177777"
   },
   "cc0": {
     "brick_red": {

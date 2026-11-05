@@ -2096,6 +2096,27 @@
         "rbxassetid://85466395562184",
         "rbxassetid://124494972089768"
       ]
+    },
+    {
+      "id": "scene-bola-demolicion",
+      "category": "SceneCharacter",
+      "source": "art/blender/scene-props/bola-demolicion.py",
+      "triangles": 1508,
+      "lods": [
+        420
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art\\blender\\scene-props\\bola-demolicion",
+      "assetId": "rbxassetid://116107338754335",
+      "assetIds": [
+        "rbxassetid://94272395177777",
+        "rbxassetid://94350779867532",
+        "rbxassetid://111475953971599",
+        "rbxassetid://131013545753933",
+        "rbxassetid://138838066689207"
+      ]
     }
   ]
 }
