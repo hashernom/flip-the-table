@@ -198,3 +198,46 @@ describe("art/manifest.json", function()
 		expect(Manifest.unknownRefs(manifest, ids)).toEqual({})
 	end)
 end)
+
+describe("Manifest: elementos temporales", function()
+	local manifest = { assets = {} }
+
+	it("un marcador TEMPORAL en src hace fallar y nombra el archivo y la línea", function()
+		local sample =
+			'--!strict\nlocal a = 1\n-- TEMPORAL: bloque gris hasta tener la malla\nlocal part = Instance.new("Part")\n'
+		local problems = Manifest.sourceProblems(manifest, "src/ejemplo.luau", sample)
+		expect(#problems).toBe(1)
+		expect(string.find(problems[1], "src/ejemplo.luau:3", 1, true) ~= nil).toBe(true)
+	end)
+
+	it("también lo detecta sin espacio y con otro texto detrás", function()
+		expect(#Manifest.temporaryLines("--TEMPORAL\nlocal b = 2 -- TEMPORAL quitar\n")).toBe(2)
+	end)
+
+	it("hablar de lo temporal en minúsculas no es un marcador", function()
+		expect(#Manifest.temporaryLines("-- La carpeta temporal se borra al salir.\nlocal TEMPORAL = 1\n")).toBe(
+			0
+		)
+	end)
+end)
+
+describe("Manifest: mallas de ArtAssets", function()
+	it("toda malla que carga el juego está registrada en el manifiesto", function()
+		local ArtAssets = require("../../src/shared/config/ArtAssets")
+		local manifest = serde.decode("json", fs.readFile(MANIFEST_PATH))
+		local refs: { string } = {}
+		for _, piece in ArtAssets.all() do
+			table.insert(refs, piece.assetId)
+		end
+		expect(Manifest.unknownAssets(manifest, refs)).toEqual({})
+	end)
+
+	it("una malla sin registrar se detecta", function()
+		local manifest = {
+			assets = {
+				{ id = "a", category = "Token", triangles = 1, status = "Draft", assetId = "rbxassetid://1" },
+			},
+		}
+		expect(Manifest.unknownAssets(manifest :: any, { "rbxassetid://2" })).toEqual({ "rbxassetid://2" })
+	end)
+end)

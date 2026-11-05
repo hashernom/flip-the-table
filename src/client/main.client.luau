@@ -53,6 +53,7 @@ local function boot()
 	local CityBuilder = require("./world/CityBuilder")
 	local TokenRider = require("./world/TokenRider")
 	local JailView = require("./world/JailView")
+	local SquareView = require("./world/SquareView")
 	local Arrest = require("./scenes/Arrest")
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
@@ -170,6 +171,7 @@ local function boot()
 		BuildingView.bind(handles)
 		StreetDressing.build(handles)
 		JailView.build(handles)
+		SquareView.build(handles)
 		StreetDressing.startTraffic(handles)
 		director.setSize(sizeId :: CityBuilder.SizeId)
 	end
@@ -313,6 +315,7 @@ local function boot()
 		if city ~= nil then
 			StreetDressing.build(city)
 			JailView.build(city)
+			SquareView.build(city)
 			StreetDressing.startTraffic(city)
 		end
 		for _, token in tokens do

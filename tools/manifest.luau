@@ -197,11 +197,29 @@ function Manifest.unknownAssets(manifest: Manifest, refs: { string }): { string 
 	return missing
 end
 
--- Problemas de un archivo de código: cada id de asset sin registrar, con el archivo donde está.
+-- Líneas con un comentario `-- TEMPORAL`: el marcador de lo que no puede llegar a publicarse, como un bloque
+-- gris a la espera de su malla. Solo cuenta en mayúsculas y dentro de un comentario.
+function Manifest.temporaryLines(source: string): { number }
+	local lines: { number } = {}
+	local number = 0
+	for line in string.gmatch(source .. "\n", "(.-)\n") do
+		number += 1
+		if string.find(line, "%-%-%s*TEMPORAL") ~= nil then
+			table.insert(lines, number)
+		end
+	end
+	return lines
+end
+
+-- Problemas de un archivo de código: cada id de asset sin registrar y cada elemento temporal, con el archivo
+-- donde está.
 function Manifest.sourceProblems(manifest: Manifest, path: string, source: string): { string }
 	local problems: { string } = {}
 	for _, ref in Manifest.unknownAssets(manifest, Manifest.assetRefs(source)) do
 		table.insert(problems, `{path}: {ref} no está en el manifiesto`)
+	end
+	for _, line in Manifest.temporaryLines(source) do
+		table.insert(problems, `{path}:{line}: elemento marcado como TEMPORAL`)
 	end
 	return problems
 end

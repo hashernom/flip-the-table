@@ -10,6 +10,7 @@ export type Robloxian = {
 	-- `reach` (0 a 1) adelanta los brazos, para sujetar al detenido.
 	pose: (root: CFrame, swing: number, reach: number?) -> (),
 	destroy: () -> (),
+	model: Model,
 }
 
 export type Options = {
@@ -228,6 +229,7 @@ function Robloxian.create(parent: Instance, options: Options): Robloxian
 		destroy = function()
 			model:Destroy()
 		end,
+		model = model,
 	}
 end
 

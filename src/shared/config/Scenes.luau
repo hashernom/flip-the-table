@@ -175,4 +175,30 @@ Scenes.actionGraceSec = 0.25
 -- cierra el servicio, no la regla (contracts.md, «Revancha»).
 Scenes.rematchSec = 20
 
+-- Actores de escena (`client/scenes/Actors`): cuántos de cada tipo pueden existir a la vez y sus colores en
+-- RGB, porque este módulo también se carga fuera de Roblox.
+Scenes.actors = {
+	limits = {
+		Police = 6,
+		PatrolCar = 4,
+		Crowd = 24,
+		Worker = 6,
+		Crane = 2,
+		TowTruck = 2,
+		ArmoredTruck = 2,
+		WreckingBall = 2,
+	} :: { [string]: number },
+	policeUniform = { 27, 42, 74 },
+	policeShirt = { 58, 86, 140 },
+	workerUniform = { 214, 118, 36 },
+	crowdColors = {
+		{ 176, 62, 56 },
+		{ 58, 110, 165 },
+		{ 86, 140, 88 },
+		{ 214, 170, 60 },
+		{ 122, 88, 150 },
+		{ 70, 74, 82 },
+	},
+}
+
 return Scenes

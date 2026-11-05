@@ -62,6 +62,13 @@ export type TokenArt = {
 }
 ArtAssets.tokens = {} :: { [string]: TokenArt }
 
+-- Lugar de cada tipo de casilla especial, por `SquareKind`. Un tipo sin registrar no levanta nada.
+ArtAssets.squares = {} :: { [string]: { Piece } }
+
+-- Mallas de los vehículos de escena, por tipo de `client/scenes/Actors`. La patrulla usa `ArtAssets.patrol`.
+ArtAssets.actors = {} :: { [string]: { Piece } }
+ArtAssets.workerHelmet = {} :: { Piece }
+
 -- Por el nombre que da `Strings.squareLabel`. Los añadidos, en orden de nivel.
 ArtAssets.properties = {
 	["Barbería Morro"] = {
@@ -1527,6 +1534,13 @@ function ArtAssets.all(): { Piece }
 			end
 		end
 	end
+	for _, group in ArtAssets.squares do
+		table.move(group, 1, #group, #pieces + 1, pieces)
+	end
+	for _, group in ArtAssets.actors do
+		table.move(group, 1, #group, #pieces + 1, pieces)
+	end
+	table.move(ArtAssets.workerHelmet, 1, #ArtAssets.workerHelmet, #pieces + 1, pieces)
 	for _, kind in ArtAssets.street do
 		table.move(kind, 1, #kind, #pieces + 1, pieces)
 	end

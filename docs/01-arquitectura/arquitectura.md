@@ -128,6 +128,9 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/ui/MiniMap` | Minimapa siempre visible y detalle de cada casilla | 06 |
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
 | `client/world/TokenRider` | Sube el avatar a la ficha y recorre la ruta | 05 |
+| `client/world/TokenMotion` | Curvas puras de reposo, marcha, ruedas y celebración de las fichas | 07 |
+| `client/world/SquareView` | Lugar de cada casilla especial en su solar | 07 |
+| `client/scenes/Actors` | Personajes y vehículos de escena, reutilizados desde `ActorPool` | 07 |
 | `client/world/WorldRules` | Reglas puras de la ciudad: propiedades que cambiaron y sitio de cada ficha | 06 |
 | `client/world/BuildingView` | Muestra cada edificio con su dueño, marcadores y añadidos | 06 |
 | `client/state/ViewWire` | Devuelve claves de número a lo que un remoto convierte a texto | 06 |
