@@ -10,6 +10,7 @@ local UiIcons: { [string]: string } = {
 	ghost = "rbxassetid://98423541980282",
 	map = "rbxassetid://80315277868422",
 	["plate-arrow"] = "rbxassetid://88255249921715",
+	["zone-carmesi"] = "rbxassetid://76197658385239",
 	smile = "rbxassetid://98779544976322",
 	["taxi-side"] = "rbxassetid://76952528758720",
 }

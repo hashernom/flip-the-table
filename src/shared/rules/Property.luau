@@ -121,6 +121,20 @@ function Property.rentFor(state: GameState, index: number): number
 	)
 end
 
+-- Tabla de la escritura: renta sin mejoras y con cada nivel de edificio. Construir exige la zona completa,
+-- así que los niveles ya la incluyen. Sin efectos dinámicos: es lo impreso en la carta.
+function Property.rentTable(price: number): { number }
+	local base = price * Economy.baseRentRate
+	local rents = { math.floor(base + ROUNDING_MARGIN) }
+	for _, multiplier in Economy.buildingRentMultiplier do
+		table.insert(
+			rents,
+			math.floor(base * Economy.completeZoneRentMultiplier * multiplier + ROUNDING_MARGIN)
+		)
+	end
+	return rents
+end
+
 -- Descuento pendiente del jugador. Es un conjunto por jugador (pending.discounts): dos jugadores
 -- pueden tener el suyo sin gastar a la vez y ninguno cancela el del otro.
 local function hasDiscount(state: GameState, playerId: PlayerId): boolean

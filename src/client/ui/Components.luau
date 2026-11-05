@@ -430,15 +430,24 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 	local plate = Components.Panel(root, "Plate", Ui.radius.plate)
 	plate.root.Size = UDim2.fromScale(1, 1)
 
-	-- Chapa de la flecha: una imagen que estira solo su tramo central, para que la punta no se deforme con
-	-- el ancho de la columna. Se usa en lugar de la placa normal.
-	local arrow = icon(root, "Arrow", "plate-arrow")
+	-- Chapa de la flecha en tres piezas de la misma imagen: extremo fijo, centro que se estira y punta entera.
+	-- La punta nunca se parte: el estirado por filas de `Slice` la cortaba al redondear.
+	local arrow = frame(root, "Arrow")
 	arrow.Size = UDim2.fromScale(1, 1)
-	arrow.ScaleType = Enum.ScaleType.Slice
-	local slice = Ui.arrowSliceCenter
-	arrow.SliceCenter = Rect.new(slice.left, slice.top, slice.right, slice.bottom)
 	arrow.ZIndex = 3
 	arrow.Visible = false
+	local function arrowPiece(name: string, fromX: number, toX: number): ImageLabel
+		local piece = icon(arrow, name, "plate-arrow")
+		piece.ScaleType = Enum.ScaleType.Stretch
+		piece.ImageRectOffset = Vector2.new(fromX, 0)
+		piece.ImageRectSize = Vector2.new(toX - fromX, Ui.arrowImageHeight)
+		piece.ZIndex = 3
+		return piece
+	end
+	local arrowCut = Ui.arrowCuts
+	local arrowLeft = arrowPiece("Left", 0, arrowCut.left)
+	local arrowMiddle = arrowPiece("Middle", arrowCut.left, arrowCut.right)
+	local arrowTip = arrowPiece("Tip", arrowCut.right, Ui.arrowImageWidth)
 
 	local content = frame(root, "Content")
 	content.Size = UDim2.fromScale(1, 1)
@@ -495,7 +504,17 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 			local ink = if isArrow then color.asphalt else color.limestone
 			plate.root.Visible = not isArrow
 			arrow.Visible = isArrow
-			arrow.SliceScale = height / Ui.arrowImageHeight
+			if isArrow then
+				local unit = height / Ui.arrowImageHeight
+				local leftWidth = math.ceil(arrowCut.left * unit)
+				local tipWidth = math.ceil((Ui.arrowImageWidth - arrowCut.right) * unit)
+				arrowLeft.Size = UDim2.fromOffset(leftWidth, height)
+				arrowTip.AnchorPoint = Vector2.new(1, 0)
+				arrowTip.Position = UDim2.fromScale(1, 0)
+				arrowTip.Size = UDim2.fromOffset(tipWidth, height)
+				arrowMiddle.Position = UDim2.fromOffset(leftWidth - 1, 0)
+				arrowMiddle.Size = UDim2.new(1, -leftWidth - tipWidth + 2, 0, height)
+			end
 			plate.body.BackgroundTransparency = if data.isGhost == true or data.hasLeft == true
 				then 0.3
 				else 0
@@ -874,6 +893,68 @@ function Components.SecondaryButton(
 			root.Active = value
 			outline.Color = if value then color.limestone else color.steel
 			caption.TextColor3 = if value then color.limestone else color.steel
+		end,
+		onActivated = function(callback: () -> ())
+			table.insert(listeners, callback)
+		end,
+		destroy = function()
+			root:Destroy()
+		end,
+	}
+end
+
+-- Opción de una lista de decisión: perks, votos, rivales, cartas. Una chapa con texto que crece hacia abajo,
+-- para que una descripción larga nunca se corte.
+function Components.OptionButton(parent: Instance, name: string, text: string): Button
+	local root = Instance.new("TextButton")
+	root.Name = name
+	root.AutoButtonColor = false
+	root.BackgroundColor3 = color.asphalt
+	root.BorderSizePixel = 0
+	root.FontFace = font.textBold
+	root.TextSize = 16
+	root.TextColor3 = color.limestone
+	root.TextWrapped = true
+	root.Text = text
+	root.Size = UDim2.fromScale(1, 0)
+	root.AutomaticSize = Enum.AutomaticSize.Y
+	root.Parent = parent
+	corner(root, Ui.radius.card)
+	local outline = stroke(root, color.limestone, 2)
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 12)
+	pad.PaddingRight = UDim.new(0, 12)
+	pad.PaddingTop = UDim.new(0, 11)
+	pad.PaddingBottom = UDim.new(0, 11)
+	pad.Parent = root
+
+	local enabled = true
+	local listeners: { () -> () } = {}
+	root.MouseEnter:Connect(function()
+		if enabled then
+			tween(root, Ui.motion.press, { BackgroundColor3 = Theme.buttonHot })
+		end
+	end)
+	root.MouseLeave:Connect(function()
+		tween(root, Ui.motion.press, { BackgroundColor3 = color.asphalt })
+	end)
+	root.Activated:Connect(function()
+		if enabled then
+			for _, listener in listeners do
+				listener()
+			end
+		end
+	end)
+	return {
+		root = root,
+		setText = function(value: string)
+			root.Text = value
+		end,
+		setEnabled = function(value: boolean)
+			enabled = value
+			root.Active = value
+			outline.Color = if value then color.limestone else color.steel
+			root.TextColor3 = if value then color.limestone else color.steel
 		end,
 		onActivated = function(callback: () -> ())
 			table.insert(listeners, callback)

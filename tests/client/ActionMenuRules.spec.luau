@@ -8,6 +8,7 @@ local ActionMenuRules = require("../../src/client/ui/ActionMenuRules")
 local Economy = require("../../src/shared/config/Economy")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
+local Property = require("../../src/shared/rules/Property")
 local Types = require("../../src/shared/rules/Types")
 local View = require("../../src/shared/rules/View")
 
@@ -20,6 +21,55 @@ local function ids(legal: { any }): { string }
 	end
 	return out
 end
+
+describe("Property.rentTable", function()
+	it("imprime la renta sin mejoras y la de cada nivel", function()
+		expect(Property.rentTable(260)).toEqual({ 26, 104, 156, 260, 416, 624 })
+	end)
+end)
+
+describe("ActionMenuRules.panelFor", function()
+	it("sin acciones no hay nada que enseñar", function()
+		local panel = ActionMenuRules.panelFor({})
+		expect(panel.primary).toBe(nil)
+		expect(#panel.options).toBe(0)
+	end)
+
+	it("comprar es el botón principal y renunciar va aparte", function()
+		local panel = ActionMenuRules.panelFor({ { type = "Buy" }, { type = "DeclineBuy" } })
+		expect((panel.primary :: any).id).toBe("Buy")
+		expect(panel.primaryText).toBe("Comprar")
+		expect((panel.decline :: any).id).toBe("DeclineBuy")
+		expect(#panel.options).toBe(0)
+	end)
+
+	it("hay un solo botón principal y ninguna acción legal se pierde", function()
+		local legal = {
+			{ type = "EndTurn" },
+			{ type = "Roll" },
+			{ type = "PlayCard", cardId = "Fine" },
+			{ type = "Build", index = 2 },
+		}
+		local panel = ActionMenuRules.panelFor(legal)
+		expect((panel.primary :: any).id).toBe("Roll")
+		expect(#panel.options).toBe(3)
+	end)
+
+	it("sin acción principal, todas son opciones", function()
+		local panel = ActionMenuRules.panelFor({
+			{ type = "DraftPerk", perkId = "Banker" },
+			{ type = "DraftPerk", perkId = "Lawyer" },
+		})
+		expect(panel.primary).toBe(nil)
+		expect(#panel.options).toBe(2)
+	end)
+
+	it("la puja propone el mínimo y conserva su control", function()
+		local panel = ActionMenuRules.panelFor({ { type = "Bid", amount = 120 } })
+		expect(panel.primaryText).toBe("Pujar 120")
+		expect((panel.bid :: any).min).toBe(120)
+	end)
+end)
 
 describe("ActionMenuRules.buttonsFor", function()
 	it("sin acciones legales no hay ningún botón", function()

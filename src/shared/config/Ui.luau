@@ -57,9 +57,21 @@ return {
 		compact = { upTo = 8, plateHeight = 60, step = 67, disc = 52, name = 14, money = 18, arrow = 74 },
 	},
 
-	-- Chapa de la flecha del turno: alto de la imagen y tramo que se estira a lo ancho.
+	-- Chapa de la flecha del turno: medidas de la imagen y dónde se corta en tres piezas.
+	arrowImageWidth = 960,
 	arrowImageHeight = 312,
-	arrowSliceCenter = { left = 110, top = 120, right = 700, bottom = 190 },
+	arrowCuts = { left = 110, right = 700 },
+
+	-- Panel de decisión, a la derecha, bajo el minimapa.
+	panelTop = 216,
+	panelRight = 12,
+	panelWidth = 296,
+	panelGap = 8,
+	-- Altura de lo que acompaña a la escritura: botón, secundario y huecos. Con pantallas bajas, la
+	-- escritura se reduce hasta `deedMinScale` para que todo quepa.
+	panelActionsHeight = 150,
+	deedHeight = 354,
+	deedMinScale = 0.7,
 
 	-- Color del aro de cada asiento, en `#RRGGBB`.
 	seatColors = { "#E85D9E", "#22D3EE", "#F59E0B", "#8B5CF6", "#CFC5AE", "#10B981", "#4F46E5", "#C97B3A" },
