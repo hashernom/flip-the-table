@@ -17,6 +17,7 @@ export type Asset = {
 	lods: { number }?,
 	textures: number?,
 	assetId: string?,
+	assetIds: { string }?,
 	status: string,
 	approvedBy: string?,
 	screenshots: { string }?,
@@ -179,6 +180,11 @@ function Manifest.unknownAssets(manifest: Manifest, refs: { string }): { string 
 	for _, asset in manifest.assets do
 		if asset.assetId ~= nil then
 			known[asset.assetId] = true
+		end
+		-- Un asset puede ser varias mallas: el manifiesto lo trata como uno y registra todos sus ids.
+		local extra: { string } = asset.assetIds or {}
+		for _, id in extra do
+			known[id] = true
 		end
 	end
 	local missing: { string } = {}

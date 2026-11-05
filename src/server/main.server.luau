@@ -14,6 +14,7 @@ local Protocol = require("../shared/net/Protocol")
 local Rng = require("../shared/rules/Rng")
 local Scenes = require("../shared/config/Scenes")
 local Types = require("../shared/rules/Types")
+local ArtLoader = require("./match/ArtLoader")
 local JoinRules = require("./match/JoinRules")
 local MatchService = require("./match/MatchService")
 local PresenceService = require("./match/PresenceService")
@@ -181,6 +182,8 @@ end)
 -- La presencia registra PlayerAdded/PlayerRemoving y se engancha al arranque de cada partida;
 -- debe estar enganchada antes de que la partida empiece para tener los asientos listos.
 PresenceService.start()
+
+ArtLoader.start()
 
 -- La telemetría se engancha al arranque y al abandono antes de que exista la primera partida: cada
 -- partida, también la abandonada, deja su resumen para los criterios de salida (Tarea 7).

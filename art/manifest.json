@@ -89,7 +89,18 @@
       "status": "Draft",
       "screenshots": [],
       "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
-      "assetId": "rbxassetid://71336473679427"
+      "assetId": "rbxassetid://71336473679427",
+      "assetIds": [
+        "rbxassetid://77475477580156",
+        "rbxassetid://121921872087774",
+        "rbxassetid://114543760508825",
+        "rbxassetid://76583737990361",
+        "rbxassetid://82226622101441",
+        "rbxassetid://99052113424773",
+        "rbxassetid://129785060528007",
+        "rbxassetid://88472314777632",
+        "rbxassetid://137972332815794"
+      ]
     },
     {
       "id": "marker-house",
@@ -132,6 +143,25 @@
       "screenshots": [],
       "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
       "assetId": "rbxassetid://94509577031463"
+    },
+    {
+      "id": "skybox",
+      "category": "CityBackdrop",
+      "source": "art/generators/pbr_assets.py",
+      "triangles": 0,
+      "lods": [],
+      "textures": 6,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "art/generators/pbr_assets.py",
+      "assetIds": [
+        "rbxassetid://130728511009606",
+        "rbxassetid://80764594111224",
+        "rbxassetid://119522021872772",
+        "rbxassetid://110426578506982",
+        "rbxassetid://113330714001871",
+        "rbxassetid://91237438205488"
+      ]
     }
   ]
 }

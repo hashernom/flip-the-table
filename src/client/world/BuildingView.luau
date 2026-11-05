@@ -6,6 +6,8 @@
 local CityBuilder = require("./CityBuilder")
 local CityLayout = require("../../shared/config/CityLayout")
 local WorldRules = require("./WorldRules")
+local ArtAssets = require("../../shared/config/ArtAssets")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BLOCK_COLOR = Color3.fromRGB(176, 170, 158)
 local ADDON_COLOR = Color3.fromRGB(140, 134, 124)
@@ -37,6 +39,20 @@ local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Col
 	piece.Size = size
 	piece.CFrame = cframe
 	piece.Parent = parent
+end
+
+-- Copia una malla real colocada respecto a `origin`. Sin cargar todavía, devuelve nil.
+local function placeMesh(piece: ArtAssets.Piece, origin: CFrame, parent: Instance): BasePart?
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local source = if folder ~= nil then folder:FindFirstChild(piece.key) else nil
+	if source == nil or not source:IsA("BasePart") then
+		return nil
+	end
+	local mesh = source:Clone()
+	-- La pieza llega con el origen en el centro de la base, así que su posición ya es relativa a él.
+	mesh.CFrame = origin * source.CFrame
+	mesh.Parent = parent
+	return mesh
 end
 
 -- Crea o actualiza la etiqueta de dueño y nivel sobre el edificio.
@@ -97,27 +113,55 @@ function BuildingView.setLevel(index: number, level: number)
 	model.Name = `Building{index}`
 	local lot = handles.lotOf(index)
 	-- El solar mira a la calle con su -Z, así que `front` crece hacia el fondo.
-	for order, block in CityLayout.buildingBlocks(level) do
-		makePiece(
-			if order == 1 then "Base" else `Addon{order - 1}`,
-			Vector3.new(block.width, block.height, block.depth),
-			lot * CFrame.new(block.along, block.y + block.height / 2, block.front),
-			if order == 1 then BLOCK_COLOR else ADDON_COLOR,
-			model
-		)
+	-- El modelo real si ya está cargado; si no, el bloque gris, que se cambia en `refreshArt`.
+	local real = ArtAssets.piecesFor(handles.labelOf(index), level)
+	local placedReal = real ~= nil
+	if real ~= nil then
+		local origin = lot * CFrame.new(0, 0, ArtAssets.FRONT_OFFSET)
+		for order, piece in real do
+			local mesh = placeMesh(piece, origin, model)
+			if mesh == nil then
+				placedReal = false
+			elseif order == 1 then
+				mesh.Name = "Base"
+			end
+		end
+	end
+	if not placedReal then
+		model:ClearAllChildren()
+		for order, block in CityLayout.buildingBlocks(level) do
+			makePiece(
+				if order == 1 then "Base" else `Addon{order - 1}`,
+				Vector3.new(block.width, block.height, block.depth),
+				lot * CFrame.new(block.along, block.y + block.height / 2, block.front),
+				if order == 1 then BLOCK_COLOR else ADDON_COLOR,
+				model
+			)
+		end
 	end
 	for order, marker in CityLayout.levelMarkers(level) do
-		makePiece(
-			`Marker{order}`,
-			Vector3.new(marker.width, marker.height, marker.depth),
-			lot * CFrame.new(marker.along, marker.height / 2, marker.front),
-			MARKER_COLORS[marker.kind],
-			model
-		)
+		local origin = lot * CFrame.new(marker.along, 0, marker.front)
+		if placeMesh(ArtAssets.markers[marker.kind], origin, model) == nil then
+			makePiece(
+				`Marker{order}`,
+				Vector3.new(marker.width, marker.height, marker.depth),
+				lot * CFrame.new(marker.along, marker.height / 2, marker.front),
+				MARKER_COLORS[marker.kind],
+				model
+			)
+		end
 	end
 	model.Parent = handles.model
 	buildings[index] = model
 	refreshTag(index)
+end
+
+-- Vuelve a levantar lo que está en la ciudad cuando terminan de cargar los modelos reales.
+function BuildingView.refreshArt()
+	for index, level in table.clone(levels) do
+		levels[index] = nil
+		BuildingView.setLevel(index, level)
+	end
 end
 
 -- Enseña u oculta las etiquetas: solo se ven en la vista general.

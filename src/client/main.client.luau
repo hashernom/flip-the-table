@@ -45,7 +45,9 @@ local function boot()
 	playerScripts:WaitForChild("shared", SHARED_WAIT_SEC)
 
 	local CameraDirector = require("./camera/CameraDirector")
+	local ArtAssets = require("../shared/config/ArtAssets")
 	local BuildingView = require("./world/BuildingView")
+	local Look = require("./world/Look")
 	local CityBuilder = require("./world/CityBuilder")
 	local TokenRider = require("./world/TokenRider")
 	local WorldRules = require("./world/WorldRules")
@@ -253,6 +255,18 @@ local function boot()
 	-- La maqueta se abre y se cierra con el modo de cámara, no con el botón: si el jugador la pide justo
 	-- cuando empieza una escena, la petición queda guardada y se abre al terminar. Una escena no se
 	-- interrumpe nunca.
+	Look.apply()
+	task.spawn(function()
+		local art = ReplicatedStorage:WaitForChild(ArtAssets.FOLDER, REMOTE_WAIT_SEC)
+		if art == nil then
+			return
+		end
+		while not art:GetAttribute(ArtAssets.READY_ATTRIBUTE) do
+			art.AttributeChanged:Wait()
+		end
+		BuildingView.refreshArt()
+	end)
+
 	local overviewWanted = false
 	hud.onOverview(function()
 		overviewWanted = not overviewWanted
