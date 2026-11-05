@@ -29,6 +29,101 @@ local RIDE_STEP = 1 / 30
 
 local TokenRider = {}
 
+-- Animación procedural de las fichas. No hay animaciones subidas: el cuerpo es la única pieza anclada y todo
+-- lo demás —asiento, vehículo y jinete— va soldado a él, así que mover el cuerpo mueve la ficha entera sin
+-- tocar ninguna soldadura.
+--
+-- Cada animación sube un contador de generación en el modelo y se queda con el número que le tocó. La
+-- anterior, al ver que ya no es la suya, se marcha sin tocar nada: una celebración nueva cancela la de antes
+-- y una ficha destruida no deja ningún bucle vivo. El modo se guarda solo para saber qué está haciendo.
+type AnimMode = "idle" | "ride" | "celebrate"
+
+local ANIM_GENERATION = "AnimGeneration"
+local ANIM_MODE = "AnimMode"
+-- Pose de reposo de la ficha: el sitio y la orientación exactos a los que se vuelve al acabar un salto.
+local REST_CFRAME = "RestCFrame"
+
+-- Reposo: un vaivén tan leve y lento que no se nota en la cámara.
+local IDLE_STEP = 1 / 30
+local IDLE_PERIOD = 3.2
+local IDLE_LIFT = 0.05
+local IDLE_PITCH = math.rad(0.5)
+
+-- Marcha: el bote y el cabeceo de una ficha que rueda por la calle, apagados en el arranque y en la frenada.
+local RIDE_BOB = 0.08
+local RIDE_PITCH = math.rad(1)
+local RIDE_BOB_PERIOD = 0.5
+local RIDE_FADE_SEC = 0.35
+
+-- Celebración: un salto corto y un giro completo sobre sí misma.
+local CELEBRATE_STEP = 1 / 30
+local CELEBRATE_SEC = 1.1
+local CELEBRATE_MIN_SEC = 0.3
+local CELEBRATE_MAX_SEC = 3
+local CELEBRATE_LIFT = 2.2
+
+-- ¿Sigue siendo esta animación la que manda? Una ficha destruida ya no manda en nada.
+local function isCurrent(token: Model, generation: number): boolean
+	return token.Parent ~= nil and token:GetAttribute(ANIM_GENERATION) == generation
+end
+
+-- Para lo que hubiera en marcha y deja la ficha sin animación. Devuelve la generación nueva.
+local function bumpGeneration(token: Model): number
+	local generation = (token:GetAttribute(ANIM_GENERATION) :: number?) or 0
+	generation += 1
+	token:SetAttribute(ANIM_GENERATION, generation)
+	token:SetAttribute(ANIM_MODE, nil)
+	return generation
+end
+
+-- Arranca una animación nueva, que es la que manda desde este momento.
+local function beginAnim(token: Model, mode: AnimMode): number
+	local generation = bumpGeneration(token)
+	token:SetAttribute(ANIM_MODE, mode)
+	return generation
+end
+
+-- Suelta el turno de la animación que acaba. La que llega tarde ya no manda y no toca el modo.
+local function endAnim(token: Model, generation: number)
+	if token:GetAttribute(ANIM_GENERATION) == generation then
+		token:SetAttribute(ANIM_MODE, nil)
+	end
+end
+
+local function setRest(token: Model, cframe: CFrame)
+	token:SetAttribute(REST_CFRAME, cframe)
+end
+
+-- Pose de reposo guardada, o nil si la ficha aún no se ha colocado nunca.
+local function restOf(token: Model): CFrame?
+	local rest = token:GetAttribute(REST_CFRAME)
+	if typeof(rest) == "CFrame" then
+		return rest
+	end
+	return nil
+end
+
+-- Vaivén del reposo sobre la pose de la ficha. Las dos ondas van en fase, así que en el primer fotograma
+-- coincide con la pose de reposo y no hay salto al empezar.
+local function idleOffset(elapsed: number): CFrame
+	local wave = math.sin(elapsed / IDLE_PERIOD * math.pi * 2)
+	return CFrame.new(0, IDLE_LIFT * wave, 0) * CFrame.Angles(IDLE_PITCH * wave, 0, 0)
+end
+
+-- Bote y cabeceo de la marcha, desfasados un cuarto de vuelta: la ficha sube mientras levanta el morro.
+-- `fade` los apaga al arrancar y al frenar, para que el recorrido empiece y acabe como una ficha parada.
+local function rideOffset(elapsed: number, fade: number): CFrame
+	local turn = elapsed / RIDE_BOB_PERIOD * math.pi * 2
+	local lift = math.sin(turn) * RIDE_BOB * fade
+	local pitch = math.sin(turn + math.pi / 2) * RIDE_PITCH * fade
+	return CFrame.new(0, lift, 0) * CFrame.Angles(pitch, 0, 0)
+end
+
+-- Cuánto se deja notar el bote en este instante del recorrido: sube al arrancar y baja al frenar.
+local function rideFade(elapsed: number, seconds: number): number
+	return math.clamp(math.min(elapsed, seconds - elapsed) / RIDE_FADE_SEC, 0, 1)
+end
+
 -- Altura del asiento sobre la base de la ficha, que es donde se apoyan los pies del avatar.
 function TokenRider.seatHeight(): number
 	return BODY_SIZE.Y + SEAT_THICKNESS
@@ -259,10 +354,42 @@ local function remember(token: Model, index: number, offset: CityLayout.TokenOff
 	token:SetAttribute("Along", if offset ~= nil then offset.along else 0)
 end
 
+-- Reposo con jinete: la ficha se mece sobre su pose de reposo. El avatar va soldado al asiento, así que se
+-- mece con ella; el vaivén es de 0,05 studs y medio grado. Sin jinete no se gasta ningún hilo.
+local function startIdle(token: Model)
+	local body = bodyOf(token)
+	local base = restOf(token) or body.CFrame
+	local generation = beginAnim(token, "idle")
+	task.spawn(function()
+		local elapsed = 0
+		while isCurrent(token, generation) do
+			elapsed += task.wait(IDLE_STEP)
+			if not isCurrent(token, generation) then
+				return
+			end
+			body.CFrame = base * idleOffset(elapsed)
+		end
+	end)
+end
+
+-- Vuelve al reposo si la ficha lleva jinete. Sin jinete se queda quieta del todo, y nunca se arranca encima
+-- de un recorrido: la ficha que va por la calle no se mece, y montar a alguien a media marcha no la para.
+local function idleIfMounted(token: Model)
+	if token:GetAttribute(ANIM_MODE) ~= "ride" and token:GetAttribute("Rider") ~= nil then
+		startIdle(token)
+	end
+end
+
 -- Coloca la ficha en una casilla sin animación. Se usa al entrar en la partida y al resincronizar.
 function TokenRider.place(token: Model, index: number, offset: CityLayout.TokenOffset?)
-	bodyOf(token).CFrame = cframeAt(slotAt(token, index), offset)
+	local body = bodyOf(token)
+	-- Colocar la ficha manda sobre cualquier animación en curso: su pose de reposo pasa a ser esta.
+	bumpGeneration(token)
+	local pose = cframeAt(slotAt(token, index), offset)
+	body.CFrame = pose
+	setRest(token, pose)
 	remember(token, index, offset)
+	idleIfMounted(token)
 end
 
 -- ¿La ficha ya está en esa casilla y en ese sitio de la casilla?
@@ -338,6 +465,8 @@ function TokenRider.mount(player: Player, token: Model)
 	weld.Parent = root
 	TokenRider.setAvatarMotion(player, "idle")
 	token:SetAttribute("Rider", player.UserId)
+	-- Con jinete y quieta, la ficha se balancea; el asiento es la soldadura del avatar, así que se mece con ella.
+	startIdle(token)
 	return true
 end
 
@@ -414,6 +543,52 @@ function TokenRider.dismount(token: Model)
 		end
 	end
 	token:SetAttribute("Rider", nil)
+	-- Sin jinete la ficha se queda quieta: se para el reposo animado y cualquier celebración en curso. Si el
+	-- salto la pilló en el aire, vuelve a su pose de reposo en el acto en vez de quedarse flotando.
+	bumpGeneration(token)
+	local rest = restOf(token)
+	if rest ~= nil then
+		bodyOf(token).CFrame = rest
+	end
+end
+
+-- Celebración: un salto corto y un giro de 360° sobre sí misma, y vuelta exacta a la pose de reposo. Se
+-- puede repetir: la nueva cancela la anterior y las dos acaban en el mismo sitio, porque las dos parten de
+-- `REST_CFRAME` y no de donde pillen a la ficha.
+function TokenRider.celebrate(token: Model, seconds: number?)
+	-- Una celebración no interrumpe un recorrido: la ficha está viva en la calle y su pose de reposo ya no es
+	-- la de antes, así que el salto la devolvería a una casilla por la que ya pasó.
+	if token:GetAttribute(ANIM_MODE) == "ride" then
+		return
+	end
+	local body = bodyOf(token)
+	local total = math.clamp(seconds or CELEBRATE_SEC, CELEBRATE_MIN_SEC, CELEBRATE_MAX_SEC)
+	local rest = restOf(token) or body.CFrame
+	setRest(token, rest)
+	local generation = beginAnim(token, "celebrate")
+	-- La pose de partida se pone ya, sin esperar al primer fotograma de la animación.
+	body.CFrame = rest
+	task.spawn(function()
+		local elapsed = 0
+		while elapsed < total do
+			local dt = task.wait(CELEBRATE_STEP)
+			if not isCurrent(token, generation) then
+				-- Otra animación manda ya sobre la ficha: esta se retira sin tocarla.
+				return
+			end
+			elapsed += dt
+			local alpha = math.min(1, elapsed / total)
+			-- Arco del salto: cero en el suelo, máximo a mitad, cero al caer.
+			local lift = math.sin(math.pi * alpha) * CELEBRATE_LIFT
+			-- Vuelta entera con suavizado de arranque y frenada; al final vale 2π, que es la pose de partida.
+			local spin = alpha * alpha * (3 - 2 * alpha) * math.pi * 2
+			body.CFrame = rest * CFrame.new(0, lift, 0) * CFrame.Angles(0, spin, 0)
+		end
+		-- Vuelta exacta: ni un stud ni un grado de más por el redondeo de la última vuelta.
+		body.CFrame = rest
+		endAnim(token, generation)
+		idleIfMounted(token)
+	end)
 end
 
 -- Lleva la ficha por la ruta en, como máximo, `Scenes.maxRideSec` segundos. `path` son números de
@@ -442,21 +617,44 @@ function TokenRider.ride(
 		return 0
 	end
 
+	-- La marcha manda desde aquí: cancela el reposo o la celebración que hubiera. Si pilló a la ficha en
+	-- mitad de un salto, se baja al suelo antes de arrancar, para que el recorrido empiece en la calle.
+	local wasCelebrating = token:GetAttribute(ANIM_MODE) == "celebrate"
+	local generation = beginAnim(token, "ride")
+	if wasCelebrating then
+		body.CFrame = restOf(token) or body.CFrame
+	end
+
 	local step = seconds / #targets
+	local clock = 0
 	for order, index in targets do
 		local offset = if order == #targets then arrival else nil
 		local from = body.CFrame
 		local to = cframeAt(route[index] :: CityLayout.Slot, offset)
 		local elapsed = 0
 		while elapsed < step do
-			elapsed += task.wait(RIDE_STEP)
+			local dt = task.wait(RIDE_STEP)
+			elapsed += dt
+			clock += dt
 			local alpha = math.min(1, elapsed / step)
 			-- Suavizado para que el arranque y la frenada no den tirones.
 			local eased = alpha * alpha * (3 - 2 * alpha)
-			body.CFrame = from:Lerp(to, eased)
+			local frame = from:Lerp(to, eased)
+			-- El bote va encima del avance: no cambia ni la duración ni el destino del tramo.
+			if isCurrent(token, generation) then
+				frame = frame * rideOffset(clock, rideFade(clock, seconds))
+			end
+			body.CFrame = frame
 		end
+		-- El tramo acaba exacto en su casilla, sin bote: la pose final no depende de la animación.
 		body.CFrame = to
+		setRest(token, to)
 		remember(token, index, offset)
+	end
+	-- Si otra animación tomó el mando durante el recorrido, no se le quita el turno.
+	if isCurrent(token, generation) then
+		endAnim(token, generation)
+		idleIfMounted(token)
 	end
 	return seconds
 end
