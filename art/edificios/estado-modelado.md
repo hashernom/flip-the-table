@@ -100,9 +100,23 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 | --- | --- | --- | --- | --- | --- | --- |
 | Almacén El Ladrillo | En juego; captura en juego pendiente (tablero S) | 16,0; nivel 0 20,5 | 36,1 | 2 074 | 954 | [niveles](../render/ocre/almacen-el-ladrillo/almacen-el-ladrillo-niveles.png) · [comparación](../render/ocre/almacen-el-ladrillo/almacen-el-ladrillo-comparacion.png) |
 | Curtiembre Los Nogales | En juego; captura en juego pendiente (tablero S) | 19,0; nivel 0 23,8 | 39,7 | 2 725 | 1 182 | [niveles](../render/ocre/curtiembre-los-nogales/curtiembre-los-nogales-niveles.png) · [comparación](../render/ocre/curtiembre-los-nogales/curtiembre-los-nogales-comparacion.png) |
+| Fábrica de Ladrillos La Hormiga | En juego; captura en juego pendiente (tablero S) | 21,0; nivel 0 25,5 | 39,8 | 2 717 | 1 212 | [niveles](../render/ocre/fabrica-de-ladrillos-la-hormiga/fabrica-de-ladrillos-la-hormiga-niveles.png) · [comparación](../render/ocre/fabrica-de-ladrillos-la-hormiga/fabrica-de-ladrillos-la-hormiga-comparacion.png) |
 
 ## Notas
 
 - Alturas decididas por el orquestador dentro del margen de cada zona, distintas entre vecinas.
 - Las fichas de zona dan concepto y añadidos; sus medidas no se usan (manda el blueprint).
 - No se tocan Cine Lux, Bodega La Reserva ni las propiedades ya aprobadas de Cobre.
+- **Estado global (2026-11-05):** las 30 propiedades están modeladas, con `check_property` en CHECK OK,
+  subidas por Open Cloud (moderación `Approved`), registradas en `ArtAssets`, `asset-ids.json` y el
+  manifiesto, y con commit local por zona. Ninguna lleva `Approved`: eso lo decide el responsable.
+- **Capturas en el juego:** hechas las de las zonas 02 a 08 (cian, magenta, naranja, carmesí, limón,
+  esmeralda y violeta) en el tablero S, con el edificio real, el taxi y el avatar, sin bloque gris y
+  sin avisos de `ArtLoader`; el nivel 5 no tapa la cámara. Vista general en
+  [vista-general-s.jpg](../render/ingame/vista-general-s.jpg).
+- **Pendiente en el juego:** las zonas 09 a 12 (añil, blanca, grafito y ocre) solo existen en los
+  tableros M y L, y el Studio disponible arranca en S; sus capturas en el juego quedan pendientes de
+  una partida de 7–8 jugadores o de un tablero L. No se inventan: sus filas dicen «captura en juego
+  pendiente».
+- **Pendiente de decisión del responsable:** la aprobación de los renders y las capturas, zona por
+  zona, y el paso a `Approved` de las que acepte.

@@ -1331,6 +1331,48 @@ ArtAssets.properties = {
 			},
 		},
 	},
+	["Fábrica de Ladrillos La Hormiga"] = {
+		base = {
+			piece("hormiga_body_brick", "88055416967003", { 176, 102, 74 }, "Brick"),
+			piece("hormiga_body_limestone", "113867580390327", { 210, 201, 180 }, "Limestone"),
+			piece("hormiga_body_slate", "78555777475064", { 74, 78, 84 }, "Slate"),
+			piece("hormiga_body_metal_acero", "94937812620098", { 168, 174, 180 }, "Metal"),
+			piece("hormiga_body_glass", "93082806820754", { 46, 74, 99 }, "Glass", 0.25),
+			piece("hormiga_body_wood", "100236015818032", { 107, 74, 46 }, "Wood"),
+		},
+		addons = {
+			{
+				piece("hormiga_addon1_metal_acero", "74037014368554", { 168, 174, 180 }, "Metal"),
+				piece("hormiga_addon1_brick", "116032004575222", { 176, 102, 74 }, "Brick"),
+				piece("hormiga_addon1_limestone", "102324364236105", { 210, 201, 180 }, "Limestone"),
+				piece("hormiga_addon1_slate", "72009968099044", { 74, 78, 84 }, "Slate"),
+				piece("hormiga_addon1_glass", "71738889159252", { 46, 74, 99 }, "Glass", 0.25),
+			},
+			{
+				piece("hormiga_addon2_metal_acero", "100596620798311", { 168, 174, 180 }, "Metal"),
+				piece("hormiga_addon2_limestone", "121945118815696", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("hormiga_addon3_limestone", "115906259340292", { 210, 201, 180 }, "Limestone"),
+				piece("hormiga_addon3_brick", "94559394088241", { 176, 102, 74 }, "Brick"),
+				piece("hormiga_addon3_metal_acero", "72813986711330", { 168, 174, 180 }, "Metal"),
+				piece("hormiga_addon3_metal_ocre", "98737634827943", { 161, 98, 7 }, "Metal"),
+			},
+			{
+				piece("hormiga_addon4_brick", "84938538509133", { 176, 102, 74 }, "Brick"),
+				piece("hormiga_addon4_glass", "84009102403962", { 46, 74, 99 }, "Glass", 0.25),
+				piece("hormiga_addon4_metal_acero", "139290611562443", { 168, 174, 180 }, "Metal"),
+				piece("hormiga_addon4_limestone", "114506334248111", { 210, 201, 180 }, "Limestone"),
+				piece("hormiga_addon4_slate", "70628323556756", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("hormiga_addon5_limestone", "115102747826081", { 210, 201, 180 }, "Limestone"),
+				piece("hormiga_addon5_brick", "126472267926440", { 176, 102, 74 }, "Brick"),
+				piece("hormiga_addon5_metal_acero", "123178909531514", { 168, 174, 180 }, "Metal"),
+				piece("hormiga_addon5_metal_oro", "90538873541186", { 201, 162, 39 }, "Metal"),
+			},
+		},
+	},
 } :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
 -- El mojón del nivel máximo. Su anillo se tiñe con el color de la zona en `BuildingView`.

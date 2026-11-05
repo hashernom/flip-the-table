@@ -1,2 +1,0 @@
-D:\monopoly\art\blender\buildings\grafito\fundicion-vulcano.py:476: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
-  world.use_nodes = True

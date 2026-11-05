@@ -1607,6 +1607,47 @@
         "rbxassetid://96676273076617",
         "rbxassetid://95295932118473"
       ]
+    },
+    {
+      "id": "fabrica-de-ladrillos-la-hormiga",
+      "category": "Building",
+      "source": "art/blender/buildings/ocre/fabrica-de-ladrillos-la-hormiga.py",
+      "triangles": 2717,
+      "lods": [
+        1212
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/buildings/ocre/fabrica-de-ladrillos-la-hormiga.py",
+      "assetId": "rbxassetid://88055416967003",
+      "assetIds": [
+        "rbxassetid://113867580390327",
+        "rbxassetid://78555777475064",
+        "rbxassetid://94937812620098",
+        "rbxassetid://93082806820754",
+        "rbxassetid://100236015818032",
+        "rbxassetid://74037014368554",
+        "rbxassetid://116032004575222",
+        "rbxassetid://102324364236105",
+        "rbxassetid://72009968099044",
+        "rbxassetid://71738889159252",
+        "rbxassetid://100596620798311",
+        "rbxassetid://121945118815696",
+        "rbxassetid://115906259340292",
+        "rbxassetid://94559394088241",
+        "rbxassetid://72813986711330",
+        "rbxassetid://98737634827943",
+        "rbxassetid://84938538509133",
+        "rbxassetid://84009102403962",
+        "rbxassetid://139290611562443",
+        "rbxassetid://114506334248111",
+        "rbxassetid://70628323556756",
+        "rbxassetid://115102747826081",
+        "rbxassetid://126472267926440",
+        "rbxassetid://123178909531514",
+        "rbxassetid://90538873541186"
+      ]
     }
   ]
 }
