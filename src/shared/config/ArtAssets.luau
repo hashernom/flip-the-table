@@ -319,6 +319,119 @@ ArtAssets.properties = {
 			},
 		},
 	},
+	["Neo Mundo"] = {
+		base = {
+			piece("neomundo_body_limestone", "86076701733749", { 210, 201, 180 }, "Limestone"),
+			piece("neomundo_body_slate", "111219623442149", { 74, 78, 84 }, "Slate"),
+			piece("neomundo_body_glass", "130126926231005", { 46, 74, 99 }, "Glass", 0.25),
+			piece("neomundo_body_metal_acero", "99507851738342", { 168, 174, 180 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("neomundo_addon1_metal_acero", "130833707934408", { 168, 174, 180 }, "Metal"),
+				piece("neomundo_addon1_limestone", "79669579379401", { 210, 201, 180 }, "Limestone"),
+				piece("neomundo_addon1_glass", "102521758884873", { 46, 74, 99 }, "Glass", 0.25),
+			},
+			{
+				piece("neomundo_addon2_glass", "103274518476035", { 46, 74, 99 }, "Glass", 0.25),
+				piece("neomundo_addon2_metal_acero", "92086157856579", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("neomundo_addon3_limestone", "78714009767749", { 210, 201, 180 }, "Limestone"),
+				piece("neomundo_addon3_glass", "95118263387632", { 46, 74, 99 }, "Glass", 0.25),
+				piece("neomundo_addon3_metal_acero", "84583415008560", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("neomundo_addon4_limestone", "89186602843119", { 210, 201, 180 }, "Limestone"),
+				piece("neomundo_addon4_glass", "131252278037833", { 46, 74, 99 }, "Glass", 0.25),
+				piece("neomundo_addon4_slate", "93344478073791", { 74, 78, 84 }, "Slate"),
+				piece("neomundo_addon4_metal_acero", "103395579593604", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("neomundo_addon5_limestone", "108862046302221", { 210, 201, 180 }, "Limestone"),
+				piece("neomundo_addon5_glass", "85394398292873", { 46, 74, 99 }, "Glass", 0.25),
+				piece("neomundo_addon5_metal_oro", "85875072787087", { 201, 162, 39 }, "Metal"),
+				piece("neomundo_addon5_metal_acero", "75037172955953", { 168, 174, 180 }, "Metal"),
+			},
+		},
+	},
+	["Centro Páez"] = {
+		base = {
+			piece("paez_body_limestone", "132821783960481", { 210, 201, 180 }, "Limestone"),
+			piece("paez_body_glass", "94219728545150", { 46, 74, 99 }, "Glass", 0.25),
+			piece("paez_body_metal_acero", "106977265224458", { 168, 174, 180 }, "Metal"),
+			piece("paez_body_metal_cobre", "92174941008951", { 201, 123, 58 }, "Metal"),
+			piece("paez_body_metal_oro", "104455951613215", { 201, 162, 39 }, "Metal"),
+			piece("paez_body_slate", "134870318073642", { 74, 78, 84 }, "Slate"),
+		},
+		addons = {
+			{
+				piece("paez_addon1_metal_acero", "85494490897134", { 168, 174, 180 }, "Metal"),
+				piece("paez_addon1_fabric_rojo", "127302039959262", { 196, 56, 43 }, "Fabric"),
+				piece("paez_addon1_metal_magenta", "120825455136866", { 232, 93, 158 }, "Metal"),
+			},
+			{
+				piece("paez_addon2_glass", "117156504956366", { 46, 74, 99 }, "Glass", 0.25),
+				piece("paez_addon2_metal_acero", "110695045047139", { 168, 174, 180 }, "Metal"),
+				piece("paez_addon2_limestone", "138745304525286", { 210, 201, 180 }, "Limestone"),
+			},
+			{
+				piece("paez_addon3_limestone", "122568108582102", { 210, 201, 180 }, "Limestone"),
+				piece("paez_addon3_metal_acero", "98843392000587", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("paez_addon4_limestone", "116305568096193", { 210, 201, 180 }, "Limestone"),
+				piece("paez_addon4_glass", "119374241908207", { 46, 74, 99 }, "Glass", 0.25),
+				piece("paez_addon4_metal_acero", "114250772741344", { 168, 174, 180 }, "Metal"),
+				piece("paez_addon4_metal_cobre", "130735859461741", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("paez_addon5_metal_cobre", "84750610147162", { 201, 123, 58 }, "Metal"),
+				piece("paez_addon5_limestone", "77205482305082", { 210, 201, 180 }, "Limestone"),
+			},
+		},
+	},
+	["Plaza del Neón"] = {
+		base = {
+			piece("plazaneon_body_limestone", "109810562972669", { 210, 201, 180 }, "Limestone"),
+			piece("plazaneon_body_glass", "97419427015404", { 46, 74, 99 }, "Glass", 0.25),
+			piece("plazaneon_body_metal_acero", "123370943679532", { 168, 174, 180 }, "Metal"),
+			piece("plazaneon_body_wood", "96096335238023", { 107, 74, 46 }, "Wood"),
+			piece("plazaneon_body_slate", "105331868903093", { 74, 78, 84 }, "Slate"),
+			piece("plazaneon_body_fabric_rojo", "138446669422556", { 196, 56, 43 }, "Fabric"),
+		},
+		addons = {
+			{
+				piece("plazaneon_addon1_fabric_rojo", "99097608118207", { 196, 56, 43 }, "Fabric"),
+				piece("plazaneon_addon1_metal_magenta", "99389854636326", { 232, 93, 158 }, "Metal"),
+				piece("plazaneon_addon1_metal_acero", "121761421980797", { 168, 174, 180 }, "Metal"),
+			},
+			{
+				piece("plazaneon_addon2_metal_acero", "82306427801752", { 168, 174, 180 }, "Metal"),
+				piece("plazaneon_addon2_metal_magenta", "107353494732683", { 232, 93, 158 }, "Metal"),
+				piece("plazaneon_addon2_limestone", "118313248793639", { 210, 201, 180 }, "Limestone"),
+				piece("plazaneon_addon2_slate", "78270186219830", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("plazaneon_addon3_slate", "118528556651634", { 74, 78, 84 }, "Slate"),
+				piece("plazaneon_addon3_limestone", "105499535366180", { 210, 201, 180 }, "Limestone"),
+				piece("plazaneon_addon3_metal_acero", "105150814865372", { 168, 174, 180 }, "Metal"),
+				piece("plazaneon_addon3_metal_magenta", "128836883659155", { 232, 93, 158 }, "Metal"),
+			},
+			{
+				piece("plazaneon_addon4_limestone", "116577150777063", { 210, 201, 180 }, "Limestone"),
+				piece("plazaneon_addon4_glass", "105862400987249", { 46, 74, 99 }, "Glass", 0.25),
+				piece("plazaneon_addon4_metal_acero", "123243249576000", { 168, 174, 180 }, "Metal"),
+				piece("plazaneon_addon4_slate", "103095244608201", { 74, 78, 84 }, "Slate"),
+				piece("plazaneon_addon4_metal_oro", "106098926854126", { 201, 162, 39 }, "Metal"),
+			},
+			{
+				piece("plazaneon_addon5_limestone", "85719919806384", { 210, 201, 180 }, "Limestone"),
+				piece("plazaneon_addon5_metal_acero", "120878106391291", { 168, 174, 180 }, "Metal"),
+				piece("plazaneon_addon5_metal_oro", "131385565607475", { 201, 162, 39 }, "Metal"),
+			},
+		},
+	},
 } :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
 -- El mojón del nivel máximo. Su anillo se tiñe con el color de la zona en `BuildingView`.

@@ -596,6 +596,125 @@
         "rbxassetid://88725532235926",
         "rbxassetid://95550716005110"
       ]
+    },
+    {
+      "id": "neo-mundo",
+      "category": "Building",
+      "source": "art/blender/buildings/magenta/neo-mundo.py",
+      "triangles": 1638,
+      "lods": [
+        728
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/magenta-neo-mundo-nivel0.jpg",
+        "art/render/ingame/magenta-neo-mundo-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/magenta/neo-mundo.py",
+      "assetId": "rbxassetid://86076701733749",
+      "assetIds": [
+        "rbxassetid://111219623442149",
+        "rbxassetid://130126926231005",
+        "rbxassetid://99507851738342",
+        "rbxassetid://130833707934408",
+        "rbxassetid://79669579379401",
+        "rbxassetid://102521758884873",
+        "rbxassetid://103274518476035",
+        "rbxassetid://92086157856579",
+        "rbxassetid://78714009767749",
+        "rbxassetid://95118263387632",
+        "rbxassetid://84583415008560",
+        "rbxassetid://89186602843119",
+        "rbxassetid://131252278037833",
+        "rbxassetid://93344478073791",
+        "rbxassetid://103395579593604",
+        "rbxassetid://108862046302221",
+        "rbxassetid://85394398292873",
+        "rbxassetid://85875072787087",
+        "rbxassetid://75037172955953"
+      ]
+    },
+    {
+      "id": "centro-paez",
+      "category": "Building",
+      "source": "art/blender/buildings/magenta/centro-paez.py",
+      "triangles": 2854,
+      "lods": [
+        1293
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/magenta-centro-paez-nivel0.jpg",
+        "art/render/ingame/magenta-centro-paez-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/magenta/centro-paez.py",
+      "assetId": "rbxassetid://132821783960481",
+      "assetIds": [
+        "rbxassetid://94219728545150",
+        "rbxassetid://106977265224458",
+        "rbxassetid://92174941008951",
+        "rbxassetid://104455951613215",
+        "rbxassetid://134870318073642",
+        "rbxassetid://85494490897134",
+        "rbxassetid://127302039959262",
+        "rbxassetid://120825455136866",
+        "rbxassetid://117156504956366",
+        "rbxassetid://110695045047139",
+        "rbxassetid://138745304525286",
+        "rbxassetid://122568108582102",
+        "rbxassetid://98843392000587",
+        "rbxassetid://116305568096193",
+        "rbxassetid://119374241908207",
+        "rbxassetid://114250772741344",
+        "rbxassetid://130735859461741",
+        "rbxassetid://84750610147162",
+        "rbxassetid://77205482305082"
+      ]
+    },
+    {
+      "id": "plaza-del-neon",
+      "category": "Building",
+      "source": "art/blender/buildings/magenta/plaza-del-neon.py",
+      "triangles": 2712,
+      "lods": [
+        1224
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/magenta-plaza-del-neon-nivel0.jpg",
+        "art/render/ingame/magenta-plaza-del-neon-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/magenta/plaza-del-neon.py",
+      "assetId": "rbxassetid://109810562972669",
+      "assetIds": [
+        "rbxassetid://97419427015404",
+        "rbxassetid://123370943679532",
+        "rbxassetid://96096335238023",
+        "rbxassetid://105331868903093",
+        "rbxassetid://138446669422556",
+        "rbxassetid://99097608118207",
+        "rbxassetid://99389854636326",
+        "rbxassetid://121761421980797",
+        "rbxassetid://82306427801752",
+        "rbxassetid://107353494732683",
+        "rbxassetid://118313248793639",
+        "rbxassetid://78270186219830",
+        "rbxassetid://118528556651634",
+        "rbxassetid://105499535366180",
+        "rbxassetid://105150814865372",
+        "rbxassetid://128836883659155",
+        "rbxassetid://116577150777063",
+        "rbxassetid://105862400987249",
+        "rbxassetid://123243249576000",
+        "rbxassetid://103095244608201",
+        "rbxassetid://106098926854126",
+        "rbxassetid://85719919806384",
+        "rbxassetid://120878106391291",
+        "rbxassetid://131385565607475"
+      ]
     }
   ]
 }

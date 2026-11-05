@@ -29,6 +29,9 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Centro Páez | En juego | 18,5 (masa); nivel 0 23,4 con atrio y pez | 33,9 | 2 854 | 1 293 | [niveles](../render/magenta/centro-paez/centro-paez-niveles.png) · [comparación](../render/magenta/centro-paez/centro-paez-comparacion.png) |
+| Neo Mundo | En juego | 16; nivel 0 20,7 | 32,9 | 1 638 | 728 | [niveles](../render/magenta/neo-mundo/neo-mundo-niveles.png) · [comparación](../render/magenta/neo-mundo/neo-mundo-comparacion.png) |
+| Plaza del Neón | En juego | 19,5; nivel 0 22,1 | 33,3 | 2 712 | 1 224 | [niveles](../render/magenta/plaza-del-neon/plaza-del-neon-niveles.png) · [comparación](../render/magenta/plaza-del-neon/plaza-del-neon-comparacion.png) |
 
 ## Zona 04 · Naranja (`naranja`)
 
