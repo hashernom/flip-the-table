@@ -1776,6 +1776,32 @@
         "rbxassetid://115294741192520",
         "rbxassetid://74209059361676"
       ]
+    },
+    {
+      "id": "token-moto",
+      "category": "Token",
+      "source": "art/blender/tokens/moto.py",
+      "triangles": 2624,
+      "lods": [
+        276
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/moto.py",
+      "assetId": "rbxassetid://132417205516577",
+      "assetIds": [
+        "rbxassetid://71381782628324",
+        "rbxassetid://118755625023967",
+        "rbxassetid://96133866716735",
+        "rbxassetid://76898507219000",
+        "rbxassetid://102927408986875",
+        "rbxassetid://72706032635558",
+        "rbxassetid://87922310223663",
+        "rbxassetid://101538307697722",
+        "rbxassetid://133648784746370",
+        "rbxassetid://82897371717785"
+      ]
     }
   ]
 }
