@@ -2056,6 +2056,23 @@
         "rbxassetid://75246279936484",
         "rbxassetid://95117790846806"
       ]
+    },
+    {
+      "id": "scene-casco-obra",
+      "category": "SceneCharacter",
+      "source": "art/blender/scene-props/casco-obra.py",
+      "triangles": 284,
+      "lods": [
+        126
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art\\blender\\scene-props\\casco-obra",
+      "assetId": "rbxassetid://84923319544992",
+      "assetIds": [
+        "rbxassetid://110955419283523"
+      ]
     }
   ]
 }

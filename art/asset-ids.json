@@ -984,7 +984,9 @@
     "billboard_metal": "rbxassetid://79679307288969",
     "billboard_screen": "rbxassetid://95117790846806",
     "billboard_slate": "rbxassetid://82098468089767",
-    "billboard_wood": "rbxassetid://75246279936484"
+    "billboard_wood": "rbxassetid://75246279936484",
+    "helmet_dark": "rbxassetid://110955419283523",
+    "helmet_yellow": "rbxassetid://84923319544992"
   },
   "cc0": {
     "brick_red": {
