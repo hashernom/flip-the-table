@@ -52,6 +52,9 @@ function TokenChoiceService.start()
 		if match == nil then
 			return
 		end
+		if not limiter.allow(tostring(player.UserId), Workspace:GetServerTimeNow()) then
+			return
+		end
 		-- Sin id es una petición del reparto actual: el cliente que llega tarde no se queda sin fichas.
 		if tokenId == nil then
 			local remote = assignedRemote
@@ -61,9 +64,6 @@ function TokenChoiceService.start()
 			return
 		end
 		if match.finished then
-			return
-		end
-		if not limiter.allow(tostring(player.UserId), Workspace:GetServerTimeNow()) then
 			return
 		end
 		if not Protocol.validateTokenChoice(tokenId) then

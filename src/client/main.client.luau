@@ -131,6 +131,7 @@ local function boot()
 	local director = CameraDirector.new(player, START_SIZE)
 	local tokens: { [string]: Model } = {}
 	local myToken: Model? = nil
+	local tokenRefreshPending = false
 	-- Declarada aquí porque el reparto de fichas la necesita; se asigna más abajo.
 	local mountLocal: () -> () = function() end
 	local sceneRunning = false
@@ -267,6 +268,11 @@ local function boot()
 		if view == nil or view.players == nil then
 			return
 		end
+		-- A mitad de escena la ficha que va por la calle no se toca: se guarda para el lote siguiente.
+		if sceneRunning or riding then
+			tokenRefreshPending = true
+			return
+		end
 		local changed = false
 		for seat, seated in view.players do
 			local token: Model? = tokens[seated.id]
@@ -278,7 +284,10 @@ local function boot()
 		end
 		if changed then
 			syncTokens(view)
-			task.spawn(mountLocal)
+			-- Un detenido no vuelve a montar hasta que acabe su escena.
+			if not arrest.holds(playerId) then
+				task.spawn(mountLocal)
+			end
 		end
 	end
 
@@ -679,6 +688,14 @@ local function boot()
 		SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 		sceneRunning = false
 		riding = false
+		-- Una elección que llegó a mitad de escena se aplica ahora, con las fichas ya paradas.
+		if tokenRefreshPending then
+			tokenRefreshPending = false
+			local pendingView = StateStore.view(queue.state)
+			if pendingView ~= nil then
+				refreshTokens(pendingView)
+			end
+		end
 		hud.setBanner("")
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
@@ -687,6 +704,12 @@ local function boot()
 			if event.type == "GameEnded" then
 				arrest.cancelAll()
 				rematchMenu.setResult(ViewText.podiumLines(event, due.view, names))
+				-- Celebración: cada ficha que se ve da un salto al acabar la partida.
+				for _, token in tokens do
+					if not TokenRider.isHidden(token) then
+						TokenRider.celebrate(token, 2)
+					end
+				end
 			end
 		end
 		local view = StateStore.view(queue.state)

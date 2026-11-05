@@ -27,14 +27,23 @@ function TokenChoice.ownerOf(assignments: Assignments, tokenId: string): string?
 	return nil
 end
 
--- Cambia la ficha de un jugador. Falla si la ficha no existe o si ya es de otro.
+-- Cambia la ficha de un jugador. Falla si la ficha no existe. Si ya es de otro, se intercambian: en
+-- una mesa llena (8 asientos) no quedaría ninguna libre y nadie podría elegir. El intercambio mantiene
+-- la unicidad: cada jugador sigue teniendo exactamente una ficha.
 function TokenChoice.choose(assignments: Assignments, playerId: string, tokenId: string): (boolean, string?)
 	if Tokens.get(tokenId) == nil then
 		return false, "Esa ficha no existe."
 	end
 	local owner = TokenChoice.ownerOf(assignments, tokenId)
-	if owner ~= nil and owner ~= playerId then
-		return false, "Esa ficha ya es de otro jugador."
+	if owner == playerId then
+		return true, nil
+	end
+	if owner ~= nil then
+		local mine = assignments[playerId]
+		if mine == nil then
+			return false, "Esa ficha ya es de otro jugador."
+		end
+		assignments[owner] = mine
 	end
 	assignments[playerId] = tokenId
 	return true, nil

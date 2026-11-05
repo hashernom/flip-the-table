@@ -28,17 +28,36 @@ describe("TokenChoice", function()
 		expect(assignments["1"]).toBe(wanted)
 	end)
 
-	it("rechaza una ficha ocupada y una que no existe", function()
+	it("en una mesa llena, elegir una ocupada intercambia las dos", function()
 		local assignments = TokenChoice.defaults(PLAYERS)
-		local taken = assignments["2"]
-		local ok, err = TokenChoice.choose(assignments, "1", taken)
-		expect(ok).toBe(false)
-		expect(err).toBe("Esa ficha ya es de otro jugador.")
-		expect(assignments["1"]).toBe(Tokens.forSeat(1))
+		local mine = assignments["1"]
+		local wanted = assignments["2"]
+		local ok, err = TokenChoice.choose(assignments, "1", wanted)
+		expect(ok).toBe(true)
+		expect(err).toBe(nil)
+		expect(assignments["1"]).toBe(wanted)
+		expect(assignments["2"]).toBe(mine)
 
-		local unknown, unknownErr = TokenChoice.choose(assignments, "1", "monopatín")
-		expect(unknown).toBe(false)
-		expect(unknownErr).toBe("Esa ficha no existe.")
+		-- Sigue habiendo exactamente una ficha por jugador, sin repetir.
+		local seen: { [string]: boolean } = {}
+		for _, playerId in PLAYERS do
+			local tokenId = assignments[playerId]
+			expect(tokenId ~= nil).toBe(true)
+			expect(seen[tokenId]).toBe(nil)
+			seen[tokenId] = true
+		end
+	end)
+
+	it("rechaza una ficha que no existe y una ocupada sin ficha propia", function()
+		local assignments = TokenChoice.defaults(PLAYERS)
+		local ok, err = TokenChoice.choose(assignments, "1", "monopatín")
+		expect(ok).toBe(false)
+		expect(err).toBe("Esa ficha no existe.")
+
+		local lonely = { ["2"] = "taxi" }
+		local denied, deniedErr = TokenChoice.choose(lonely, "1", "taxi")
+		expect(denied).toBe(false)
+		expect(deniedErr).toBe("Esa ficha ya es de otro jugador.")
 	end)
 
 	it("se cierra en cuanto alguien sale de la Salida", function()

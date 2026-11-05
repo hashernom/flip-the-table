@@ -30,12 +30,8 @@ function TokenMenu.create(playerGui: Instance, onChoose: (tokenId: string) -> ()
 	notice.Parent = modal.body
 
 	local buttons: { [string]: TextButton } = {}
-	local blocked: { [string]: boolean } = {}
 
 	local function choose(tokenId: string)
-		if blocked[tokenId] then
-			return
-		end
 		onChoose(tokenId)
 	end
 
@@ -64,18 +60,18 @@ function TokenMenu.create(playerGui: Instance, onChoose: (tokenId: string) -> ()
 				end
 				local mine = owner == playerId
 				local taken = owner ~= nil and not mine
-				blocked[tokenId] = taken
 				local label = Tokens.get(tokenId)
 				local text = if label ~= nil then label.label else tokenId
 				if mine then
 					text ..= " · tuya"
 				elseif taken then
-					text ..= " · ocupada"
+					-- Elegirla intercambia con su dueño: el botón sigue vivo.
+					text ..= " · de otro"
 				end
 				button.Text = text
 				button.BackgroundColor3 = if mine then Theme.accent else Theme.buttonColor
-				button.TextColor3 = if mine then Theme.background else Theme.text
-				button.TextTransparency = if taken then 0.55 else 0
+				button.TextColor3 = if mine then Theme.background elseif taken then Theme.muted else Theme.text
+				button.TextTransparency = 0
 			end
 		end,
 		setNotice = function(text: string)
