@@ -161,6 +161,11 @@ describe("Scenes", function()
 		end)
 	end)
 
+	it("en una subasta el bot da tiempo a responder", function()
+		expect(Scenes.botDelayFor("Auction") > Scenes.botDelayFor("AwaitRoll")).toBeTruthy()
+		expect(Scenes.botDelayFor("AwaitRoll")).toBe(Scenes.botDelaySec)
+	end)
+
 	it("ninguna legendaria supera 10 s", function()
 		for _, cardId in { "Hurricane", "WorldFlip", "Revolution", "Earthquake", "CrownStrike" } do
 			expect(Scenes.durationFor(cardEvent(cardId), 0) <= 10).toBeTruthy()

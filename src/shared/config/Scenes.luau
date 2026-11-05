@@ -144,6 +144,12 @@ Scenes.heartbeatSec = 0.25
 -- Espera tras la última escena antes de que el bot juegue el turno de un asiento sin humano
 -- (R-P27). No se espera al plazo de decisión: un ausente no puede convertir cada turno en 20 s.
 Scenes.botDelaySec = 0.6
+-- En una subasta espera más: a 0,6 s por puja, el precio corría sin dar tiempo a una persona.
+Scenes.botAuctionDelaySec = 1.5
+
+function Scenes.botDelayFor(phase: Phase): number
+	return if phase == "Auction" then Scenes.botAuctionDelaySec else Scenes.botDelaySec
+end
 
 -- Espera máxima, al arrancar el lugar de partida, a que llegue el grupo que viene por
 -- teletransporte (R-P30). El servidor reservado empieza a contar cuando aparece el primer jugador

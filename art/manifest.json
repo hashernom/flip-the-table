@@ -88,7 +88,8 @@
       "textures": 6,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
+      "assetId": "rbxassetid://71336473679427"
     },
     {
       "id": "marker-house",
@@ -101,7 +102,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
+      "assetId": "rbxassetid://109373087404235"
     },
     {
       "id": "marker-hotel",
@@ -114,7 +116,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
+      "assetId": "rbxassetid://135810274975392"
     },
     {
       "id": "marker-tower",
@@ -127,7 +130,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py"
+      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
+      "assetId": "rbxassetid://94509577031463"
     }
   ]
 }

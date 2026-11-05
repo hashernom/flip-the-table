@@ -306,7 +306,7 @@ kickBots = function(match: Match)
 	end
 	stopBots(match)
 	local now = serverNow()
-	local delay = math.max(match.matchState.sceneEndsAt + Scenes.botDelaySec - now, 0)
+	local delay = math.max(match.matchState.sceneEndsAt + Scenes.botDelayFor(match.state.phase) - now, 0)
 	match.botSeq = match.matchState.seq
 	match.botThread = task.delay(delay, function()
 		match.botThread = nil

@@ -177,7 +177,9 @@ function ActionMenu.create(playerGui: Instance): Handles
 				else
 					local action = item.action
 					local button = Theme.button(listFrame, item.label, index, function()
-						emit(action)
+						if action ~= nil then
+							emit(action)
+						end
 					end)
 					button.Name = `Action_{index}_{item.id}`
 					table.insert(buttons, button)

@@ -16,7 +16,8 @@ export type Button = {
 	-- Identificador único dentro del menú: el tipo, más el índice o la carta cuando hay varias.
 	id: string,
 	label: string,
-	action: Action,
+	-- Sin acción, el botón es solo un aviso.
+	action: Action?,
 }
 
 export type BidControl = {
@@ -142,6 +143,13 @@ function ActionMenuRules.buttonsFor(legal: { Action }, context: Context?): { But
 				action = action,
 			})
 		end
+	end
+	-- Quien va ganando no tiene jugada legal. Sin este aviso, el panel desaparecería y volvería con cada
+	-- puja del rival. No lleva acción: no se puede pulsar.
+	local view = if context ~= nil then context.view else nil
+	local auction = if view ~= nil and view.pending ~= nil then view.pending.auction else nil
+	if view ~= nil and view.phase == "Auction" and auction ~= nil and auction.highBidder == view.playerId then
+		table.insert(buttons, { id = "BidLeading", label = `Vas ganando con {auction.high}` })
 	end
 	return buttons
 end

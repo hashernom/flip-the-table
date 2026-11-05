@@ -201,6 +201,17 @@ describe("ActionMenuRules: puja", function()
 			return state
 		end
 
+		it("quien va ganando la subasta conserva el panel y lo ve dicho", function()
+			local state = auction()
+			local leader = state.players[2]
+			local view = View.forPlayer(state, leader.id)
+			local buttons = ActionMenuRules.buttonsFor(view.legalActions, { view = view })
+			expect(#buttons).toBe(1)
+			expect(buttons[1].id).toBe("BidLeading")
+			expect(buttons[1].label).toBe("Vas ganando con 200")
+			expect(buttons[1].action).toBe(nil)
+		end)
+
 		local state = auction()
 		local rival = state.players[3]
 		local view = View.forPlayer(state, rival.id)
