@@ -66,3 +66,15 @@ La figura de 6 es la referencia de escala; el taxi mide 5,1 de alto y por eso la
 - 15 piezas, 2 580 triángulos, LOD1 336 (13 %). Medidas 6,4 × 12,4 × 5,1, `min_z = 0`.
 - Las ruedas tocan el suelo (eje a 1,0 con radio 1,0) y quedan dentro de los arcos.
 - El morro queda en -Z y el `seat` en el techo, libre, a 4,6 de alto.
+
+## Las ocho fichas en el juego
+
+- `ArtAssets.tokens` guarda, por ficha, sus mallas, su placa y su `seat` ya en coordenadas de Roblox
+  (`x`, alto, fondo). `ArtAssets.taxi` sigue siendo la lista del taxi para no romper lo anterior.
+- `src/shared/config/Tokens.luau` reparte una ficha por asiento (1 taxi, 2 limusina, … 8 autobús)
+  mientras no exista la pantalla de elección: así las ocho se ven sin tocar el lobby.
+- `TokenRider` viste la ficha de cada asiento, tiñe su placa con el color del jugador y deja el
+  asiento gris como anclaje invisible del avatar.
+- Studio, 2026-11-05: las 123 mallas de las ocho fichas cargan con `InsertService:LoadAsset`; taxi,
+  limusina, autobús y moto se montaron completos, con las ruedas en su eje y la placa en su sitio.
+
