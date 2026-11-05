@@ -49,6 +49,19 @@ function WorldRules.paintColor(r: number, g: number, b: number): (number, number
 	return paint(r), paint(g), paint(b)
 end
 
+-- Color de la pintura de una casilla enmarcada. Se aclara si queda demasiado cerca del asfalto: Grafito y Añil
+-- se perderían en la calle. El color de la zona no cambia en el resto del juego.
+local ROAD_PAINT_MIN_LUMA = 0.5
+
+function WorldRules.roadPaintColor(r: number, g: number, b: number): (number, number, number)
+	local luma = 0.2126 * r + 0.7152 * g + 0.0722 * b
+	if luma >= ROAD_PAINT_MIN_LUMA then
+		return r, g, b
+	end
+	local lift = (ROAD_PAINT_MIN_LUMA - luma) / (1 - luma)
+	return r + (1 - r) * lift, g + (1 - g) * lift, b + (1 - b) * lift
+end
+
 -- Etiqueta de una propiedad en la vista general, o nil si no tiene dueño.
 function WorldRules.ownerTag(ownerName: string?, level: number): string?
 	if ownerName == nil then

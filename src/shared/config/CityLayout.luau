@@ -216,13 +216,17 @@ local SLOT_LENGTH = 30
 local SLOT_DEPTH = 16
 -- Sitio del centro de la casilla desde el eje de la calle. Negativo: a la izquierda de la marcha, el
 -- exterior del anillo, que es donde están los edificios.
-local SLOT_SIDE = -8
+local SLOT_SIDE = -3
 
 CityLayout.STREET_WIDTH_STUDS = STREET_WIDTH
 CityLayout.SIDEWALK_STUDS = SIDEWALK
 CityLayout.SLOT_LENGTH_STUDS = SLOT_LENGTH
 CityLayout.SLOT_DEPTH_STUDS = SLOT_DEPTH
 CityLayout.SLOT_SIDE_STUDS = SLOT_SIDE
+-- Marco pintado de una casilla: ocupa todo el ancho del asfalto. A lo largo de la calle es algo más estrecho, y aun
+-- así caben las ocho fichas. Una esquina ocupa el cuadrado entero del cruce.
+CityLayout.PAINT_ACROSS_STUDS = STREET_WIDTH - 1
+CityLayout.PAINT_ALONG_STUDS = 28
 
 -- Reparto de las fichas que comparten casilla: cuatro a lo largo y dos filas, con la base de
 -- `art/escala.md`. Caben las ocho de una partida llena dentro de la pintura.
@@ -399,15 +403,11 @@ local LEVEL_ADDONS: { BuildingBlock } = {
 
 -- Una, dos y tres casitas; después, un solo marcador por nivel. Van en la franja delantera del solar.
 local MARKER_FRONT = -9.5
-local MARKER_STEP = 4.4
 -- A un lado del solar: en el centro taparían la entrada del edificio.
 local MARKER_ALONG = 11.5
-local HOUSE_MARKER = { width = 3.8, depth = 2.8, height = 3.4, kind = "House" }
-local TOP_MARKERS: { [number]: { width: number, depth: number, height: number, kind: string } } = {
-	[4] = { width = 4.4, depth = 2.8, height = 5.5, kind = "Hotel" },
-	[5] = { width = 3.8, depth = 2.8, height = 8.7, kind = "Tower" },
-}
-local HOUSE_LEVELS = 3
+-- Solo la propiedad al máximo lleva marcador: un mojón. El resto de niveles se lee en el propio edificio.
+local MARKER_LEVEL = 5
+local MOJON = { width = 1.6, depth = 1.6, height = 3.2, kind = "Mojon" }
 
 -- Piezas del edificio en un nivel: la base y los añadidos hasta ese nivel. Un nivel que no exista no
 -- añade nada, pero el edificio sigue ahí.
@@ -421,34 +421,19 @@ end
 
 -- Marcadores de mejora de un nivel. Dicen la renta de un vistazo, sin mirar el edificio.
 function CityLayout.levelMarkers(level: number): { LevelMarker }
-	local top = TOP_MARKERS[level]
-	if top ~= nil then
-		return {
-			{
-				along = MARKER_ALONG,
-				front = MARKER_FRONT,
-				width = top.width,
-				depth = top.depth,
-				height = top.height,
-				kind = top.kind,
-			},
-		}
+	if level ~= MARKER_LEVEL then
+		return {}
 	end
-	local markers: { LevelMarker } = {}
-	if level < 1 or level > HOUSE_LEVELS then
-		return markers
-	end
-	for order = 1, level do
-		table.insert(markers, {
-			along = MARKER_ALONG + (order - (level + 1) / 2) * MARKER_STEP,
+	return {
+		{
+			along = MARKER_ALONG,
 			front = MARKER_FRONT,
-			width = HOUSE_MARKER.width,
-			depth = HOUSE_MARKER.depth,
-			height = HOUSE_MARKER.height,
-			kind = HOUSE_MARKER.kind,
-		})
-	end
-	return markers
+			width = MOJON.width,
+			depth = MOJON.depth,
+			height = MOJON.height,
+			kind = MOJON.kind,
+		},
+	}
 end
 
 return CityLayout

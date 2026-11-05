@@ -12,6 +12,13 @@
 
 **Requisito previo:** la Puerta B está aprobada.
 
+## Entradas del plan 06 (2026-11-05)
+
+- **Modelado:** el [prompt maestro](../../art/edificios/prompt-orquestador.md) encarga las 30 propiedades que faltan, con el [blueprint](../../art/edificios/blueprint.md) como norma.
+- **Mejoras sobre la isla:** decisión aplazada a este plan, propuesta en [niveles.md](../../art/edificios/niveles.md). Casitas, hotel y rascacielos a escala de ficha sobre la isla pintada.
+- **Casillas especiales:** les falta su icono propio dentro del marco.
+- **Rendimiento:** FPS y memoria no se midieron en la Puerta B por decisión del responsable; se miden aquí, con la ciudad completa.
+
 ## Ejecución recomendada
 
 **Modo:** subagentes, con `superpowers:subagent-driven-development`.

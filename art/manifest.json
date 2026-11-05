@@ -116,48 +116,6 @@
       ]
     },
     {
-      "id": "marker-house",
-      "category": "RepeatedProp",
-      "source": "art/blender/slice/build_cine_lux.py",
-      "triangles": 30,
-      "lods": [
-        12
-      ],
-      "textures": 0,
-      "status": "Draft",
-      "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
-      "assetId": "rbxassetid://109373087404235"
-    },
-    {
-      "id": "marker-hotel",
-      "category": "RepeatedProp",
-      "source": "art/blender/slice/build_cine_lux.py",
-      "triangles": 48,
-      "lods": [
-        18
-      ],
-      "textures": 0,
-      "status": "Draft",
-      "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
-      "assetId": "rbxassetid://135810274975392"
-    },
-    {
-      "id": "marker-tower",
-      "category": "RepeatedProp",
-      "source": "art/blender/slice/build_cine_lux.py",
-      "triangles": 60,
-      "lods": [
-        26
-      ],
-      "textures": 0,
-      "status": "Draft",
-      "screenshots": [],
-      "generatedWith": "Blender 5.2, art/blender/slice/build_cine_lux.py",
-      "assetId": "rbxassetid://94509577031463"
-    },
-    {
       "id": "skybox",
       "category": "CityBackdrop",
       "source": "art/generators/pbr_assets.py",
@@ -326,6 +284,190 @@
       "screenshots": [],
       "generatedWith": "Audio de terceros de la biblioteca de Roblox (Creator Store), ProSoundEffects. Licencia para publicar sin confirmar.",
       "assetId": "rbxassetid://9112758856"
+    },
+    {
+      "id": "scene-patrol",
+      "category": "SceneCharacter",
+      "source": "art/blender/slice/build_arrest_props.py",
+      "triangles": 408,
+      "lods": [
+        190
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_arrest_props.py",
+      "assetId": "rbxassetid://87297540770701",
+      "assetIds": [
+        "rbxassetid://131708362246640",
+        "rbxassetid://95895884922053",
+        "rbxassetid://86978947567351",
+        "rbxassetid://99832846083028",
+        "rbxassetid://137084094157299",
+        "rbxassetid://125618270831213"
+      ]
+    },
+    {
+      "id": "scene-officer-cap",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_arrest_props.py",
+      "triangles": 144,
+      "lods": [
+        70
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_arrest_props.py",
+      "assetId": "rbxassetid://132578753396779",
+      "assetIds": [
+        "rbxassetid://128223182550092"
+      ]
+    },
+    {
+      "id": "jail",
+      "category": "Building",
+      "source": "art/blender/slice/build_arrest_props.py",
+      "triangles": 914,
+      "lods": [
+        408
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_arrest_props.py",
+      "assetId": "rbxassetid://106699809242825",
+      "assetIds": [
+        "rbxassetid://130650667629657",
+        "rbxassetid://71451720766435",
+        "rbxassetid://83918567997732",
+        "rbxassetid://91188963144926",
+        "rbxassetid://112253702709622"
+      ]
+    },
+    {
+      "id": "barberia-morro",
+      "category": "Building",
+      "source": "art/blender/buildings/cobre/barberia-morro.py",
+      "triangles": 2136,
+      "lods": [
+        1022
+      ],
+      "textures": 0,
+      "status": "Approved",
+      "screenshots": [
+        "art/render/ingame/cobre-nivel0.jpg",
+        "art/render/ingame/cobre-nivel5-mojon.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/cobre/barberia-morro.py",
+      "assetId": "rbxassetid://77687404212406",
+      "assetIds": [
+        "rbxassetid://90294882036572",
+        "rbxassetid://90016036285546",
+        "rbxassetid://86762790820122",
+        "rbxassetid://104187849650590",
+        "rbxassetid://102968722848894",
+        "rbxassetid://70533860993853",
+        "rbxassetid://84228989982027",
+        "rbxassetid://71448421870290",
+        "rbxassetid://125938412633087",
+        "rbxassetid://80579561888910",
+        "rbxassetid://134944303681399",
+        "rbxassetid://77262204816778",
+        "rbxassetid://87112376275479",
+        "rbxassetid://102682037234585",
+        "rbxassetid://140041778014371",
+        "rbxassetid://136311841525253",
+        "rbxassetid://95966858726570",
+        "rbxassetid://108128922169846",
+        "rbxassetid://77029163935374",
+        "rbxassetid://130478452546937",
+        "rbxassetid://85180681296702",
+        "rbxassetid://126537059961464",
+        "rbxassetid://76295410495646",
+        "rbxassetid://78179680628969"
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
+    },
+    {
+      "id": "callejon-del-hojalatero",
+      "category": "Building",
+      "source": "art/blender/buildings/cobre/callejon-del-hojalatero.py",
+      "triangles": 1546,
+      "lods": [
+        704
+      ],
+      "textures": 0,
+      "status": "Approved",
+      "screenshots": [
+        "art/render/ingame/cobre-nivel0.jpg",
+        "art/render/ingame/cobre-nivel5-mojon.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/cobre/callejon-del-hojalatero.py",
+      "assetId": "rbxassetid://110298283108472",
+      "assetIds": [
+        "rbxassetid://125062404313107",
+        "rbxassetid://131044460322635",
+        "rbxassetid://134510024436017",
+        "rbxassetid://99509032564806",
+        "rbxassetid://117609298853189",
+        "rbxassetid://94305205888491",
+        "rbxassetid://95013079920418",
+        "rbxassetid://71186078280001",
+        "rbxassetid://137019038040819",
+        "rbxassetid://137497003889383",
+        "rbxassetid://119944946816926",
+        "rbxassetid://108673510245125",
+        "rbxassetid://84418752011765",
+        "rbxassetid://124885679134185",
+        "rbxassetid://128144436896056",
+        "rbxassetid://84370228051392",
+        "rbxassetid://93423147782073",
+        "rbxassetid://112283163694632"
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
+    },
+    {
+      "id": "marker-mojon",
+      "category": "RepeatedProp",
+      "source": "art/blender/slice/build_marker_mojon.py",
+      "triangles": 264,
+      "lods": [
+        104
+      ],
+      "textures": 0,
+      "status": "Approved",
+      "screenshots": [
+        "art/render/ingame/cobre-nivel5-mojon.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/slice/build_marker_mojon.py",
+      "assetId": "rbxassetid://77126348395639",
+      "assetIds": [
+        "rbxassetid://72497880426898"
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
+    },
+    {
+      "id": "road-paint",
+      "category": "CityBackdrop",
+      "source": "art/generators/road_paint.py",
+      "triangles": 0,
+      "lods": [],
+      "textures": 6,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "art/generators/road_paint.py",
+      "assetId": "rbxassetid://140160880545159",
+      "assetIds": [
+        "rbxassetid://74331201053532",
+        "rbxassetid://110850833671447",
+        "rbxassetid://140317100777072",
+        "rbxassetid://136446359469385",
+        "rbxassetid://95495357299466"
+      ]
     }
   ]
 }

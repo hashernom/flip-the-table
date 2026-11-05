@@ -43,6 +43,87 @@ ArtAssets.FRONT_OFFSET = 2
 
 -- Por el nombre que da `Strings.squareLabel`. Los añadidos, en orden de nivel.
 ArtAssets.properties = {
+	["Barbería Morro"] = {
+		base = {
+			piece("morro_body_brick", "77687404212406", { 176, 102, 74 }, "Brick"),
+			piece("morro_body_limestone", "90294882036572", { 210, 201, 180 }, "Limestone"),
+			piece("morro_body_glass", "90016036285546", { 46, 74, 99 }, "Glass", 0.25),
+			piece("morro_body_wood", "86762790820122", { 90, 58, 36 }, "Wood"),
+			piece("morro_body_metal", "104187849650590", { 201, 123, 58 }, "Metal"),
+			piece("morro_body_smoothplastic_rojo", "102968722848894", { 196, 56, 43 }, "SmoothPlastic"),
+			piece("morro_body_smoothplastic_blanco", "70533860993853", { 244, 244, 244 }, "SmoothPlastic"),
+			piece("morro_body_smoothplastic_azul", "84228989982027", { 31, 95, 168 }, "SmoothPlastic"),
+		},
+		addons = {
+			{
+				piece("morro_addon1_fabric_rojo", "71448421870290", { 196, 56, 43 }, "Fabric"),
+				piece("morro_addon1_fabric_blanco", "125938412633087", { 237, 229, 211 }, "Fabric"),
+			},
+			{
+				piece("morro_addon2_limestone", "80579561888910", { 210, 201, 180 }, "Limestone"),
+				piece("morro_addon2_metal", "134944303681399", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("morro_addon3_brick", "77262204816778", { 176, 102, 74 }, "Brick"),
+				piece("morro_addon3_glass", "87112376275479", { 46, 74, 99 }, "Glass", 0.25),
+				piece("morro_addon3_limestone", "102682037234585", { 210, 201, 180 }, "Limestone"),
+				piece("morro_addon3_slate", "140041778014371", { 74, 78, 84 }, "Slate"),
+			},
+			{
+				piece("morro_addon4_brick", "136311841525253", { 176, 102, 74 }, "Brick"),
+				piece("morro_addon4_slate", "95966858726570", { 74, 78, 84 }, "Slate"),
+				piece("morro_addon4_metal", "108128922169846", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("morro_addon5_limestone", "77029163935374", { 210, 201, 180 }, "Limestone"),
+				piece("morro_addon5_metal", "130478452546937", { 201, 123, 58 }, "Metal"),
+				piece("morro_addon5_slate", "85180681296702", { 74, 78, 84 }, "Slate"),
+				piece("morro_addon5_smoothplastic_rojo", "126537059961464", { 196, 56, 43 }, "SmoothPlastic"),
+				piece(
+					"morro_addon5_smoothplastic_blanco",
+					"76295410495646",
+					{ 244, 244, 244 },
+					"SmoothPlastic"
+				),
+				piece("morro_addon5_smoothplastic_azul", "78179680628969", { 31, 95, 168 }, "SmoothPlastic"),
+			},
+		},
+	},
+	["Callejón del Hojalatero"] = {
+		base = {
+			piece("hojalatero_body_brick", "110298283108472", { 176, 102, 74 }, "Brick"),
+			piece("hojalatero_body_metal_acero", "125062404313107", { 140, 147, 155 }, "Metal"),
+			piece("hojalatero_body_limestone", "131044460322635", { 210, 201, 180 }, "Limestone"),
+			piece("hojalatero_body_slate", "134510024436017", { 74, 78, 84 }, "Slate"),
+			piece("hojalatero_body_glass", "99509032564806", { 46, 74, 99 }, "Glass", 0.25),
+			piece("hojalatero_body_metal", "117609298853189", { 201, 123, 58 }, "Metal"),
+		},
+		addons = {
+			{
+				piece("hojalatero_addon1_metal_acero", "94305205888491", { 140, 147, 155 }, "Metal"),
+				piece("hojalatero_addon1_metal", "95013079920418", { 201, 123, 58 }, "Metal"),
+			},
+			{
+				piece("hojalatero_addon2_limestone", "71186078280001", { 210, 201, 180 }, "Limestone"),
+				piece("hojalatero_addon2_metal", "137019038040819", { 201, 123, 58 }, "Metal"),
+				piece("hojalatero_addon2_metal_acero", "137497003889383", { 140, 147, 155 }, "Metal"),
+			},
+			{
+				piece("hojalatero_addon3_metal_acero", "119944946816926", { 140, 147, 155 }, "Metal"),
+				piece("hojalatero_addon3_slate", "108673510245125", { 74, 78, 84 }, "Slate"),
+				piece("hojalatero_addon3_glass", "84418752011765", { 46, 74, 99 }, "Glass", 0.25),
+			},
+			{
+				piece("hojalatero_addon4_brick", "124885679134185", { 176, 102, 74 }, "Brick"),
+				piece("hojalatero_addon4_slate", "128144436896056", { 74, 78, 84 }, "Slate"),
+				piece("hojalatero_addon4_glass", "84370228051392", { 46, 74, 99 }, "Glass", 0.25),
+			},
+			{
+				piece("hojalatero_addon5_metal_acero", "93423147782073", { 140, 147, 155 }, "Metal"),
+				piece("hojalatero_addon5_metal", "112283163694632", { 201, 123, 58 }, "Metal"),
+			},
+		},
+	},
 	["Bodega La Reserva"] = {
 		base = {
 			piece("bodega_wall", "96062558131335", BRICK, "Brick"),
@@ -77,7 +158,7 @@ ArtAssets.properties = {
 			},
 		},
 	},
-	["Cine Lux de Medianoche"] = {
+	["Cine Lux"] = {
 		base = {
 			piece("cine-wall", "71336473679427", BRICK, "Brick"),
 			piece("cine-trim", "77475477580156", STONE, "Limestone"),
@@ -118,11 +199,11 @@ ArtAssets.properties = {
 	},
 } :: { [string]: { base: { Piece }, addons: { { Piece } } } }
 
-ArtAssets.markers = {
-	House = piece("marker-house", "109373087404235", STONE, "Limestone"),
-	Hotel = piece("marker-hotel", "135810274975392", { 168, 174, 180 }, "Metal"),
-	Tower = piece("marker-tower", "94509577031463", { 201, 162, 39 }, "Metal"),
-} :: { [string]: Piece }
+-- El mojón del nivel máximo. Su anillo se tiñe con el color de la zona en `BuildingView`.
+ArtAssets.mojon = {
+	stone = piece("marker_mojon_stone", "77126348395639", STONE, "Limestone"),
+	ring = piece("marker_mojon_ring", "72497880426898", { 201, 123, 58 }, "Metal"),
+}
 
 -- La ficha taxi: su origen es la base de la ficha.
 ArtAssets.taxi = {
@@ -173,9 +254,47 @@ ArtAssets.carColors = {
 	{ 60, 62, 66 },
 }
 
+-- Escena de la detención (PlayerArrested). La patrulla y su gorra van en un solo grupo cada una; la
+-- cárcel es solo decorado en la casilla Tribunal. Su origen es el centro de la base, como el resto.
+ArtAssets.patrol = {
+	piece("patrol_navy", "87297540770701", { 27, 42, 74 }, "SmoothPlastic"),
+	piece("patrol_white", "131708362246640", { 242, 242, 240 }, "SmoothPlastic"),
+	piece("patrol_glass", "95895884922053", GLASS, "Glass", 0.25),
+	piece("patrol_dark", "86978947567351", { 42, 46, 51 }, "SmoothPlastic"),
+	piece("patrol_steel", "99832846083028", { 168, 174, 180 }, "Metal"),
+	piece("patrol_sirenred", "137084094157299", { 214, 40, 40 }, "Neon"),
+	piece("patrol_sirenblue", "125618270831213", { 31, 95, 214 }, "Neon"),
+} :: { Piece }
+
+ArtAssets.officerCap = {
+	piece("officer_cap", "132578753396779", { 27, 42, 74 }, "Fabric"),
+	piece("officer_gold", "128223182550092", { 201, 162, 39 }, "Metal"),
+} :: { Piece }
+
+ArtAssets.jail = {
+	piece("jail_brick", "106699809242825", { 94, 58, 46 }, "Brick"),
+	piece("jail_limestone", "130650667629657", { 210, 201, 180 }, "Limestone"),
+	piece("jail_glass", "71451720766435", GLASS, "Glass", 0.25),
+	piece("jail_steel", "83918567997732", { 168, 174, 180 }, "Metal"),
+	piece("jail_dark", "91188963144926", { 42, 46, 51 }, "SmoothPlastic"),
+	piece("jail_sign", "112253702709622", RED, "SmoothPlastic"),
+} :: { Piece }
+
 -- Zonas con la calle ya ambientada: la de la porción vertical. El plan 07 añade las demás.
 ArtAssets.dressedZones = { "carmesi" }
 
+-- Pintura desgastada de las casillas: texturas en blanco, teñidas con el color de la zona.
+ArtAssets.roadPaint = {
+	"rbxassetid://140160880545159",
+	"rbxassetid://74331201053532",
+	"rbxassetid://110850833671447",
+}
+-- Las propiedades llevan además la isla donde irán sus mejoras, en el lado del edificio.
+ArtAssets.roadPaintIsland = {
+	"rbxassetid://140317100777072",
+	"rbxassetid://136446359469385",
+	"rbxassetid://95495357299466",
+}
 -- Mallas de una propiedad en un nivel, o nil si aún no tiene modelo real.
 function ArtAssets.piecesFor(name: string, level: number): { Piece }?
 	local property = ArtAssets.properties[name]
@@ -202,9 +321,11 @@ function ArtAssets.all(): { Piece }
 	for _, kind in ArtAssets.street do
 		table.move(kind, 1, #kind, #pieces + 1, pieces)
 	end
-	for _, marker in ArtAssets.markers do
-		table.insert(pieces, marker)
-	end
+	table.insert(pieces, ArtAssets.mojon.stone)
+	table.insert(pieces, ArtAssets.mojon.ring)
+	table.move(ArtAssets.patrol, 1, #ArtAssets.patrol, #pieces + 1, pieces)
+	table.move(ArtAssets.officerCap, 1, #ArtAssets.officerCap, #pieces + 1, pieces)
+	table.move(ArtAssets.jail, 1, #ArtAssets.jail, #pieces + 1, pieces)
 	return pieces
 end
 

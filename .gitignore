@@ -20,3 +20,4 @@ srv*.log
 
 # Resumenes de partida exportados por la telemetria: salida de ejecucion, no fuente
 telemetry/
+__pycache__/

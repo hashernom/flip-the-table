@@ -8,6 +8,7 @@
 -- La ciudad se levanta en el cliente: el servidor no necesita ni una pieza y así el prototipo no
 -- gasta presupuesto de partes replicadas.
 local WorldRules = require("./WorldRules")
+local ArtAssets = require("../../shared/config/ArtAssets")
 local CityLayout = require("../../shared/config/CityLayout")
 local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
@@ -39,8 +40,13 @@ local PAVEMENT = Color3.fromRGB(128, 123, 112)
 local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
-local NAME_GAP = 0.8
 local NAME_DEPTH = 6
+-- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
+local FRAMED_NAME_SIDE = 7.5
+local FRAMED_NAME_MARGIN = 3
+local ROAD_PAINT_TRANSPARENCY = 0.08
+-- Cuánto se apaga el color de la pintura: 0 es el color puro, que brilla; 1, el de la baldosa antigua.
+local ROAD_PAINT_DIM = 0.5
 local NAME_PIXELS_PER_STUD = 16
 local NAME_TEXT_SIZE = 70
 local NAME_PAINT = Color3.fromRGB(222, 216, 200)
@@ -181,7 +187,7 @@ local function makeStreet(model: Model, sizeId: SizeId)
 end
 
 -- Una casilla: pintura del color de su calle sobre el asfalto, y en la acera el poste con su nombre.
-local function makeSquare(model: Model, slot: CityLayout.Slot): Part
+local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean): Part
 	local center = CityLayout.slotCenter(slot)
 	local position = Vector3.new(center.x, PAINT_HEIGHT / 2, center.z)
 	local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
@@ -196,13 +202,41 @@ local function makeSquare(model: Model, slot: CityLayout.Slot): Part
 	})
 	tile.Parent = model
 
+	-- Casilla enmarcada: pintura desgastada sobre el asfalto, teñida con el color de la zona. Va de lado a lado de la
+	-- calle, centrada en ella; en una esquina ocupa el cuadrado del cruce.
+	do
+		tile.Transparency = 1
+		local across = CityLayout.PAINT_ACROSS_STUDS
+		local middle = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
+		local frame = makePart({
+			Name = "RoadPaint",
+			Size = Vector3.new(across, PAINT_HEIGHT, if corner then across else CityLayout.PAINT_ALONG_STUDS),
+			-- Girada: el borde izquierdo de la textura, el de la isla, queda del lado del edificio.
+			CFrame = CFrame.lookAt(middle, middle - forward),
+			Transparency = 1,
+		})
+		frame.Parent = tile
+		local paint = Instance.new("Decal")
+		paint.Face = Enum.NormalId.Top
+		local textures = if slot.kind == "Property" then ArtAssets.roadPaintIsland else ArtAssets.roadPaint
+		paint.Texture = textures[(slot.index - 1) % #textures + 1]
+		-- Algo apagada y transparente: el asfalto se transparenta y la línea no brilla.
+		local r, g, b = WorldRules.roadPaintColor(color.R, color.G, color.B)
+		paint.Color3 = Color3.new(r, g, b):Lerp(Color3.new(WorldRules.paintColor(r, g, b)), ROAD_PAINT_DIM)
+		paint.Transparency = ROAD_PAINT_TRANSPARENCY
+		paint.Parent = frame
+	end
+
 	-- El nombre va pintado en el carril libre, junto a la casilla: la ficha nunca lo tapa. Mira hacia el
 	-- interior del anillo, que es desde donde mira la cámara.
 	local inward = Vector3.new(-forward.Z, 0, forward.X)
-	local namePosition = position + inward * (CityLayout.SLOT_DEPTH_STUDS / 2 + NAME_GAP + NAME_DEPTH / 2)
+	local namePosition = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
+		+ inward * FRAMED_NAME_SIDE
+	-- Dentro del marco, el rótulo deja margen para no tocar el contorno.
+	local nameLength = CityLayout.PAINT_ALONG_STUDS - 2 * FRAMED_NAME_MARGIN
 	local plate = makePart({
 		Name = "NamePaint",
-		Size = Vector3.new(NAME_DEPTH, PAINT_HEIGHT, CityLayout.SLOT_LENGTH_STUDS),
+		Size = Vector3.new(NAME_DEPTH, PAINT_HEIGHT, nameLength),
 		CFrame = CFrame.lookAt(namePosition, namePosition + forward),
 		Transparency = 1,
 	})
@@ -210,7 +244,7 @@ local function makeSquare(model: Model, slot: CityLayout.Slot): Part
 	local surface = Instance.new("SurfaceGui")
 	surface.Face = Enum.NormalId.Top
 	surface.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
-	surface.CanvasSize = Vector2.new(CityLayout.SLOT_LENGTH_STUDS, NAME_DEPTH) * NAME_PIXELS_PER_STUD
+	surface.CanvasSize = Vector2.new(nameLength, NAME_DEPTH) * NAME_PIXELS_PER_STUD
 	surface.LightInfluence = 1
 	surface.Parent = plate
 	local text = Instance.new("TextLabel")
@@ -245,8 +279,10 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	makeBridges(model, sizeId)
 
 	local squares: { [number]: BasePart } = {}
-	for _, slot in route do
-		squares[slot.index] = makeSquare(model, slot)
+	for order, slot in route do
+		-- Una esquina es donde la calle cambia de sentido: la casilla anterior venía por otra dirección.
+		local previous = route[(order - 2) % #route + 1]
+		squares[slot.index] = makeSquare(model, slot, math.abs(previous.facing - slot.facing) > 0.01)
 	end
 
 	local tokens = Instance.new("Folder")

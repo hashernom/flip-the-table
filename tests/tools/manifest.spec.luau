@@ -169,14 +169,13 @@ describe("art/manifest.json", function()
 		expect(Manifest.validate(manifest)).toEqual({})
 	end)
 
-	it("registra cada asset como borrador, nunca aprobado", function()
-		local approved = {}
+	it("cada asset aprobado dice quién lo aprobó y cuándo", function()
 		for _, asset in manifest.assets do
 			if asset.status == "Approved" then
-				table.insert(approved, asset.id)
+				expect(type(asset.approvedBy)).toBe("string")
+				expect(type((asset :: any).approvedAt)).toBe("string")
 			end
 		end
-		expect(approved).toEqual({})
 	end)
 
 	it("no tiene ids repetidos", function()

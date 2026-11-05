@@ -7,16 +7,13 @@ local CityBuilder = require("./CityBuilder")
 local CityLayout = require("../../shared/config/CityLayout")
 local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
+local Strings = require("../../shared/config/Strings")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local BLOCK_COLOR = Color3.fromRGB(176, 170, 158)
 local ADDON_COLOR = Color3.fromRGB(140, 134, 124)
--- Colores de la guía de estilo: caliza para las casitas y oro para lo más alto. Nunca verde y rojo (§5.1).
-local MARKER_COLORS: { [string]: Color3 } = {
-	House = Color3.fromRGB(210, 201, 180),
-	Hotel = Color3.fromRGB(168, 174, 180),
-	Tower = Color3.fromRGB(201, 162, 39),
-}
+-- Bloque del mojón mientras no llega su malla: caliza.
+local MARKER_COLOR = Color3.fromRGB(210, 201, 180)
 
 local BuildingView = {}
 
@@ -141,12 +138,20 @@ function BuildingView.setLevel(index: number, level: number)
 	end
 	for order, marker in CityLayout.levelMarkers(level) do
 		local origin = lot * CFrame.new(marker.along, 0, marker.front)
-		if placeMesh(ArtAssets.markers[marker.kind], origin, model) == nil then
+		local stone = placeMesh(ArtAssets.mojon.stone, origin, model)
+		local ring = placeMesh(ArtAssets.mojon.ring, origin, model)
+		if ring ~= nil then
+			local slot = CityLayout.routeFor(handles.sizeId)[index]
+			if slot ~= nil and slot.zoneId ~= nil then
+				ring.Color = Color3.fromHex(Strings.zone(slot.zoneId).color)
+			end
+		end
+		if stone == nil then
 			makePiece(
 				`Marker{order}`,
 				Vector3.new(marker.width, marker.height, marker.depth),
 				lot * CFrame.new(marker.along, marker.height / 2, marker.front),
-				MARKER_COLORS[marker.kind],
+				MARKER_COLOR,
 				model
 			)
 		end

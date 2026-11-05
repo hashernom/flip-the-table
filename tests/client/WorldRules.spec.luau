@@ -225,27 +225,14 @@ describe("CityLayout.buildingBlocks", function()
 end)
 
 describe("CityLayout.levelMarkers", function()
-	it("sin mejoras no hay marcadores, y hay uno por casa", function()
-		expect(#CityLayout.levelMarkers(0)).toBe(0)
-		expect(#CityLayout.levelMarkers(1)).toBe(1)
-		expect(#CityLayout.levelMarkers(2)).toBe(2)
-		expect(#CityLayout.levelMarkers(3)).toBe(3)
-	end)
-
-	it("hotel y rascacielos llevan un solo marcador, cada vez mayor", function()
-		local house = CityLayout.levelMarkers(3)[1]
-		local hotel = CityLayout.levelMarkers(4)
-		local tower = CityLayout.levelMarkers(5)
-		expect(#hotel).toBe(1)
-		expect(#tower).toBe(1)
-		expect(hotel[1].height > house.height).toBe(true)
-		expect(tower[1].height > hotel[1].height).toBe(true)
-	end)
-
-	it("cada nivel del motor tiene su forma, y ninguno de más", function()
-		for level = 1, Economy.maxBuildingLevel do
-			expect(#CityLayout.levelMarkers(level) > 0).toBe(true)
+	it("solo el nivel máximo lleva marcador: un mojón", function()
+		for level = 0, Economy.maxBuildingLevel - 1 do
+			expect(#CityLayout.levelMarkers(level)).toBe(0)
 		end
+		local top = CityLayout.levelMarkers(Economy.maxBuildingLevel)
+		expect(#top).toBe(1)
+		expect(top[1].kind).toBe("Mojon")
+		expect(top[1].height < 6).toBe(true)
 		expect(#CityLayout.levelMarkers(Economy.maxBuildingLevel + 1)).toBe(0)
 	end)
 
@@ -276,6 +263,32 @@ describe("CityLayout.lotCenter", function()
 				math.max(math.abs(slot.position.x - center.x), math.abs(slot.position.z - center.z))
 			expect(fromCenter > slotFromCenter).toBe(true)
 		end
+	end)
+end)
+
+Harness.describe("CityLayout: marco pintado de la casilla", function()
+	Harness.it("cruza el asfalto sin salirse, y caben las ocho fichas a lo largo", function()
+		Harness.expect(CityLayout.PAINT_ACROSS_STUDS <= CityLayout.STREET_WIDTH_STUDS).toBe(true)
+		Harness.expect(CityLayout.PAINT_ALONG_STUDS <= CityLayout.SQUARE_SPACING_STUDS).toBe(true)
+		for order = 1, 8 do
+			local offset = CityLayout.tokenOffset(order, 8)
+			Harness.expect(math.abs(offset.along) + 3 <= CityLayout.PAINT_ALONG_STUDS / 2).toBe(true)
+		end
+	end)
+end)
+
+Harness.describe("WorldRules.roadPaintColor", function()
+	Harness.it("no toca un color que ya se ve sobre el asfalto", function()
+		local r, g, b = WorldRules.roadPaintColor(0.98, 0.8, 0.08)
+		Harness.expect(r).toBe(0.98)
+		Harness.expect(g).toBe(0.8)
+		Harness.expect(b).toBe(0.08)
+	end)
+
+	Harness.it("aclara lo que se perdería en la calle hasta el mínimo de luz", function()
+		local r, g, b = WorldRules.roadPaintColor(0.39, 0.45, 0.55)
+		Harness.expect(math.abs(0.2126 * r + 0.7152 * g + 0.0722 * b - 0.5) < 1e-6).toBe(true)
+		Harness.expect(b > r).toBe(true)
 	end)
 end)
 
