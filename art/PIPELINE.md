@@ -184,6 +184,9 @@ Cada asset es una entrada de `art/manifest.json`:
 
 Estados: `Draft` → `InGame` (importado y colocado) → `Approved` (revisado en el juego).
 
+El checklist técnico y visual de una propiedad está en `art/edificios/aceptacion.md`; el diseño por
+zona, en `art/edificios/`.
+
 `Manifest.validate` rechaza:
 
 - un asset por encima del presupuesto de su categoría;

@@ -14,7 +14,7 @@
 
 ## Estado (2026-11-04): plan abierto
 
-**La Tarea 3 y la Puerta B siguen abiertas.** La sesión del 2026-11-04 cambió la dirección visual, así que esta tarea hay que leerla con [la visión visual](../../art/vision-visual.md) al lado.
+**Estado al 2026-11-05: la porción está completa y la Puerta B aprobada, ver [puerta-b.md](resultados/puerta-b.md).** Lo que sigue es el histórico. La Tarea 3 y la Puerta B quedaron abiertas. La sesión del 2026-11-04 cambió la dirección visual, así que esta tarea hay que leerla con [la visión visual](../../art/vision-visual.md) al lado.
 
 **Hecho:**
 - Tareas 1 y 2.
@@ -31,7 +31,7 @@
 5. **Completar la porción:** 2 o 3 propiedades con ambientación propia, la ficha taxi con avatar, luz, sonido de ambiente y la escena de arresto.
 6. **Medir en PC y presentar la Puerta B.** Solo el responsable la aprueba.
 
-**Decisión pendiente del responsable:** qué hacer con `tests/tools/manifest.spec.luau` («nunca aprobado»), que fallará al aprobar un asset.
+**Decisión tomada (2026-11-05):** la prueba «nunca aprobado» pasa a exigir quién aprobó y cuándo.
 
 ## Ejecución recomendada
 

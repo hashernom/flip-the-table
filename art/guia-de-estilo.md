@@ -76,16 +76,18 @@ la casilla del suelo.
 
 | # | Zona | Hex | Símbolo | Barrio |
 | --- | --- | --- | --- | --- |
-| 1 | Ladrillo | `#C4382B` | Cuadrado | Centro |
-| 2 | Teja | `#C86A3C` | Triángulo | Centro |
-| 3 | Trigo | `#E0A93B` | Círculo | Centro |
-| 4 | Oliva | `#7A8B3F` | Rombo | Centro |
-| 5 | Musgo | `#3F7A52` | Cruz | Centro |
-| 6 | Granito | `#6E747C` | Hexágono | Centro |
-| 7 | Cielo | `#3E8FC4` | Semicírculo | Puerto |
-| 8 | Marino | `#2C5C8A` | Media luna | Puerto |
-| 9 | Malva | `#8E6BA8` | Estrella de cuatro | Zona Alta |
-| 10 | Grafito | `#2A2E33` | Anillo | Zona Alta |
+| 1 | Callejón del Cobre | `#C97B3A` | Moneda | Centro |
+| 2 | Pasaje Cian | `#22D3EE` | Onda | Centro |
+| 3 | Bulevar Magenta | `#E85D9E` | Rombo | Centro |
+| 4 | Feria Naranja | `#F59E0B` | Rayo | Centro |
+| 5 | Distrito Carmesí | `#DC2626` | Llama | Centro |
+| 6 | Paseo Limón | `#FACC15` | Círculo | Centro |
+| 7 | Dársena Esmeralda | `#10B981` | Media luna | Puerto |
+| 8 | Muelle Violeta | `#8B5CF6` | Estrella | Puerto |
+| 9 | Mirador Añil | `#4F46E5` | Constelación | Zona Alta |
+| 10 | Cumbre Blanca | `#E7E5E4` | Copo | Zona Alta |
+| 11 | Distrito Grafito | `#64748B` | Hexágono | Industrial |
+| 12 | Sector Ocre | `#A16207` | Ladrillo | Industrial |
 
 Los símbolos se dibujan como geometría propia (SVG o `ImageLabel`), en un solo grosor de trazo. No
 se usan glifos de fuente ni emoji.
@@ -174,11 +176,10 @@ compra y vive en el **HUD**, junto al dinero y las acciones del turno; la escrit
 «si caigo aquí, ¿cuánto pago?». Debajo de la tabla van las dos reglas que modifican esa cifra, porque
 también son renta: zona completa del dueño ×2 y casilla en Zona Caliente ×2.
 
-**Pendiente de alinear.** `docs/00-ficha/ficha-propuesta.md` todavía dice «Tres niveles: casa,
-edificio y rascacielos», y el motor sigue con `maxBuildingLevel = 3` y multiplicadores `{3, 6, 10}`.
-La guía dibuja la escalera nueva porque es la decisión del responsable, pero la ficha y el motor
-tienen que alinearse antes de que la tarjeta se implemente en la interfaz. La ficha no la toca arte:
-se avisa aquí.
+**Alineada el 2026-11-04.** La ficha, `Economy.maxBuildingLevel = 5` y
+`buildingRentMultiplier = { 2, 3, 5, 8, 12 }` usan ya los cinco pasos; el aviso anterior quedó
+resuelto (`art/ESTADO.md`). En la ciudad, los cinco pasos no cambian el modelo: añaden marcadores,
+que genera el código, y piezas de añadido, que modela el edificio (`art/edificios/niveles.md`).
 La variante **A1** —franja de zona de 20 px y precio sobre el papel, sin bloque a sangre— quedó
 descartada el 2026-11-02 por el responsable. La comparación entre las dos se conserva en
 [`identidad/direccion-a-tarjetas.png`](identidad/direccion-a-tarjetas.png) como registro de la
@@ -224,8 +225,9 @@ señalización de tráfico. La idea completa está en [vision-visual.md](vision-
 
 ## 6. Biblioteca de materiales
 
-Siete materiales, todos con `MaterialService.Use2022Materials = true` y `SurfaceAppearance` cuando
-aporten rugosidad. El color base de la tabla 2.2 es el albedo; las texturas solo añaden variación.
+Siete materiales base y tres secundarios, todos con `MaterialService.Use2022Materials = true` y
+`SurfaceAppearance` cuando aporten rugosidad. El color base de la tabla 2.2 es el albedo; las
+texturas solo añaden variación.
 
 | Material | Roblox | Rugosidad | Metal | Uso típico |
 | --- | --- | --- | --- | --- |
@@ -240,16 +242,28 @@ aporten rugosidad. El color base de la tabla 2.2 es el albedo; las texturas solo
 Ningún material usa blanco puro ni negro puro: bajo el sol de las 9,4 se queman y se pierden la
 forma y la sombra.
 
+Los tres secundarios ya están en los modelos: **Pizarra** (`Slate`) para cubiertas, **Lona**
+(`Fabric`) para toldos y **Hierba** (`Grass`) para jardineras. Sus colores salen de
+`src/shared/config/ArtAssets.luau` y no abren una paleta nueva.
+
+El cobre no es un material: es `Metal` teñido con el color de la zona. No se añade a la biblioteca.
+
 ## 7. Barrios
 
-Los tres tienen que distinguirse de un vistazo de silueta, no solo de color.
+Los cuatro tienen que distinguirse de un vistazo de silueta, no solo de color.
 
 - **Centro.** Ladrillo y caliza, toldos, 4 a 12 plantas, calles estrechas y sombra dura. La paleta
   cálida manda. Es el barrio del arranque y el que más veces se mira.
-- **Puerto.** Adoquín, hierro oxidado, naves bajas y grúas; el cielo abierto pesa más que los
-  edificios. El agua y el azul marino ponen el acento frío. Aquí el horizonte se ve.
-- **Zona Alta.** Cristal azul, acero pulido y oro; torres de 20 a 30 plantas, plaza elevada y
-  reflejos. Es el único barrio donde el oro cubre superficies, y solo en remates.
+- **Puerto.** Adoquín, hierro oxidado, naves de 2 a 4 plantas y grúas; el cielo abierto pesa más que
+  los edificios. El agua y el azul marino ponen el acento frío. Aquí el horizonte se ve.
+- **Zona Alta.** Cristal azul, acero pulido y oro; torres de 8 a 13 plantas, plaza elevada y
+  reflejos. Es el único barrio donde el oro cubre superficies, y solo en remates. El techo de 92
+  studs manda: no hay 20–30 plantas.
+- **Industrial.** Ladrillo oscuro, acero y óxido; naves y talleres de 2 a 6 plantas, chimeneas y
+  silos hasta 60. Es el barrio del trabajo; el detalle se concentra en la fachada que da a la ruta.
+
+El diseño de cada zona y de cada propiedad vive en `art/edificios/`; esta guía solo fija la
+identidad y los límites.
 
 La transición entre barrios se hace con una calle, no con un cambio de paleta a mitad de manzana.
 
@@ -260,17 +274,18 @@ aprueban proporción, paleta y soleamiento, que es lo que la guía tiene que fij
   caliza y ladrillo alternos.
 - [`identidad/concepto-puerto.png`](identidad/concepto-puerto.png) — naves de 24, muelle de 60, grúa
   de 48 como único vertical.
-- [`identidad/concepto-alta.png`](identidad/concepto-alta.png) — torres de 20 a 30 plantas sobre podio
-  de caliza, oro solo en la coronación.
+- [`identidad/concepto-alta.png`](identidad/concepto-alta.png) — torres sobre podio de caliza, oro solo
+  en la coronación; la altura real es de 8 a 13 plantas.
 
 Cada lámina lleva su cota, su escala (px por stud) y una franja de soleamiento con la sombra que
 proyecta el sol a 34°.
 
 ## 8. Escala
 
-Se respeta `art/escala.md` sin cambios: avatar 6 studs, planta 7, calzada 34, acera 7, solar 18 × 22,
-ficha de 9 de alto (6 de diámetro) y ojo de cámara a 14,1. El rascacielos de 92 es el techo del
-juego.
+Se respeta `art/escala.md`: avatar 6 studs, planta 7, calzada 34, acera 7, solar **36 × 22**
+(provisional; el solar del blockout era más estrecho), ficha de 9 de alto (6 de diámetro). El ojo de
+cámara a 14,1 ya no se usa: no hay primera persona desde el 2026-11-04. El rascacielos de 92 es el
+techo del juego.
 
 La identidad compite con esa escala: una placa de calle de 2 studs de alto es legible a 14,1 desde
 la calzada, y por eso las placas de casilla no llevan más de 3 palabras.
@@ -295,6 +310,7 @@ la calzada, y por eso las placas de casilla no llevan más de 3 palabras.
 - [x] **Tres imágenes conceptuales de la ciudad** entregadas y **aprobadas por el responsable el
       2026-11-02**: `identidad/concepto-centro.png`, `identidad/concepto-puerto.png` y
       `identidad/concepto-alta.png`.
+- [ ] Cerrar el estándar de edificación (`art/edificios/`) antes de modelar las 34 propiedades.
 - [ ] Revisar la paleta de materiales contra una captura real con la luz de `art/luz.md` antes de
       darla por buena.
 - [ ] Actualizar `art/ESTADO.md` cuando la Tarea 1 esté cerrada.

@@ -65,6 +65,9 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
    basta, separar las casillas (`CityLayout`).
 7. **Studio bajo Vinegar:** en este equipo se ha colgado y el 3D sale negro en las capturas; sin
    resolverlo no se puede aprobar nada en el juego.
+8. **Estándar de edificación:** `art/edificios/` ya tiene las reglas, el contrato de niveles, el
+   checklist y la ficha piloto de Cobre. Faltan las otras once fichas de zona, que se escriben
+   después de aprobar el piloto.
 
 ## Errores ya pagados, para no repetirlos
 
@@ -97,3 +100,5 @@ Dónde está el arte de Metrópolis y por dónde seguir. Se actualiza al cerrar 
    calle y `art/lookdev/look.luau` aplica la luz y los materiales. Con esos dos se reconstruye el banco
    de pruebas; el `.rbxl` no se versiona.
 6. El siguiente paso concreto está en el apartado «Estado» de `docs/02-mvp/plan-06-base-de-arte.md`.
+7. Para modelar una propiedad: `art/edificios/README.md`, la ficha de su zona y
+   `art/edificios/aceptacion.md`.

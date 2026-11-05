@@ -32,7 +32,7 @@ Alturas con los niveles de edificio de la arquitectura:
 | Ficha taxi | — | 9 | 892 |
 | Fondo de ciudad | — | 52 | 60 |
 
-**Revisión del 2026-11-04.** Sin primera persona, las razones de abajo basadas en el ojo a 14,1 ya no fijan la altura de la ficha, que se revisará con la cámara nueva. Cada propiedad es ahora un edificio propio y fijo, con su altura, y el nivel solo le añade un poco (R-P50). Las alturas de la tabla quedan como referencia del blockout y 92 sigue siendo el techo. Provisionalmente, el solar mide 36 de frente y 22 de fondo, en vez de los 18 de arriba. Las casillas son pintura sobre la calzada de 30 × 16, con 40 entre casilla y casilla. Ver [vision-visual.md](vision-visual.md).
+**Revisión del 2026-11-04.** Sin primera persona, las razones de abajo basadas en el ojo a 14,1 ya no fijan la altura de la ficha, que se revisará con la cámara nueva. Cada propiedad es ahora un edificio propio y fijo, con su altura, y el nivel solo le añade un poco (R-P50). Las alturas de la tabla quedan como referencia del blockout y 92 sigue siendo el techo. Provisionalmente, el solar mide 36 de frente y 22 de fondo, en vez de los 18 de arriba. **Revisión del 2026-11-05:** las casillas son un marco de pintura de 33 × 28, a todo el ancho de la calzada, con 40 entre casilla y casilla; las esquinas ocupan el cruce (33 × 33). La ficha taxi circula en `side = -3`, y las propiedades llevan una isla de 6 studs del lado del edificio. Los edificios siguen [art/edificios/blueprint.md](edificios/blueprint.md). Ver [vision-visual.md](vision-visual.md).
 
 ## Por qué estos y no otros
 
