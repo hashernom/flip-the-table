@@ -2162,6 +2162,37 @@
         "rbxassetid://84694265974677",
         "rbxassetid://94980658088478"
       ]
+    },
+    {
+      "id": "scene-grua-remolque",
+      "category": "SceneCharacter",
+      "source": "art/blender/scene-props/grua-remolque.py",
+      "triangles": 2012,
+      "lods": [
+        818
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art\\blender\\scene-props\\grua-remolque",
+      "assetId": "rbxassetid://97143215210376",
+      "assetIds": [
+        "rbxassetid://124306935009599",
+        "rbxassetid://71402940919668",
+        "rbxassetid://86695196638253",
+        "rbxassetid://105150362948008",
+        "rbxassetid://124866178234368",
+        "rbxassetid://132935080410986",
+        "rbxassetid://132280338906078",
+        "rbxassetid://126678252302660",
+        "rbxassetid://100339933242954",
+        "rbxassetid://127218893026857",
+        "rbxassetid://100943728062020",
+        "rbxassetid://100811372708938",
+        "rbxassetid://113826954340351",
+        "rbxassetid://79819354283520",
+        "rbxassetid://80278404432363"
+      ]
     }
   ]
 }

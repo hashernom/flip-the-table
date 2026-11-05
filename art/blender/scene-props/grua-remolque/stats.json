@@ -1,0 +1,177 @@
+{
+  "modelo": "grua-remolque",
+  "unidades": "studs (1 unidad de Blender = 1 stud)",
+  "origen": "centro de la base, a ras de suelo (x = 0, y = 0, z = 0)",
+  "frente": "-Y (morro)",
+  "arriba": "+Z",
+  "triangulos": {
+    "piezas": {
+      "towtruck_asfalto": 440,
+      "towtruck_amarillo": 332,
+      "towtruck_acero": 736,
+      "towtruck_cristal": 72,
+      "towtruck_wheel_fl": 44,
+      "towtruck_hub_fl": 28,
+      "towtruck_wheel_fr": 44,
+      "towtruck_hub_fr": 28,
+      "towtruck_wheel_ml": 44,
+      "towtruck_hub_ml": 28,
+      "towtruck_wheel_mr": 44,
+      "towtruck_hub_mr": 28,
+      "towtruck_wheel_rl": 44,
+      "towtruck_hub_rl": 28,
+      "towtruck_wheel_rr": 44,
+      "towtruck_hub_rr": 28
+    },
+    "total": 2012,
+    "lod1": 818,
+    "lod1_mitad_del_total": 1006.0,
+    "lod1_porcentaje": 40.7,
+    "presupuesto_total": 3000
+  },
+  "medidas": {
+    "ancho_x": 7.43,
+    "largo_y": 19.71,
+    "alto_z": 7.403,
+    "min_z": 0.0,
+    "max_z": 7.403,
+    "maximos_permitidos": [
+      8.0,
+      20.0,
+      8.0
+    ],
+    "ficha_grua": {
+      "ancho_x": 6.42,
+      "largo_y": 14.0,
+      "alto_z": 6.88
+    },
+    "mayor_que_ficha_grua": true
+  },
+  "plataforma": {
+    "inicio_y": -3.0,
+    "fin_y": 9.6,
+    "largo_y": 12.6,
+    "ancho_x": 6.4,
+    "z_superior": 2.72,
+    "barandilla_z": 3.02,
+    "vehiculo_maximo_y": 12.4
+  },
+  "pluma": {
+    "pivote": [
+      -1.6,
+      6.95
+    ],
+    "punta": [
+      5.0,
+      5.75
+    ],
+    "altura_max_z": 7.403,
+    "cable_y": 5.0
+  },
+  "gancho": {
+    "y": 5.0,
+    "x": 0.0,
+    "z_superior": 4.26,
+    "z_inferior": 3.22,
+    "despeje_plataforma": 0.5
+  },
+  "ruedas": {
+    "fl": {
+      "archivo": "towtruck_wheel_fl.fbx",
+      "tapacubos": "towtruck_hub_fl.fbx",
+      "eje": [
+        -2.7,
+        -7.3,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    },
+    "fr": {
+      "archivo": "towtruck_wheel_fr.fbx",
+      "tapacubos": "towtruck_hub_fr.fbx",
+      "eje": [
+        2.7,
+        -7.3,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    },
+    "ml": {
+      "archivo": "towtruck_wheel_ml.fbx",
+      "tapacubos": "towtruck_hub_ml.fbx",
+      "eje": [
+        -2.7,
+        4.4,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    },
+    "mr": {
+      "archivo": "towtruck_wheel_mr.fbx",
+      "tapacubos": "towtruck_hub_mr.fbx",
+      "eje": [
+        2.7,
+        4.4,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    },
+    "rl": {
+      "archivo": "towtruck_wheel_rl.fbx",
+      "tapacubos": "towtruck_hub_rl.fbx",
+      "eje": [
+        -2.7,
+        7.2,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    },
+    "rr": {
+      "archivo": "towtruck_wheel_rr.fbx",
+      "tapacubos": "towtruck_hub_rr.fbx",
+      "eje": [
+        2.7,
+        7.2,
+        1.18
+      ],
+      "giro": "X",
+      "radio": 1.18,
+      "ancho": 1.0
+    }
+  },
+  "materiales": {
+    "towtruck_asfalto": "asfalto",
+    "towtruck_amarillo": "amarillo",
+    "towtruck_acero": "acero",
+    "towtruck_cristal": "cristal",
+    "towtruck_wheel_fl": "asfalto",
+    "towtruck_wheel_fr": "asfalto",
+    "towtruck_wheel_ml": "asfalto",
+    "towtruck_wheel_mr": "asfalto",
+    "towtruck_wheel_rl": "asfalto",
+    "towtruck_wheel_rr": "asfalto",
+    "towtruck_hub_fl": "acero",
+    "towtruck_hub_fr": "acero",
+    "towtruck_hub_ml": "acero",
+    "towtruck_hub_mr": "acero",
+    "towtruck_hub_rl": "acero",
+    "towtruck_hub_rr": "acero",
+    "towtruck_LOD1": "amarillo"
+  },
+  "paleta": {
+    "amarillo": "F5C518",
+    "acero": "A8AEB4",
+    "asfalto": "2A2E33",
+    "cristal": "2E4A63"
+  }
+}
