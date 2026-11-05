@@ -7,9 +7,9 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
 
 | Tarea | Estado | Evidencia | Pendiente |
 | --- | --- | --- | --- |
-| 1. Trazado de barrios | A medias | Ciudad, puentes, mobiliario y las 34 propiedades; capturas de la porción vertical | Captura de la ruta completa en S/M/L y aprobación |
+| 1. Trazado de barrios | A medias | Ciudad, puentes, mobiliario y las 34 propiedades; capturas de ruta S/M/L en Studio (vista sintética) | Captura de partida real y aprobación |
 | 2. Propiedades por zona | Casi | 34 propiedades modeladas; 32 entradas de propiedad en el manifiesto, todas `Approved` o `InGame` | 13 capturas de propiedad y la prueba de cámara a nivel 5 |
-| 3. Casillas especiales | Código hecho | 8 lugares, iconos re-subidos como imágenes y verificados; Zona Caliente con banda y contorno; capturas sintéticas; revisión aprobada | Captura real con 2 jugadores y aprobación |
+| 3. Casillas especiales | Código hecho | 8 lugares, iconos re-subidos como imágenes y verificados; Zona Caliente con banda y contorno; capturas de Salida, Tribunal y Portal en la ciudad | Captura real con 2 jugadores y aprobación |
 | 4. Maqueta | Código hecho | Plinto, miniatura, tarjetas, marcadores y cámara; revisión aprobada; **apertura medida en 0,036 s** | Captura real con 2 jugadores y aprobación |
 | 5. Ocho fichas | Código hecho | Elección con intercambio, animaciones y avatares extremos; revisión aprobada | Prueba en partida real y aprobación |
 | 6. Actores de escena | Código hecho | `Actors.spawn/despawn/pose`, pool y 20 pruebas; revisión aprobada; **100 ciclos por tipo en Studio sin fallos** | Aprobación |
@@ -30,6 +30,9 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
 - Capturas en `art/render/ingame/`: `ciudad-turno.jpg` y `zonacaliente-ciudad.jpg` (ciudad real
   construida por `CityBuilder` con una vista sintética en Studio Play), además de fichas, casillas,
   avatares extremos y Zona Caliente. **No son de una partida de 2 jugadores**: eso sigue pendiente.
+- Capturas de ruta `ruta-s.jpg`, `ruta-m.jpg` y `ruta-l.jpg`, y de las casillas `casilla-start.jpg`,
+  `casilla-tribunal.jpg` y `casilla-portal.jpg`, con la misma vista sintética. La del Tribunal enseña
+  la fachada nueva con la cárcel dentro y el icono pintado en la casilla.
 - **Actores, 100 ciclos por tipo** (Studio Play, Rojo sincronizado a esta rama): 8 tipos × 100
   `spawn`/`despawn`, **0 fallos**, 0 modelos activos al final, `Actors.clear()` deja 0 y el heap de
   Lua queda en 6,2 MB. Resultado del 2026-11-05.
