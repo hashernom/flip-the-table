@@ -1083,6 +1083,225 @@
         "rbxassetid://81872110573930",
         "rbxassetid://86345238199135"
       ]
+    },
+    {
+      "id": "acuario-la-sirena",
+      "category": "Building",
+      "source": "art/blender/buildings/esmeralda/acuario-la-sirena.py",
+      "triangles": 2812,
+      "lods": [
+        1322
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/esmeralda-acuario-la-sirena-nivel0.jpg",
+        "art/render/ingame/esmeralda-acuario-la-sirena-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/esmeralda/acuario-la-sirena.py",
+      "assetId": "rbxassetid://117421869769509",
+      "assetIds": [
+        "rbxassetid://137409626272219",
+        "rbxassetid://84758901910357",
+        "rbxassetid://135620699955291",
+        "rbxassetid://110218372091276",
+        "rbxassetid://95683019766736",
+        "rbxassetid://94918943644289",
+        "rbxassetid://116021930232766",
+        "rbxassetid://102977045678298",
+        "rbxassetid://72374126695064",
+        "rbxassetid://91350302746031",
+        "rbxassetid://76661624606727",
+        "rbxassetid://86871348217811",
+        "rbxassetid://90894983316186",
+        "rbxassetid://92486048761523",
+        "rbxassetid://95873083625048",
+        "rbxassetid://113156499098731",
+        "rbxassetid://113150342575026",
+        "rbxassetid://100047430599618",
+        "rbxassetid://131844599506598",
+        "rbxassetid://92521203645660"
+      ]
+    },
+    {
+      "id": "versalles-1",
+      "category": "Building",
+      "source": "art/blender/buildings/violeta/versalles-1.py",
+      "triangles": 2716,
+      "lods": [
+        1218
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/violeta-versalles-1-nivel0.jpg",
+        "art/render/ingame/violeta-versalles-1-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/violeta/versalles-1.py",
+      "assetId": "rbxassetid://119628839796444",
+      "assetIds": [
+        "rbxassetid://88845007151307",
+        "rbxassetid://130780081411045",
+        "rbxassetid://136879403292714",
+        "rbxassetid://109324726711439",
+        "rbxassetid://121496367120219",
+        "rbxassetid://130177484706325",
+        "rbxassetid://94208386502553",
+        "rbxassetid://128260466514409",
+        "rbxassetid://106403678356256",
+        "rbxassetid://129505733950564",
+        "rbxassetid://116234463153851",
+        "rbxassetid://96176932353280",
+        "rbxassetid://136806986180018",
+        "rbxassetid://131906589059302",
+        "rbxassetid://135828725082897",
+        "rbxassetid://126111428942677",
+        "rbxassetid://78431462302768",
+        "rbxassetid://107354693874460",
+        "rbxassetid://82747391356886",
+        "rbxassetid://87702461138752"
+      ]
+    },
+    {
+      "id": "versalles-2",
+      "category": "Building",
+      "source": "art/blender/buildings/violeta/versalles-2.py",
+      "triangles": 2874,
+      "lods": [
+        1216
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [
+        "art/render/ingame/violeta-versalles-2-nivel0.jpg",
+        "art/render/ingame/violeta-versalles-2-nivel5.jpg"
+      ],
+      "generatedWith": "Blender 5.2, art/blender/buildings/violeta/versalles-2.py",
+      "assetId": "rbxassetid://88634114086342",
+      "assetIds": [
+        "rbxassetid://135314760042883",
+        "rbxassetid://79827843996412",
+        "rbxassetid://95314774292218",
+        "rbxassetid://118759950407033",
+        "rbxassetid://78278577875201",
+        "rbxassetid://117077127816696",
+        "rbxassetid://123919362694705",
+        "rbxassetid://118023146014732",
+        "rbxassetid://96829496676068",
+        "rbxassetid://102731822738890",
+        "rbxassetid://109828289123514",
+        "rbxassetid://134462268710030",
+        "rbxassetid://109503639142464",
+        "rbxassetid://139545878301141",
+        "rbxassetid://138965545927936",
+        "rbxassetid://120271129609963",
+        "rbxassetid://111076796503987",
+        "rbxassetid://110641618679942",
+        "rbxassetid://131944894756295",
+        "rbxassetid://79447538381161",
+        "rbxassetid://132951269310420",
+        "rbxassetid://106199794947120",
+        "rbxassetid://82857526353956",
+        "rbxassetid://110745046223130"
+      ]
+    },
+    {
+      "id": "observatorio-cerro-azul",
+      "category": "Building",
+      "source": "art/blender/buildings/anil/observatorio-cerro-azul.py",
+      "triangles": 2668,
+      "lods": [
+        1260
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/buildings/anil/observatorio-cerro-azul.py",
+      "assetId": "rbxassetid://115710759941131",
+      "assetIds": [
+        "rbxassetid://78726837888791",
+        "rbxassetid://116365858449410",
+        "rbxassetid://77189302094912",
+        "rbxassetid://80709612993123",
+        "rbxassetid://129381335565733",
+        "rbxassetid://93132071106618",
+        "rbxassetid://105225056317674",
+        "rbxassetid://103079307061228",
+        "rbxassetid://128970355469083",
+        "rbxassetid://97135860503753",
+        "rbxassetid://129776313049618",
+        "rbxassetid://125039940162507",
+        "rbxassetid://71617354481173",
+        "rbxassetid://133018400776597",
+        "rbxassetid://105891345207447"
+      ]
+    },
+    {
+      "id": "d-t",
+      "category": "Building",
+      "source": "art/blender/buildings/anil/d-t.py",
+      "triangles": 1574,
+      "lods": [
+        562
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/buildings/anil/d-t.py",
+      "assetId": "rbxassetid://124687125795797",
+      "assetIds": [
+        "rbxassetid://101732932096226",
+        "rbxassetid://111370929697491",
+        "rbxassetid://79953502763927",
+        "rbxassetid://115132331435916",
+        "rbxassetid://111204261252160",
+        "rbxassetid://110379514565057",
+        "rbxassetid://100998763617492",
+        "rbxassetid://110628858900809",
+        "rbxassetid://74606516488374",
+        "rbxassetid://95149081102750",
+        "rbxassetid://90521567255759",
+        "rbxassetid://108129051602607",
+        "rbxassetid://120917599258100",
+        "rbxassetid://71903028716068"
+      ]
+    },
+    {
+      "id": "torres-de-aragon",
+      "category": "Building",
+      "source": "art/blender/buildings/anil/torres-de-aragon.py",
+      "triangles": 2982,
+      "lods": [
+        1392
+      ],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/buildings/anil/torres-de-aragon.py",
+      "assetId": "rbxassetid://101916434742598",
+      "assetIds": [
+        "rbxassetid://132706101177556",
+        "rbxassetid://114808485285190",
+        "rbxassetid://122065316996231",
+        "rbxassetid://103767754139071",
+        "rbxassetid://119345582879055",
+        "rbxassetid://109628168586202",
+        "rbxassetid://137920384265174",
+        "rbxassetid://81387146787352",
+        "rbxassetid://132929746607305",
+        "rbxassetid://130736858178091",
+        "rbxassetid://98684386313745",
+        "rbxassetid://126333205886949",
+        "rbxassetid://81347675399441",
+        "rbxassetid://113494244665255",
+        "rbxassetid://97360546229261",
+        "rbxassetid://84568110446006",
+        "rbxassetid://137798473098061",
+        "rbxassetid://122797450642134",
+        "rbxassetid://131624785085157",
+        "rbxassetid://121046813122595",
+        "rbxassetid://83242378758310"
+      ]
     }
   ]
 }

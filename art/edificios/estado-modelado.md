@@ -59,16 +59,24 @@ Ninguna propiedad se aprueba aquí: solo el responsable pone `Approved`.
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Muelle de los Pescadores | En juego | 15,0 | 34,0 | 2 958 | 1 384 | [niveles](../render/esmeralda/muelle-de-los-pescadores/muelle-de-los-pescadores-niveles.png) · [comparación](../render/esmeralda/muelle-de-los-pescadores/muelle-de-los-pescadores-comparacion.png) |
+| Astillero Neptuno | En juego | 19,0 | 34,0 | 2 462 | 1 114 | [niveles](../render/esmeralda/astillero-neptuno/astillero-neptuno-niveles.png) · [comparación](../render/esmeralda/astillero-neptuno/astillero-neptuno-comparacion.png) |
+| Acuario La Sirena | En juego | 17,0 | 34,0 | 2 812 | 1 322 | [niveles](../render/esmeralda/acuario-la-sirena/acuario-la-sirena-niveles.png) · [comparación](../render/esmeralda/acuario-la-sirena/acuario-la-sirena-comparacion.png) |
 
 ## Zona 08 · Violeta (`violeta`)
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Versalles 1 | En juego | 16,0; nivel 0 20,6 | 33,5 | 2 716 | 1 218 | [niveles](../render/violeta/versalles-1/versalles-1-niveles.png) · [comparación](../render/violeta/versalles-1/versalles-1-comparacion.png) |
+| Versalles 2 | En juego | 19,0; nivel 0 21,5 | 34,0 | 2 874 | 1 216 | [niveles](../render/violeta/versalles-2/versalles-2-niveles.png) · [comparación](../render/violeta/versalles-2/versalles-2-comparacion.png) |
 
 ## Zona 09 · Añil (`anil`)
 
 | Propiedad | Estado | Cuerpo | Nivel 5 | Triángulos | LOD1 | Capturas |
 | --- | --- | --- | --- | --- | --- | --- |
+| Observatorio Cerro Azul | En juego; captura en juego pendiente (tablero S) | 25,0 | 39,0 | 2 668 | 1 260 | [niveles](../render/anil/observatorio-cerro-azul/observatorio-cerro-azul-niveles.png) · [comparación](../render/anil/observatorio-cerro-azul/observatorio-cerro-azul-comparacion.png) |
+| D.T | En juego; captura en juego pendiente (tablero S) | 28,5 (masa); nivel 0 33,3 | 44,0 | 1 574 | 562 | [niveles](../render/anil/d-t/d-t-niveles.png) · [comparación](../render/anil/d-t/d-t-comparacion.png) |
+| Torres de Aragón | En juego; captura en juego pendiente (tablero S) | 23,0; nivel 0 24,2 | 37,6 | 2 982 | 1 392 | [niveles](../render/anil/torres-de-aragon/torres-de-aragon-niveles.png) · [comparación](../render/anil/torres-de-aragon/torres-de-aragon-comparacion.png) |
 
 ## Zona 10 · Blanca (`blanca`)
 
