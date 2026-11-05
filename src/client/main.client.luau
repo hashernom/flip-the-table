@@ -470,6 +470,13 @@ local function boot()
 					{ view = view, names = names }
 				)
 			end,
+			HotZone = function()
+				local handles = city
+				if handles ~= nil then
+					handles.setHotZone(view.hotZoneId)
+				end
+				BuildingView.setHotZone(view.hotZoneId)
+			end,
 			Overview = function()
 				overview.setView(view, names)
 			end,

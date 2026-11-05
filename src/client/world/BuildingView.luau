@@ -9,11 +9,17 @@ local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
 local Strings = require("../../shared/config/Strings")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
 
 local BLOCK_COLOR = Color3.fromRGB(176, 170, 158)
 local ADDON_COLOR = Color3.fromRGB(140, 134, 124)
 -- Bloque del mojón mientras no llega su malla: caliza.
 local MARKER_COLOR = Color3.fromRGB(210, 201, 180)
+-- Zona Caliente: contorno cálido que pulsa sobre los edificios de la zona activa. No depende del
+-- color del dueño ni de la zona, así que se distingue también en blanco y negro.
+local HOT_ZONE_GLOW = "HotZoneGlow"
+local HOT_ZONE_FILL = Color3.fromRGB(255, 168, 48)
+local HOT_ZONE_OUTLINE = Color3.fromRGB(255, 214, 120)
 
 local BuildingView = {}
 
@@ -25,6 +31,7 @@ local owners: { [number]: { name: string, color: Color3 }? } = {}
 -- Solares que tienen piezas reales pero se dibujaron en gris porque sus mallas aún no habían llegado.
 local pending: { [number]: boolean } = {}
 local tagsVisible = false
+local hotZoneId: string? = nil
 
 local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance)
 	local piece = Instance.new("Part")
@@ -102,6 +109,58 @@ local function refreshTag(index: number)
 	label.BackgroundColor3 = owner.color
 end
 
+-- Zona de una propiedad según el tablero con el que se construyó la ciudad.
+local function zoneOf(index: number): string?
+	local handles = city
+	if handles == nil then
+		return nil
+	end
+	local slot = CityLayout.routeFor(handles.sizeId)[index]
+	return if slot ~= nil then slot.zoneId else nil
+end
+
+-- Contorno cálido que pulsa en los edificios de la Zona Caliente. Sin relleno: la arquitectura se ve
+-- tal cual y el pulso lo distingue de una selección estática.
+local function ensureGlow(index: number)
+	local model: Model? = buildings[index]
+	if model == nil then
+		return
+	end
+	local existing: Instance? = model:FindFirstChild(HOT_ZONE_GLOW)
+	local wanted = hotZoneId ~= nil and zoneOf(index) == hotZoneId
+	if wanted and existing == nil then
+		local glow = Instance.new("Highlight")
+		glow.Name = HOT_ZONE_GLOW
+		glow.Adornee = model
+		glow.FillColor = HOT_ZONE_FILL
+		glow.FillTransparency = 1
+		glow.OutlineColor = HOT_ZONE_OUTLINE
+		glow.OutlineTransparency = 0.15
+		glow.DepthMode = Enum.HighlightDepthMode.Occluded
+		glow.Parent = model
+		local tween = TweenService:Create(
+			glow,
+			TweenInfo.new(1.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+			{ OutlineTransparency = 0.6 }
+		)
+		tween:Play()
+	elseif not wanted and existing then
+		existing:Destroy()
+	end
+end
+
+-- Enciende o apaga el contorno de la Zona Caliente. Se puede llamar en cada lote: si la zona no
+-- cambió, no hace nada.
+function BuildingView.setHotZone(zoneId: string?)
+	if hotZoneId == zoneId then
+		return
+	end
+	hotZoneId = zoneId
+	for index in buildings do
+		ensureGlow(index)
+	end
+end
+
 -- Pone un solar en un nivel. Las escenas la llaman también para enseñar una obra antes de la vista.
 function BuildingView.setLevel(index: number, level: number)
 	local handles = city
@@ -174,6 +233,7 @@ function BuildingView.setLevel(index: number, level: number)
 	model.Parent = handles.model
 	buildings[index] = model
 	refreshTag(index)
+	ensureGlow(index)
 end
 
 -- Vuelve a levantar lo que está en la ciudad cuando terminan de cargar los modelos reales.
@@ -233,6 +293,7 @@ function BuildingView.bind(handles: CityBuilder.CityHandles)
 	owners = {}
 	pending = {}
 	lastProperties = nil
+	hotZoneId = nil
 	for _, slot in CityLayout.routeFor(handles.sizeId) do
 		if slot.kind == "Property" then
 			BuildingView.setLevel(slot.index, 0)

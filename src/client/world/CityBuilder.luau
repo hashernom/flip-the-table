@@ -12,6 +12,7 @@ local ArtAssets = require("../../shared/config/ArtAssets")
 local CityLayout = require("../../shared/config/CityLayout")
 local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
+local TweenService = game:GetService("TweenService")
 
 export type SizeId = CityLayout.SizeId
 
@@ -31,6 +32,8 @@ export type CityHandles = {
 	lotOf: (index: number) -> CFrame,
 	-- Pinta el solar con el color del dueño. La baldosa conserva el de su zona; `nil` libera el solar.
 	setOwner: (index: number, color: Color3?) -> (),
+	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
+	setHotZone: (zoneId: string?) -> (),
 	destroy: () -> (),
 }
 
@@ -55,6 +58,15 @@ local OWNER_PLATE = "OwnerPlate"
 local ICON_SIZE = 14
 local ICON_OFFSET = -3
 local ICON_TRANSPARENCY = 0.05
+-- Zona Caliente: tira de neón en el borde de la acera de cada casilla de la zona activa. Va sobre la
+-- pintura, no sobre el edificio, y pulsa para no confundirse con una línea pintada más.
+local HOT_ZONE_NAME = "HotZone"
+local HOT_ZONE_COLOR = Color3.fromRGB(255, 168, 48)
+local HOT_ZONE_WIDTH = 1.2
+local HOT_ZONE_LENGTH = 28
+local HOT_ZONE_EDGE = CityLayout.PAINT_ACROSS_STUDS / 2 - 0.9
+local HOT_ZONE_HEIGHT = 0.08
+local HOT_ZONE_Y = PAINT_HEIGHT + 0.02
 
 local CityBuilder = {}
 
@@ -314,6 +326,48 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	tokens.Name = "Tokens"
 	tokens.Parent = model
 
+	local hotZone = Instance.new("Folder")
+	hotZone.Name = HOT_ZONE_NAME
+	hotZone.Parent = model
+	local hotZoneId: string? = nil
+
+	local function setHotZone(zoneId: string?)
+		if hotZoneId == zoneId then
+			return
+		end
+		hotZoneId = zoneId
+		for _, strip in hotZone:GetChildren() do
+			strip:Destroy()
+		end
+		if zoneId == nil then
+			return
+		end
+		for _, slot in route do
+			if slot.zoneId ~= zoneId then
+				continue
+			end
+			local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
+			local inward = Vector3.new(-forward.Z, 0, forward.X)
+			local middle = Vector3.new(slot.position.x, HOT_ZONE_Y, slot.position.z) - inward * HOT_ZONE_EDGE
+			local strip = makePart({
+				Name = `HotZone{slot.index}`,
+				Size = Vector3.new(HOT_ZONE_WIDTH, HOT_ZONE_HEIGHT, HOT_ZONE_LENGTH),
+				CFrame = CFrame.lookAt(middle, middle + forward),
+				Color = HOT_ZONE_COLOR,
+				Material = Enum.Material.Neon,
+				Transparency = 0.3,
+			})
+			strip.Parent = hotZone
+			-- El pulso lento lo separa de una raya pintada y se lee en blanco y negro.
+			local tween = TweenService:Create(
+				strip,
+				TweenInfo.new(1.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+				{ Transparency = 0.65 }
+			)
+			tween:Play()
+		end
+	end
+
 	model.Parent = parent
 
 	local slots: { [number]: CityLayout.Slot } = {}
@@ -358,6 +412,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			return Color3.fromHex(Strings.colorFor(toSquare(slot)))
 		end,
 		lotOf = lotOf,
+		setHotZone = setHotZone,
 		setOwner = function(index: number, color: Color3?)
 			local tile: BasePart? = squares[index]
 			if tile == nil then
