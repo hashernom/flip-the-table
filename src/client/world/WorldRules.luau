@@ -6,6 +6,9 @@ local CityLayout = require("../../shared/config/CityLayout")
 
 export type PropertyChange = { index: number, ownerId: string?, level: number }
 
+local PAINT_DESATURATE = 0.3
+local PAINT_DIM = 0.75
+
 local WorldRules = {}
 
 -- Lo que cambió de una vista a otra, en orden de casilla. Se compara el estado y no se escuchan eventos:
@@ -34,6 +37,16 @@ function WorldRules.propertyChanges(
 		return a.index < b.index
 	end)
 	return changes
+end
+
+-- Color de una casilla pintada en el asfalto, a partir del de su zona: se apaga y se acerca al gris, porque
+-- con la luz real un color puro se ve como neón y no como pintura vial. El de la interfaz no cambia.
+function WorldRules.paintColor(r: number, g: number, b: number): (number, number, number)
+	local gray = (r + g + b) / 3
+	local function paint(channel: number): number
+		return (channel + (gray - channel) * PAINT_DESATURATE) * PAINT_DIM
+	end
+	return paint(r), paint(g), paint(b)
 end
 
 -- Etiqueta de una propiedad en la vista general, o nil si no tiene dueño.

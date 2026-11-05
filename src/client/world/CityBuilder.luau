@@ -7,6 +7,7 @@
 --
 -- La ciudad se levanta en el cliente: el servidor no necesita ni una pieza y así el prototipo no
 -- gasta presupuesto de partes replicadas.
+local WorldRules = require("./WorldRules")
 local CityLayout = require("../../shared/config/CityLayout")
 local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
@@ -34,7 +35,7 @@ export type CityHandles = {
 
 local DARK_GREY = Color3.fromRGB(52, 56, 62)
 local ASPHALT = Color3.fromRGB(74, 78, 84)
-local PAVEMENT = Color3.fromRGB(163, 156, 142)
+local PAVEMENT = Color3.fromRGB(128, 123, 112)
 local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
@@ -182,6 +183,7 @@ local function makeStreet(model: Model, sizeId: SizeId)
 			then Vector3.new(length, TILE_HEIGHT, width)
 			else Vector3.new(width, TILE_HEIGHT, length)
 		local part = makePart({ Name = name, Size = size, Color = color, CanCollide = true })
+		part.Material = if color == ASPHALT then Enum.Material.Asphalt else Enum.Material.Concrete
 		part.CFrame = CFrame.new(center)
 		part.Parent = model
 	end
@@ -219,7 +221,8 @@ local function makeSquare(model: Model, slot: CityLayout.Slot): Part
 		Name = `Square{slot.index}`,
 		Size = Vector3.new(CityLayout.SLOT_DEPTH_STUDS, PAINT_HEIGHT, CityLayout.SLOT_LENGTH_STUDS),
 		CFrame = CFrame.lookAt(position, position + forward),
-		Color = color,
+		Color = Color3.new(WorldRules.paintColor(color.R, color.G, color.B)),
+		Material = Enum.Material.Concrete,
 	})
 	tile.Parent = model
 
