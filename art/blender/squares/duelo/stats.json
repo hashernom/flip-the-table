@@ -1,0 +1,268 @@
+{
+  "unidad": "studs (1 unidad de Blender = 1 stud)",
+  "tipo": "casilla especial «Duelo»: sin añadidos de nivel, todo el modelo es el cuerpo",
+  "huella": {
+    "ancho": 32.0,
+    "fondo": 18.0
+  },
+  "piezas": [
+    {
+      "clave": "duel_brick",
+      "nivel": 0,
+      "material": "Brick",
+      "rgb": "B0664A",
+      "triangulos": 372
+    },
+    {
+      "clave": "duel_fabric_blanco",
+      "nivel": 0,
+      "material": "Fabric",
+      "rgb": "EDE5D3",
+      "triangulos": 24
+    },
+    {
+      "clave": "duel_fabric_rojo",
+      "nivel": 0,
+      "material": "Fabric",
+      "rgb": "C4382B",
+      "triangulos": 24
+    },
+    {
+      "clave": "duel_glass",
+      "nivel": 0,
+      "material": "Glass",
+      "rgb": "2E4A63",
+      "triangulos": 24
+    },
+    {
+      "clave": "duel_limestone",
+      "nivel": 0,
+      "material": "Limestone",
+      "rgb": "D2C9B4",
+      "triangulos": 1304
+    },
+    {
+      "clave": "duel_metal",
+      "nivel": 0,
+      "material": "Metal",
+      "rgb": "A8AEB4",
+      "triangulos": 84
+    },
+    {
+      "clave": "duel_slate",
+      "nivel": 0,
+      "material": "Slate",
+      "rgb": "4A4E54",
+      "triangulos": 338
+    },
+    {
+      "clave": "duel_wood",
+      "nivel": 0,
+      "material": "Wood",
+      "rgb": "6B4A2E",
+      "triangulos": 24
+    }
+  ],
+  "total_triangulos": 2194,
+  "presupuesto_triangulos": 3000,
+  "lod1": {
+    "clave": "duel_LOD1",
+    "material": "Limestone",
+    "rgb": "D2C9B4",
+    "triangulos": 342,
+    "porcentaje_del_total": 15.6,
+    "mallas": 1,
+    "materiales": 1
+  },
+  "medidas": {
+    "ancho": 32.0,
+    "fondo": 18.0,
+    "alto": 16.0,
+    "x": [
+      -16.0,
+      16.0
+    ],
+    "y": [
+      -9.0,
+      9.0
+    ],
+    "z": [
+      0.0,
+      16.0
+    ]
+  },
+  "franja_libre": {
+    "x": [
+      -4.6,
+      4.6
+    ],
+    "y": [
+      -8.6,
+      4.3
+    ],
+    "z": [
+      0.55,
+      6.5
+    ],
+    "piezas_dentro": []
+  },
+  "puertas": [
+    {
+      "ancho": 2.4,
+      "alto": 6.65,
+      "clave": "duel_wood"
+    }
+  ],
+  "arco": {
+    "luz": 20.0,
+    "arranque": 6.8,
+    "clave": 10.8
+  },
+  "comprobaciones": [],
+  "fbx_medidas": {
+    "duel_brick": {
+      "triangulos": 372,
+      "materiales": 1,
+      "x": [
+        -15.0,
+        15.0
+      ],
+      "y": [
+        -5.0,
+        9.0
+      ],
+      "z": [
+        0.3,
+        12.95
+      ]
+    },
+    "duel_fabric_blanco": {
+      "triangulos": 24,
+      "materiales": 1,
+      "x": [
+        -8.18,
+        8.18
+      ],
+      "y": [
+        1.33,
+        1.38
+      ],
+      "z": [
+        3.66,
+        6.44
+      ]
+    },
+    "duel_fabric_rojo": {
+      "triangulos": 24,
+      "materiales": 1,
+      "x": [
+        -8.1,
+        8.1
+      ],
+      "y": [
+        1.26,
+        1.33
+      ],
+      "z": [
+        3.82,
+        6.42
+      ]
+    },
+    "duel_glass": {
+      "triangulos": 24,
+      "materiales": 1,
+      "x": [
+        -4.2,
+        4.2
+      ],
+      "y": [
+        5.36,
+        5.42
+      ],
+      "z": [
+        3.75,
+        6.25
+      ]
+    },
+    "duel_limestone": {
+      "triangulos": 1304,
+      "materiales": 1,
+      "x": [
+        -16.0,
+        16.0
+      ],
+      "y": [
+        -9.0,
+        9.0
+      ],
+      "z": [
+        -0.0,
+        15.28
+      ]
+    },
+    "duel_metal": {
+      "triangulos": 84,
+      "materiales": 1,
+      "x": [
+        -8.25,
+        8.25
+      ],
+      "y": [
+        1.28,
+        6.86
+      ],
+      "z": [
+        2.5,
+        11.6
+      ]
+    },
+    "duel_slate": {
+      "triangulos": 338,
+      "materiales": 1,
+      "x": [
+        -16.0,
+        16.0
+      ],
+      "y": [
+        -9.0,
+        9.0
+      ],
+      "z": [
+        0.3,
+        16.0
+      ]
+    },
+    "duel_wood": {
+      "triangulos": 24,
+      "materiales": 1,
+      "x": [
+        -4.65,
+        4.65
+      ],
+      "y": [
+        5.42,
+        5.58
+      ],
+      "z": [
+        0.45,
+        7.1
+      ]
+    },
+    "duel_LOD1": {
+      "triangulos": 342,
+      "materiales": 1,
+      "x": [
+        -16.0,
+        16.0
+      ],
+      "y": [
+        -9.0,
+        9.0
+      ],
+      "z": [
+        -0.0,
+        15.75
+      ]
+    }
+  }
+}
