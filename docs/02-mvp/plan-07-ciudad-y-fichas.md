@@ -19,6 +19,18 @@
 - **Casillas especiales:** les falta su icono propio dentro del marco.
 - **Rendimiento:** FPS y memoria no se midieron en la Puerta B por decisión del responsable; se miden aquí, con la ciudad completa.
 
+## Estado (2026-11-05)
+
+Las casillas de cada tarea se marcan solo con la aprobación del responsable. Esto es lo avanzado hasta hoy:
+
+- **Tarea 1:** sin empezar los barrios. Mobiliario solo en carmesí.
+- **Tarea 2:** 34 de 34 propiedades con edificio real en el tablero L, con servidor y 8 clientes. Con el nivel 5 puesto por script, ningún rayo de la cámara de turno queda bloqueado en las 56 casillas. Faltan las capturas de las zonas 09 a 12 y comprobar la identificación del dueño y del color de zona. La carga de mallas pasó de unos 250 s a menos de 30 s.
+- **Tarea 3:** código de colocación en `SquareView`, sin mallas. El encargo está en [art/casillas/prompt-orquestador.md](../../art/casillas/prompt-orquestador.md). Falta el brillo de la Zona Caliente.
+- **Tarea 4:** sin empezar.
+- **Tarea 5:** taxi final subido; las otras 7 fichas, en manos de un orquestador. Código hecho y probado sin Studio: reparto en casilla compartida (primero lado a lado), `Tokens`, elección sin repetir desde el lobby hasta la revancha, y animaciones de reposo, marcha y celebración. Falta registrar las mallas en `ArtAssets.tokens`, conectar la celebración a una escena, la interfaz de elección (plan 09) y probar en Studio con avatares extremos. La documentación oficial no da límites numéricos de escala: `File > Avatar Settings` los fija, sin acceso por script, y los extremos se prueban con `HumanoidDescription`.
+- **Tarea 6:** `Actors` y `ActorPool` hechos, sin mallas. Encargo en [art/personajes/prompt-orquestador.md](../../art/personajes/prompt-orquestador.md). `Arrest` sigue con su código propio. Falta la prueba de 100 veces en Studio.
+- **Tarea 7:** `tools/manifest` falla con un comentario `-- TEMPORAL` en `src/`, y una prueba exige que toda malla de `ArtAssets` esté en el manifiesto. Falta medir el rendimiento.
+
 ## Ejecución recomendada
 
 **Modo:** subagentes, con `superpowers:subagent-driven-development`.
