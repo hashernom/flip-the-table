@@ -478,7 +478,7 @@
         1381
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/cian-pasaje-burbuja-nivel0.jpg",
         "art/render/ingame/cian-pasaje-burbuja-nivel5.jpg"
@@ -513,7 +513,9 @@
         "rbxassetid://106311885398454",
         "rbxassetid://120445958150394",
         "rbxassetid://111462530021716"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "caldas",
@@ -524,7 +526,7 @@
         1209
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/cian-caldas-nivel0.jpg",
         "art/render/ingame/cian-caldas-nivel5.jpg"
@@ -557,7 +559,9 @@
         "rbxassetid://135383786739610",
         "rbxassetid://139531223933789",
         "rbxassetid://85578283082041"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "calle-del-cable",
@@ -568,7 +572,7 @@
         1203
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/cian-calle-del-cable-nivel0.jpg",
         "art/render/ingame/cian-calle-del-cable-nivel5.jpg"
@@ -595,7 +599,9 @@
         "rbxassetid://73176870634841",
         "rbxassetid://88725532235926",
         "rbxassetid://95550716005110"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "neo-mundo",
@@ -606,7 +612,7 @@
         728
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/magenta-neo-mundo-nivel0.jpg",
         "art/render/ingame/magenta-neo-mundo-nivel5.jpg"
@@ -633,7 +639,9 @@
         "rbxassetid://85394398292873",
         "rbxassetid://85875072787087",
         "rbxassetid://75037172955953"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "centro-paez",
@@ -644,7 +652,7 @@
         1293
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/magenta-centro-paez-nivel0.jpg",
         "art/render/ingame/magenta-centro-paez-nivel5.jpg"
@@ -671,7 +679,9 @@
         "rbxassetid://130735859461741",
         "rbxassetid://84750610147162",
         "rbxassetid://77205482305082"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "plaza-del-neon",
@@ -682,7 +692,7 @@
         1224
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/magenta-plaza-del-neon-nivel0.jpg",
         "art/render/ingame/magenta-plaza-del-neon-nivel5.jpg"
@@ -714,7 +724,9 @@
         "rbxassetid://85719919806384",
         "rbxassetid://120878106391291",
         "rbxassetid://131385565607475"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "mercado-de-la-septima",
@@ -725,7 +737,7 @@
         1305
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/naranja-mercado-de-la-septima-nivel0.jpg",
         "art/render/ingame/naranja-mercado-de-la-septima-nivel5.jpg"
@@ -759,7 +771,9 @@
         "rbxassetid://71279092049009",
         "rbxassetid://112426748312839",
         "rbxassetid://131586654218098"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "llaneradas-com",
@@ -770,7 +784,7 @@
         1250
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/naranja-llaneradas-com-nivel0.jpg",
         "art/render/ingame/naranja-llaneradas-com-nivel5.jpg"
@@ -800,7 +814,9 @@
         "rbxassetid://125826402566245",
         "rbxassetid://80032207687733",
         "rbxassetid://107665246412123"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "calle-del-azafran",
@@ -811,7 +827,7 @@
         1219
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/naranja-calle-del-azafran-nivel0.jpg",
         "art/render/ingame/naranja-calle-del-azafran-nivel5.jpg"
@@ -840,7 +856,9 @@
         "rbxassetid://107944339946097",
         "rbxassetid://115647865106287",
         "rbxassetid://138328505053018"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "plaza-del-jazz",
@@ -851,7 +869,7 @@
         1350
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/carmesi-plaza-del-jazz-nivel0.jpg",
         "art/render/ingame/carmesi-plaza-del-jazz-nivel5.jpg"
@@ -879,7 +897,9 @@
         "rbxassetid://74217863468447",
         "rbxassetid://105497783714788",
         "rbxassetid://109512584907406"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "vereda-la-mata",
@@ -890,7 +910,7 @@
         1171
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/limon-vereda-la-mata-nivel0.jpg",
         "art/render/ingame/limon-vereda-la-mata-nivel5.jpg"
@@ -918,7 +938,9 @@
         "rbxassetid://103206398921669",
         "rbxassetid://112534855996743",
         "rbxassetid://133705657313162"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "villa-margarita",
@@ -929,7 +951,7 @@
         1211
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/limon-villa-margarita-nivel0.jpg",
         "art/render/ingame/limon-villa-margarita-nivel5.jpg"
@@ -961,7 +983,9 @@
         "rbxassetid://126976054522481",
         "rbxassetid://130134222108364",
         "rbxassetid://116211582840570"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "panaderia-la-espiga",
@@ -972,7 +996,7 @@
         1354
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/limon-panaderia-la-espiga-nivel0.jpg",
         "art/render/ingame/limon-panaderia-la-espiga-nivel5.jpg"
@@ -1005,7 +1029,9 @@
         "rbxassetid://126487036299234",
         "rbxassetid://97922521415715",
         "rbxassetid://70725600273805"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "muelle-de-los-pescadores",
@@ -1016,7 +1042,7 @@
         1384
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/esmeralda-muelle-de-los-pescadores-nivel0.jpg",
         "art/render/ingame/esmeralda-muelle-de-los-pescadores-nivel5.jpg"
@@ -1044,7 +1070,9 @@
         "rbxassetid://78763495774305",
         "rbxassetid://89060101754325",
         "rbxassetid://91436282202079"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "astillero-neptuno",
@@ -1055,7 +1083,7 @@
         1114
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/esmeralda-astillero-neptuno-nivel0.jpg",
         "art/render/ingame/esmeralda-astillero-neptuno-nivel5.jpg"
@@ -1082,7 +1110,9 @@
         "rbxassetid://115594188882382",
         "rbxassetid://81872110573930",
         "rbxassetid://86345238199135"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "acuario-la-sirena",
@@ -1093,7 +1123,7 @@
         1322
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/esmeralda-acuario-la-sirena-nivel0.jpg",
         "art/render/ingame/esmeralda-acuario-la-sirena-nivel5.jpg"
@@ -1121,7 +1151,9 @@
         "rbxassetid://100047430599618",
         "rbxassetid://131844599506598",
         "rbxassetid://92521203645660"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "versalles-1",
@@ -1132,7 +1164,7 @@
         1218
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/violeta-versalles-1-nivel0.jpg",
         "art/render/ingame/violeta-versalles-1-nivel5.jpg"
@@ -1160,7 +1192,9 @@
         "rbxassetid://107354693874460",
         "rbxassetid://82747391356886",
         "rbxassetid://87702461138752"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "versalles-2",
@@ -1171,7 +1205,7 @@
         1216
       ],
       "textures": 0,
-      "status": "InGame",
+      "status": "Approved",
       "screenshots": [
         "art/render/ingame/violeta-versalles-2-nivel0.jpg",
         "art/render/ingame/violeta-versalles-2-nivel5.jpg"
@@ -1203,7 +1237,9 @@
         "rbxassetid://106199794947120",
         "rbxassetid://82857526353956",
         "rbxassetid://110745046223130"
-      ]
+      ],
+      "approvedBy": "Santiago",
+      "approvedAt": "2026-11-05"
     },
     {
       "id": "observatorio-cerro-azul",
