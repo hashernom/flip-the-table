@@ -1684,6 +1684,98 @@
         "rbxassetid://123178909531514",
         "rbxassetid://90538873541186"
       ]
+    },
+    {
+      "id": "token-limusina",
+      "category": "Token",
+      "source": "art/blender/tokens/limusina.py",
+      "triangles": 2360,
+      "lods": [
+        424
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/limusina.py",
+      "assetId": "rbxassetid://127437988006054",
+      "assetIds": [
+        "rbxassetid://91621964389888",
+        "rbxassetid://109072490202306",
+        "rbxassetid://106450967852852",
+        "rbxassetid://113301381550647",
+        "rbxassetid://98498376554704",
+        "rbxassetid://117594125263828",
+        "rbxassetid://137002489744173",
+        "rbxassetid://96578930903147",
+        "rbxassetid://110187169031453",
+        "rbxassetid://99143389833331",
+        "rbxassetid://128129184479320",
+        "rbxassetid://109360893700449",
+        "rbxassetid://107533052531604",
+        "rbxassetid://126638550934476"
+      ]
+    },
+    {
+      "id": "token-camion-helados",
+      "category": "Token",
+      "source": "art/blender/tokens/camion-helados.py",
+      "triangles": 2436,
+      "lods": [
+        470
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/camion-helados.py",
+      "assetId": "rbxassetid://77241776022066",
+      "assetIds": [
+        "rbxassetid://84834518679830",
+        "rbxassetid://71919428981737",
+        "rbxassetid://110762726897832",
+        "rbxassetid://97123490670317",
+        "rbxassetid://136026058344228",
+        "rbxassetid://110026515431393",
+        "rbxassetid://106509143507849",
+        "rbxassetid://115777956233147",
+        "rbxassetid://99702163268970",
+        "rbxassetid://84423499489756",
+        "rbxassetid://122553739559148",
+        "rbxassetid://118425661490841",
+        "rbxassetid://70740715231488",
+        "rbxassetid://98761388818027",
+        "rbxassetid://124103728914495",
+        "rbxassetid://118536506004390"
+      ]
+    },
+    {
+      "id": "token-food-truck",
+      "category": "Token",
+      "source": "art/blender/tokens/food-truck.py",
+      "triangles": 2604,
+      "lods": [
+        348
+      ],
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/tokens/food-truck.py",
+      "assetId": "rbxassetid://84013555966138",
+      "assetIds": [
+        "rbxassetid://93607579771508",
+        "rbxassetid://87203837574936",
+        "rbxassetid://108631865868385",
+        "rbxassetid://128503754670395",
+        "rbxassetid://122222082620369",
+        "rbxassetid://92971657149200",
+        "rbxassetid://115016909869963",
+        "rbxassetid://114634501769985",
+        "rbxassetid://117836392595129",
+        "rbxassetid://94665463852261",
+        "rbxassetid://127555327324859",
+        "rbxassetid://76870926424844",
+        "rbxassetid://115294741192520",
+        "rbxassetid://74209059361676"
+      ]
     }
   ]
 }
