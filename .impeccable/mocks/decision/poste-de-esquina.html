@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Poste de esquina · HUD</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--asfalto:#23272C;--caliza:#EDE5D3;--taxi:#F5C518;--rojo:#C4382B;--naranja:#E07A3C;--tile:#DC2626}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{width:1440px;height:900px;overflow:hidden;position:relative;background:#AFC7D6;font-family:'Source Sans 3',sans-serif;color:var(--caliza);font-variant-numeric:tabular-nums}
+.abs{position:absolute}
+.pole{position:absolute;left:0;top:0;width:8px;height:900px;background:#A8AEB4}
+.pl{position:absolute;left:8px;width:250px;height:66px;padding:9px 12px;background:rgba(35,39,44,.92);border:1px solid var(--caliza)}
+.pl.turn{left:36px;border-left:4px solid var(--caliza)}
+.pl.apag{opacity:.55}
+.pl .row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.nm{display:flex;align-items:center;font-family:Oswald,sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;min-width:0}
+.sw{width:10px;height:10px;display:inline-block;margin-right:8px;flex:none}
+.mo{font-size:24px;line-height:28px;font-weight:600;flex:none}
+.mk{display:flex;align-items:center;gap:6px;margin-top:4px;height:14px;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.mk svg{width:12px;height:12px;stroke:var(--caliza);fill:none;stroke-width:1.5;flex:none}
+.tag{background:var(--rojo);color:var(--caliza);padding:0 5px;line-height:14px}
+.tri{position:absolute;left:-18px;top:27px;width:10px;height:12px}
+.mini{position:absolute;top:20px;right:20px;width:180px;height:180px;background:rgba(35,39,44,.92);border:1px solid var(--caliza)}
+.mini svg{position:absolute;left:0;top:0}
+.ring rect{width:8px;height:8px}
+.ring rect:nth-child(8n+1){fill:#E85D9E}.ring rect:nth-child(8n+2){fill:#22D3EE}.ring rect:nth-child(8n+3){fill:#F59E0B}.ring rect:nth-child(8n+4){fill:#8B5CF6}
+.ring rect:nth-child(8n+5){fill:#8C8F92}.ring rect:nth-child(8n+6){fill:#10B981}.ring rect:nth-child(8n+7){fill:#4F46E5}.ring rect:nth-child(8n+8){fill:#C97B3A}
+.bar{position:absolute;top:20px;left:50%;transform:translateX(-50%);height:56px;display:flex;align-items:center;gap:14px;padding:0 8px 0 14px;background:rgba(35,39,44,.92);border:1px solid var(--caliza)}
+.bar span{font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.bar .ghost{height:44px;padding:0 14px;border:1px solid var(--caliza);background:transparent;color:var(--caliza);font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;min-width:44px}
+.escritura{position:absolute;right:40px;bottom:56px;width:240px;height:360px;background:var(--caliza);color:var(--asfalto);border:2px solid var(--asfalto);display:flex;flex-direction:column;overflow:hidden}
+.esc-blk{height:120px;flex:none;background:var(--tile);color:var(--caliza);padding:12px;position:relative;display:flex;flex-direction:column;justify-content:space-between}
+.esc-blk .k{font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em}
+.esc-blk .t{font-family:Oswald,sans-serif;font-size:31px;line-height:34px;letter-spacing:.04em}
+.esc-blk svg{position:absolute;top:10px;right:10px;width:34px;height:34px;stroke:var(--caliza);fill:none;stroke-width:1.5}
+.esc-price{height:64px;flex:none;background:var(--asfalto);color:var(--caliza);display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+.esc-price .k{font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em}
+.esc-price .v{font-family:Oswald,sans-serif;font-size:33px;line-height:36px}
+.esc-rows{flex:1;padding:4px 14px;position:relative;font-size:13.5px;border-bottom:2px solid var(--asfalto)}
+.esc-rows div{display:flex;justify-content:space-between;height:24px;align-items:center}
+.esc-rows .rule{position:absolute;left:0;top:28px;width:2px;height:72px;background:var(--tile)}
+.esc-pie{height:30px;flex:none;background:var(--asfalto)}
+.btns{position:absolute;left:900px;top:640px;width:230px}
+.btn-buy{position:relative;display:block;width:230px;height:64px;background:var(--taxi);border:2px solid var(--asfalto);color:var(--asfalto);font-family:'Luckiest Guy',cursive;font-size:34px;line-height:60px;text-transform:uppercase;text-align:center;padding:0}
+.btn-buy::after{content:"";position:absolute;left:5px;top:5px;right:5px;bottom:5px;border:2px solid var(--asfalto)}
+.kb{font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-align:center;margin-top:6px}
+.btn-sec{display:block;width:230px;height:44px;margin-top:20px;background:transparent;border:2px solid var(--caliza);color:var(--caliza);font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.1em}
+.plazo-n{position:absolute;left:900px;top:846px;font-family:Oswald,sans-serif;font-size:20px;color:var(--caliza)}
+.hand{position:absolute;left:50%;transform:translateX(-50%);bottom:40px;display:flex;gap:12px}
+.card{position:relative;width:124px;height:96px;background:var(--caliza);color:var(--asfalto);border:1px solid var(--asfalto)}
+.card.escudo{border:3px double var(--asfalto)}
+.card.hur::before{content:"";position:absolute;top:10px;right:10px;width:22px;height:12px;background:var(--tile);transform:skewX(-20deg)}
+.card b{position:absolute;left:10px;bottom:10px;font-family:Oswald,sans-serif;font-weight:400;font-size:12px;letter-spacing:.1em}
+.dorso{position:absolute;left:0;top:0;width:0;height:0}
+</style>
+</head>
+<body>
+
+<svg class="abs" style="left:0;top:0" width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true">
+  <rect width="1440" height="900" fill="#AFC7D6"/>
+  <rect x="0" y="340" width="290" height="140" fill="#D2C9B4"/>
+  <rect x="290" y="330" width="150" height="150" fill="#B0664A"/>
+  <rect x="440" y="290" width="120" height="190" fill="#D2C9B4"/>
+  <rect x="560" y="340" width="140" height="140" fill="#7FB2D9"/>
+  <rect x="700" y="300" width="110" height="180" fill="#8C8F92"/>
+  <rect x="810" y="350" width="160" height="130" fill="#B0664A"/>
+  <rect x="970" y="280" width="130" height="200" fill="#D2C9B4"/>
+  <rect x="1100" y="330" width="150" height="150" fill="#7FB2D9"/>
+  <rect x="1250" y="300" width="190" height="180" fill="#8C8F92"/>
+  <rect x="0" y="480" width="1440" height="420" fill="#4A4E54"/>
+  <line x1="290" y1="540" x2="1440" y2="540" stroke="#EDE5D3" stroke-width="4" stroke-dasharray="40 30"/>
+  <rect x="620" y="570" width="200" height="140" fill="#DC2626" stroke="#EDE5D3" stroke-width="3"/>
+</svg>
+
+<div class="pole"></div>
+
+<div class="pl" style="top:120px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#E85D9E"></i>ANA</span><span class="mo">1.240</span></div>
+  <div class="mk"><svg><use href="#corona"/></svg>CORONA</div>
+</div>
+
+<div class="pl turn" style="top:192px">
+  <svg class="tri" viewBox="0 0 10 12" aria-hidden="true"><path d="M0 0 L10 6 L0 12 Z" fill="#EDE5D3"/></svg>
+  <div class="row"><span class="nm"><i class="sw" style="background:#22D3EE"></i>SANTI (TÚ)</span><span class="mo">860</span></div>
+  <div class="mk"><svg><use href="#cartas"/></svg>2 CARTAS</div>
+</div>
+
+<div class="pl" style="top:264px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#F59E0B"></i>MARÍA JOSÉ</span><span class="mo">2.105</span></div>
+  <div class="mk"><span class="tag">TRAIDOR</span></div>
+</div>
+
+<div class="pl" style="top:336px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#8B5CF6"></i>LUCAS</span><span class="mo">415</span></div>
+  <div class="mk"><svg><use href="#furia"/></svg>FURIA 3/5</div>
+</div>
+
+<div class="pl apag" style="top:408px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#8C8F92"></i>VALEN</span><span class="mo">0</span></div>
+  <div class="mk"><svg><use href="#espectro"/></svg>ESPECTRO</div>
+</div>
+
+<div class="pl" style="top:480px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#10B981"></i>NICO</span><span class="mo">1.030</span></div>
+  <div class="mk"></div>
+</div>
+
+<div class="pl" style="top:552px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#4F46E5"></i>CAMI (BOT)</span><span class="mo">780</span></div>
+  <div class="mk"></div>
+</div>
+
+<div class="pl" style="top:624px">
+  <div class="row"><span class="nm"><i class="sw" style="background:#C97B3A"></i>GUILLERMO ANTONIO</span><span class="mo">1.560</span></div>
+  <div class="mk"></div>
+</div>
+
+<div class="mini">
+  <svg width="178" height="178" viewBox="0 0 180 180" aria-hidden="true">
+    <g class="ring">
+      <rect x="8" y="8"/><rect x="19" y="8"/><rect x="30" y="8"/><rect x="41" y="8"/><rect x="52" y="8"/><rect x="63" y="8"/><rect x="74" y="8"/><rect x="85" y="8"/><rect x="96" y="8"/><rect x="107" y="8"/><rect x="118" y="8"/><rect x="129" y="8"/><rect x="140" y="8"/><rect x="151" y="8"/><rect x="162" y="8"/>
+      <rect x="162" y="19"/><rect x="162" y="30"/><rect x="162" y="41"/><rect x="162" y="52"/><rect x="162" y="63"/><rect x="162" y="74"/><rect x="162" y="85"/><rect x="162" y="96"/><rect x="162" y="107"/><rect x="162" y="118"/><rect x="162" y="129"/><rect x="162" y="140"/><rect x="162" y="151"/>
+      <rect x="8" y="162"/><rect x="19" y="162"/><rect x="30" y="162"/><rect x="41" y="162"/><rect x="52" y="162"/><rect x="63" y="162"/><rect x="74" y="162"/><rect x="85" y="162"/><rect x="96" y="162"/><rect x="107" y="162"/><rect x="118" y="162"/><rect x="129" y="162"/><rect x="140" y="162"/><rect x="151" y="162"/><rect x="162" y="162"/>
+      <rect x="8" y="19"/><rect x="8" y="30"/><rect x="8" y="41"/><rect x="8" y="52"/><rect x="8" y="63"/><rect x="8" y="74"/><rect x="8" y="85"/><rect x="8" y="96"/><rect x="8" y="107"/><rect x="8" y="118"/><rect x="8" y="129"/><rect x="8" y="140"/><rect x="8" y="151"/>
+    </g>
+    <polygon points="52,52 62,52 57,61" fill="#E85D9E" stroke="#EDE5D3" stroke-width="1"/>
+    <polygon points="84,80 91,87 84,94 77,87" fill="#22D3EE" stroke="#EDE5D3" stroke-width="1"/>
+    <polygon points="110,100 120,100 115,109" fill="#F59E0B" stroke="#EDE5D3" stroke-width="1"/>
+  </svg>
+</div>
+
+<div class="bar">
+  <span>RONDA 7/12</span>
+  <span>TU TURNO</span>
+  <button class="ghost">VISTA GENERAL</button>
+  <button class="ghost">EMOTES</button>
+</div>
+
+<div class="btns">
+  <button class="btn-buy">COMPRAR</button>
+  <p class="kb">ESPACIO</p>
+  <button class="btn-sec">NO COMPRAR · SUBASTA</button>
+  <p class="kb">N</p>
+</div>
+<div class="plazo-n">14 s</div>
+
+<svg class="abs" style="left:0;top:872px" width="1440" height="12" aria-hidden="true">
+  <line x1="8" y1="6" x2="1440" y2="6" stroke="#E07A3C" stroke-width="6" stroke-dasharray="28 16"/>
+  <line x1="8" y1="6" x2="560" y2="6" stroke="#EDE5D3" stroke-opacity=".25" stroke-width="6" stroke-dasharray="28 16"/>
+</svg>
+
+<section class="escritura">
+  <div class="esc-blk">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#llama"/></svg>
+    <span class="k">DISTRITO CARMESÍ</span>
+    <span class="t">CINE LUX</span>
+  </div>
+  <div class="esc-price">
+    <span class="k">PRECIO</span>
+    <span class="v">260</span>
+  </div>
+  <div class="esc-rows">
+    <div><span>Sin mejoras</span><span>26</span></div>
+    <span class="rule"></span>
+    <div><span>1 casa</span><span>104</span></div>
+    <div><span>2 casas</span><span>156</span></div>
+    <div><span>3 casas</span><span>260</span></div>
+    <div><span>Hotel</span><span>416</span></div>
+    <div><span>Rascacielos</span><span>624</span></div>
+  </div>
+  <div class="esc-pie"></div>
+</section>
+
+<div class="hand">
+  <div class="card"><b>MULTA</b></div>
+  <div class="card escudo"><b>ESCUDO</b></div>
+  <div class="card hur"><b>HURACÁN</b></div>
+</div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="corona" viewBox="0 0 12 12"><path d="M1 9 L2 3 L4.5 6 L6 2 L7.5 6 L10 3 L11 9 Z"/></symbol>
+  <symbol id="cartas" viewBox="0 0 12 12"><rect x="2.5" y="1.5" width="7" height="9"/></symbol>
+  <symbol id="furia" viewBox="0 0 12 12"><path d="M6 1 C8 4 9.5 5 9.5 8 A3.5 3.5 0 0 1 2.5 8 C2.5 6 4 5.5 4 4 C5 5 5.5 4 6 1 Z"/></symbol>
+  <symbol id="espectro" viewBox="0 0 12 12"><path d="M2 11 V5 A4 4 0 0 1 10 5 V11 L8.5 9.5 L7 11 L6 9.5 L5 11 L3.5 9.5 Z"/></symbol>
+  <symbol id="llama" viewBox="0 0 24 24"><path d="M12 2 C14 7 19 9 19 15 A7 7 0 0 1 5 15 C5 11 8 9 9 5 C11 7 11 9 12 9 Z"/></symbol>
+</defs></svg>
+
+</body>
+</html>

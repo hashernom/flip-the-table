@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Flip the Table - HUD dos aceras</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--asfalto:#23272C;--caliza:#EDE5D3;--amarillo:#F5C518;--rojo:#C4382B;--naranja:#E07A3C}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:#4A4E54}
+body{position:relative;font-family:'Source Sans 3',sans-serif;color:var(--caliza);font-variant-numeric:tabular-nums}
+.abs{position:absolute}
+.ciudad{position:absolute;left:0;top:0}
+.pl{position:absolute;width:230px;height:92px;display:flex;flex-direction:column;background:rgba(35,39,44,.92);border:1px solid var(--caliza);padding:8px 12px}
+.izq{left:16px}.der{left:1194px}
+.turno{border-left-width:4px;padding-left:11px}
+.apagado{opacity:.55}
+.nom{display:flex;align-items:center;gap:8px;font:500 15px/18px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.sq{width:10px;height:10px;flex:none}
+.tri{width:10px;height:10px;flex:none;fill:var(--caliza);stroke:none}
+.dinero{margin-top:-2px;text-align:right;font:600 24px/28px 'Source Sans 3',sans-serif}
+.marcas{margin-top:auto;display:flex;flex-wrap:wrap;gap:4px 12px;font:500 12px/16px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.marcas span{display:inline-flex;align-items:center;gap:5px}
+.ic{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
+.tag{background:var(--rojo);color:var(--caliza);padding:0 6px;line-height:16px}
+.ronda{position:absolute;top:16px;left:50%;transform:translateX(-50%);height:44px;display:flex;align-items:stretch;gap:8px;background:rgba(35,39,44,.92);border:1px solid var(--caliza);padding-left:14px}
+.estado{display:flex;align-items:center;gap:14px;font:500 14px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;padding-right:6px}
+.btn2{display:flex;align-items:center;padding:0 14px;border:1px solid var(--caliza);border-width:0 0 0 1px;background:transparent;color:var(--caliza);font:500 14px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap;height:44px}
+.btn2:last-child{border-right:0}
+.mini{position:absolute;left:1219px;top:16px;width:180px;height:180px;background:rgba(35,39,44,.92);border:1px solid var(--caliza)}
+.mini svg{display:block;width:178px;height:178px}
+.carta{position:absolute;left:850px;top:300px;width:240px;height:360px;display:flex;flex-direction:column;background:var(--caliza);border:2px solid var(--asfalto)}
+.zona{position:relative;height:120px;flex:none;background:#DC2626;color:var(--caliza);padding:12px 14px}
+.dist{display:block;font:500 12px/16px Oswald,sans-serif;letter-spacing:.1em}
+.cine{display:block;margin-top:6px;font:500 31px/1 Oswald,sans-serif;letter-spacing:.05em;text-transform:uppercase}
+.llama{position:absolute;right:12px;top:12px;width:28px;height:34px}
+.precio{height:44px;flex:none;background:var(--asfalto);display:flex;align-items:center;justify-content:space-between;padding:0 14px;color:var(--caliza)}
+.precio span{font:500 12px Oswald,sans-serif;letter-spacing:.1em}
+.precio b{font:600 33px/1 Oswald,sans-serif}
+.tabla{height:168px;flex:none;color:var(--asfalto);font:400 13.5px/28px 'Source Sans 3',sans-serif}
+.fila{height:28px;display:flex;justify-content:space-between;align-items:center;padding:0 14px 0 11px;border-left:3px solid transparent}
+.fila b{font-weight:600}
+.casa{border-left-color:var(--rojo)}
+.regla{height:2px;flex:none;background:var(--asfalto)}
+.pie{height:22px;flex:none;background:var(--asfalto)}
+.comprar{position:absolute;left:850px;top:676px;width:240px;height:56px;background:var(--amarillo);border:2px solid var(--asfalto);color:var(--asfalto);font:400 34px/1 'Luckiest Guy',sans-serif;text-transform:uppercase;display:flex;align-items:center;justify-content:center}
+.comprar::after{content:"";position:absolute;left:4px;top:4px;right:4px;bottom:4px;border:2px solid var(--asfalto)}
+.no{position:absolute;left:850px;top:744px;width:240px;height:34px;border:1px solid var(--caliza);color:var(--caliza);font:500 14px/32px Oswald,sans-serif;letter-spacing:.1em;text-align:center;text-transform:uppercase}
+.atajos{position:absolute;left:850px;top:790px;width:240px;display:flex;justify-content:center;gap:16px;font:500 12px/16px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.atajos span{border:1px solid var(--caliza);padding:1px 6px}
+.mano{position:absolute;left:290px;top:788px;display:flex;gap:6px}
+.dorso{position:relative;width:120px;height:52px;background:var(--asfalto);border:1px solid var(--caliza);padding:8px 10px;font:500 12px/16px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase}
+.sello{position:absolute;right:8px;bottom:6px;width:20px;height:14px}
+.tiempo{position:absolute;left:1312px;top:872px;font:500 20px/24px Oswald,sans-serif;letter-spacing:.05em}
+.plazo{position:absolute;left:0;top:872px}
+</style>
+</head>
+<body>
+
+<svg class="ciudad" width="1440" height="900" viewBox="0 0 1440 900" aria-hidden="true">
+  <rect width="1440" height="900" fill="#4A4E54"/>
+  <rect width="1440" height="300" fill="#AFC7D6"/>
+  <rect x="0" y="150" width="120" height="150" fill="#B0664A"/>
+  <rect x="120" y="200" width="90" height="100" fill="#D2C9B4"/>
+  <rect x="210" y="120" width="140" height="180" fill="#7FB2D9"/>
+  <rect x="350" y="190" width="110" height="110" fill="#8C8F92"/>
+  <rect x="460" y="140" width="160" height="160" fill="#D2C9B4"/>
+  <rect x="620" y="210" width="100" height="90" fill="#B0664A"/>
+  <rect x="720" y="110" width="130" height="190" fill="#7FB2D9"/>
+  <rect x="850" y="180" width="120" height="120" fill="#8C8F92"/>
+  <rect x="970" y="130" width="150" height="170" fill="#D2C9B4"/>
+  <rect x="1120" y="200" width="110" height="100" fill="#B0664A"/>
+  <rect x="1230" y="120" width="210" height="180" fill="#7FB2D9"/>
+  <rect x="0" y="300" width="1440" height="8" fill="#D2C9B4"/>
+  <line x1="0" y1="620" x2="1440" y2="620" stroke="#EDE5D3" stroke-width="4" stroke-dasharray="40 28"/>
+  <rect x="621.5" y="321.5" width="197" height="197" fill="#DC2626" stroke="#EDE5D3" stroke-width="3"/>
+</svg>
+
+<div class="pl izq" style="top:120px">
+  <div class="nom"><i class="sq" style="background:#E85D9E"></i>ANA</div>
+  <div class="dinero">1.240</div>
+  <div class="marcas"><span><svg class="ic" viewBox="0 0 12 12"><path d="M1.5 10 L2.5 3.5 L6 7 L9.5 3.5 L10.5 10 Z"/></svg>CORONA</span></div>
+</div>
+
+<div class="pl izq turno" style="top:220px">
+  <div class="nom"><svg class="tri" viewBox="0 0 12 12"><path d="M2 2 L10 6 L2 10 Z"/></svg><i class="sq" style="background:#22D3EE"></i>SANTI (TÚ)</div>
+  <div class="dinero">860</div>
+  <div class="marcas"><span><svg class="ic" viewBox="0 0 12 12"><rect x="1.5" y="3.5" width="6" height="8"/><path d="M4.5 3.5 V1.5 H10.5 V8.5 H8"/></svg>2 cartas</span></div>
+</div>
+
+<div class="pl izq" style="top:320px">
+  <div class="nom"><i class="sq" style="background:#F59E0B"></i>MARÍA JOSÉ</div>
+  <div class="dinero">2.105</div>
+  <div class="marcas"><span><span class="tag">TRAIDOR</span></span></div>
+</div>
+
+<div class="pl izq" style="top:420px">
+  <div class="nom"><i class="sq" style="background:#8B5CF6"></i>LUCAS</div>
+  <div class="dinero">415</div>
+  <div class="marcas"><span><svg class="ic" viewBox="0 0 12 12"><path d="M7.5 1 L3 7 L6 7 L4.5 11 L9 5 L6 5 Z"/></svg>FURIA 3/5</span></div>
+</div>
+
+<div class="pl der apagado" style="top:212px">
+  <div class="nom"><i class="sq" style="background:#8C8F92"></i>VALEN</div>
+  <div class="dinero">0</div>
+  <div class="marcas"><span><svg class="ic" viewBox="0 0 12 12"><circle cx="6" cy="6" r="4.5" stroke-dasharray="2 2"/></svg>ESPECTRO</span></div>
+</div>
+
+<div class="pl der" style="top:312px">
+  <div class="nom"><i class="sq" style="background:#10B981"></i>NICO</div>
+  <div class="dinero">1.030</div>
+</div>
+
+<div class="pl der" style="top:412px">
+  <div class="nom"><i class="sq" style="background:#4F46E5"></i>CAMI (BOT)</div>
+  <div class="dinero">780</div>
+</div>
+
+<div class="pl der" style="top:512px">
+  <div class="nom"><i class="sq" style="background:#C97B3A"></i>GUILLERMO ANTONIO</div>
+  <div class="dinero">1.560</div>
+</div>
+
+<div class="ronda">
+  <div class="estado"><span>RONDA 7/12</span><span>TU TURNO</span></div>
+  <button class="btn2" type="button">VISTA GENERAL</button>
+  <button class="btn2" type="button">EMOTES</button>
+</div>
+
+<div class="mini">
+  <svg viewBox="0 0 180 180" aria-hidden="true">
+    <rect x="12" y="12" width="8" height="8" fill="#D2C9B4"/><rect x="22.4" y="12" width="8" height="8" fill="#8C8F92"/><rect x="32.8" y="12" width="8" height="8" fill="#7FB2D9"/><rect x="43.2" y="12" width="8" height="8" fill="#B0664A"/><rect x="53.6" y="12" width="8" height="8" fill="#D2C9B4"/><rect x="64" y="12" width="8" height="8" fill="#8C8F92"/><rect x="74.4" y="12" width="8" height="8" fill="#7FB2D9"/><rect x="84.8" y="12" width="8" height="8" fill="#B0664A"/><rect x="95.2" y="12" width="8" height="8" fill="#D2C9B4"/><rect x="105.6" y="12" width="8" height="8" fill="#8C8F92"/><rect x="116" y="12" width="8" height="8" fill="#7FB2D9"/><rect x="126.4" y="12" width="8" height="8" fill="#B0664A"/><rect x="136.8" y="12" width="8" height="8" fill="#D2C9B4"/><rect x="147.2" y="12" width="8" height="8" fill="#8C8F92"/><rect x="157.6" y="12" width="8" height="8" fill="#7FB2D9"/>
+    <rect x="157.6" y="22.4" width="8" height="8" fill="#B0664A"/><rect x="157.6" y="32.8" width="8" height="8" fill="#D2C9B4"/><rect x="157.6" y="43.2" width="8" height="8" fill="#8C8F92"/><rect x="157.6" y="53.6" width="8" height="8" fill="#7FB2D9"/><rect x="157.6" y="64" width="8" height="8" fill="#B0664A"/><rect x="157.6" y="74.4" width="8" height="8" fill="#D2C9B4"/><rect x="157.6" y="84.8" width="8" height="8" fill="#8C8F92"/><rect x="157.6" y="95.2" width="8" height="8" fill="#7FB2D9"/><rect x="157.6" y="105.6" width="8" height="8" fill="#B0664A"/><rect x="157.6" y="116" width="8" height="8" fill="#D2C9B4"/><rect x="157.6" y="126.4" width="8" height="8" fill="#8C8F92"/><rect x="157.6" y="136.8" width="8" height="8" fill="#7FB2D9"/><rect x="157.6" y="147.2" width="8" height="8" fill="#B0664A"/><rect x="157.6" y="157.6" width="8" height="8" fill="#D2C9B4"/>
+    <rect x="147.2" y="157.6" width="8" height="8" fill="#8C8F92"/><rect x="136.8" y="157.6" width="8" height="8" fill="#7FB2D9"/><rect x="126.4" y="157.6" width="8" height="8" fill="#B0664A"/><rect x="116" y="157.6" width="8" height="8" fill="#D2C9B4"/><rect x="105.6" y="157.6" width="8" height="8" fill="#8C8F92"/><rect x="95.2" y="157.6" width="8" height="8" fill="#7FB2D9"/><rect x="84.8" y="157.6" width="8" height="8" fill="#B0664A"/><rect x="74.4" y="157.6" width="8" height="8" fill="#D2C9B4"/><rect x="64" y="157.6" width="8" height="8" fill="#8C8F92"/><rect x="53.6" y="157.6" width="8" height="8" fill="#7FB2D9"/><rect x="43.2" y="157.6" width="8" height="8" fill="#B0664A"/><rect x="32.8" y="157.6" width="8" height="8" fill="#D2C9B4"/><rect x="22.4" y="157.6" width="8" height="8" fill="#8C8F92"/><rect x="12" y="157.6" width="8" height="8" fill="#7FB2D9"/>
+    <rect x="12" y="147.2" width="8" height="8" fill="#B0664A"/><rect x="12" y="136.8" width="8" height="8" fill="#D2C9B4"/><rect x="12" y="126.4" width="8" height="8" fill="#8C8F92"/><rect x="12" y="116" width="8" height="8" fill="#7FB2D9"/><rect x="12" y="105.6" width="8" height="8" fill="#B0664A"/><rect x="12" y="95.2" width="8" height="8" fill="#D2C9B4"/><rect x="12" y="84.8" width="8" height="8" fill="#8C8F92"/><rect x="12" y="74.4" width="8" height="8" fill="#7FB2D9"/><rect x="12" y="64" width="8" height="8" fill="#B0664A"/><rect x="12" y="53.6" width="8" height="8" fill="#D2C9B4"/><rect x="12" y="43.2" width="8" height="8" fill="#8C8F92"/><rect x="12" y="32.8" width="8" height="8" fill="#7FB2D9"/><rect x="12" y="22.4" width="8" height="8" fill="#B0664A"/>
+    <polygon points="68,10 74,16 68,22 62,16" fill="#E85D9E" stroke="#EDE5D3" stroke-width="1"/>
+    <polygon points="161.6,72.4 167.6,78.4 161.6,84.4 155.6,78.4" fill="#22D3EE" stroke="#EDE5D3" stroke-width="1"/>
+    <polygon points="109.6,155.6 115.6,161.6 109.6,167.6 103.6,161.6" fill="#F59E0B" stroke="#EDE5D3" stroke-width="1"/>
+  </svg>
+</div>
+
+<div class="carta">
+  <div class="zona">
+    <span class="dist">DISTRITO CARMESÍ</span>
+    <span class="cine">CINE LUX</span>
+    <svg class="llama" viewBox="0 0 28 34" aria-hidden="true"><path d="M14 2 C20 10 24 14 22 22 C21 28 17 32 14 32 C9 32 5 28 6 21 C7 16 11 14 11 9 C13 12 14 10 14 2 Z" fill="none" stroke="#EDE5D3" stroke-width="2" stroke-linejoin="round"/></svg>
+  </div>
+  <div class="precio"><span>PRECIO</span><b>260</b></div>
+  <div class="tabla">
+    <div class="fila"><span>Sin mejoras</span><b>26</b></div>
+    <div class="fila casa"><span>1 casa</span><b>104</b></div>
+    <div class="fila casa"><span>2 casas</span><b>156</b></div>
+    <div class="fila casa"><span>3 casas</span><b>260</b></div>
+    <div class="fila"><span>Hotel</span><b>416</b></div>
+    <div class="fila"><span>Rascacielos</span><b>624</b></div>
+  </div>
+  <div class="regla"></div>
+  <div class="pie"></div>
+</div>
+
+<button class="comprar" type="button">COMPRAR</button>
+<button class="no" type="button">NO COMPRAR · SUBASTA</button>
+<div class="atajos"><span>ESPACIO</span><span>N</span></div>
+
+<div class="mano">
+  <div class="dorso"><span>MULTA</span>
+    <svg class="sello" viewBox="0 0 20 14"><rect x="1" y="1" width="18" height="12" fill="none" stroke="#EDE5D3" stroke-width="1"/></svg></div>
+  <div class="dorso"><span>ESCUDO</span>
+    <svg class="sello" viewBox="0 0 20 14"><rect x="1" y="1" width="18" height="12" fill="none" stroke="#EDE5D3" stroke-width="1"/><rect x="4" y="4" width="12" height="6" fill="none" stroke="#EDE5D3" stroke-width="1"/></svg></div>
+  <div class="dorso"><span>HURACÁN</span>
+    <svg class="sello" viewBox="0 0 20 14"><polygon points="5,13 9,1 19,1 15,13" fill="#C4382B"/></svg></div>
+</div>
+
+<div class="tiempo">14 s</div>
+<svg class="plazo" width="1440" height="24" viewBox="0 0 1440 24" aria-hidden="true">
+  <line x1="528" y1="12" x2="1296" y2="12" stroke="#E07A3C" stroke-width="6" stroke-dasharray="28 16" stroke-dashoffset="28"/>
+  <line x1="16" y1="12" x2="528" y2="12" stroke="#EDE5D3" stroke-opacity=".25" stroke-width="6" stroke-dasharray="28 16"/>
+</svg>
+
+</body>
+</html>

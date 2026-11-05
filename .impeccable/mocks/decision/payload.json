@@ -1,0 +1,41 @@
+{
+  "title": "Flip the Table: HUD de partida",
+  "question": "La identidad Señalética ya está aprobada; aquí solo se decide dónde vive cada cosa. Elige una composición, pide cambios o pide otra mano.",
+  "options": [
+    {
+      "id": "dos-aceras",
+      "kind": "assigned",
+      "label": "Dos aceras",
+      "kicker": "THE ROLL",
+      "thesis": "La mesa se reparte en los dos bordes, como las aceras de una avenida, y el centro queda libre para la ciudad.",
+      "palette": ["#23272C", "#EDE5D3", "#F5C518", "#E07A3C", "#C4382B"],
+      "materials": ["placa esmaltada", "pintura de calzada"],
+      "viewport": "Cuatro placas de jugador a la izquierda y cuatro a la derecha. La escritura y COMPRAR suben desde abajo a la derecha; el minimapa queda arriba a la derecha. El plazo es una línea discontinua de calzada a lo ancho del borde inferior.",
+      "risk": "Con pocos jugadores queda un borde medio vacío, y hay que saltar de lado a lado para comparar dinero.",
+      "html": ".impeccable/mocks/decision/dos-aceras.html"
+    },
+    {
+      "id": "fila-de-placas",
+      "kind": "dealt",
+      "label": "Fila de placas",
+      "thesis": "Toda la mesa es una sola fila de placas al pie de la pantalla, como rótulos de calle en orden de turno; arriba solo hay cielo y ciudad.",
+      "palette": ["#23272C", "#EDE5D3", "#F5C518", "#E07A3C", "#C4382B"],
+      "materials": ["placa esmaltada", "pintura de calzada"],
+      "viewport": "Ocho placas a lo ancho del borde inferior, con la línea discontinua del plazo encima. La escritura y COMPRAR suben sobre la fila, a la derecha; el minimapa queda arriba a la derecha.",
+      "risk": "Ocho placas en fila dejan poco ancho para nombres largos y marcas, y la franja inferior es la más cercana a las fichas.",
+      "html": ".impeccable/mocks/decision/fila-de-placas.html"
+    },
+    {
+      "id": "poste-de-esquina",
+      "kind": "dealt",
+      "label": "Poste de esquina",
+      "thesis": "Los jugadores cuelgan de un solo poste, como los rótulos de una esquina, y quien tiene el turno sobresale del resto.",
+      "palette": ["#23272C", "#EDE5D3", "#F5C518", "#E07A3C", "#C4382B"],
+      "materials": ["placa esmaltada", "poste de acero"],
+      "viewport": "Un poste a la izquierda con ocho placas apiladas; la del turno sobresale hacia la ciudad. La escritura y COMPRAR van abajo a la derecha, y el minimapa arriba a la derecha.",
+      "risk": "Es el reparto más parecido a un marcador de juego habitual, y su columna ocupa siempre el mismo lado de la ciudad.",
+      "html": ".impeccable/mocks/decision/poste-de-esquina.html"
+    }
+  ],
+  "reroll": { "registers": ["safer", "bolder"] }
+}

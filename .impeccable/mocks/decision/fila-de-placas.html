@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>HUD fila de placas</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;600&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:#23272C}
+body{font-family:'Source Sans 3',sans-serif;color:#EDE5D3}
+::selection{background:#F5C518;color:#23272C}
+.hud{position:relative;width:1440px;height:900px;overflow:hidden}
+.ciudad{position:absolute;left:0;top:0;width:1440px;height:900px}
+.ronda{position:absolute;left:24px;top:24px;height:44px;display:flex;align-items:center;gap:14px;background:rgba(35,39,44,.92);border:1px solid #EDE5D3;padding:0 8px 0 14px}
+.ronda span{font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.btn2{height:44px;min-width:44px;padding:0 14px;background:transparent;border:1px solid #EDE5D3;color:#EDE5D3;font-family:Oswald,sans-serif;font-size:14px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.btn2:focus-visible{outline:2px solid #F5C518;outline-offset:2px}
+.mapa{position:absolute;right:24px;top:24px;width:180px;height:180px;background:rgba(35,39,44,.92);border:1px solid #EDE5D3}
+.mapa svg{display:block}
+.mano{position:absolute;left:40px;top:656px;display:flex;gap:8px}
+.carta{position:relative;width:136px;height:128px;background:rgba(35,39,44,.92);border:1px solid #EDE5D3;padding:8px;display:flex;align-items:flex-end;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.carta svg{position:absolute;top:8px;right:8px;width:24px;height:16px;fill:none;stroke:#EDE5D3;stroke-width:1.5}
+.carta svg polygon{stroke:none}
+.esc{position:absolute;left:1160px;top:400px;width:240px;height:360px;background:#EDE5D3;color:#23272C;border:1px solid #23272C;display:flex;flex-direction:column}
+.zona{position:relative;height:120px;background:#DC2626;color:#EDE5D3;padding:14px 14px 0}
+.zona small{display:block;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.zona h3{font-family:Oswald,sans-serif;font-weight:600;font-size:31px;letter-spacing:-.02em;text-transform:uppercase;line-height:1;margin-top:10px}
+.zona svg{position:absolute;top:12px;right:12px;width:28px;height:28px;fill:none;stroke:#EDE5D3;stroke-width:2;stroke-linejoin:round}
+.pre{height:56px;background:#23272C;color:#EDE5D3;display:flex;justify-content:space-between;align-items:center;padding:0 14px}
+.pre span{font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em}
+.pre b{font-family:Oswald,sans-serif;font-weight:600;font-size:33px;line-height:1}
+.tabla{flex:1;padding:4px 14px;font-size:13.5px;font-variant-numeric:tabular-nums;border-bottom:2px solid #23272C}
+.fila2{position:relative;display:flex;justify-content:space-between;align-items:center;height:24px}
+.fila2.c::before{content:"";position:absolute;left:-14px;top:0;bottom:0;width:2px;background:#DC2626}
+.pie{height:30px;background:#23272C;color:#EDE5D3;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;display:flex;align-items:center;padding:0 14px}
+.acc{position:absolute;left:900px;top:596px;width:240px;display:flex;flex-direction:column;gap:10px}
+.comprar{height:72px;width:100%;background:#F5C518;color:#23272C;border:2px solid #23272C;font-family:'Luckiest Guy',sans-serif;font-size:34px;text-transform:uppercase;letter-spacing:.02em;outline:2px solid #23272C;outline-offset:-7px;cursor:pointer}
+.acc .btn2{width:100%}
+.atajos{display:flex;justify-content:space-between;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+.plazo{position:absolute;left:0;top:790px;width:1440px;height:12px}
+.cuenta{position:absolute;right:40px;top:762px;font-family:Oswald,sans-serif;font-size:20px;letter-spacing:.05em;line-height:1}
+.fila{position:absolute;left:41px;top:808px;display:flex;gap:2px}
+.pl{position:relative;width:168px;height:76px;padding:6px 8px;background:rgba(35,39,44,.92);border:1px solid #EDE5D3;display:grid;grid-template-columns:1fr auto;column-gap:6px;align-content:space-between}
+.pl .hd{grid-column:1;grid-row:1;display:flex;gap:6px;align-items:flex-start;font-family:Oswald,sans-serif;font-size:15px;letter-spacing:.1em;text-transform:uppercase;line-height:1.1}
+.pl .hd i{flex:0 0 10px;height:10px;margin-top:3px}
+.pl .mk{grid-column:1;grid-row:2;display:flex;align-items:center;gap:4px;height:16px;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap}
+.pl .mk svg{width:14px;height:14px;fill:none;stroke:#EDE5D3;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:0 0 14px}
+.pl b{grid-column:2;grid-row:2;align-self:end;font-family:'Source Sans 3',sans-serif;font-weight:600;font-size:24px;line-height:1;font-variant-numeric:tabular-nums}
+.pl.on{border-left:4px solid #EDE5D3}
+.pl.ap{border-color:#8C8F92;color:#A7AAAE}
+.tri{position:absolute;right:6px;top:6px;width:10px;height:10px}
+.tg{background:#C4382B;color:#EDE5D3;padding:1px 4px;font-family:Oswald,sans-serif;font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+::-webkit-scrollbar{display:none}
+</style>
+</head>
+<body>
+<main class="hud">
+<svg class="ciudad" viewBox="0 0 1440 900" preserveAspectRatio="none" aria-hidden="true">
+<rect width="1440" height="520" fill="#AFC7D6"/>
+<rect x="0" y="260" width="130" height="260" fill="#B0664A"/>
+<rect x="130" y="320" width="110" height="200" fill="#D2C9B4"/>
+<rect x="240" y="230" width="140" height="290" fill="#7FB2D9"/>
+<rect x="380" y="300" width="120" height="220" fill="#8C8F92"/>
+<rect x="500" y="250" width="100" height="270" fill="#B0664A"/>
+<rect x="600" y="210" width="120" height="310" fill="#D2C9B4"/>
+<rect x="720" y="280" width="130" height="240" fill="#7FB2D9"/>
+<rect x="850" y="240" width="110" height="280" fill="#8C8F92"/>
+<rect x="960" y="310" width="140" height="210" fill="#B0664A"/>
+<rect x="1100" y="260" width="120" height="260" fill="#D2C9B4"/>
+<rect x="1220" y="330" width="130" height="190" fill="#7FB2D9"/>
+<rect x="1350" y="270" width="90" height="250" fill="#8C8F92"/>
+<rect y="520" width="1440" height="380" fill="#4A4E54"/>
+<line x1="0" y1="660" x2="1440" y2="660" stroke="#EDE5D3" stroke-width="4" stroke-dasharray="48 24"/>
+<rect x="592" y="542" width="256" height="236" fill="#DC2626" stroke="#EDE5D3" stroke-width="4"/>
+</svg>
+
+<div class="ronda">
+<span>RONDA 7/12</span><span>TU TURNO</span>
+<button class="btn2" type="button">VISTA GENERAL</button>
+<button class="btn2" type="button">EMOTES</button>
+</div>
+
+<div class="mapa">
+<svg viewBox="0 0 180 180" width="178" height="178" aria-hidden="true">
+<defs><rect id="c" x="86.5" y="12" width="7" height="7"/></defs>
+<use href="#c" fill="#E85D9E" transform="rotate(0 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(6.43 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(12.86 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(19.29 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(25.71 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(32.14 90 90)"/><use href="#c" fill="#E85D9E" transform="rotate(38.57 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(45 90 90)"/>
+<use href="#c" fill="#22D3EE" transform="rotate(51.43 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(57.86 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(64.29 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(70.71 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(77.14 90 90)"/><use href="#c" fill="#22D3EE" transform="rotate(83.57 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(90 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(96.43 90 90)"/>
+<use href="#c" fill="#F59E0B" transform="rotate(102.86 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(109.29 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(115.71 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(122.14 90 90)"/><use href="#c" fill="#F59E0B" transform="rotate(128.57 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(135 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(141.43 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(147.86 90 90)"/>
+<use href="#c" fill="#8B5CF6" transform="rotate(154.29 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(160.71 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(167.14 90 90)"/><use href="#c" fill="#8B5CF6" transform="rotate(173.57 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(180 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(186.43 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(192.86 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(199.29 90 90)"/>
+<use href="#c" fill="#6B7075" transform="rotate(205.71 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(212.14 90 90)"/><use href="#c" fill="#6B7075" transform="rotate(218.57 90 90)"/><use href="#c" fill="#10B981" transform="rotate(225 90 90)"/><use href="#c" fill="#10B981" transform="rotate(231.43 90 90)"/><use href="#c" fill="#10B981" transform="rotate(237.86 90 90)"/><use href="#c" fill="#10B981" transform="rotate(244.29 90 90)"/><use href="#c" fill="#10B981" transform="rotate(250.71 90 90)"/>
+<use href="#c" fill="#10B981" transform="rotate(257.14 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(263.57 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(270 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(276.43 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(282.86 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(289.29 90 90)"/><use href="#c" fill="#4F46E5" transform="rotate(295.71 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(302.14 90 90)"/>
+<use href="#c" fill="#C97B3A" transform="rotate(308.57 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(315 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(321.43 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(327.86 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(334.29 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(340.71 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(347.14 90 90)"/><use href="#c" fill="#C97B3A" transform="rotate(353.57 90 90)"/>
+<polygon points="124.6,62 130.6,70 124.6,78 118.6,70" fill="#EDE5D3"/>
+<polygon points="90,122 96,130 90,138 84,130" fill="#EDE5D3"/>
+<polygon points="55.4,62 61.4,70 55.4,78 49.4,70" fill="#EDE5D3"/>
+</svg>
+</div>
+
+<div class="mano">
+<div class="carta">MULTA<svg viewBox="0 0 24 16"><rect x="1" y="1" width="22" height="14"/></svg></div>
+<div class="carta">ESCUDO<svg viewBox="0 0 24 16"><rect x="1" y="1" width="22" height="14"/><rect x="4" y="4" width="16" height="8"/></svg></div>
+<div class="carta">HURACÁN<svg viewBox="0 0 24 16"><polygon points="7,1 23,1 17,15 1,15" style="fill:#C4382B;stroke:none"/></svg></div>
+</div>
+
+<section class="esc">
+<div class="zona">
+<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3C15 8 18 10 17 15A5 5 0 0 1 7 15C7 12 9 10 10 8C11 10 12 11 13 11C12 8 11 6 12 3Z"/></svg>
+<small>DISTRITO CARMESÍ</small>
+<h3>CINE LUX</h3>
+</div>
+<div class="pre"><span>PRECIO</span><b>260</b></div>
+<div class="tabla">
+<div class="fila2"><span>Sin mejoras</span><b>26</b></div>
+<div class="fila2 c"><span>1 casa</span><span>104</span></div>
+<div class="fila2 c"><span>2 casas</span><span>156</span></div>
+<div class="fila2 c"><span>3 casas</span><span>260</span></div>
+<div class="fila2"><span>Hotel</span><span>416</span></div>
+<div class="fila2"><span>Rascacielos</span><span>624</span></div>
+</div>
+<div class="pie">ESCRITURA</div>
+</section>
+
+<div class="acc">
+<button class="comprar" type="button">COMPRAR</button>
+<button class="btn2" type="button">NO COMPRAR · SUBASTA</button>
+<div class="atajos"><span>ESPACIO</span><span>N</span></div>
+</div>
+
+<svg class="plazo" viewBox="0 0 1440 12" aria-hidden="true">
+<defs><clipPath id="gastado"><rect width="864" height="12"/></clipPath><clipPath id="restante"><rect x="864" width="576" height="12"/></clipPath></defs>
+<line x1="0" y1="6" x2="1440" y2="6" stroke="#E07A3C" stroke-width="6" stroke-dasharray="28 16" clip-path="url(#restante)"/>
+<line x1="0" y1="6" x2="1440" y2="6" stroke="#EDE5D3" stroke-opacity=".25" stroke-width="6" stroke-dasharray="28 16" clip-path="url(#gastado)"/>
+</svg>
+<div class="cuenta">14 s</div>
+
+<div class="fila">
+<div class="pl"><div class="hd"><i style="background:#E85D9E"></i><span>ANA</span></div><div class="mk"><svg viewBox="0 0 24 24"><path d="M3 18L5 7L9.5 12L12 5L14.5 12L19 7L21 18Z"/></svg>CORONA</div><b>1.240</b></div>
+<div class="pl on"><svg class="tri" viewBox="0 0 10 10" aria-hidden="true"><path d="M0 0L10 5L0 10Z" fill="#EDE5D3"/></svg><div class="hd"><i style="background:#22D3EE"></i><span>SANTI (TÚ)</span></div><div class="mk"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="11" height="15"/><path d="M9 5V3h11v15h-2"/></svg>2 CARTAS</div><b>860</b></div>
+<div class="pl"><div class="hd"><i style="background:#F59E0B"></i><span>MARÍA JOSÉ</span></div><div class="mk"><svg viewBox="0 0 24 24"><path d="M4 20L20 4"/></svg><span class="tg">TRAIDOR</span></div><b>2.105</b></div>
+<div class="pl"><div class="hd"><i style="background:#8B5CF6"></i><span>LUCAS</span></div><div class="mk"><svg viewBox="0 0 24 24"><path d="M12 3C15 8 18 10 17 15A5 5 0 0 1 7 15C7 12 9 10 10 8C11 10 12 11 13 11C12 8 11 6 12 3Z"/></svg>FURIA 3/5</div><b>415</b></div>
+<div class="pl ap"><div class="hd"><i style="background:#6B7075"></i><span>VALEN</span></div><div class="mk"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" stroke-dasharray="3 3"/></svg>ESPECTRO</div><b>0</b></div>
+<div class="pl"><div class="hd"><i style="background:#10B981"></i><span>NICO</span></div><div class="mk"></div><b>1.030</b></div>
+<div class="pl"><div class="hd"><i style="background:#4F46E5"></i><span>CAMI (BOT)</span></div><div class="mk"></div><b>780</b></div>
+<div class="pl"><div class="hd"><i style="background:#C97B3A"></i><span>GUILLERMO ANTONIO</span></div><div class="mk"></div><b>1.560</b></div>
+</div>
+</main>
+</body>
+</html>
