@@ -116,13 +116,16 @@ end
 -- Lista vertical con scroll. Crece con su contenido hasta `Theme.maxListHeight()` y a partir de ahí
 -- hace scroll: sin ese tope, el scroll de un modal nunca actuaba porque la lista crecía con sus filas y
 -- se salía de la pantalla (I13). El tope sigue al tamaño de la pantalla.
+--
+-- El alto se fija a mano, sin `AutomaticSize`. Comprobado en Studio (2026-11-04): un panel con
+-- `AutomaticSize` no recalcula al crecer un `ScrollingFrame` que también lo usa. La lista medía 160 y el
+-- panel seguía en 16, así que los botones no se veían hasta que algo redimensionaba la ventana.
 function Theme.scrollList(parent: Instance, name: string, order: number): ScrollingFrame
 	local list = Instance.new("ScrollingFrame")
 	list.Name = name
 	list.BackgroundTransparency = 1
 	list.BorderSizePixel = 0
 	list.Size = UDim2.fromScale(1, 0)
-	list.AutomaticSize = Enum.AutomaticSize.Y
 	list.CanvasSize = UDim2.fromScale(0, 0)
 	list.AutomaticCanvasSize = Enum.AutomaticSize.Y
 	list.ScrollingDirection = Enum.ScrollingDirection.Y
@@ -136,14 +139,13 @@ function Theme.scrollList(parent: Instance, name: string, order: number): Scroll
 	layout.SortOrder = Enum.SortOrder.LayoutOrder
 	layout.Parent = list
 
-	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(math.huge, Theme.maxListHeight())
-	limit.Parent = list
+	local function fit()
+		list.Size = UDim2.new(1, 0, 0, math.min(layout.AbsoluteContentSize.Y, Theme.maxListHeight()))
+	end
+	layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fit)
 	local camera = Workspace.CurrentCamera
 	if camera ~= nil then
-		camera:GetPropertyChangedSignal("ViewportSize"):Connect(function()
-			limit.MaxSize = Vector2.new(math.huge, Theme.maxListHeight())
-		end)
+		camera:GetPropertyChangedSignal("ViewportSize"):Connect(fit)
 	end
 	return list
 end
@@ -178,9 +180,13 @@ function Theme.button(parent: Instance, text: string, order: number, onClick: ()
 	button.TextSize = 18
 	button.TextColor3 = Theme.text
 	button.Text = text
+	-- Un texto largo, como la descripción de un perk, crece hacia abajo en vez de cortarse por los lados.
+	button.TextWrapped = true
+	button.AutomaticSize = Enum.AutomaticSize.Y
 	button.LayoutOrder = order
 	button.Parent = parent
 	Theme.corner(button, 8)
+	Theme.padding(button, 8)
 
 	button.MouseButton1Click:Connect(function()
 		button.BackgroundColor3 = Theme.buttonHot

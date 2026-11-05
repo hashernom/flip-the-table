@@ -15,8 +15,6 @@ local LobbyMenu = {}
 function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Handles
 	local modal = Theme.modal(playerGui, "LobbyMenu", "Flip the Table", 9)
 	local body = modal.body
-	body.Size = UDim2.fromScale(1, 0)
-	body.AutomaticSize = Enum.AutomaticSize.Y
 	modal.setOpen(true)
 
 	local notice = Instance.new("TextLabel")

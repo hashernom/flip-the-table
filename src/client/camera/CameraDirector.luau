@@ -15,7 +15,7 @@ type Mode = CameraRules.Mode
 type SizeId = CityLayout.SizeId
 
 export type Director = {
-	update: (ctx: { riding: boolean?, sceneRunning: boolean? }) -> Mode,
+	update: (ctx: { riding: boolean?, sceneRunning: boolean? }, dt: number) -> Mode,
 	requestOverview: (on: boolean) -> (),
 	mode: () -> Mode,
 	follow: (token: Model?) -> (),
@@ -65,9 +65,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		return if body ~= nil and body:IsA("BasePart") then body else nil
 	end
 
-	local function apply(target: CFrame)
+	local function apply(target: CFrame, dt: number)
 		camera.CameraType = Enum.CameraType.Scriptable
-		camera.CFrame = camera.CFrame:Lerp(target, CameraShots.lerpAlpha)
+		camera.CFrame = camera.CFrame:Lerp(target, CameraRules.followAlpha(CameraShots.followRate, dt))
 	end
 
 	-- Plano sobre la ficha que se sigue. Sin ficha, una vista de la ciudad: nunca se queda en blanco.
@@ -103,21 +103,21 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	end
 
 	local director: Director = {
-		update = function(ctx)
+		update = function(ctx, dt)
 			mode = CameraRules.modeFor({
 				riding = ctx.riding,
 				sceneRunning = ctx.sceneRunning,
 				overviewRequested = overviewWanted,
 			})
 			if mode == "Scene" then
-				apply(sceneTarget())
+				apply(sceneTarget(), dt)
 			elseif mode == "Overview" then
-				spin += OVERVIEW_TURN * (1 / 60)
-				apply(overviewTarget())
+				spin += OVERVIEW_TURN * dt
+				apply(overviewTarget(), dt)
 			elseif mode == "Ride" then
-				apply(shotTarget(CameraShots.ride))
+				apply(shotTarget(CameraShots.ride), dt)
 			else
-				apply(shotTarget(CameraShots.turn))
+				apply(shotTarget(CameraShots.turn), dt)
 			end
 			return mode
 		end,
@@ -150,8 +150,8 @@ function CameraDirector.start(
 	director: Director,
 	ctxProvider: () -> { riding: boolean?, sceneRunning: boolean? }
 ): () -> ()
-	local connection = RunService.RenderStepped:Connect(function()
-		director.update(ctxProvider())
+	local connection = RunService.RenderStepped:Connect(function(dt: number)
+		director.update(ctxProvider(), dt)
 	end)
 	return function()
 		connection:Disconnect()

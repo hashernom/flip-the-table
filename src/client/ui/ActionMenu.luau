@@ -26,8 +26,10 @@ function ActionMenu.create(playerGui: Instance): Handles
 	local gui = Theme.screenGui(playerGui, "ActionMenu", 6)
 
 	local panel = Theme.panel(gui, "Bar", nil)
-	panel.AnchorPoint = Vector2.new(0.5, 1)
-	panel.Position = UDim2.new(0.5, 0, 1, -12)
+	-- Abajo a la derecha: en el plano del turno la ficha y su casilla quedan abajo, hacia el centro, y un
+	-- menú centrado las tapaba.
+	panel.AnchorPoint = Vector2.new(1, 1)
+	panel.Position = UDim2.new(1, -12, 1, -12)
 	-- Ancho en fracción de la pantalla con tope: un panel de 420 px fijos se salía de un móvil estrecho.
 	panel.Size = UDim2.fromScale(0.9, 0)
 	panel.AutomaticSize = Enum.AutomaticSize.Y

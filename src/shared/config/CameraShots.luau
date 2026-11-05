@@ -9,6 +9,6 @@ return {
 	turn = { back = 26, inward = 34, up = 50, ahead = 42, focusUp = 6 } :: Shot,
 	-- Durante el recorrido: cerca de la ficha y del avatar.
 	ride = { back = 16, inward = 7, up = 13, ahead = 10, focusUp = 8 } :: Shot,
-	-- Lo que tarda en acercarse al plano: cuanto mayor, más brusco.
-	lerpAlpha = 0.08,
+	-- Con qué rapidez se acerca al plano, por segundo: cuanto mayor, más brusco. No depende de los FPS.
+	followRate = 5,
 }

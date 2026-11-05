@@ -64,6 +64,15 @@ function CameraRules.pose(
 	return eye, focus
 end
 
+-- Cuánto se acerca la cámara a su plano en un fotograma de `dt` segundos. Es exponencial para que el
+-- movimiento sea el mismo a 30 que a 144 FPS. Un tiempo roto no la mueve.
+function CameraRules.followAlpha(rate: number, dt: number): number
+	if dt ~= dt or dt <= 0 then
+		return 0
+	end
+	return 1 - math.exp(-rate * dt)
+end
+
 -- Duración de un recorrido, acotada por el tope de `Scenes`. Sea cual sea la distancia, la ficha
 -- nunca tarda más: el turno se mide en segundos, no en studs.
 function CameraRules.rideSeconds(requested: number): number

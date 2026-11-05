@@ -131,6 +131,36 @@ describe("Scenes", function()
 		end
 	end)
 
+	-- Medido en partida (2026-11-04): con la duración fija y el acortado, seis casillas se cruzaban en
+	-- un segundo y la cámara no llegaba a acercarse a la ficha.
+	describe("recorrido de una ficha", function()
+		local function ride(squares: number, seen: number): number
+			local path = {}
+			for square = 1, squares do
+				path[square] = square
+			end
+			return Scenes.durationFor({ type = "TokenMoved", path = path } :: any, seen)
+		end
+
+		it("no se acorta al repetirse", function()
+			expect(ride(7, 0)).toBe(ride(7, 50))
+		end)
+
+		it("dura más cuantas más casillas recorre", function()
+			expect(ride(9, 0) > ride(5, 0)).toBeTruthy()
+		end)
+
+		it("nunca pasa del tope ni baja del mínimo", function()
+			expect(ride(40, 0)).toBe(Scenes.maxRideSec)
+			expect(ride(1, 0)).toBe(Scenes.minRideSec)
+		end)
+
+		it("un salto sin ruta no es un recorrido y sigue acortándose", function()
+			local jump: any = { type = "TokenMoved", path = {} }
+			expect(Scenes.durationFor(jump, 3) < Scenes.durationFor(jump, 0)).toBeTruthy()
+		end)
+	end)
+
 	it("ninguna legendaria supera 10 s", function()
 		for _, cardId in { "Hurricane", "WorldFlip", "Revolution", "Earthquake", "CrownStrike" } do
 			expect(Scenes.durationFor(cardEvent(cardId), 0) <= 10).toBeTruthy()

@@ -117,6 +117,28 @@ describe("CameraRules: recorrido", function()
 	end)
 end)
 
+describe("CameraRules: suavizado", function()
+	it("no depende de los fotogramas: dos pasos cortos equivalen a uno largo", function()
+		local one = CameraRules.followAlpha(CameraShots.followRate, 1 / 30)
+		local half = CameraRules.followAlpha(CameraShots.followRate, 1 / 60)
+		local two = 1 - (1 - half) * (1 - half)
+		expect(math.abs(one - two) < 1e-9).toBe(true)
+	end)
+
+	it("un fotograma largo acerca más que uno corto, sin pasarse", function()
+		local short = CameraRules.followAlpha(CameraShots.followRate, 1 / 120)
+		local long = CameraRules.followAlpha(CameraShots.followRate, 1 / 15)
+		expect(long > short).toBe(true)
+		expect(CameraRules.followAlpha(CameraShots.followRate, 1000) <= 1).toBe(true)
+	end)
+
+	it("un tiempo roto no mueve la cámara", function()
+		expect(CameraRules.followAlpha(CameraShots.followRate, 0)).toBe(0)
+		expect(CameraRules.followAlpha(CameraShots.followRate, -1)).toBe(0)
+		expect(CameraRules.followAlpha(CameraShots.followRate, 0 / 0)).toBe(0)
+	end)
+end)
+
 describe("CameraRules: altura del avatar", function()
 	it("cuanto más alto el avatar, más alta la cámara", function()
 		-- Con un avatar mínimo o máximo la cámara queda por encima del asiento; nunca dentro de la

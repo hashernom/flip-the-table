@@ -99,9 +99,22 @@ local function cardDuration(cardId: any): number
 	return CARD_DURATION[card.rarity] or BASE_DURATION.CardPlayed
 end
 
+-- Tope de un recorrido de ficha en la ciudad: sea cual sea la distancia, un turno no puede quedarse
+-- esperando a que la ficha cruce el mapa. Lo aplica `CameraRules.rideSeconds`.
+Scenes.maxRideSec = 4
+-- Un recorrido dura según las casillas que cruza, con un mínimo para que dé tiempo a verlo. Con dos
+-- dados son unos 2,8 s de media. Se ajusta a ojo y cuenta para el objetivo de 15 a 20 s por turno.
+Scenes.rideSecPerSquare = 0.4
+Scenes.minRideSec = 1.2
+
 -- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto ese
--- tipo de evento en la partida: a partir de la segunda, la escena se acorta.
+-- tipo de evento en la partida: a partir de la segunda, la escena se acorta. El recorrido de una ficha
+-- no: se repite en cada turno y es lo que el grupo mira, así que depende solo de la distancia. Un
+-- TokenMoved sin ruta es un salto, no un recorrido, y se trata como cualquier otra escena.
 function Scenes.durationFor(event: Event, seenCount: number): number
+	if event.type == "TokenMoved" and type(event.path) == "table" and #event.path > 0 then
+		return math.clamp(#event.path * Scenes.rideSecPerSquare, Scenes.minRideSec, Scenes.maxRideSec)
+	end
 	local base = if event.type == "CardPlayed"
 		then cardDuration(event.cardId)
 		else BASE_DURATION[event.type] or UNKNOWN_DURATION
@@ -144,10 +157,6 @@ Scenes.joinTimeoutSec = 30
 -- Margen con el que el servidor acepta una acción antes de que acabe la escena (R-P39): cubre el
 -- desfase entre el reloj del cliente y el suyo, sin dejar que un cliente corte la escena del grupo.
 Scenes.actionGraceSec = 0.25
-
--- Tope de un recorrido de ficha en la ciudad: sea cual sea la distancia, un turno no puede quedarse
--- esperando a que la ficha cruce el mapa. Lo aplica `CameraRules.rideSeconds`.
-Scenes.maxRideSec = 4
 
 -- Ventana de la revancha: segundos que el grupo tiene para decidir si juega otra partida en el
 -- mismo servidor cuando la anterior termina. La cuenta atrás empieza al acabar la escena final y la
