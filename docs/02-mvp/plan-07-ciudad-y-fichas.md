@@ -12,6 +12,12 @@
 
 **Requisito previo:** la Puerta B está aprobada.
 
+> **Estado al 2026-11-05:** el código de las Tareas 3, 4, 5 y 6 está en la rama `plan-07-ciudad-y-fichas`
+> y pasó revisión. Faltan las capturas de partida con 2 jugadores, la aprobación del responsable y la
+> medición de rendimiento, que el responsable decidió omitir en esta sesión. El detalle y lo que queda
+> está en [el cierre de la subfase](resultados/plan-07-cierre.md) y en
+> [rendimiento](resultados/rendimiento-ciudad.md).
+
 ## Entradas del plan 06 (2026-11-05)
 
 - **Modelado:** el [prompt maestro](../../art/edificios/prompt-orquestador.md) encarga las 30 propiedades que faltan, con el [blueprint](../../art/edificios/blueprint.md) como norma.
