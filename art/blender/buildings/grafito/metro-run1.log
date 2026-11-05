@@ -1,0 +1,88 @@
+D:\monopoly\art\blender\buildings\grafito\estacion-de-metrolinea.py:460: DeprecationWarning: 'World.use_nodes' is expected to be removed in Blender 6.0
+  world.use_nodes = True
+02:18.844  render           | Saved: 'D:\monopoly\art\render\grafito\estacion-de-metrolinea\estacion-de-metrolinea-niveles.png'
+03:46.985  render           | Saved: 'D:\monopoly\art\render\grafito\estacion-de-metrolinea\estacion-de-metrolinea-comparacion.png'
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_brick.fbx'
+export finished in 0.0675 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_limestone.fbx'
+export finished in 0.0830 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_slate.fbx'
+export finished in 0.0780 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_metal_verde_oscuro.fbx'
+export finished in 0.0671 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_glass.fbx'
+export finished in 0.0983 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_metal_grafito.fbx'
+export finished in 0.0810 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_metal_acero.fbx'
+export finished in 0.0593 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_body_wood.fbx'
+export finished in 0.1072 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon1_glass.fbx'
+export finished in 0.1295 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon1_metal_verde_oscuro.fbx'
+export finished in 0.0740 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon1_wood.fbx'
+export finished in 0.0516 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon2_limestone.fbx'
+export finished in 0.0588 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon2_glass.fbx'
+export finished in 0.0411 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon2_metal_verde_oscuro.fbx'
+export finished in 0.0487 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon3_limestone.fbx'
+export finished in 0.0914 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon3_metal_verde_oscuro.fbx'
+export finished in 0.1523 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon4_brick.fbx'
+export finished in 0.1479 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon4_limestone.fbx'
+export finished in 0.1606 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon4_slate.fbx'
+export finished in 0.1760 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon4_glass.fbx'
+export finished in 0.1697 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon4_metal_verde_oscuro.fbx'
+export finished in 0.1613 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon5_limestone.fbx'
+export finished in 0.2359 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon5_metal_verde_claro.fbx'
+export finished in 0.2465 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon5_metal_verde_oscuro.fbx'
+export finished in 0.0652 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_addon5_metal_cobre.fbx'
+export finished in 0.1480 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\estacion-de-metrolinea\\metro_LOD1.fbx'
+export finished in 0.1997 sec.
+METRO_STATS {"total": 2620, "lod1": 1226, "niveles": {"0": {"triangulos_propios": 1856, "triangulos_acumulados": 1856, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 18.7, "alto_maximo_sobre_suelo": 18.7, "frente": -9.63}}, "1": {"triangulos_propios": 204, "triangulos_acumulados": 2060, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 18.7, "alto_maximo_sobre_suelo": 18.7, "frente": -9.63}}, "2": {"triangulos_propios": 168, "triangulos_acumulados": 2228, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 18.7, "alto_maximo_sobre_suelo": 18.7, "frente": -9.63}}, "3": {"triangulos_propios": 184, "triangulos_acumulados": 2412, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 27.7, "alto_maximo_sobre_suelo": 27.7, "frente": -9.63}}, "4": {"triangulos_propios": 84, "triangulos_acumulados": 2496, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 27.7, "alto_maximo_sobre_suelo": 27.7, "frente": -9.63}}, "5": {"triangulos_propios": 124, "triangulos_acumulados": 2620, "limites": {"ancho": 32.4, "fondo": 19.03, "alto": 38.9, "alto_maximo_sobre_suelo": 38.9, "frente": -9.63}}}}
+Info: Saved as "estacion-de-metrolinea.blend"
+METRO_DONE
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)
+
+Blender quit

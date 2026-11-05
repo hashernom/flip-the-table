@@ -1,0 +1,77 @@
+Traceback (most recent call last):
+  File "D:\monopoly\art\blender\buildings\grafito\fundicion-vulcano.py", line 639, in <module>
+    main()
+    ~~~~^^
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_body_brick.fbx'
+export finished in 0.0131 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_body_limestone.fbx'
+export finished in 0.0073 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_body_slate.fbx'
+export finished in 0.0053 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_body_glass.fbx'
+export finished in 0.0051 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_body_metal.fbx'
+export finished in 0.0073 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon1_limestone.fbx'
+export finished in 0.0065 sec.
+
+  File "D:\monopoly\art\blender\buildings\grafito\fundicion-vulcano.py", line 598, in main
+    raise RuntimeError(f"Presupuesto superado: {total} > {TRIANGLE_BUDGET}")
+RuntimeError: Presupuesto superado: 3144 > 3000
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon1_metal.fbx'
+export finished in 0.0052 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon2_limestone.fbx'
+export finished in 0.0065 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon2_metal.fbx'
+export finished in 0.0055 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon2_slate.fbx'
+export finished in 0.0054 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon3_brick.fbx'
+export finished in 0.0069 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon3_limestone.fbx'
+export finished in 0.0057 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon3_metal.fbx'
+export finished in 0.0059 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon4_limestone.fbx'
+export finished in 0.0060 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon4_brick.fbx'
+export finished in 0.0072 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon4_glass.fbx'
+export finished in 0.0054 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon4_metal.fbx'
+export finished in 0.0055 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon4_slate.fbx'
+export finished in 0.0123 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon5_brick.fbx'
+export finished in 0.0059 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon5_limestone.fbx'
+export finished in 0.0067 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_addon5_metal_oro.fbx'
+export finished in 0.0051 sec.
+
+FBX export starting... 'D:\\monopoly\\art\\blender\\buildings\\grafito\\fundicion-vulcano\\vulcano_LOD1.fbx'
+export finished in 0.0104 sec.
+VULCANO_STATS {"total": 3144, "lod1": 1472, "niveles": {"0": {"triangulos_propios": 1960, "triangulos_acumulados": 1960, "limites": {"ancho": 32.89, "fondo": 18.27, "alto": 24.35, "alto_maximo_sobre_suelo": 24.35, "frente": -9.42}}, "1": {"triangulos_propios": 144, "triangulos_acumulados": 2104, "limites": {"ancho": 32.89, "fondo": 18.78, "alto": 24.35, "alto_maximo_sobre_suelo": 24.35, "frente": -9.93}}, "2": {"triangulos_propios": 476, "triangulos_acumulados": 2580, "limites": {"ancho": 33.29, "fondo": 18.78, "alto": 24.35, "alto_maximo_sobre_suelo": 24.35, "frente": -9.93}}, "3": {"triangulos_propios": 234, "triangulos_acumulados": 2814, "limites": {"ancho": 33.29, "fondo": 18.78, "alto": 30.4, "alto_maximo_sobre_suelo": 30.4, "frente": -9.93}}, "4": {"triangulos_propios": 256, "triangulos_acumulados": 3070, "limites": {"ancho": 33.29, "fondo": 18.78, "alto": 30.4, "alto_maximo_sobre_suelo": 30.4, "frente": -9.93}}, "5": {"triangulos_propios": 74, "triangulos_acumulados": 3144, "limites": {"ancho": 33.29, "fondo": 18.78, "alto": 39.93, "alto_maximo_sobre_suelo": 39.93, "frente": -9.93}}}}
+Blender 5.2.0 LTS (hash fbe6228777e7 built 2026-07-14 01:35:40)
+
+Blender quit
