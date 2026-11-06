@@ -84,6 +84,8 @@ local function boot()
 	local DiceScene = require("./scenes/game/Dice")
 	local CommonCardsScene = require("./scenes/cards/CommonCards")
 	local SquareScenes = require("./scenes/squares/SquareScenes")
+	local GameScenes = require("./scenes/game/GameScenes")
+	local TokenMarks = require("./world/TokenMarks")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -319,6 +321,32 @@ local function boot()
 		legendaries[eventType] = { scene = scene, cancelAll = squareScenes.cancelAll }
 	end
 
+	-- Partida (Tarea 6): renta, construcción, bancarrota, pactos, corona, espectros, Última Ronda y podio.
+	local gameScenes = GameScenes.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = commonNameOf,
+		rivalsOf = function(_id: string): { string }
+			return {}
+		end,
+		log = legendaryOptions.log,
+		-- `scenes.world` se rellena más abajo, con `syncTokens`; se llama ya en plena partida.
+		reconcile = function(view: any)
+			if view ~= nil and scenes.world ~= nil then
+				scenes.world.reconcile(view)
+			end
+		end,
+		colorOf = function(id: string): Color3
+			local view = StateStore.view(queue.state)
+			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
+			return seatColor(seat or 1)
+		end,
+	})
+	for eventType, scene in gameScenes.scenes do
+		legendaries[eventType] = { scene = scene, cancelAll = gameScenes.cancelAll }
+	end
+
 	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
 	local function cancelScenes()
 		arrest.cancelAll()
@@ -424,6 +452,8 @@ local function boot()
 				TokenRider.mount(other, token)
 			end
 		end
+		-- Corona del líder y marca de traidor, siempre como dice la vista.
+		TokenMarks.sync(view, tokens)
 		BuildingView.sync(view.properties or {}, function(ownerId: string): Color3?
 			local seat = WorldRules.seatOf(view.players, ownerId)
 			return if seat ~= nil then seatColor(seat) else nil

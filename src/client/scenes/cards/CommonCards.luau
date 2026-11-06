@@ -54,6 +54,9 @@ export type Env = {
 	targetToken: Model?,
 	options: Options,
 	event: Types.Event,
+	-- Vista del lote (el estado al acabar) y variación de la escena (1 o 2), igual en todo el grupo.
+	view: any,
+	variation: number,
 }
 
 -- Paso por fotograma: `p` va de 0 a 1 a lo largo de la escena.
@@ -548,7 +551,7 @@ CommonCards.CARD_IDS =
 export type Spec = {
 	build: Build,
 	focus: string,
-	ids: ((event: Types.Event) -> (string?, string?))?,
+	ids: ((event: Types.Event, view: any) -> (string?, string?))?,
 }
 
 -- Piezas sueltas para las escenas que montan otras carpetas (`scenes/squares`).
@@ -584,7 +587,7 @@ function CommonCards.runner(options: Options): {
 			local handles = options.city()
 			local actorId: any, targetId: any
 			if spec.ids ~= nil then
-				actorId, targetId = spec.ids(event)
+				actorId, targetId = spec.ids(event, ctx.view)
 			else
 				-- El Escudo llega como CardBlocked: quien se defiende es `byPlayerId`.
 				actorId = if event.type == "CardBlocked" then event.byPlayerId else event.playerId
@@ -603,15 +606,21 @@ function CommonCards.runner(options: Options): {
 				targetBase = if targetToken ~= nil then LegendaryKit.tokenBase(targetToken) else nil,
 				options = options,
 				event = event,
+				view = ctx.view,
+				variation = ctx.variation or 1,
 			}
+			-- "none": la escena no necesita ficha y mueve la cámara ella misma (o no la mueve).
+			local free = spec.focus == "none"
 			local focusToken = if spec.focus == "target" then targetToken else actorToken
 			local focusBase = if spec.focus == "target" then env.targetBase else env.actorBase
 			-- Sin ciudad o sin la ficha que importa, la escena espera su tiempo: el director pone el mundo al día.
-			if handles == nil or focusToken == nil or focusBase == nil then
+			if handles == nil or (not free and (focusToken == nil or focusBase == nil)) then
 				ctx.wait(ctx.duration)
 				return
 			end
-			options.director.follow(focusToken)
+			if not free then
+				options.director.follow(focusToken :: Model)
+			end
 			local current = LegendaryKit.begin(handles, `Scene{label}`)
 			env.run = current
 			local built: Step? = nil

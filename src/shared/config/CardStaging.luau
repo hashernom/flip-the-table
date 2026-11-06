@@ -111,4 +111,21 @@ CardStaging.squares = {
 	taxCoins = 8,
 }
 
+-- Escenas de la partida (scenes/game/GameScenes): monedas de la renta, grúa de construcción, mazo de la
+-- subasta, cuerda del pacto, foco del traidor, colores de calor y de espectro, y el podio.
+CardStaging.game = {
+	rentCoins = 6,
+	buildTop = 26,
+	buildSeat = 14,
+	gavelStreet = 14,
+	gavelWood = "#8A5A33",
+	pactSegments = 10,
+	spotColor = "#FFF2C4",
+	heatColor = "#FF7A2E",
+	ghostColor = "#B9A8E8",
+	startBills = 6,
+	podiumGap = 12,
+	podiumHeights = { 8, 5, 3 },
+}
+
 return CardStaging

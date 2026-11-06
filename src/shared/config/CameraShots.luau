@@ -39,6 +39,8 @@ return {
 	deed = { back = 44, inward = 0, up = 24, ahead = 0, focusUp = 10, fixedSide = true } :: Shot,
 	-- Duelo: de lado, con los dos rivales en el cuadro y el «VS» entre ellos.
 	duel = { back = 42, inward = 0, up = 18, ahead = 0, focusUp = 7, fixedSide = true } :: Shot,
+	-- Podio: de frente a los tres escalones, un poco por encima.
+	podium = { back = 46, inward = 0, up = 20, ahead = 0, focusUp = 8, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
 	-- Más cerca del tablero (2026-11-06): el anillo llena la vista y el exterior queda libre para los barrios.
 	-- Encuadra el tablero, no la ciudad (2026-11-06): el anillo con su calle llena la pantalla de frente.
