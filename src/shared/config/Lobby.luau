@@ -31,4 +31,10 @@ return {
 	queueWaitSec = 60,
 	-- Cada cuánto revisa la cola si ya toca empezar, en segundos.
 	queueTickSec = 1,
+	-- Mesas del parque (lobby provisional): segundos de cuenta atrás al juntarse 2, margen que da quien se
+	-- sienta a última hora, cuenta con la mesa llena y cada cuánto se revisan las mesas.
+	tableCountdownSec = 15,
+	tableJoinGraceSec = 6,
+	tableFullSec = 3,
+	tableTickSec = 0.25,
 }

@@ -61,7 +61,8 @@ function CameraRules.managePose(
 		dx, dz = toRoad.x / length, toRoad.z / length
 	end
 	local eye = { x = lot.x + dx * shot.distance, y = lot.y + shot.up, z = lot.z + dz * shot.distance }
-	local focus = { x = lot.x, y = lot.y + shot.focusUp, z = lot.z }
+	local toward = shot.toward or 0
+	local focus = { x = lot.x + dx * toward, y = lot.y + shot.focusUp, z = lot.z + dz * toward }
 	return eye, focus
 end
 

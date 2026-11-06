@@ -51,19 +51,20 @@ end
 -- Carta física: placa azul marino con borde de caliza y su nombre flotando encima.
 type CardProp = { card: Part, rim: Part, label: Frame }
 
-local function makeCard(env: Env, text: string): CardProp
+local function makeCard(env: Env, text: string, scale: number?): CardProp
+	local k = scale or 1
 	return {
 		card = LegendaryKit.part(
 			env.run.props,
 			"Card",
-			Vector3.new(3, 4.2, 0.25),
+			Vector3.new(3, 4.2, 0.25) * k,
 			Theme.color.navy,
 			CFrame.new()
 		),
 		rim = LegendaryKit.part(
 			env.run.props,
 			"CardRim",
-			Vector3.new(3.3, 4.5, 0.2),
+			Vector3.new(3.3 * k, 4.5 * k, 0.2),
 			Theme.color.limestone,
 			CFrame.new()
 		),
@@ -76,7 +77,7 @@ local function placeCard(prop: CardProp, frame: CFrame, visible: boolean)
 	prop.rim.CFrame = frame * CFrame.new(0, 0, 0.05)
 	prop.card.Transparency = if visible then 0 else 1
 	prop.rim.Transparency = if visible then 0 else 1
-	LegendaryKit.moveSign(prop.label, frame.Position + Vector3.new(0, 3.6, 0))
+	LegendaryKit.moveSign(prop.label, frame.Position + Vector3.new(0, prop.card.Size.Y * 0.85, 0))
 	prop.label.Visible = visible
 end
 
@@ -247,26 +248,30 @@ local function spin(env: Env): Step
 	local head = kit.header(env, base, kit.names(env, "scene.spin.header"), "#E07A3C")
 	local forward = kit.forwardOf(env.actorToken)
 	local side = forward:Cross(Vector3.yAxis)
-	local deckAt = base + forward * 5 + side * 5
+	-- Apartado de la ficha, para que el mazo no se mezcle con ella, y más grande.
+	local k = STAGING.spinScale
+	local deckAt = base + forward * STAGING.spinAhead + side * STAGING.spinSide
 	local yaw = CFrame.lookAt(deckAt, deckAt - forward).Rotation
 	-- El mazo: cartas tumbadas, una sobre otra, con el canto un poco desordenado.
 	local pile: { { part: Part, rest: CFrame } } = {}
 	for layer = 1, STAGING.spinDeck do
 		local wobble = math.rad(((layer * 37) % 9) - 4)
-		local rest = CFrame.new(deckAt + Vector3.new(0, 0.15 + layer * 0.22, 0))
+		local rest = CFrame.new(deckAt + Vector3.new(0, 0.15 + layer * 0.22 * k, 0))
 			* yaw
 			* CFrame.Angles(math.rad(90), 0, wobble)
 		local color = if layer % 2 == 0 then Theme.color.navy else Color3.fromHex(STAGING.spinBack)
-		local piece = LegendaryKit.part(env.run.props, "DeckCard", Vector3.new(3, 4.2, 0.2), color, rest)
+		local piece =
+			LegendaryKit.part(env.run.props, "DeckCard", Vector3.new(3 * k, 4.2 * k, 0.2 * k), color, rest)
 		table.insert(pile, { part = piece, rest = rest })
 	end
-	local top = CFrame.new(deckAt + Vector3.new(0, 0.15 + (STAGING.spinDeck + 1) * 0.22, 0))
+	local top = CFrame.new(deckAt + Vector3.new(0, 0.15 + (STAGING.spinDeck + 1) * 0.22 * k, 0))
 		* yaw
 		* CFrame.Angles(math.rad(90), 0, 0)
-	local card = makeCard(env, cardLabel(env.event.cardId))
+	local card = makeCard(env, cardLabel(env.event.cardId), k)
 	local cardId = env.event.cardId
 	local revealed = false
-	local show = Vector3.new(base.X, base.Y + 9, base.Z) + forward * 4
+	-- La carta sube sobre el mazo, no sobre la ficha.
+	local show = deckAt + Vector3.new(0, 11, 0)
 	return function(p: number, t: number)
 		head(p)
 		-- El mazo se planta con un salto y se va al final.

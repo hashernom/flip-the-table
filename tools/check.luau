@@ -106,6 +106,8 @@ if hasLuauFiles(LOBBY_DIR) then
 		`--definitions={ROBLOX_DEFINITIONS}`,
 		`--sourcemap={LOBBY_SOURCEMAP_PATH}`,
 		LOBBY_DIR,
+		-- El cliente del lobby solo existe en ese lugar: se comprueba con su mapa.
+		"src/client/lobby.client.luau",
 	})
 else
 	print("OK    Tipos de Roblox del lobby (luau-lsp): sin código de lobby")

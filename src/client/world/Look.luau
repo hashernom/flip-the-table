@@ -19,7 +19,7 @@ end
 function Look.apply()
 	Lighting.ClockTime = 10.6
 	Lighting.GeographicLatitude = 41.7333
-	Lighting.Brightness = 3.135
+	Lighting.Brightness = 2.95
 	Lighting.Ambient = Color3.fromRGB(58, 62, 74)
 	Lighting.OutdoorAmbient = Color3.fromRGB(112, 116, 128)
 	Lighting.ShadowSoftness = 0.2

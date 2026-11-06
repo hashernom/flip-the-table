@@ -14,7 +14,9 @@ local PartyService = require("./PartyService")
 local PartyStore = require("./PartyStore")
 local PublicQueue = require("./PublicQueue")
 local Remotes = require("../Remotes")
+local TableService = require("./TableService")
 local Teleport = require("./Teleport")
+local LobbyWorld = require("./LobbyWorld")
 
 local notice = Remotes.remote(Protocol.REMOTES.Notice)
 
@@ -72,6 +74,18 @@ PublicQueue.configure({
 	seed = nextSeed,
 	now = nowClock,
 })
+
+-- Lobby provisional: el parque con sus mesas. Sentarse junto a otros en una mesa es otra forma de entrar en
+-- partida, además de la party y la cola.
+task.spawn(function()
+	local world = LobbyWorld.build()
+	TableService.start(world, {
+		teleport = teleport,
+		notify = notify,
+		seed = nextSeed,
+		now = nowClock,
+	})
+end)
 
 -- Las peticiones del lobby cuestan mucho más que una acción de la partida: crear un código son
 -- varias lecturas y una escritura en MemoryStore, y empezar una party son varios teletransportes.

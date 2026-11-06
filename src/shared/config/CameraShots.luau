@@ -16,7 +16,9 @@ return {
 	-- Antes de tirar y al decidir: alejado, para ver la propiedad y las casillas que vienen.
 	turn = { back = 26, inward = 34, up = 50, ahead = 42, focusUp = 6 } :: Shot,
 	-- Gestionar propiedades: delante de la fachada, desde la calle, a `distance` del solar y `up` de alto.
-	manage = { distance = 44, up = 24, focusUp = 8 },
+	-- Mira `toward` studs por delante del solar, hacia la calle: así la isla con las casas queda en el centro
+	-- de la pantalla, por encima del panel, y el edificio detrás.
+	manage = { distance = 52, up = 44, focusUp = 2, toward = 13 },
 	-- Durante el recorrido: cerca de la ficha y del avatar.
 	ride = { back = 16, inward = 7, up = 13, ahead = 10, focusUp = 8 } :: Shot,
 	-- Primer plano del detenido (PlayerArrested): desde el interior de la calle, para que ninguna patrulla
@@ -39,6 +41,8 @@ return {
 	deed = { back = 44, inward = 0, up = 24, ahead = 0, focusUp = 10, fixedSide = true } :: Shot,
 	-- Duelo: de lado, con los dos rivales en el cuadro y el «VS» entre ellos.
 	duel = { back = 42, inward = 0, up = 18, ahead = 0, focusUp = 7, fixedSide = true } :: Shot,
+	-- Zona Caliente: primer plano de la zona nueva, desde su calle y algo alto, para ver sus edificios juntos.
+	hotZone = { back = 70, inward = 0, up = 46, ahead = 0, focusUp = 6, fixedSide = true } :: Shot,
 	-- Podio: de frente a los tres escalones, un poco por encima.
 	podium = { back = 46, inward = 0, up = 20, ahead = 0, focusUp = 8, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.

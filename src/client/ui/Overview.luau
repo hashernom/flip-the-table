@@ -90,6 +90,10 @@ function Overview.create(playerGui: Instance): Handles
 	end)
 
 	local function setOpen(value: boolean)
+		-- `main` lo llama varias veces por segundo con el mismo valor: solo un cambio real cuenta.
+		if value == open then
+			return
+		end
 		open = value
 		-- Cada vez que se abre la vista, los datos empiezan plegados.
 		if value then

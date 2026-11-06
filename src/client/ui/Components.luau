@@ -253,6 +253,12 @@ function Components.MoneyLabel(parent: Instance, name: string, size: number, ove
 				if tag.Parent ~= nil then
 					tween(tag, Ui.motion.moneyFloat * 0.4, { BackgroundTransparency = 1 })
 					tween(text, Ui.motion.moneyFloat * 0.4, { TextTransparency = 1 })
+					-- El contorno se apaga a la vez: si no, se quedaba gris un momento tras la cifra.
+					for _, child in tag:GetDescendants() do
+						if child:IsA("UIStroke") then
+							tween(child, Ui.motion.moneyFloat * 0.4, { Transparency = 1 })
+						end
+					end
 				end
 			end)
 			task.delay(Ui.motion.moneyFloat, function()

@@ -243,6 +243,9 @@ local TEXTS: { [string]: string } = {
 	["lobby.publicButton"] = "Jugar en público",
 	["lobby.yourParty"] = "Tu party",
 	["lobby.shareCode"] = "Comparte este código con tu grupo para que entre.",
+	-- Lobby provisional: el parque con mesas.
+	["lobbyPark.hint"] = "Siéntate en una mesa con otros jugadores para empezar una partida",
+	["lobbyPark.friends"] = "Jugar con amigos",
 	["lobby.settings"] = "Configuración",
 	["lobby.settings.on"] = "Sí",
 	["lobby.settings.off"] = "No",

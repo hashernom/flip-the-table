@@ -11,6 +11,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local ActionMenuRules = require("./ActionMenuRules")
 local AudioDirector = require("../audio/AudioDirector")
+local CardArt = require("../../shared/config/CardArt")
 local Cards = require("../../shared/config/Cards")
 local Board = require("./Board")
 local Components = require("./Components")
@@ -33,6 +34,9 @@ export type Handles = {
 	setView: (view: any, names: ViewText.Names?) -> (),
 	-- Plazo de la decisión en tiempo del servidor; nil esconde la calzada.
 	setDeadline: (deadline: number?) -> (),
+	-- Vista general: aparta el letrero de arriba, la calzada y la mano, que tapaban las casillas de los
+	-- bordes, y deja los botones en una columna al lado.
+	setOverviewMode: (active: boolean) -> (),
 	-- Título de la escena en curso. Vacío lo esconde.
 	setBanner: (text: string) -> (),
 	-- Aviso breve (una acción rechazada). Se esconde solo a los `Ui.toastSeconds`.
@@ -75,6 +79,21 @@ local RARITY_STAMP: { [string]: Components.StampKind } = {
 
 function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	local gui = Theme.screenGui(playerGui, "Hud", 5)
+
+	-- Las ilustraciones de las cartas se cargan ya: si no, la carta robada que se enseña en grande salía
+	-- con el marco primero y el dibujo cuando ya volaba a la mano.
+	task.spawn(function()
+		local ids: { string } = {}
+		for _, card in Cards.all do
+			local asset = CardArt.image(CardArt.card(card.id))
+			if asset ~= "" then
+				table.insert(ids, asset)
+			end
+		end
+		pcall(function()
+			game:GetService("ContentProvider"):PreloadAsync(ids)
+		end)
+	end)
 
 	-- La mesa ya dice quién hay y cómo va: la lista y la vida de Roblox sobran y ocupan ese rincón.
 	pcall(function()
@@ -151,6 +170,28 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	)
 	settingsButton.root.Size = UDim2.fromOffset(Ui.settingsButtonWidth, 44)
 	settingsButton.root.LayoutOrder = 6
+
+	-- Columna de botones de la vista general: los mismos del letrero, que se mudan aquí mientras dura.
+	local sideColumn = Instance.new("Frame")
+	sideColumn.Name = "OverviewButtons"
+	sideColumn.BackgroundTransparency = 1
+	sideColumn.AnchorPoint = if Ui.hudMirror == true then Vector2.new(1, 0.5) else Vector2.new(0, 0.5)
+	sideColumn.Position = if Ui.hudMirror == true
+		then UDim2.new(1, -Theme.space.l, 0.5, 0)
+		else UDim2.new(0, Theme.space.l, 0.5, 0)
+	sideColumn.Size = UDim2.fromOffset(Ui.manageButtonWidth + 20, 0)
+	sideColumn.AutomaticSize = Enum.AutomaticSize.Y
+	sideColumn.Visible = false
+	sideColumn.Parent = gui
+	local sideLayout = Instance.new("UIListLayout")
+	sideLayout.FillDirection = Enum.FillDirection.Vertical
+	sideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	sideLayout.Padding = UDim.new(0, Theme.space.s)
+	sideLayout.HorizontalAlignment = if Ui.hudMirror == true
+		then Enum.HorizontalAlignment.Right
+		else Enum.HorizontalAlignment.Left
+	sideLayout.Parent = sideColumn
+	local overviewActive = false
 
 	for _, button in { overviewButton.root, manageButton.root, emoteButton.root, settingsButton.root } do
 		button.ZIndex = 5
@@ -500,7 +541,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 
 	local function refreshTimer()
 		local remaining = ActionMenuRules.remainingSeconds(deadline, serverNow())
-		if remaining == nil or sceneActive then
+		if remaining == nil or sceneActive or overviewActive then
 			timer.set(nil, nil)
 		else
 			timer.set(remaining, deadlineTotal)
@@ -683,7 +724,8 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			face.Position = UDim2.fromScale(0.5, config.top)
 			face.Rotation = config.tilt
 			face.ZIndex = 30
-			face.GroupTransparency = 1
+			-- Opaca desde el principio: solo crece. Con un fundido, el contorno se veía antes que el dibujo.
+			face.GroupTransparency = 0
 			local grow = Instance.new("UIScale")
 			grow.Scale = config.scaleFrom
 			grow.Parent = face
@@ -691,7 +733,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			-- Entra girada y pequeña, se planta en grande y se queda un momento a la vista.
 			local inInfo = TweenInfo.new(config.inSec, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
 			TweenService:Create(grow, inInfo, { Scale = config.scale }):Play()
-			TweenService:Create(face, inInfo, { Rotation = 0, GroupTransparency = 0 }):Play()
+			TweenService:Create(face, inInfo, { Rotation = 0 }):Play()
 			local outSec = math.min(config.outSec, seconds * 0.4)
 			task.delay(math.max(config.inSec, seconds - outSec), function()
 				if revealToken ~= mine or face.Parent == nil then
@@ -858,16 +900,44 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				end)
 			end
 		end,
+		setOverviewMode = function(active: boolean)
+			if overviewActive == active then
+				return
+			end
+			overviewActive = active
+			local buttons = { overviewButton.root, manageButton.root, emoteButton.root, settingsButton.root }
+			for _, button in buttons do
+				button.Parent = if active then sideColumn else sign.row
+			end
+			sideColumn.Visible = active
+			if not sceneActive then
+				Components.tween(sign.root, Ui.motion.open, {
+					Position = UDim2.new(0.5, 0, 0, if active then -(Ui.signTop + 70) else Ui.signTop),
+				})
+				Components.tween(hand, Ui.motion.open, {
+					Position = handAt(if active then Ui.handVisibleHeight + Ui.roadHeight else 0),
+				})
+			end
+			emoteBar.Visible = false
+			refreshTimer()
+		end,
 		setSceneMode = function(active: boolean)
 			sceneActive = active
 			local away = Ui.plateColumnLeft + Ui.plateMaxWidth + Ui.arrowTipWidth
 			local shift = if not active then 0 elseif mirrored then away else -away
 			Components.tween(tableFrame, Ui.motion.open, { Position = UDim2.fromOffset(shift, 0) })
 			Components.tween(hand, Ui.motion.open, {
-				Position = handAt(if active then Ui.handVisibleHeight + Ui.roadHeight else 0),
+				Position = handAt(
+					if active or overviewActive then Ui.handVisibleHeight + Ui.roadHeight else 0
+				),
 			})
 			Components.tween(sign.root, Ui.motion.open, {
-				Position = UDim2.new(0.5, 0, 0, if active then -(Ui.signTop + 70) else Ui.signTop),
+				Position = UDim2.new(
+					0.5,
+					0,
+					0,
+					if active or overviewActive then -(Ui.signTop + 70) else Ui.signTop
+				),
 			})
 			emoteBar.Visible = false
 			refreshTimer()

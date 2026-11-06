@@ -1,6 +1,9 @@
 {
   "name": "flip-the-table-lobby",
-  "globIgnorePaths": ["**/.gitkeep"],
+  "globIgnorePaths": [
+    "**/.gitkeep",
+    "**/main.client.luau"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
@@ -30,6 +33,9 @@
         "$className": "StarterPlayerScripts",
         "shared": {
           "$path": "src/shared"
+        },
+        "Client": {
+          "$path": "src/client"
         }
       }
     }

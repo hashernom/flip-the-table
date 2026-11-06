@@ -224,7 +224,8 @@ describe("CameraRules: gestionar propiedades", function()
 		expect(eye.z > 0).toBe(true)
 		expect(eye.y > focus.y).toBe(true)
 		expect(math.abs(eye.x) < 1e-6).toBe(true)
-		expect(focus.z).toBe(0)
+		-- Mira un poco hacia la calle, a la isla de la casilla, sin pasar de la cámara.
+		expect(focus.z >= 0 and focus.z < eye.z).toBe(true)
 	end)
 end)
 
