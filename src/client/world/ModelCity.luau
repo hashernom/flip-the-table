@@ -690,6 +690,18 @@ local function ensureMiniature(city: CityHandles, view: any, geometry: Plinth)
 	if tokens ~= nil then
 		tokens:Destroy()
 	end
+	-- Una maqueta dentro de la copia sería un mapa dentro del mapa: se quita y se avisa con su ruta,
+	-- para encontrar quién la metió en la ciudad.
+	for _, descendant in clone:GetDescendants() do
+		if
+			descendant.Parent ~= nil and (descendant.Name == MINIATURE_NAME or descendant.Name == ROOT_NAME)
+		then
+			warn(
+				`ModelCity: la ciudad traía una maqueta dentro ({descendant:GetFullName()}); se quita de la copia`
+			)
+			descendant:Destroy()
+		end
+	end
 	for _, descendant in clone:GetDescendants() do
 		if isStripped(descendant) then
 			descendant:Destroy()

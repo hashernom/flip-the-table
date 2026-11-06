@@ -903,24 +903,220 @@ function Components.SecondaryButton(
 	}
 end
 
+-- Cabecera de una chapa: título en mayúsculas de carretera a la izquierda y `reserved` píxeles libres a la
+-- derecha para un botón. Devuelve la fila.
+function Components.titleRow(
+	parent: Instance,
+	title: string,
+	order: number,
+	height: number,
+	reserved: number
+): Frame
+	local row = frame(parent, "TitleRow")
+	row.Size = UDim2.new(1, 0, 0, height)
+	row.LayoutOrder = order
+	local text = label(row, "Title", Strings.upper(title), { face = font.roadBold, size = 22 })
+	text.Size = UDim2.new(1, -reserved, 1, 0)
+	text.TextYAlignment = Enum.TextYAlignment.Center
+	text.TextTruncate = Enum.TextTruncate.AtEnd
+	return row
+end
+
+-- Texto que crece hacia abajo: un párrafo entero, sin cortarse. Para lo que no cabe en un botón.
+function Components.textBlock(
+	parent: Instance,
+	name: string,
+	text: string,
+	order: number,
+	tint: Color3?
+): TextLabel
+	local item = label(parent, name, text, { face = font.text, size = 16, tint = tint, wrap = true })
+	item.Size = UDim2.fromScale(1, 0)
+	item.AutomaticSize = Enum.AutomaticSize.Y
+	item.LayoutOrder = order
+	return item
+end
+
+-- Fila horizontal de botones. Con `height` a cero crece con lo más alto que tenga dentro.
+function Components.buttonRow(parent: Instance, name: string, order: number, height: number): Frame
+	local row = frame(parent, name)
+	if height > 0 then
+		row.Size = UDim2.new(1, 0, 0, height)
+	else
+		row.Size = UDim2.fromScale(1, 0)
+		row.AutomaticSize = Enum.AutomaticSize.Y
+	end
+	row.LayoutOrder = order
+	local layout = Instance.new("UIListLayout")
+	layout.FillDirection = Enum.FillDirection.Horizontal
+	layout.Padding = UDim.new(0, 8)
+	layout.VerticalAlignment = Enum.VerticalAlignment.Center
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+	layout.Parent = row
+	return row
+end
+
+-- Acción irreversible: la primera pulsación cambia el texto a «¿Seguro?»; la segunda, dentro del plazo,
+-- ejecuta `onConfirm`. Si el plazo vence, el botón vuelve a `idleText`.
+function Components.confirmPress(button: Button, idleText: string, onConfirm: () -> ())
+	local armed = false
+	local token = 0
+	button.onActivated(function()
+		token += 1
+		local mine = token
+		if armed then
+			armed = false
+			button.setText(idleText)
+			onConfirm()
+			return
+		end
+		armed = true
+		button.setText(Strings.get("action.confirm"))
+		task.delay(Ui.confirmSeconds, function()
+			if armed and token == mine then
+				armed = false
+				button.setText(idleText)
+			end
+		end)
+	end)
+end
+
+-- Hoja modal: una chapa centrada, con título, botón de cerrar y una lista con scroll. Devuelve la misma
+-- forma que `Theme.modal` para que quien la usa no cambie. Sube al abrirse y baja al cerrarse.
+local SHEET_PADDING = 16
+local SHEET_HEADER = 48
+local SHEET_GAP = 8
+local SHEET_CHROME = SHEET_PADDING * 2 + SHEET_HEADER + SHEET_GAP
+
+function Components.Sheet(playerGui: Instance, name: string, title: string, displayOrder: number): Theme.Modal
+	local gui = Theme.screenGui(playerGui, name, displayOrder)
+
+	local backdrop = Instance.new("TextButton")
+	backdrop.Name = "Backdrop"
+	backdrop.AutoButtonColor = false
+	backdrop.BackgroundColor3 = color.asphaltDeep
+	backdrop.BackgroundTransparency = 1
+	backdrop.BorderSizePixel = 0
+	backdrop.Size = UDim2.fromScale(1, 1)
+	backdrop.Text = ""
+	backdrop.Visible = false
+	backdrop.Parent = gui
+
+	local plate = Components.Panel(gui, "Sheet", Ui.radius.plate)
+	local root = plate.root
+	root.AnchorPoint = Vector2.new(0.5, 0.5)
+	root.Position = UDim2.fromScale(0.5, 0.5)
+	root.Size = UDim2.new(0.9, 0, 0, SHEET_CHROME)
+	root.Visible = false
+	-- Un marco que no es botón deja pasar el clic al velo, y tocar el fondo de la hoja la cerraría.
+	root.Active = true
+	Theme.limitWidth(root)
+
+	local inner = frame(plate.body, "Inner")
+	inner.Size = UDim2.fromScale(1, 1)
+	local pad = Instance.new("UIPadding")
+	pad.PaddingTop = UDim.new(0, SHEET_PADDING)
+	pad.PaddingBottom = UDim.new(0, SHEET_PADDING)
+	pad.PaddingLeft = UDim.new(0, SHEET_PADDING)
+	pad.PaddingRight = UDim.new(0, SHEET_PADDING)
+	pad.Parent = inner
+	local stack = Instance.new("UIListLayout")
+	stack.FillDirection = Enum.FillDirection.Vertical
+	stack.Padding = UDim.new(0, SHEET_GAP)
+	stack.SortOrder = Enum.SortOrder.LayoutOrder
+	stack.Parent = inner
+
+	local header = Components.titleRow(inner, title, 1, SHEET_HEADER, 158)
+	local close =
+		Components.SecondaryButton(header, "Close", Strings.get("sheet.close"), Strings.get("sheet.closeKey"))
+	close.root.AnchorPoint = Vector2.new(1, 0.5)
+	close.root.Position = UDim2.fromScale(1, 0.5)
+	close.root.Size = UDim2.fromOffset(150, 44)
+
+	local body = Theme.scrollList(inner, "Body", 2)
+
+	-- `AutomaticSize` no sigue a una lista con scroll que crece (ver `Theme.scrollList`): el alto se fija aquí,
+	-- sumando la cabecera y los huecos a lo que mide la lista.
+	local function refit()
+		root.Size = UDim2.new(0.9, 0, 0, SHEET_CHROME + body.Size.Y.Offset)
+	end
+	body:GetPropertyChangedSignal("Size"):Connect(refit)
+	refit()
+
+	local open = false
+	local token = 0
+	local risen = UDim2.new(0.5, 0, 0.5, Ui.sheetRise)
+	local centered = UDim2.fromScale(0.5, 0.5)
+
+	local function setOpen(value: boolean)
+		if value == open then
+			return
+		end
+		open = value
+		token += 1
+		local mine = token
+		if value then
+			backdrop.Visible = true
+			root.Visible = true
+			root.Position = risen
+			backdrop.BackgroundTransparency = 1
+			tween(root, Ui.motion.open, { Position = centered })
+			tween(backdrop, Ui.motion.open, { BackgroundTransparency = Ui.sheetVeil })
+		else
+			tween(root, Ui.motion.close, { Position = risen })
+			tween(backdrop, Ui.motion.close, { BackgroundTransparency = 1 })
+			task.delay(Ui.motion.close, function()
+				-- Si la hoja se volvió a abrir mientras se cerraba, este cierre viejo no la esconde.
+				if token == mine and not open then
+					backdrop.Visible = false
+					root.Visible = false
+				end
+			end)
+		end
+	end
+
+	close.onActivated(function()
+		setOpen(false)
+	end)
+	backdrop.MouseButton1Click:Connect(function()
+		setOpen(false)
+	end)
+
+	return {
+		gui = gui,
+		panel = inner,
+		body = body,
+		backdrop = backdrop,
+		setOpen = setOpen,
+		isOpen = function(): boolean
+			return open
+		end,
+	}
+end
+
 -- Opción de una lista de decisión: perks, votos, rivales, cartas. Una chapa con texto que crece hacia abajo,
 -- para que una descripción larga nunca se corte.
-function Components.OptionButton(parent: Instance, name: string, text: string): Button
+-- `selected` invierte la chapa: caliza de fondo, texto y filete de asfalto. La marca es de forma y de tono
+-- (el filete grueso y el fondo claro), nunca de color: la mano amarilla queda para el botón principal.
+function Components.OptionButton(parent: Instance, name: string, text: string, selected: boolean?): Button
+	local chosen = selected == true
+	local ink = if chosen then color.asphalt else color.limestone
+	local resting = if chosen then color.limestone else color.asphalt
 	local root = Instance.new("TextButton")
 	root.Name = name
 	root.AutoButtonColor = false
-	root.BackgroundColor3 = color.asphalt
+	root.BackgroundColor3 = resting
 	root.BorderSizePixel = 0
 	root.FontFace = font.textBold
 	root.TextSize = 16
-	root.TextColor3 = color.limestone
+	root.TextColor3 = ink
 	root.TextWrapped = true
 	root.Text = text
 	root.Size = UDim2.fromScale(1, 0)
 	root.AutomaticSize = Enum.AutomaticSize.Y
 	root.Parent = parent
 	corner(root, Ui.radius.card)
-	local outline = stroke(root, color.limestone, 2)
+	local outline = stroke(root, ink, if chosen then 3 else 2)
 	local pad = Instance.new("UIPadding")
 	pad.PaddingLeft = UDim.new(0, 12)
 	pad.PaddingRight = UDim.new(0, 12)
@@ -930,13 +1126,14 @@ function Components.OptionButton(parent: Instance, name: string, text: string): 
 
 	local enabled = true
 	local listeners: { () -> () } = {}
+	-- La elegida no cambia al pasar el ratón: su fondo es el de la chapa invertida.
 	root.MouseEnter:Connect(function()
-		if enabled then
+		if enabled and not chosen then
 			tween(root, Ui.motion.press, { BackgroundColor3 = Theme.buttonHot })
 		end
 	end)
 	root.MouseLeave:Connect(function()
-		tween(root, Ui.motion.press, { BackgroundColor3 = color.asphalt })
+		tween(root, Ui.motion.press, { BackgroundColor3 = resting })
 	end)
 	root.Activated:Connect(function()
 		if enabled then
@@ -953,8 +1150,8 @@ function Components.OptionButton(parent: Instance, name: string, text: string): 
 		setEnabled = function(value: boolean)
 			enabled = value
 			root.Active = value
-			outline.Color = if value then color.limestone else color.steel
-			root.TextColor3 = if value then color.limestone else color.steel
+			outline.Color = if value then ink else color.steel
+			root.TextColor3 = if value then ink else color.steel
 		end,
 		onActivated = function(callback: () -> ())
 			table.insert(listeners, callback)

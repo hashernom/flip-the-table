@@ -17,6 +17,7 @@ local Types = require("../shared/rules/Types")
 local ArtLoader = require("./match/ArtLoader")
 local JoinRules = require("./match/JoinRules")
 local MatchService = require("./match/MatchService")
+local PlayerProfile = require("./lobby/PlayerProfile")
 local PresenceService = require("./match/PresenceService")
 local RematchService = require("./match/RematchService")
 local RemoteGateway = require("./match/RemoteGateway")
@@ -189,6 +190,25 @@ TokenChoiceService.start()
 PresenceService.start()
 
 ArtLoader.start()
+
+-- Perfil del jugador: partidas terminadas, para que solo quien no ha terminado ninguna vea la guía.
+-- Cada partida que llega a su final (no abandonada) suma una a quien siga sentado.
+PlayerProfile.start()
+MatchService.onStart(function(match)
+	task.spawn(function()
+		while not match.finished do
+			task.wait(Scenes.profilePollSec)
+		end
+		if match.abandoned or match.state.phase ~= "GameOver" then
+			return
+		end
+		for _, player in match.players do
+			if player.Parent ~= nil then
+				PlayerProfile.recordFinished(player)
+			end
+		end
+	end)
+end)
 
 -- La telemetría se engancha al arranque y al abandono antes de que exista la primera partida: cada
 -- partida, también la abandonada, deja su resumen para los criterios de salida (Tarea 7).

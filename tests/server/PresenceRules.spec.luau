@@ -220,6 +220,39 @@ describe("PresenceRules", function()
 		end)
 	end)
 
+	describe("onReclaim", function()
+		it(
+			"quien está conectado y lo juega un bot recupera el control y empieza la racha de cero",
+			function()
+				local seats = threeSeats()
+				for _ = 1, Economy.bot.timeoutsToControl do
+					seats = PresenceRules.onTimeout(seats, "202")
+				end
+				expect(PresenceRules.isBotControlled(seats, "202")).toBe(true)
+				local before = copySeats(seats)
+				local ok, after = PresenceRules.onReclaim(seats, 202)
+				expect(ok).toBe(true)
+				expect(PresenceRules.isBotControlled(after, "202")).toBe(false)
+				expect(after[2].timeouts).toBe(0)
+				expect(seats).toEqual(before)
+			end
+		)
+
+		it("sin bot al mando no hay nada que recuperar", function()
+			local ok, after = PresenceRules.onReclaim(threeSeats(), 101)
+			expect(ok).toBe(false)
+			expect(after).toEqual(threeSeats())
+		end)
+
+		it("un userId sin asiento o desconectado no recupera nada", function()
+			local seats = PresenceRules.onLeave(threeSeats(), 303)
+			local okAway = PresenceRules.onReclaim(seats, 303)
+			local okStranger = PresenceRules.onReclaim(seats, 999)
+			expect(okAway).toBe(false)
+			expect(okStranger).toBe(false)
+		end)
+	end)
+
 	describe("consultas", function()
 		it("isBotControlled refleja el asiento y es false para un playerId desconocido", function()
 			local seats = threeSeats()

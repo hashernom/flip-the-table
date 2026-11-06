@@ -1,9 +1,15 @@
 --!strict
--- Vista general en maqueta. Es la vista que la ficha promete con un botón: dueños, dinero, posiciones
--- y efectos activos de un vistazo, por encima de la ciudad. No interrumpe escenas: la abre y la cierra
--- el cliente, que es quien sabe si hay una escena en marcha.
+-- Vista general en maqueta. Es la vista que la ficha promete con un botón: dinero, efectos y posiciones
+-- de un vistazo, por encima de la ciudad. Va en un cartel estrecho en la columna derecha, bajo el
+-- minimapa, para no tapar la maqueta ni la columna de jugadores. Las propiedades no se repiten aquí:
+-- cada una lleva su tarjeta sobre la maqueta. No interrumpe escenas: la abre y la cierra el cliente,
+-- que es quien sabe si hay una escena en marcha.
+local Board = require("./Board")
+local Components = require("./Components")
+local HudRules = require("./HudRules")
 local Strings = require("../../shared/config/Strings")
 local Theme = require("./Theme")
+local Ui = require("../../shared/config/Ui")
 local ViewText = require("./ViewText")
 
 export type Handles = {
@@ -17,75 +23,69 @@ export type Handles = {
 
 local Overview = {}
 
+-- Marca de estado de un asiento. Un activo no lleva ninguna. Un bot ya lo dice `ViewText.playerName`.
+local STATUS_KEYS: { [string]: string } = { Ghost = "mark.ghost", Left = "mark.left" }
+
 function Overview.create(playerGui: Instance): Handles
 	local gui = Theme.screenGui(playerGui, "Overview", 8)
 
-	-- Panel lateral y sin fondo: lo importante de esta vista es la ciudad, que tiene que verse y girarse.
-	local panel = Theme.panel(gui, "Sheet", "Vista general")
-	panel.AnchorPoint = Vector2.new(0, 0.5)
-	panel.Position = UDim2.new(0, 12, 0.5, 30)
-	-- Tamaño propio: sin él, un Frame mide 100 × 100 y la maqueta se veía como un cuadrado (M17).
-	panel.Size = UDim2.fromScale(0.26, 0.75)
-	panel.AutomaticSize = Enum.AutomaticSize.None
-	panel.Visible = false
-	Theme.limitWidth(panel)
+	-- Botón que despliega el cartel de datos. Está plegado al abrir la vista: lo primero es la maqueta.
+	local toggle = Components.SecondaryButton(gui, "DataToggle", Strings.get("overview.showData"))
+	toggle.root.AnchorPoint = Vector2.new(1, 0)
+	toggle.root.Position = UDim2.new(1, -Ui.panelRight, 0, Ui.panelTop)
+	toggle.root.Size = UDim2.fromOffset(Ui.panelWidth, 44)
+	toggle.root.Visible = false
 
-	-- El contenido va en una lista con scroll: con ocho asientos, dueños, efectos y posiciones no
-	-- caben en una pantalla de móvil, y la maqueta no puede quedarse sin ver lo de abajo.
+	local posterTop = Ui.panelTop + 44 + Theme.space.s
+	local poster = Board.Poster(gui, "Sheet", 0, false)
+	poster.root.AnchorPoint = Vector2.new(1, 0)
+	poster.root.Position = UDim2.new(1, -Ui.panelRight, 0, posterTop)
+	poster.root.Size = UDim2.new(0, Ui.panelWidth, 1, -(posterTop + Ui.roadHeight + Ui.overviewBottom))
+	poster.root.Visible = false
+
+	local title = Board.caption(poster.content, "Title", Strings.get("overview.title"), 1)
+	title.FontFace = Theme.font.roadBold
+	title.TextSize = 22
+	title.TextColor3 = Theme.color.asphalt
+	Board.text(poster.content, "Help", Strings.get("overview.help"), 2, 14).TextColor3 = Board.muted
+
 	local scroll = Instance.new("ScrollingFrame")
 	scroll.Name = "Scroll"
 	scroll.BackgroundTransparency = 1
 	scroll.BorderSizePixel = 0
-	scroll.Size = UDim2.new(1, 0, 1, -46)
-	scroll.CanvasSize = UDim2.fromScale(1, 0)
+	scroll.Size = UDim2.fromScale(1, 0)
+	scroll.CanvasSize = UDim2.fromScale(0, 0)
 	scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
-	scroll.ScrollBarThickness = 6
-	scroll.LayoutOrder = 1
-	scroll.Parent = panel
-
-	local scrollLayout = Instance.new("UIListLayout")
-	scrollLayout.FillDirection = Enum.FillDirection.Vertical
-	scrollLayout.Padding = UDim.new(0, Theme.PADDING)
-	scrollLayout.SortOrder = Enum.SortOrder.LayoutOrder
-	scrollLayout.Parent = scroll
-
-	local owners = Theme.panel(scroll, "Owners", "Dueños y dinero")
-	owners.Size = UDim2.fromScale(1, 0)
-	owners.AutomaticSize = Enum.AutomaticSize.Y
-
-	local effects = Theme.panel(scroll, "Effects", "Efectos activos")
-	effects.Size = UDim2.fromScale(1, 0)
-	effects.AutomaticSize = Enum.AutomaticSize.Y
-
-	local positions = Theme.panel(scroll, "Positions", "Posiciones")
-	positions.Size = UDim2.fromScale(1, 0)
-	positions.AutomaticSize = Enum.AutomaticSize.Y
+	scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+	scroll.ScrollBarThickness = 5
+	scroll.ScrollBarImageColor3 = Theme.color.asphalt
+	scroll.LayoutOrder = 3
+	scroll.Parent = poster.content
+	Board.fill(scroll)
+	Board.list(scroll, Enum.FillDirection.Vertical, Theme.space.s)
 
 	local open = false
+	local expanded = false
 	local listeners: { (boolean) -> () } = {}
 
-	local function fill(container: Frame, lines: { string })
-		-- Las filas de `Theme.row` son marcos, no etiquetas: hay que borrarlas por su nombre o el
-		-- panel acumula una copia por cada vista que llega.
-		for _, child in container:GetChildren() do
-			if child:IsA("GuiObject") and child.Name ~= "Title" then
-				child:Destroy()
-			end
-		end
-		for index, line in lines do
-			local key, value = Theme.row(container, index)
-			key.Text = ""
-			value.Text = line
-			value.TextXAlignment = Enum.TextXAlignment.Left
-			value.AnchorPoint = Vector2.new(0, 0)
-			value.Position = UDim2.fromScale(0, 0)
-			value.Size = UDim2.fromScale(1, 1)
-		end
+	local function refresh()
+		toggle.root.Visible = open
+		poster.root.Visible = open and expanded
+		toggle.setText(Strings.get(if expanded then "overview.hideData" else "overview.showData"))
 	end
+
+	toggle.onActivated(function()
+		expanded = not expanded
+		refresh()
+	end)
 
 	local function setOpen(value: boolean)
 		open = value
-		panel.Visible = value
+		-- Cada vez que se abre la vista, los datos empiezan plegados.
+		if value then
+			expanded = false
+		end
+		refresh()
 		for _, listener in listeners do
 			listener(value)
 		end
@@ -96,52 +96,59 @@ function Overview.create(playerGui: Instance): Handles
 			if view == nil then
 				return
 			end
-			local ownerLines: { string } = {}
-			for _, seated in view.players do
-				local tag = if seated.status == "Active" then "" else ` ({seated.status})`
-				table.insert(ownerLines, `{ViewText.playerName(view, names, seated.id)}{tag}: {seated.cash}`)
-			end
-
-			-- Las propiedades con dueño, en el orden del tablero (el diccionario no tiene orden).
-			local indices: { number } = {}
-			for index, property in view.properties or {} do
-				if property.ownerId ~= nil then
-					table.insert(indices, index)
+			for _, child in scroll:GetChildren() do
+				if child:IsA("GuiObject") then
+					child:Destroy()
 				end
 			end
-			table.sort(indices)
-			for _, index in indices do
-				local property = view.properties[index]
-				table.insert(
-					ownerLines,
-					`{ViewText.squareName(view, index)}: {ViewText.playerName(view, names, property.ownerId)}, nivel {property.level}`
-				)
+			local order = 0
+			local function caption(key: string)
+				order += 1
+				Board.caption(scroll, `Caption{order}`, Strings.get(key), order)
 			end
-			fill(owners, ownerLines)
+			local function line(text: string)
+				order += 1
+				Board.text(scroll, `Line{order}`, text, order, 15).Size = UDim2.new(1, -8, 0, 0)
+			end
 
-			local effectLines: { string } = {}
+			caption("overview.owners")
+			for _, seated in view.players do
+				local name = ViewText.playerName(view, names, seated.id)
+				local cash = HudRules.formatMoney(seated.cash)
+				local statusKey = STATUS_KEYS[seated.status]
+				if statusKey ~= nil then
+					line(
+						Strings.get(
+							"overview.ownerLineStatus",
+							{ name = name, status = Strings.get(statusKey), cash = cash }
+						)
+					)
+				else
+					line(Strings.get("overview.ownerLine", { name = name, cash = cash }))
+				end
+			end
+
+			caption("overview.effects")
+			local effects = 0
 			for _, modifier in view.modifiers or {} do
-				table.insert(effectLines, ViewText.modifierText(view, names, modifier))
+				effects += 1
+				line(ViewText.modifierText(view, names, modifier))
 			end
 			if view.hotZoneId ~= nil then
-				table.insert(effectLines, `Zona Caliente: {Strings.zone(view.hotZoneId).name}`)
+				effects += 1
+				line(Strings.get("overview.hotZone", { zone = Strings.zone(view.hotZoneId).name }))
 			end
-			if #effectLines == 0 then
-				table.insert(effectLines, "Ninguno")
+			if effects == 0 then
+				line(Strings.get("overview.none"))
 			end
-			fill(effects, effectLines)
 
-			local positionLines: { string } = {}
+			caption("overview.positions")
 			for _, seated in view.players do
-				table.insert(
-					positionLines,
-					`{ViewText.playerName(view, names, seated.id)} · {ViewText.squareName(
-						view,
-						seated.position
-					)}`
-				)
+				line(Strings.get("overview.position", {
+					name = ViewText.playerName(view, names, seated.id),
+					square = ViewText.squareName(view, seated.position),
+				}))
 			end
-			fill(positions, positionLines)
 		end,
 		isOpen = function(): boolean
 			return open
@@ -160,9 +167,6 @@ function Overview.create(playerGui: Instance): Handles
 		end,
 	}
 
-	-- El botón de la barra abre y cierra la maqueta. Vive aquí para que el HUD no tenga que saber de
-	-- este panel.
-	handles.setView(nil)
 	return handles
 end
 

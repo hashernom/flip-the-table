@@ -94,3 +94,28 @@ describe("ViewText.podiumLines", function()
 		expect(ViewText.podiumLines(nil, view, NAMES)).toEqual({})
 	end)
 end)
+
+describe("ViewText.podium", function()
+	it("da ganador, puestos con patrimonio y premios por separado", function()
+		local state = Fixtures.game({ players = 3, seed = 50 })
+		state.players[1].cash = 3000
+		local event, view = finished(state, "P1")
+		local podium = ViewText.podium(event, view, NAMES)
+		expect(podium.winnerId).toBe(event.winnerId)
+		expect(#podium.ranking).toBe(3)
+		for position, id in event.ranking do
+			local row = podium.ranking[position]
+			expect(row.id).toBe(id)
+			expect(row.position).toBe(position)
+			expect(row.worth).toBe(Score.netWorth(state, id))
+			expect(contains(row.name, NAMES[id])).toBe(true)
+		end
+		expect(#podium.awards).toBe(#(event.awards or {}))
+	end)
+
+	it("sin evento no hay podio", function()
+		local podium = ViewText.podium(nil, nil, NAMES)
+		expect(podium.winnerId).toBe(nil)
+		expect(#podium.ranking).toBe(0)
+	end)
+end)

@@ -440,3 +440,75 @@ describe("Menú con vistas reales: espectro (B6)", function()
 		expectDistinct(buttons)
 	end)
 end)
+
+-- Tarjeta de decisión: título corto, detalle y tipo, para que el panel pinte cada opción como una
+-- tarjeta en vez de una etiqueta larga. Escenarios del motor, como el resto de este archivo.
+describe("ViewText.optionCard", function()
+	local function cardsOf(state: Types.GameState, playerId: string): { ViewText.OptionCard }
+		local view = View.forPlayer(state, playerId)
+		local out: { ViewText.OptionCard } = {}
+		for _, button in buttonsOf(state, playerId) do
+			if button.action ~= nil then
+				table.insert(out, ViewText.optionCard(view, NAMES, button.action))
+			end
+		end
+		return out
+	end
+
+	it("un perk lleva su nombre de título y lo que hace de detalle", function()
+		local state = State.create({ playerIds = { "P1", "P2", "P3", "P4" }, seed = 5 })
+		local draft = pendingOf(state).draft
+		local cards = cardsOf(state, draft.order[draft.index])
+		for index, perkId in draft.offer do
+			local perk = Perks.byId[perkId]
+			expect(cards[index].kind).toBe("Perk")
+			expect(cards[index].title).toBe(perk.name)
+			expect(cards[index].detail).toBe(perk.description)
+		end
+	end)
+
+	it("una carta del mercado lleva su nombre, su descripción y el precio; saltar es un pase", function()
+		local state = Fixtures.game({ players = 4, seed = 12 })
+		local me = inTurn(state)
+		Fixtures.placeOn(state, me.id, Fixtures.squareOf(state, "Market") - 2)
+		roll(state, me.id, 1, 1)
+		local market = pendingOf(state).market
+		local cards = cardsOf(state, me.id)
+		for index, offer in market.cards do
+			expect(cards[index].kind).toBe("Card")
+			expect(cards[index].cardId).toBe(offer.cardId)
+			expect(cards[index].title).toBe(Cards.byId[offer.cardId].name)
+			expect(cards[index].detail).toBe(Strings.get(`card.{offer.cardId}.description`))
+			expect(contains(cards[index].note or "", tostring(offer.price))).toBe(true)
+		end
+		expect(cards[#cards].kind).toBe("Pass")
+	end)
+
+	it("un voto del Tribunal es un voto, con la frase entera de detalle", function()
+		local state = Fixtures.game({ players = 4, seed = 13 })
+		local accused = inTurn(state)
+		Fixtures.placeOn(state, accused.id, Fixtures.squareOf(state, "Tribunal") - 2)
+		roll(state, accused.id, 1, 1)
+		local voter = others(state, accused.id)[1]
+		local view = View.forPlayer(state, voter.id)
+		for _, button in buttonsOf(state, voter.id) do
+			local card = ViewText.optionCard(view, NAMES, button.action :: any)
+			expect(card.kind).toBe("Vote")
+			expect(card.detail).toBe(button.label)
+		end
+	end)
+
+	it("la jugada del Duelo se titula con su nombre", function()
+		local state = Fixtures.game({ players = 4, seed = 11 })
+		local me = inTurn(state)
+		Fixtures.placeOn(state, me.id, Fixtures.squareOf(state, "Duel") - 2)
+		roll(state, me.id, 1, 1)
+		Engine.apply(state, me.id, { type = "DuelChoice", rivalId = others(state, me.id)[1].id })
+		local titles: { string } = {}
+		for _, card in cardsOf(state, me.id) do
+			expect(card.kind).toBe("Duel")
+			table.insert(titles, card.title)
+		end
+		expect(titles).toEqual({ "Piedra", "Papel", "Tijera" })
+	end)
+end)

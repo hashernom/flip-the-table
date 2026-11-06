@@ -7,8 +7,11 @@
 -- El bot no juega desde aquí: MatchService programa su turno al terminar la escena (R-P27) y usa
 -- los ganchos `onTimeout`/`onAction` solo para mantener la racha de tiempos agotados (R-P28).
 local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 local MatchService = require("./MatchService")
 local PresenceRules = require("./PresenceRules")
+local Protocol = require("../../shared/net/Protocol")
+local Remotes = require("../Remotes")
 
 type Match = MatchService.Match
 type Seat = PresenceRules.Seat
@@ -20,6 +23,7 @@ local started = false
 -- mantiene este servicio; el motor solo guarda `isBot`, que se aplica vía setBotControlled.
 local seats: { Seat } = {}
 local tracked: Match? = nil
+local limiter = Protocol.newLimiter()
 
 -- Asientos iniciales de una partida. Todos los jugadores están presentes al arrancar (start los
 -- recibe y avisa antes de devolver), así que el userId sale del Player y no de una conversión:
@@ -113,6 +117,28 @@ local function onPlayerAdded(player: Player)
 	match:reattach(player)
 end
 
+-- El jugador pulsó «Retomar el control»: si está sentado, conectado y lo juega un bot, vuelve a mandar
+-- él. El limitador frena a quien pulse sin parar; cualquier otro caso se ignora sin avisar.
+local function onReclaim(player: Player)
+	local match = tracked
+	if not match or match.finished then
+		return
+	end
+	if not limiter.allow(tostring(player.UserId), Workspace:GetServerTimeNow()) then
+		return
+	end
+	local seat = seatOf(player.UserId)
+	if not seat then
+		return
+	end
+	local ok, updated = PresenceRules.onReclaim(seats, player.UserId)
+	if not ok then
+		return
+	end
+	seats = updated
+	match:setBotControlled(seat.playerId, false)
+end
+
 -- Arranca el servicio una sola vez por servidor. `MatchService.onStart` avisa también de una
 -- partida que ya estuviera en curso, así que el orden con el lobby (Tarea 5) no importa.
 function PresenceService.start()
@@ -122,6 +148,7 @@ function PresenceService.start()
 	started = true
 	Players.PlayerAdded:Connect(onPlayerAdded)
 	Players.PlayerRemoving:Connect(onPlayerRemoving)
+	Remotes.remote(Protocol.REMOTES.Reclaim).OnServerEvent:Connect(onReclaim)
 	MatchService.onStart(bind)
 end
 

@@ -28,6 +28,7 @@ describe("Protocol.REMOTES", function()
 			Notice = "LobbyNotice",
 			TokenChoice = "TokenChoiceRequest",
 			TokenAssigned = "TokenAssigned",
+			Reclaim = "ReclaimSeatRequest",
 		})
 	end)
 end)

@@ -6,10 +6,12 @@
 -- El plazo se calcula con el reloj del servidor, así que dos clientes ven el mismo vehículo en el mismo
 -- trazo aunque uno vaya un poco por detrás.
 local StarterGui = game:GetService("StarterGui")
+local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local ActionMenuRules = require("./ActionMenuRules")
 local Cards = require("../../shared/config/Cards")
+local Board = require("./Board")
 local Components = require("./Components")
 local Economy = require("../../shared/config/Economy")
 local HudRules = require("./HudRules")
@@ -34,6 +36,10 @@ export type Handles = {
 	-- Durante una escena la interfaz se aparta.
 	setSceneMode: (active: boolean) -> (),
 	onOverview: (callback: () -> ()) -> (),
+	-- El jugador pulsó Ajustes en el letrero.
+	onSettings: (callback: () -> ()) -> (),
+	-- El jugador pulsó «Retomar»: un bot jugaba su asiento y quiere volver a mandar él.
+	onReclaim: (callback: () -> ()) -> (),
 	onEmote: (callback: (emote: string) -> ()) -> (),
 	destroy: (() -> ())?,
 }
@@ -92,7 +98,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	roundCorner.Parent = roundDisc
 
 	local headline = Components.label(sign.row, "Headline", "", { face = font.road, size = 15, wrap = true })
-	headline.Size = UDim2.fromOffset(Ui.roundSignWidth - 62 - 190 - 116 - 56, 40)
+	headline.Size = UDim2.fromOffset(Ui.roundSignWidth - 62 - 190 - 116 - Ui.settingsButtonWidth - 64, 40)
 	headline.LayoutOrder = 2
 	headline.ZIndex = 5
 
@@ -111,7 +117,16 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	emoteButton.root.Size = UDim2.fromOffset(116, 44)
 	emoteButton.root.LayoutOrder = 4
 
-	for _, button in { overviewButton.root, emoteButton.root } do
+	local settingsButton = Components.SecondaryButton(
+		sign.row,
+		"SettingsButton",
+		Strings.get("hud.settings"),
+		Strings.get("hud.settingsKey")
+	)
+	settingsButton.root.Size = UDim2.fromOffset(Ui.settingsButtonWidth, 44)
+	settingsButton.root.LayoutOrder = 5
+
+	for _, button in { overviewButton.root, emoteButton.root, settingsButton.root } do
 		button.ZIndex = 5
 		for _, child in button:GetDescendants() do
 			if child:IsA("GuiObject") then
@@ -129,6 +144,50 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	hand.Size = UDim2.fromOffset(Ui.handCardStep * Ui.handMaxCards, Ui.handVisibleHeight + Ui.roadHeight)
 	hand.Parent = gui
 	local handKey = ""
+	local lastHand: { string } = {}
+	-- La primera mano que se pinta (al entrar o tras resincronizar) no cae: ya estaba ahí.
+	local handPainted = false
+
+	-- Carta en grande sobre la mano: se abre al pasar el ratón por una carta y se cierra al salir.
+	local preview: CanvasGroup? = nil
+	local previewToken = 0
+	local function hidePreview()
+		previewToken += 1
+		local mine = previewToken
+		local current = preview
+		if current == nil then
+			return
+		end
+		Components.tween(current, Ui.motion.close, { GroupTransparency = 1 })
+		task.delay(Ui.motion.close, function()
+			if previewToken == mine and current.Parent ~= nil then
+				current:Destroy()
+				if preview == current then
+					preview = nil
+				end
+			end
+		end)
+	end
+	local function showPreview(cardId: string, rarity: string, slotX: number)
+		previewToken += 1
+		local current = preview
+		if current ~= nil then
+			current:Destroy()
+		end
+		local config = Ui.cardPreview
+		local face = Board.CardFace(gui, cardId, rarity)
+		face.AnchorPoint = Vector2.new(0, 1)
+		face.Position =
+			UDim2.new(0, Ui.handLeft + slotX, 1, -(Ui.handVisibleHeight + Ui.roadHeight + config.gap))
+		face.ZIndex = 20
+		face.GroupTransparency = 1
+		local grow = Instance.new("UIScale")
+		grow.Scale = config.scaleFrom
+		grow.Parent = face
+		Components.tween(face, Ui.motion.open, { GroupTransparency = 0 })
+		Components.tween(grow, Ui.motion.open, { Scale = 1 })
+		preview = face
+	end
 
 	-- Calzada del plazo.
 	local timer = Components.Timer(gui, "Road")
@@ -177,6 +236,49 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	toastText.ZIndex = 5
 	local toastToken = 0
 	local bannerToken = 0
+
+	-- Letrero de «un bot juega por ti»: aparece mientras el asiento propio lo controla un bot y deja
+	-- retomarlo con un botón. Sin él, recuperar el control dependía de acertar una acción antes que el bot.
+	local reclaimPlate = Components.Panel(gui, "Reclaim", Ui.radius.card)
+	reclaimPlate.root.AnchorPoint = Vector2.new(0.5, 0)
+	reclaimPlate.root.Position = UDim2.new(0.5, 0, 0, Ui.signTop + Ui.reclaimTop)
+	reclaimPlate.root.Size = UDim2.fromOffset(Ui.reclaimWidth, 96)
+	reclaimPlate.root.Visible = false
+	local reclaimTitle =
+		Components.label(reclaimPlate.root, "Title", Strings.upper(Strings.get("hud.botPlaying")), {
+			face = font.roadBold,
+			size = 22,
+		})
+	reclaimTitle.Position = UDim2.fromOffset(20, 14)
+	reclaimTitle.Size = UDim2.new(1, -250, 0, 28)
+	reclaimTitle.ZIndex = 5
+	local reclaimHint = Components.label(
+		reclaimPlate.root,
+		"Hint",
+		Strings.get("hud.botHint", { count = Economy.bot.timeoutsToControl }),
+		{
+			face = font.text,
+			size = 15,
+			tint = color.limestoneDim,
+			wrap = true,
+		}
+	)
+	reclaimHint.Position = UDim2.fromOffset(20, 44)
+	reclaimHint.Size = UDim2.new(1, -250, 0, 40)
+	reclaimHint.ZIndex = 5
+	local reclaimButton = Components.PrimaryButton(reclaimPlate.root, "Reclaim", Strings.get("hud.reclaim"))
+	reclaimButton.root.AnchorPoint = Vector2.new(1, 0.5)
+	reclaimButton.root.Position = UDim2.new(1, -14, 0.5, 0)
+	reclaimButton.root.Size = UDim2.fromOffset(210, 70)
+	reclaimButton.root.ZIndex = 5
+	local reclaimListeners: { () -> () } = {}
+	reclaimButton.onActivated(function()
+		-- Se esconde al momento: la vista que lo confirma llega con el siguiente lote.
+		reclaimPlate.root.Visible = false
+		for _, listener in reclaimListeners do
+			listener()
+		end
+	end)
 
 	-- Emotes: una fila de discos que se despliega del letrero.
 	local emoteBar = Instance.new("Frame")
@@ -237,11 +339,24 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			return
 		end
 		handKey = key
+		hidePreview()
 		for _, child in hand:GetChildren() do
 			child:Destroy()
 		end
+		-- Las cartas nuevas son las que no estaban en la mano anterior, contando repetidas.
+		local before: { [string]: number } = {}
+		for _, cardId in lastHand do
+			before[cardId] = (before[cardId] or 0) + 1
+		end
+		local isFirst = not handPainted
+		handPainted = true
+		lastHand = table.clone(cards)
 		local count = #cards
 		for index, cardId in cards do
+			local fresh = (before[cardId] or 0) == 0
+			if not fresh then
+				before[cardId] -= 1
+			end
 			local def = Cards.byId[cardId]
 			if def ~= nil then
 				local stamp: Components.StampKind = RARITY_STAMP[def.rarity] or "Common"
@@ -253,9 +368,27 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 					Strings.get(`rarity.{def.rarity}`)
 				)
 				local offset = index - (count + 1) / 2
-				card.Position =
-					UDim2.fromOffset((index - 1) * Ui.handCardStep, math.abs(offset) * Ui.handFanDrop)
-				card.Rotation = offset * Ui.handFanDegrees
+				local slotX = (index - 1) * Ui.handCardStep
+				local place = UDim2.fromOffset(slotX, math.abs(offset) * Ui.handFanDrop)
+				local angle = offset * Ui.handFanDegrees
+				card.Position = place
+				card.Rotation = angle
+				card.MouseEnter:Connect(function()
+					showPreview(cardId, def.rarity, slotX)
+				end)
+				card.MouseLeave:Connect(hidePreview)
+				-- Una carta robada cae girada y grande desde arriba hasta su sitio en el abanico.
+				if fresh and not isFirst then
+					local draw = Ui.cardDraw
+					local grow = Instance.new("UIScale")
+					grow.Scale = draw.scale
+					grow.Parent = card
+					card.Position = UDim2.fromOffset(slotX + draw.shift, -draw.rise)
+					card.Rotation = draw.tilt
+					local info = TweenInfo.new(draw.seconds, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+					TweenService:Create(card, info, { Position = place, Rotation = angle }):Play()
+					TweenService:Create(grow, info, { Scale = 1 }):Play()
+				end
 			end
 		end
 	end
@@ -267,6 +400,16 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				return
 			end
 			roundDisc.Text = roundShort(view)
+			local own = nil
+			for _, seated in view.players do
+				if seated.id == view.playerId then
+					own = seated
+				end
+			end
+			reclaimPlate.root.Visible = own ~= nil
+				and own.isBot == true
+				and own.status == "Active"
+				and view.phase ~= "GameOver"
 			headline.Text = Strings.upper(ViewText.headline(view, names))
 
 			local count = #view.players
@@ -388,6 +531,12 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			})
 			emoteBar.Visible = false
 			refreshTimer()
+		end,
+		onSettings = function(callback: () -> ())
+			settingsButton.onActivated(callback)
+		end,
+		onReclaim = function(callback: () -> ())
+			table.insert(reclaimListeners, callback)
 		end,
 		onOverview = function(callback: () -> ())
 			table.insert(overviewListeners, callback)

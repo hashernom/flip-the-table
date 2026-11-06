@@ -17,6 +17,9 @@ local Types = require("../../src/shared/rules/Types")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
+-- Plazo común de decisión: sale de la configuración, no se copia aquí.
+local DECISION = Economy.seconds.decision
+
 type Event = Types.Event
 type GameState = Types.GameState
 type Phase = Types.Phase
@@ -307,8 +310,8 @@ describe("MatchState", function()
 	it("proponer en bucle no alarga el plazo del turno", function()
 		local state = Fixtures.game({ players = 3 })
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
-		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(20)
-		expect(stepOf(match, state, {}, 19.5, false).decisionDeadline).toBe(20)
+		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(DECISION)
+		expect(stepOf(match, state, {}, 19.5, false).decisionDeadline).toBe(DECISION)
 	end)
 
 	it("cada puja deja el cierre de la subasta donde estaba", function()
@@ -321,10 +324,10 @@ describe("MatchState", function()
 	it("una escena dentro de la misma decisión solo suma lo que dura", function()
 		local state = Fixtures.game({ players = 3 })
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
-		-- Un dado recién visto dura 2 s: al jugador le quedan los mismos 15 s al acabar la escena.
+		-- Un dado recién visto dura 2 s: al acabar la escena al jugador le queda lo mismo que antes.
 		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
 		expect(step.sceneEndsAt).toBe(7)
-		expect(step.decisionDeadline).toBe(22)
+		expect(step.decisionDeadline).toBe(DECISION + 2)
 	end)
 
 	it("una decisión nueva da el plazo completo al acabar la escena", function()
@@ -332,14 +335,14 @@ describe("MatchState", function()
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
 		state.phase = "AwaitEnd"
 		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
-		expect(step.decisionDeadline).toBe(27)
+		expect(step.decisionDeadline).toBe(7 + DECISION)
 	end)
 
 	it("cambiar de turno da el plazo completo aunque no haya eventos", function()
 		local state = Fixtures.game({ players = 3 })
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
 		state.turnIndex = state.turnIndex % 3 + 1
-		expect(stepOf(match, state, {}, 5, false).decisionDeadline).toBe(25)
+		expect(stepOf(match, state, {}, 5, false).decisionDeadline).toBe(5 + DECISION)
 	end)
 
 	it("elegir rival en el Duelo da su plazo a la jugada", function()
@@ -349,10 +352,10 @@ describe("MatchState", function()
 		pending.duel = { challengerId = state.players[1].id, picks = {}, round = 1 }
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
 		pending.duel.rivalId = state.players[2].id
-		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(39)
+		expect(stepOf(match, state, {}, 19, false).decisionDeadline).toBe(19 + DECISION)
 		-- La jugada de un participante ya no reinicia nada.
 		pending.duel.picks[state.players[1].id] = "Rock"
-		expect(stepOf(match, state, {}, 30, false).decisionDeadline).toBe(39)
+		expect(stepOf(match, state, {}, 30, false).decisionDeadline).toBe(19 + DECISION)
 	end)
 
 	it("cada elección del borrador da su plazo al siguiente", function()
@@ -363,7 +366,7 @@ describe("MatchState", function()
 			{ order = { state.players[1].id, state.players[2].id }, index = 1, offer = { "Banker" } }
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
 		pending.draft.index = 2
-		expect(stepOf(match, state, {}, 10, false).decisionDeadline).toBe(30)
+		expect(stepOf(match, state, {}, 10, false).decisionDeadline).toBe(10 + DECISION)
 	end)
 
 	-- R-P39: las escenas no se solapan.
@@ -394,11 +397,11 @@ describe("MatchState", function()
 		local state = Fixtures.game({ players = 3 })
 		local playerId = state.players[1].id
 		local match = MatchState.begin(0, state.phase, MatchState.decisionKey(state))
-		expect(MatchState.resync(match, state, playerId, 0).decisionDeadline).toBe(20)
+		expect(MatchState.resync(match, state, playerId, 0).decisionDeadline).toBe(DECISION)
 		state.phase = "AwaitEnd"
 		local step = stepOf(match, state, { { type = "DiceRolled" } }, 5, false)
-		expect(MatchState.batch(state, step, playerId).decisionDeadline).toBe(27)
-		expect(MatchState.resync(match, state, playerId, 6).decisionDeadline).toBe(27)
+		expect(MatchState.batch(state, step, playerId).decisionDeadline).toBe(7 + DECISION)
+		expect(MatchState.resync(match, state, playerId, 6).decisionDeadline).toBe(7 + DECISION)
 	end)
 
 	it("usa el plazo de la fase al cerrar la escena", function()

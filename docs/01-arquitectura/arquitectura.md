@@ -104,7 +104,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `server/match/MatchState` | Parte pura: numeración, escenas, plazos, observaciones y control por bot | 04 |
 | `server/match/SceneClock` | Calcula cuándo termina cada escena, sin esperar a los clientes | 04 |
 | `server/match/PresenceRules` | Reglas puras de asiento: ida, vuelta y control por bot | 04 |
-| `server/match/PresenceService` | Desconexiones, regreso y control por bot | 04 |
+| `server/match/PresenceService` | Desconexiones, regreso y control por bot; `Reclaim` devuelve el asiento a quien lo pide (09) | 04 y 09 |
 | `server/match/RematchRules` | Reglas puras de la votación de revancha | 04 |
 | `server/match/RematchService` | Revancha con el mismo grupo | 04 |
 | `server/match/MatchSummary` | Resumen de una partida y cálculo de los criterios de salida | 04 |
@@ -115,6 +115,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `server/lobby/PartyStore` | Almacén de parties: `MemoryStoreService` con reserva local | 04 |
 | `server/lobby/Teleport` | Teletransporte a servidor reservado y vuelta al lobby | 04 |
 | `server/lobby/PartyService` | Códigos de party y servidor reservado | 04 |
+| `server/lobby/PlayerProfile` | Partidas terminadas de cada jugador (`get(player)`), publicadas en el atributo `CompletedMatches`. Memoria en Studio; DataStore `PlayerProfile_v1` fuera, pendiente de aprobar antes de publicar | 09 |
 | `server/lobby/PublicQueue` | Partidas públicas | 04 |
 | `server/match/TokenChoiceService` | Reparto de fichas: impide repetirlas y avisa a todos; se cierra cuando alguien sale de la Salida | 07 |
 
@@ -141,7 +142,10 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/ui/TokenMenu` | Elegir ficha antes de salir de la Salida | 07 |
 | `client/ui/Theme` | Piezas comunes de la interfaz gris: colores, medidas táctiles y zona segura | 05 |
 | `client/ui/Hud` y menús | Interacción táctil y de PC; `ActionMenuRules` decide qué botones existen | 05 y 09 |
-| `client/audio/AudioDirector` | Música y efectos | 09 |
+| `client/ui/Board` | Estándar de ventana «tablón de obra»: tablón, carteles, cabecera con «Cómo funciona», escritura en miniatura, dinero libre, pestañas, tarjeta de decisión y carta en grande | 09 |
+| `client/ui/GuidedMatch` | Primera partida guiada: un consejo por concepto, que se va solo; `GuidedMatchRules.tipFor(event, seenTips)` y `shouldGuide(completedMatches)` son su parte pura | 09 |
+| `client/ui/SettingsMenu` | Ajustes: volumen de música y efectos por separado, y atajos de teclado | 09 |
+| `client/audio/AudioDirector` | Música y efectos: `play(id, opts)`, `playEvent(type)`, `setMusicState("Lobby" \| "Normal" \| "FinalRounds" \| "Podium")`, `setVolumes`; `AudioRules.gainFor(activeCount)` es su parte pura. Los ids viven en `config/Audio` y están vacíos hasta aprobar cada pieza | 09 |
 
 ## Contratos del motor
 
@@ -213,6 +217,8 @@ Protocol.REMOTES = {
     -- Fichas (subfase 07): el cliente pide una ficha (o, sin id, el reparto actual) y el servidor
     -- difunde el reparto, con un aviso si rechazó la petición.
     TokenChoice = "TokenChoiceRequest", TokenAssigned = "TokenAssigned",
+    -- Presencia (subfase 09): sin datos. Quien está conectado y lo juega un bot vuelve a mandar él.
+    Reclaim = "ReclaimSeatRequest",
 }
 Protocol.validate(action: any): (boolean, string?)
 Protocol.validateLobby(request: any): (boolean, string?)
@@ -334,7 +340,7 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Multiplicador de renta por nivel | × 2, × 3, × 5, × 8 y × 12 |
 | Coste por nivel de edificio | 50 % del precio |
 | Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Huelga y Embrujo); la zona completa y los edificios se aplican aparte |
-| Temporizador de decisión | 20 s |
+| Temporizador de decisión | 100 s (subido de 20 s por el responsable el 2026-11-05) |
 | Subasta | 15 s |
 | Voto del Tribunal | 10 s |
 | Ventana de reacción | 5 s |

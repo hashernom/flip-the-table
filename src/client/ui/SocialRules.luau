@@ -7,13 +7,15 @@
 -- en turno, en AwaitRoll o AwaitEnd, y el rival tiene que estar activo; responder y romper valen en
 -- cualquier fase de turno. El servidor sigue validando: esto solo evita ofrecer lo que se rechazaría.
 local Economy = require("../../shared/config/Economy")
+local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
 local Ui = require("../../shared/config/Ui")
 
 type Action = Types.Action
 type PlayerId = Types.PlayerId
 
-export type SocialButton = { id: string, label: string, action: Action }
+-- `key` es la tecla que muestra el botón; `main.client` la atiende.
+export type SocialButton = { id: string, label: string, action: Action, key: string? }
 
 -- Lo elegido en el menú de tratos: rival, dinero y casillas de cada lado.
 export type Selection = {
@@ -91,11 +93,13 @@ function SocialRules.buttonsFor(view: any): { SocialButton }
 			id = "Trade",
 			label = label("Tratos", #SocialRules.incomingTrades(view)),
 			action = { type = "__OpenTrade" },
+			key = Strings.get("hud.tradeKey"),
 		},
 		{
 			id = "Pact",
 			label = label("Pactos", #SocialRules.incomingPacts(view)),
 			action = { type = "__OpenPact" },
+			key = Strings.get("hud.pactKey"),
 		},
 	}
 end
@@ -153,7 +157,14 @@ function SocialRules.proposal(view: any, selection: Selection): Action?
 	local own = me(view)
 	local cash = if own ~= nil then own.cash else 0
 	local giveCash = math.max(0, math.min(math.floor(selection.giveCash), cash))
-	local wantCash = math.max(0, math.floor(selection.wantCash))
+	local rival = nil
+	for _, seated in view.players do
+		if seated.id == targetId then
+			rival = seated
+		end
+	end
+	local rivalCash = if rival ~= nil then rival.cash else 0
+	local wantCash = math.max(0, math.min(math.floor(selection.wantCash), rivalCash))
 	local giveSquares = keepValid(selection.giveSquares, SocialRules.tradeableSquares(view, view.playerId))
 	local wantSquares = keepValid(selection.wantSquares, SocialRules.tradeableSquares(view, targetId))
 	if giveCash + wantCash == 0 and #giveSquares == 0 and #wantSquares == 0 then
@@ -169,6 +180,17 @@ function SocialRules.proposal(view: any, selection: Selection): Action?
 			wantSquares = wantSquares,
 		},
 	}
+end
+
+-- Importe escrito a mano en un campo de dinero. Solo cuentan las cifras: el punto de miles, los
+-- espacios o un signo se ignoran, y sin cifras es cero. Con `maximum`, nunca lo supera.
+function SocialRules.parseCash(text: string, maximum: number?): number
+	local digits = string.gsub(text, "%D", "")
+	local amount = tonumber(digits) or 0
+	if maximum ~= nil then
+		amount = math.min(amount, maximum)
+	end
+	return amount
 end
 
 -- Siguiente importe de una lista ordenada en la dirección pedida (+1 o -1); en el extremo se queda.

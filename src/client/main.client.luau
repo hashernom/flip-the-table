@@ -63,10 +63,13 @@ local function boot()
 	local LobbyMenu = require("./ui/LobbyMenu")
 	local TokenMenu = require("./ui/TokenMenu")
 	local MiniMap = require("./ui/MiniMap")
+	local AudioDirector = require("./audio/AudioDirector")
+	local GuidedMatch = require("./ui/GuidedMatch")
 	local Overview = require("./ui/Overview")
 	local ModelCity = require("./world/ModelCity")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
+	local SettingsMenu = require("./ui/SettingsMenu")
 	local TradeMenu = require("./ui/TradeMenu")
 	local NoticeRules = require("./ui/NoticeRules")
 	local SocialRules = require("./ui/SocialRules")
@@ -88,6 +91,18 @@ local function boot()
 	local actionMenu = ActionMenu.create(playerGui)
 	local miniMap = MiniMap.create(playerGui, seatColor)
 	local overview = Overview.create(playerGui)
+	local guided = GuidedMatch.create(playerGui)
+	-- Ajustes: los volúmenes de los dos canales, que aplica el director de audio.
+	local settings = SettingsMenu.create(playerGui)
+	settings.setVolumes(AudioDirector.volumes())
+	settings.onChanged(function(musicLevel: number, effectsLevel: number)
+		AudioDirector.setVolumes(musicLevel, effectsLevel)
+	end)
+	hud.onSettings(function()
+		settings.setOpen(not settings.isOpen())
+	end)
+	-- Sin partida todavía suena la música del lobby.
+	AudioDirector.setMusicState("Lobby")
 	local tradeMenu = TradeMenu.create(playerGui, function(action: any)
 		sendAction(action)
 	end)
@@ -109,6 +124,10 @@ local function boot()
 		show = function(text: string)
 			hud.setBanner(Strings.eventTitle(text))
 		end,
+		-- El sonido de cada evento suena cuando empieza su escena, no todo el lote de golpe.
+		onEvent = function(event: any)
+			AudioDirector.playEvent(event.type)
+		end,
 		log = function(message: string)
 			warn(message)
 		end,
@@ -118,6 +137,9 @@ local function boot()
 	-- sitio que conoce a los `Player`, y se guarda el último nombre conocido porque un bot puede ocupar
 	-- el asiento de quien se fue.
 	local names: ViewText.Names = {}
+	local Ui = require("../shared/config/Ui")
+	local Economy = require("../shared/config/Economy")
+
 	local function lookupName(id: string): string?
 		local userId = tonumber(id)
 		local found = if userId ~= nil then Players:GetPlayerByUserId(userId) else nil
@@ -125,6 +147,21 @@ local function boot()
 	end
 
 	local queue = EventQueue.new()
+
+	-- Nombre y color de asiento de un jugador, para la tarjeta de una ficha que ya es suya.
+	local function describeSeat(id: string): (string, Color3)
+		local view = StateStore.view(queue.state)
+		local index = 1
+		if view ~= nil then
+			for position, seated in view.players do
+				if seated.id == id then
+					index = position
+				end
+			end
+		end
+		local name = if view ~= nil then ViewText.playerName(view, names, id) else id
+		return name, Color3.fromHex(Ui.seatColors[(index - 1) % #Ui.seatColors + 1])
+	end
 	local director = CameraDirector.new(player, START_SIZE)
 	local tokens: { [string]: Model } = {}
 	local myToken: Model? = nil
@@ -424,6 +461,36 @@ local function boot()
 		end
 	end)
 
+	-- Atajos de teclado: T y P abren los menús sociales si el jugador puede usarlos ahora; Escape cierra lo
+	-- que esté abierto. Una caja de texto con foco se queda con sus teclas.
+	UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if processed or UserInputService:GetFocusedTextBox() ~= nil then
+			return
+		end
+		local key = input.KeyCode
+		if key == Enum.KeyCode.K then
+			settings.setOpen(not settings.isOpen())
+		elseif key == Enum.KeyCode.Escape then
+			tradeMenu.setOpen(false)
+			pactMenu.setOpen(false)
+			settings.setOpen(false)
+			if overviewWanted then
+				overviewWanted = false
+				director.requestOverview(false)
+			end
+		elseif key == Enum.KeyCode.T or key == Enum.KeyCode.P then
+			local view = StateStore.view(queue.state)
+			if sceneRunning or view == nil or not SocialRules.available(view) then
+				return
+			end
+			if key == Enum.KeyCode.T then
+				tradeMenu.setOpen(true)
+			else
+				pactMenu.setOpen(true)
+			end
+		end
+	end)
+
 	local remotes = ReplicatedStorage:WaitForChild("FlipTheTableRemotes", REMOTE_WAIT_SEC)
 	if remotes == nil then
 		warn("Cliente: el servidor no creó los remotos; la ciudad se queda sin partida")
@@ -434,6 +501,7 @@ local function boot()
 	-- partida. El servidor los crea al arrancar, así que en una partida real están.
 	local actionRemote = remotes:WaitForChild(Protocol.REMOTES.Action, REMOTE_WAIT_SEC)
 	local emoteRemote = remotes:WaitForChild(Protocol.REMOTES.Emote, REMOTE_WAIT_SEC)
+	local reclaimRemote = remotes:WaitForChild(Protocol.REMOTES.Reclaim, REMOTE_WAIT_SEC)
 	local eventBatch = remotes:WaitForChild(Protocol.REMOTES.Batch, REMOTE_WAIT_SEC) :: RemoteEvent
 	local resync = remotes:WaitForChild(Protocol.REMOTES.Resync, REMOTE_WAIT_SEC) :: RemoteEvent
 	local tokenRequest = remotes:WaitForChild(Protocol.REMOTES.TokenChoice, REMOTE_WAIT_SEC)
@@ -469,7 +537,7 @@ local function boot()
 				end
 			end
 			tokenChoices = clean
-			tokenMenu.setAssignments(tokenChoices, playerId)
+			tokenMenu.setAssignments(tokenChoices, playerId, describeSeat)
 			if type(message) == "string" and message ~= "" then
 				tokenMenu.setNotice(message)
 			end
@@ -524,6 +592,13 @@ local function boot()
 		sendAction(action)
 	end)
 
+	-- Retomar el asiento cuando lo juega un bot: el servidor sabe quién pide y decide si vale.
+	hud.onReclaim(function()
+		if reclaimRemote ~= nil and reclaimRemote:IsA("RemoteEvent") then
+			(reclaimRemote :: RemoteEvent):FireServer()
+		end
+	end)
+
 	if emoteRemote and emoteRemote:IsA("RemoteEvent") then
 		local emoteEvent = emoteRemote :: RemoteEvent
 		hud.onEmote(function(emote: string)
@@ -560,6 +635,13 @@ local function boot()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
+				-- Con un bot al mando del asiento propio, el panel se aparta: el botón amarillo es Retomar.
+				for _, seated in view.players do
+					if seated.id == view.playerId and seated.isBot == true then
+						actionMenu.setLegal({}, nil)
+						return
+					end
+				end
 				-- Tratos y Pactos no son acciones del motor: se añaden según la vista (con el número de
 				-- ofertas por responder) y desaparecen al acabar la partida.
 				actionMenu.setLegal(
@@ -577,6 +659,19 @@ local function boot()
 			end,
 			Overview = function()
 				overview.setView(view, names)
+			end,
+			-- La música sale de la vista, así que también acierta al entrar a media partida o al resincronizar.
+			Music = function()
+				local finalFrom = if type(view.maxRounds) == "number"
+					then view.maxRounds - Economy.finalRoundsCount + 1
+					else math.huge
+				if view.phase == "GameOver" then
+					AudioDirector.setMusicState("Podium")
+				elseif view.round >= finalFrom then
+					AudioDirector.setMusicState("FinalRounds")
+				else
+					AudioDirector.setMusicState("Normal")
+				end
 			end,
 			MiniMap = function()
 				miniMap.setView(view, names)
@@ -604,6 +699,13 @@ local function boot()
 	local function hideMenus()
 		actionMenu.setLegal({}, nil)
 		hud.setDeadline(nil)
+		-- Ninguna hoja tapa una escena: tratos, pactos y la vista general se cierran al empezar.
+		tradeMenu.setOpen(false)
+		pactMenu.setOpen(false)
+		if overviewWanted then
+			overviewWanted = false
+			director.requestOverview(false)
+		end
 	end
 
 	-- Lotes del servidor. El primero de todos llega con `seq = 0`: es la vista inicial, no un lote nuevo
@@ -618,10 +720,12 @@ local function boot()
 		if batch.seq == 0 then
 			arrest.cancelAll()
 			EventQueue.resync(queue, batch.view, 0)
-			rematchMenu.setResult({})
+			rematchMenu.setResult(nil)
 			SceneDirector.reset(scenes)
 			syncTokens(batch.view)
 			applyView(batch.view)
+			local firstDecision = batch.view.legalActions ~= nil and #batch.view.legalActions > 0
+			guided.observe({}, if firstDecision then batch.view.phase else nil)
 			followActive(batch.view)
 			hud.setDeadline(batch.decisionDeadline)
 			-- La partida acaba de empezar: cada jugador elige su ficha. Se cierra al primer movimiento.
@@ -682,8 +786,13 @@ local function boot()
 			if route == "Toast" then
 				hud.setToast(notice.message)
 			elseif route == "Panel" then
-				rematchMenu.setNotice(notice.message)
-				lobbyMenu.setVisible(false)
+				-- Antes de que haya partida, el aviso es del lobby y se queda en su tablón.
+				if lobbyMenu.isVisible() and StateStore.view(queue.state) == nil then
+					lobbyMenu.setNotice(notice.message, notice.kind)
+				else
+					rematchMenu.setNotice(notice.message)
+					lobbyMenu.setVisible(false)
+				end
 			end
 		end)
 	end
@@ -697,10 +806,19 @@ local function boot()
 		if hasScene then
 			hideMenus()
 			hud.setSceneMode(true)
+			guided.setSceneMode(true)
 		end
 		sceneRunning = true
 		-- Un lote que llegó tarde acorta sus escenas: el cliente se pone al día en vez de repetir
 		-- lo que el grupo ya vio.
+		-- La interfaz acusa cada evento con su sonido y la música sigue el momento de la partida.
+		for _, event in events or {} do
+			if event.type == "FinalRoundsStarted" then
+				AudioDirector.setMusicState("FinalRounds")
+			elseif event.type == "GameEnded" then
+				AudioDirector.setMusicState("Podium")
+			end
+		end
 		SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 		sceneRunning = false
 		riding = false
@@ -715,14 +833,18 @@ local function boot()
 		hud.setBanner("")
 		if hasScene then
 			hud.setSceneMode(false)
+			guided.setSceneMode(false)
 		end
 		-- La vista lleva ya el resultado: se enseña al terminar la escena, no antes.
 		applyView(due.view)
+		-- Primera partida guiada: lo que acaba de pasar y la decisión que le llega al jugador, si le toca.
+		local decided = due.view ~= nil and due.view.legalActions ~= nil and #due.view.legalActions > 0
+		guided.observe(events or {}, if decided then due.view.phase else nil)
 		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
 		for _, event in events or {} do
 			if event.type == "GameEnded" then
 				arrest.cancelAll()
-				rematchMenu.setResult(ViewText.podiumLines(event, due.view, names))
+				rematchMenu.setResult(ViewText.podium(event, due.view, names))
 				-- Celebración: cada ficha que se ve da un salto al acabar la partida.
 				for _, token in tokens do
 					if not TokenRider.isHidden(token) then

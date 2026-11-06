@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "source sans 3",
+        "createdAt": "2026-11-06T00:55:31.547Z",
+        "reason": "Source Sans 3 es el equivalente web de Google Fonts de Source Sans Pro (DESIGN.md text); solo en maquetas HTML"
+      }
+    ]
+  }
+}

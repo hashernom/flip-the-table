@@ -1,0 +1,67 @@
+/* Piezas comunes de las tres maquetas de ventana. Paleta y voces de DESIGN.md. */
+:root{
+  --asfalto:#23272C;--asfalto-hondo:#14171A;--asfalto-apoyo:#3A4047;
+  --caliza:#EDE5D3;--caliza-apagada:#CFC5AE;--acero:#A8AEB4;
+  --taxi:#F5C518;--taxi-labio:#B8920F;--rojo:#C4382B;--obra:#E07A3C;--marino:#1B3A6B;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:1440px;height:900px;overflow:hidden;background:var(--asfalto-hondo)}
+body{position:relative;font-family:'Source Sans 3',sans-serif;color:var(--caliza);font-variant-numeric:tabular-nums}
+::selection{background:var(--caliza);color:var(--asfalto)}
+.ciudad{position:absolute;inset:0;background:url(../../../art/render/ui/hud-tarea1-studio.jpg) center/cover}
+.velo{position:absolute;inset:0;background:rgba(20,23,26,.62)}
+
+/* Voces */
+.via{font-family:Oswald,sans-serif;text-transform:uppercase;letter-spacing:.08em}
+.grito{font-family:'Luckiest Guy',sans-serif;text-transform:uppercase}
+
+/* Disco de avatar: señal redonda con el aro del asiento */
+.disco{width:64px;height:64px;border-radius:50%;background:var(--asfalto);border:6px solid var(--asfalto);box-shadow:0 0 0 4px var(--aro,#22D3EE) inset;display:grid;place-items:center;flex:none}
+.disco i{width:34px;height:34px;border-radius:50%;background:var(--caliza-apagada);display:block}
+
+/* Taxímetro: cada cifra en su ventana */
+.metro{display:inline-flex;gap:2px;background:var(--asfalto-hondo);border-radius:6px;padding:4px 6px}
+.metro b{display:inline-block;width:.62em;text-align:center;font:700 22px/1.1 'Source Sans 3',sans-serif;color:var(--caliza)}
+.metro b.p{width:.3em}
+
+/* Escritura en miniatura */
+.esc{position:relative;width:118px;height:150px;background:var(--caliza);border:3px solid var(--asfalto);border-radius:10px;overflow:hidden;color:var(--asfalto);flex:none;box-shadow:0 5px 0 rgba(20,23,26,.5)}
+.esc.elegida{overflow:visible}
+.esc .zona{border-radius:7px 7px 0 0;height:64px;background:var(--z);padding:8px 9px;color:var(--tinta,var(--caliza))}
+.esc .zona span{display:block;font:500 10px/1.2 Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;opacity:.9}
+.esc .zona strong{display:block;margin-top:4px;font:700 15px/1.05 Oswald,sans-serif;text-transform:uppercase}
+.esc .precio{height:28px;background:var(--asfalto);color:var(--caliza);display:flex;align-items:center;justify-content:space-between;padding:0 9px;font:700 16px Oswald,sans-serif}
+.esc .precio small{font:500 9px Oswald,sans-serif;letter-spacing:.1em}
+.esc .renta{border-radius:0 0 7px 7px;padding:7px 9px;font:400 11.5px/1.45 'Source Sans 3',sans-serif}
+.esc .renta b{font-weight:700}
+
+/* Sello de goma */
+.sello{display:inline-block;font:600 11px/1 Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;border-radius:3px}
+.sello.rojo{background:var(--rojo);color:var(--caliza);transform:rotate(-6deg)}
+.sello.marino{border:2px solid var(--marino);color:var(--marino);transform:rotate(-4deg)}
+
+/* Botón principal: chapa amarilla con librea a cuadros */
+.principal{position:relative;height:72px;border-radius:18px;background:var(--taxi-labio);border:3px solid var(--asfalto);padding-bottom:8px}
+.principal .cara{position:relative;height:100%;border-radius:15px;background:var(--taxi);overflow:hidden;display:grid;place-items:center;color:var(--asfalto);font:400 36px/1 'Luckiest Guy',sans-serif;padding-bottom:8px}
+.principal .cara::after{content:"";position:absolute;left:0;right:0;bottom:0;height:12px;background:repeating-conic-gradient(var(--asfalto) 0 25%,transparent 0 50%) 0 0/12px 12px}
+
+/* Botón secundario: píldora de contorno, con tecla */
+.pildora{display:inline-flex;align-items:center;gap:8px;height:44px;padding:0 16px;border-radius:27px;border:2px solid var(--caliza);background:var(--asfalto);color:var(--caliza);font:500 14px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.tecla{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:5px;background:var(--caliza);color:var(--asfalto);font:500 12px Oswald,sans-serif;letter-spacing:0}
+
+/* Campo de dinero libre, en taxímetro */
+.campo{display:flex;align-items:center;gap:10px}
+.campo .entrada{display:flex;align-items:center;gap:6px;height:48px;min-width:150px;padding:0 12px;border-radius:6px;background:var(--asfalto-hondo);border:2px solid var(--caliza-apagada)}
+.campo .entrada.activa{border-color:var(--caliza);box-shadow:0 0 0 3px rgba(237,229,211,.25)}
+.campo .entrada b{font:700 26px/1 'Source Sans 3',sans-serif;color:var(--caliza)}
+.campo .entrada .cursor{width:2px;height:26px;background:var(--caliza)}
+.campo .max{font:400 13px 'Source Sans 3',sans-serif;color:var(--caliza-apagada)}
+
+/* Explicación: frase fija y pasos plegables */
+.ayuda{display:flex;align-items:flex-start;gap:14px}
+.ayuda p{font:400 16px/1.45 'Source Sans 3',sans-serif;max-width:58ch}
+.comoboton{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:15px;border:1.5px solid currentColor;font:500 12px Oswald,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;flex:none}
+.comoboton svg{width:12px;height:12px}
+.pasos{display:flex;gap:18px;margin-top:10px}
+.pasos li{list-style:none;display:flex;gap:8px;align-items:flex-start;font:400 14px/1.35 'Source Sans 3',sans-serif;max-width:30ch}
+.pasos li span{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;font:700 12px Oswald,sans-serif}

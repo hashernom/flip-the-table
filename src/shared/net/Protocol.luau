@@ -34,6 +34,8 @@ Protocol.REMOTES = {
 	-- repita y avisa a todos del reparto.
 	TokenChoice = "TokenChoiceRequest",
 	TokenAssigned = "TokenAssigned",
+	-- Retomar el asiento cuando lo juega un bot (plan 09): no lleva datos, el servidor sabe quién pide.
+	Reclaim = "ReclaimSeatRequest",
 }
 
 -- Clases de aviso que viajan por `Notice` (R-P48). El cliente enruta por `kind`: un rechazo de acción es
