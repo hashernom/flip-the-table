@@ -515,7 +515,6 @@ end)
 
 describe("ViewText.cardTarget", function()
 	it("da solo el objetivo de una jugada de carta, con el color si es una zona", function()
-		local Strings = require("../../src/shared/config/Strings")
 		local view = { players = {}, sizeId = "S" }
 		local zoneId = "carmesi"
 		local text, tint =

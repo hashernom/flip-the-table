@@ -283,12 +283,9 @@ end
 local function makeGround(model: Model, sizeId: SizeId)
 	local span = CityLayout.spanFor(sizeId)
 	local center = CityLayout.centerFor(sizeId)
-	-- Llega hasta la última fila de la ciudad de fondo (`CityLayout.BACKDROP`), con margen.
-	local backdrop = CityLayout.BACKDROP
-	local reach = 2 * (backdrop.cornerOut * 1.5 + backdrop.cornerSize)
 	local slab = makePart({
 		Name = "Ground",
-		Size = Vector3.new(span + reach, 2, span + reach),
+		Size = Vector3.new(span + 120, 2, span + 120),
 		CFrame = CFrame.new(center.x, -TILE_HEIGHT - 1, center.z),
 		Color = DARK_GREY,
 		CanCollide = true,
