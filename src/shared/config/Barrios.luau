@@ -29,6 +29,9 @@ export type Rule = {
 	straight: boolean?,
 	-- Fuera de la última casilla, donde el paso de cebra cierra el barrio.
 	exceptLast: boolean?,
+	-- "both" repite la pieza en la acera de enfrente, la que ve la cámara; por defecto va solo en la
+	-- acera de los edificios.
+	side: "both"?,
 }
 
 export type Barrio = {
@@ -59,9 +62,23 @@ local LIST: { Barrio } = {
 		crosswalk = "Crosswalk",
 		rules = {
 			-- La acera, en todas las casillas.
-			{ kind = "centro-walk", at = "slot", along = 0, out = 20.5, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "centro-walk",
+				at = "slot",
+				along = 0,
+				out = 20.5,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			-- Farola de forja contra el bordillo, y banco arrimado a la fachada.
-			{ kind = "centro-lamp", at = "slot", along = -13, out = 18.0, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "centro-lamp",
+				at = "slot",
+				along = -13,
+				out = 18.0,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			{ kind = "centro-bench", at = "slot", along = 9, out = 22.6, y = Barrios.SIDEWALK_TOP },
 			-- Un quiosco de prensa cada cuatro casillas, entre el banco y la esquina.
 			{
@@ -93,15 +110,7 @@ local LIST: { Barrio } = {
 				y = Barrios.SIDEWALK_TOP,
 				straight = true,
 				exceptLast = true,
-			},
-			{
-				kind = "centro-tree",
-				at = "joint",
-				along = 0,
-				out = -20.5,
-				y = Barrios.SIDEWALK_TOP,
-				straight = true,
-				exceptLast = true,
+				side = "both",
 			},
 		},
 	},
@@ -112,11 +121,25 @@ local LIST: { Barrio } = {
 		backdrops = { "puerto-backdrop-a", "puerto-backdrop-b" },
 		crosswalk = "Crosswalk",
 		rules = {
-			{ kind = "puerto-walk", at = "slot", along = 0, out = 20.5, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "puerto-walk",
+				at = "slot",
+				along = 0,
+				out = 20.5,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			-- Bolardos de amarre en el borde del muelle: es lo que dice «aquí atraca algo».
 			{ kind = "puerto-bollard", at = "slot", along = -16, out = 17.9, y = Barrios.SIDEWALK_TOP },
 			-- Farola de muelle y banco arrimado a la nave.
-			{ kind = "puerto-lamp", at = "slot", along = 13, out = 18.2, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "puerto-lamp",
+				at = "slot",
+				along = 13,
+				out = 18.2,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			{ kind = "puerto-bench", at = "slot", along = 9, out = 22.4, y = Barrios.SIDEWALK_TOP },
 			-- Cajas y redes en la junta, cada dos casillas.
 			{
@@ -138,8 +161,22 @@ local LIST: { Barrio } = {
 		backdrops = { "zona-alta-backdrop-a", "zona-alta-backdrop-b" },
 		crosswalk = "Crosswalk",
 		rules = {
-			{ kind = "zona-alta-walk", at = "slot", along = 0, out = 20.5, y = Barrios.SIDEWALK_TOP },
-			{ kind = "zona-alta-lamp", at = "slot", along = -13, out = 18.0, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "zona-alta-walk",
+				at = "slot",
+				along = 0,
+				out = 20.5,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
+			{
+				kind = "zona-alta-lamp",
+				at = "slot",
+				along = -13,
+				out = 18.0,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			{ kind = "zona-alta-planter", at = "slot", along = 9, out = 21.2, y = Barrios.SIDEWALK_TOP },
 			-- Bancos y bolardos alternos: la plaza se amuebla con menos piezas y más aire.
 			{
@@ -168,8 +205,22 @@ local LIST: { Barrio } = {
 		backdrops = { "industrial-backdrop-a", "industrial-backdrop-b" },
 		crosswalk = "Crosswalk",
 		rules = {
-			{ kind = "industrial-walk", at = "slot", along = 0, out = 20.5, y = Barrios.SIDEWALK_TOP },
-			{ kind = "industrial-lamp", at = "slot", along = -13, out = 18.0, y = Barrios.SIDEWALK_TOP },
+			{
+				kind = "industrial-walk",
+				at = "slot",
+				along = 0,
+				out = 20.5,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
+			{
+				kind = "industrial-lamp",
+				at = "slot",
+				along = -13,
+				out = 18.0,
+				y = Barrios.SIDEWALK_TOP,
+				side = "both",
+			},
 			-- Contenedores cada tres casillas, contra la nave; valla junto al bordillo.
 			{
 				kind = "industrial-container",

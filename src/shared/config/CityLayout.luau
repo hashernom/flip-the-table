@@ -23,6 +23,10 @@ export type Slot = {
 	facing: number,
 	barrioId: string,
 	kind: Types.SquareKind,
+	-- La casilla cae sobre el cruce de dos calles: no tiene acera propia ni solar donde quepa un edificio.
+	corner: boolean?,
+	-- Vecina de una esquina: su manzana es la del cruce y no da para dos solares.
+	edge: boolean?,
 	-- Solo en las casillas de propiedad: zona y número de la propiedad dentro de su zona.
 	zoneId: string?,
 	ordinal: number?,
@@ -169,6 +173,18 @@ function CityLayout.routeFor(sizeId: SizeId): { Slot }
 			ordinal = ordinals[index],
 		})
 	end
+	-- La esquina es donde la ruta gira: allí la casilla es el cruce de dos calles.
+	for index, slot in route do
+		local before = route[if index == 1 then count else index - 1]
+		slot.corner = before.facing ~= slot.facing
+	end
+	-- Vecina de una esquina: su solar comparte la manzana del cruce y, si va dentro, pisa el de la
+	-- casilla que hay al otro lado. Las especiales de ahí se quedan fuera, como las esquinas.
+	for index, slot in route do
+		local before = route[if index == 1 then count else index - 1]
+		local after = route[if index == count then 1 else index + 1]
+		slot.edge = before.corner == true or after.corner == true
+	end
 	return route
 end
 
@@ -274,9 +290,16 @@ local function outward(slot: Slot, distance: number): Vector3Like
 end
 
 -- Centro de la casilla pintada.
--- Lado de su edificio: el de las propiedades (`LOT_SIDE`) o fuera, si es una casilla especial.
+-- Lado de su edificio: el de siempre (`LOT_SIDE`, dentro). Se quedan fuera las esquinas —que son
+-- cruces— y las especiales pegadas a una: su manzana no da para dos solares. `routeFor` marca las dos.
 function CityLayout.lotSideOf(slot: Slot): number
-	return if slot.kind == "Property" then CityLayout.LOT_SIDE else 1
+	if slot.corner == true then
+		return 1
+	end
+	if slot.edge == true and slot.kind ~= "Property" then
+		return 1
+	end
+	return CityLayout.LOT_SIDE
 end
 
 function CityLayout.slotCenter(slot: Slot): Vector3Like
@@ -390,6 +413,11 @@ function CityLayout.dressingFor(sizeId: SizeId, barrioId: string): { Dressing }
 			end
 			local along = if rule.at == "joint" then rule.along + JOINT_ALONG else rule.along
 			place(rule.kind, slot, along, rule.out, rule.y)
+			-- El fondo de la calle también es ciudad: lo que la regla marca «both» se repite en la
+			-- acera de enfrente, que es la que ve la cámara.
+			if rule.side == "both" then
+				place(rule.kind, slot, along, -rule.out, rule.y)
+			end
 		end
 
 		-- La calle como frontera: el paso de cebra cierra el barrio por sus dos extremos, y es lo
@@ -404,11 +432,11 @@ function CityLayout.dressingFor(sizeId: SizeId, barrioId: string): { Dressing }
 	return items
 end
 
--- Fondo de ciudad: una pieza de dos casillas de ancho detrás de los solares. No se cruza, no se pisa
--- y no tiene colisión: es silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del
--- barrio para que la manzana no se repita. El fondo va del lado de los solares —el de `LOT_SIDE`— y
--- mira a la calle, así que en espejo cae dentro del anillo, detrás de las fachadas.
-local BACKDROP_OUT = 56
+-- Fondo de ciudad: una pieza de dos casillas de ancho. No se cruza, no se pisa y no tiene colisión: es
+-- silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del barrio para que la manzana no
+-- se repita. Va por los dos lados de la calle —detrás de los solares y al otro lado, que es el que ve la
+-- cámara—, siempre mirando a la calle. A 72 studs del eje: el solar acaba a 48 y así no lo atraviesa.
+local BACKDROP_OUT = 72
 local BACKDROP_SLOTS = 2
 
 CityLayout.BACKDROP_OUT_STUDS = BACKDROP_OUT
@@ -432,6 +460,7 @@ function CityLayout.backdropsFor(sizeId: SizeId, barrioId: string): { Dressing }
 		end
 		local slot = route[index]
 		local before, nextSlot = route[index - 1], route[index + 1]
+		local afterNext = route[index + 2]
 		-- En una esquina el fondo se cortaría con el de la calle vecina: mejor un hueco que un cruce.
 		if nextSlot == nil or nextSlot.facing ~= slot.facing then
 			continue
@@ -439,18 +468,24 @@ function CityLayout.backdropsFor(sizeId: SizeId, barrioId: string): { Dressing }
 		if before == nil or before.facing ~= slot.facing then
 			continue
 		end
+		-- El fondo mide 80 y arranca 20 antes de la casilla: no puede acabar en la manzana del cruce.
+		if afterNext == nil or afterNext.facing ~= slot.facing then
+			continue
+		end
 		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
 		local along = SQUARE_SPACING / 2
-		local out = CityLayout.LOT_SIDE * BACKDROP_OUT
-		variant += 1
-		table.insert(items, {
-			kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
-			x = slot.position.x + math.sin(slot.facing) * along + outX * out,
-			y = 0,
-			z = slot.position.z + math.cos(slot.facing) * along + outZ * out,
-			lookX = -outX * CityLayout.LOT_SIDE,
-			lookZ = -outZ * CityLayout.LOT_SIDE,
-		})
+		-- Una fila detrás de los solares y otra al otro lado de la calle. Las dos miran a la calzada.
+		for _, side in { CityLayout.LOT_SIDE, -CityLayout.LOT_SIDE } do
+			variant += 1
+			table.insert(items, {
+				kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
+				x = slot.position.x + math.sin(slot.facing) * along + outX * side * BACKDROP_OUT,
+				y = 0,
+				z = slot.position.z + math.cos(slot.facing) * along + outZ * side * BACKDROP_OUT,
+				lookX = -outX * side,
+				lookZ = -outZ * side,
+			})
+		end
 	end
 	return items
 end

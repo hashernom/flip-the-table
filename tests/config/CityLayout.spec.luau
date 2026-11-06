@@ -278,9 +278,10 @@ Harness.describe("CityLayout: espejo (propiedades dentro)", function()
 		end)
 	end
 
-	Harness.it("las propiedades van del lado de LOT_SIDE y las especiales fuera", function()
+	Harness.it("las propiedades van dentro; esquinas y especiales de borde, fuera", function()
 		for _, slot in CityLayout.routeFor("S") do
-			local expected = if slot.kind == "Property" then CityLayout.LOT_SIDE else 1
+			local outside = slot.corner == true or (slot.edge == true and slot.kind ~= "Property")
+			local expected = if outside then 1 else CityLayout.LOT_SIDE
 			Harness.expect(CityLayout.lotSideOf(slot)).toBe(expected)
 		end
 	end)

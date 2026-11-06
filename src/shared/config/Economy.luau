@@ -52,7 +52,8 @@ return {
 		-- Plazo de cualquier decisión sin plazo propio. El responsable lo subió de 20 a 100 s (2026-11-05).
 		decision = 100,
 		auction = 15,
-		tribunalVote = 10,
+		-- Votar el castigo del Tribunal: 10 s no daban tiempo a leer las opciones (2026-11-06).
+		tribunalVote = 25,
 		reaction = 5,
 	},
 	tax = 100,
