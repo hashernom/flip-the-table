@@ -219,6 +219,22 @@ describe("CityLayout.backdropsFor", function()
 		end
 	end)
 
+	it("los fondos van fuera del anillo: el interior es de la ciudad procedural", function()
+		for _, sizeId in SIZES do
+			local center = CityLayout.centerFor(sizeId :: any)
+			local half = CityLayout.spanFor(sizeId :: any) / 2
+			for _, id in Barrios.ids do
+				for _, item in backdropsFor(sizeId, id) do
+					local outside = math.abs(item.x - center.x) > half or math.abs(item.z - center.z) > half
+					expect(outside).toBe(true)
+					-- Mira a la calle, que queda hacia el centro.
+					local toCenterX, toCenterZ = center.x - item.x, center.z - item.z
+					expect(item.lookX * toCenterX + item.lookZ * toCenterZ > 0).toBe(true)
+				end
+			end
+		end
+	end)
+
 	it("usa solo las variantes que declara el barrio", function()
 		for _, sizeId in SIZES do
 			for _, id in Barrios.ids do

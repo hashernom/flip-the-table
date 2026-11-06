@@ -57,7 +57,8 @@ El tablero se conoce siempre sin depender de esa cámara:
 ## El resto de la ciudad
 
 - **Ambiente de ciudad viva:** árboles, farolas, bancos, pasos de cebra, coches y taxis en movimiento. Sin peatones, como ya está decidido: la ciudad se lee como una maqueta de lujo.
-- **Dentro del anillo:** una plaza con fuente y parque y algún edificio singular. El skyline de fondo se quitó el 2026-11-06: lo sustituye el fondo de cada barrio, que llega con el plan 07; hasta entonces, el exterior queda libre.
+- **Dentro del anillo:** una ciudad procedural (`config/CityInterior`, 2026-11-06): manzanas de torres, edificios medios, casas con jardín, parques, canchas y una obra, separadas por calles, y en el centro un parque con plaza redonda y fuente. Desde la vista aérea tiene que leerse una ciudad poblada: nada de suelo gris, el suelo es césped.
+- **Fuera del anillo:** los fondos de cada barrio, a 72 studs del eje de la calle y mirando a ella, y más allá arboledas y un parquecito en cada esquina.
 - **Luz:** de día, la de [luz.md](luz.md). No hay atardecer ni neón nocturno.
 - **Identidad:** la de la [guía de estilo](guia-de-estilo.md), dirección Señalética.
 

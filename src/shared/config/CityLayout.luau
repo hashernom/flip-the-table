@@ -468,15 +468,17 @@ function CityLayout.backdropsFor(sizeId: SizeId, barrioId: string): { Dressing }
 		end
 		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
 		local along = SQUARE_SPACING / 2
-		local out = CityLayout.LOT_SIDE * BACKDROP_OUT
+		-- Fuera del anillo (2026-11-06, pedido del responsable): son edificios grandes y el borde exterior
+		-- estaba vacío. El interior lo llena `CityInterior`.
+		local out = BACKDROP_OUT
 		variant += 1
 		table.insert(items, {
 			kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
 			x = slot.position.x + math.sin(slot.facing) * along + outX * out,
 			y = 0,
 			z = slot.position.z + math.cos(slot.facing) * along + outZ * out,
-			lookX = -outX * CityLayout.LOT_SIDE,
-			lookZ = -outZ * CityLayout.LOT_SIDE,
+			lookX = -outX,
+			lookZ = -outZ,
 		})
 	end
 	return items

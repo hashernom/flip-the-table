@@ -9,6 +9,7 @@
 -- gasta presupuesto de partes replicadas.
 local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
+local CityInterior = require("../../shared/config/CityInterior")
 local CityLayout = require("../../shared/config/CityLayout")
 local Economy = require("../../shared/config/Economy")
 local Strings = require("../../shared/config/Strings")
@@ -58,7 +59,11 @@ local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 -- Suelo libre fuera del anillo (2026-11-06): 60 studs por lado, para los barrios. Lo comparten suelo y agua.
-local GROUND_MARGIN = 100
+-- Margen del suelo alrededor del anillo: caben los fondos de barrio (a 72 de la calle) y las arboledas.
+local GROUND_MARGIN = 190
+-- Suelo de la ciudad: césped, no asfalto gris. Lo construido va encima.
+local GROUND_GRASS = Color3.fromRGB(94, 138, 74)
+local INTERIOR_FOLDER = "Interior"
 local NAME_DEPTH = 6
 -- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
 local FRAMED_NAME_SIDE = 7.5
@@ -304,7 +309,8 @@ local function makeGround(model: Model, sizeId: SizeId)
 		Name = "Ground",
 		Size = Vector3.new(span + 2 * GROUND_MARGIN, 2, span + 2 * GROUND_MARGIN),
 		CFrame = CFrame.new(center.x, -TILE_HEIGHT - 1, center.z),
-		Color = DARK_GREY,
+		Color = GROUND_GRASS,
+		Material = Enum.Material.Grass,
 		CanCollide = true,
 	})
 	slab.Parent = model
@@ -384,6 +390,75 @@ local function makeBackdrops(model: Model, sizeId: SizeId)
 				end
 			end
 		end
+	end
+	folder.Parent = model
+end
+
+-- Ciudad procedural: el interior del anillo y el borde exterior (`CityInterior`). Cada pieza es un `Part`
+-- anclado y sin colisión; las finas no dan sombra.
+local MATERIALS: { [string]: Enum.Material } = {
+	SmoothPlastic = Enum.Material.SmoothPlastic,
+	Concrete = Enum.Material.Concrete,
+	Grass = Enum.Material.Grass,
+	Glass = Enum.Material.Glass,
+	Brick = Enum.Material.Brick,
+	Wood = Enum.Material.Wood,
+	Slate = Enum.Material.Slate,
+	Ground = Enum.Material.Ground,
+	Metal = Enum.Material.Metal,
+	-- El agua de un `Part` se pinta como cristal: refleja el cielo, que es lo que la hace leerse como agua.
+	Water = Enum.Material.Glass,
+	Asphalt = Enum.Material.Asphalt,
+	Pavement = Enum.Material.Pavement,
+	Fabric = Enum.Material.Fabric,
+}
+local WATER_TRANSPARENCY = 0.15
+
+local function makeInteriorPart(item: CityInterior.Item, parent: Instance)
+	local part: BasePart
+	local rotation = CFrame.Angles(0, item.yaw, 0)
+	if item.shape == "Wedge" then
+		part = Instance.new("WedgePart")
+		part.Size = Vector3.new(item.sx, item.sy, item.sz)
+	elseif item.shape == "Disk" then
+		local cylinder = Instance.new("Part")
+		cylinder.Shape = Enum.PartType.Cylinder
+		-- El cilindro de Roblox tiene el eje en X: se tumba para que quede de pie, como un disco.
+		cylinder.Size = Vector3.new(item.sy, item.sx, item.sx)
+		rotation *= CFrame.Angles(0, 0, math.pi / 2)
+		part = cylinder
+	elseif item.shape == "Ball" then
+		local ball = Instance.new("Part")
+		ball.Shape = Enum.PartType.Ball
+		ball.Size = Vector3.new(item.sx, item.sy, item.sz)
+		part = ball
+	else
+		part = Instance.new("Part")
+		part.Size = Vector3.new(item.sx, item.sy, item.sz)
+	end
+	part.Name = item.name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.CastShadow = item.flat ~= true
+	part.Color = Color3.fromHex(item.color)
+	part.Material = MATERIALS[item.material] or Enum.Material.SmoothPlastic
+	part.Transparency = item.transparency or (if item.material == "Water" then WATER_TRANSPARENCY else 0)
+	part.CFrame = CFrame.new(item.x, item.y, item.z) * rotation
+	part.Parent = parent
+end
+
+local function makeInterior(model: Model, sizeId: SizeId)
+	local folder = Instance.new("Folder")
+	folder.Name = INTERIOR_FOLDER
+	for _, item in CityInterior.itemsFor(sizeId) do
+		makeInteriorPart(item, folder)
+	end
+	for _, item in CityInterior.exteriorFor(sizeId) do
+		makeInteriorPart(item, folder)
 	end
 	folder.Parent = model
 end
@@ -614,6 +689,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	makeStreet(model, sizeId)
 	makeBridges(model, sizeId)
 	makeBackdrops(model, sizeId)
+	makeInterior(model, sizeId)
 
 	local squares: { [number]: BasePart } = {}
 	for order, slot in route do
