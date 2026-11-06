@@ -3116,7 +3116,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://73409136423236"
     },
     {
       "id": "ui-card-extra-die",
@@ -3127,7 +3128,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://94023691931449"
     },
     {
       "id": "ui-card-reverse",
@@ -3138,7 +3140,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://134770997642306"
     },
     {
       "id": "ui-card-forced-tip",
@@ -3149,7 +3152,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://74726845908121"
     },
     {
       "id": "ui-card-discount",
@@ -3160,7 +3164,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://130225987617771"
     },
     {
       "id": "ui-card-shove",
@@ -3171,7 +3176,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://95806449304729"
     },
     {
       "id": "ui-card-bribe",
@@ -3182,7 +3188,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://90278748996138"
     },
     {
       "id": "ui-card-spy",
@@ -3193,7 +3200,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://99257532450859"
     },
     {
       "id": "ui-card-inflation",
@@ -3204,7 +3212,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://127519695549281"
     },
     {
       "id": "ui-card-bounce-rent",
@@ -3215,7 +3224,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://86754457987032"
     },
     {
       "id": "ui-card-deed-thief",
@@ -3226,7 +3236,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://88651299675423"
     },
     {
       "id": "ui-card-backstab",
@@ -3237,7 +3248,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://139777750885354"
     },
     {
       "id": "ui-card-demolition",
@@ -3248,7 +3260,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://113717002181933"
     },
     {
       "id": "ui-card-world-flip",
@@ -3259,7 +3272,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://124690280946295"
     },
     {
       "id": "ui-card-revolution",
@@ -3270,7 +3284,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://108167739493809"
     },
     {
       "id": "ui-card-earthquake",
@@ -3281,7 +3296,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://119717448628377"
     },
     {
       "id": "ui-card-crown-strike",
@@ -3292,7 +3308,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://93128990375345"
     },
     {
       "id": "ui-perk-banker",
@@ -3303,7 +3320,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://75124212267239"
     },
     {
       "id": "ui-perk-landlord",
@@ -3314,7 +3332,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://106022355297473"
     },
     {
       "id": "ui-perk-builder",
@@ -3325,7 +3344,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://79407175260161"
     },
     {
       "id": "ui-perk-smuggler",
@@ -3336,7 +3356,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://96984499208901"
     },
     {
       "id": "ui-perk-quick-fingers",
@@ -3347,7 +3368,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://98227439566361"
     },
     {
       "id": "ui-perk-lawyer",
@@ -3358,7 +3380,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://117589388800439"
     },
     {
       "id": "ui-perk-negotiator",
@@ -3369,7 +3392,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://71276111108341"
     },
     {
       "id": "ui-perk-lucky",
@@ -3380,7 +3404,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://86183165709339"
     },
     {
       "id": "ui-perk-hunter",
@@ -3391,7 +3416,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://87947090916339"
     },
     {
       "id": "ui-perk-armored",
@@ -3402,7 +3428,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://100524042139286"
     },
     {
       "id": "ui-perk-collector",
@@ -3413,7 +3440,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://128249471277338"
     },
     {
       "id": "ui-perk-restless-soul",
@@ -3424,7 +3452,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+      "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py",
+      "assetId": "rbxassetid://78516036994888"
     },
     {
       "id": "ui-card-fine",
@@ -3435,7 +3464,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://124007651257971"
     },
     {
       "id": "ui-card-strike",
@@ -3446,7 +3476,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://138782295951180"
     },
     {
       "id": "ui-card-hurricane",
@@ -3457,7 +3488,8 @@
       "textures": 0,
       "status": "Draft",
       "screenshots": [],
-      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+      "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py",
+      "assetId": "rbxassetid://73780338575237"
     }
   ]
 }
