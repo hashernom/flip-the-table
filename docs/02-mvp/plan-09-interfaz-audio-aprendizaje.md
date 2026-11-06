@@ -103,15 +103,27 @@
 - Modificar: `art/manifest.json`
 
 **Criterios de aceptación:**
-- [ ] 20 ilustraciones de carta y 12 iconos de perk registrados y aprobados.
-- [ ] La rareza se reconoce por marco y borde, con dorado en las legendarias.
-- [ ] Se distinguen entre sí en el tamaño de móvil.
-- [ ] No se parecen a las cartas del juego original.
+- [ ] 20 ilustraciones de carta y 12 iconos de perk registrados y aprobados. **Registrados** el
+  2026-11-06 en `art/manifest.json` como `UiImage` en `Draft`; la aprobación del responsable sigue
+  pendiente.
+- [x] La rareza se reconoce por marco y borde, con dorado en las legendarias. Mismo papel caliza en
+  las tres: filete simple de asfalto (común), doble filete con esquinas achaflanadas (rara) y triple
+  filete de oro con esquinas biseladas (legendaria). El responsable aprobó el sistema el 2026-11-06 y
+  pidió quitar la repisa que llevaba la legendaria encima del marco.
+- [ ] Se distinguen entre sí en el tamaño de móvil. Comprobado a tamaño de mano de PC (104×150) con
+  la tira de silueta a 95×95; el móvil sigue aplazado.
+- [ ] No se parecen a las cartas del juego original. Sin marcas, sin símbolos de casino y sin
+  personas, revisado por un revisor nuevo; falta la aprobación del responsable.
 
-- [ ] **Paso 1:** Producir 3 cartas de ejemplo y obtener su aprobación.
-- [ ] **Paso 2:** Producir el resto y registrarlo.
-- [ ] **Paso 3:** Ejecutar `lune run tools/manifest`. Esperado: sin problemas.
-- [ ] **Paso 4:** Hacer commit: `feat: añadir ilustraciones de cartas y perks`.
+- [x] **Paso 1:** Producir 3 cartas de ejemplo y obtener su aprobación. `Multa` (común), `Huelga`
+  (rara) y `Huracán` (legendaria), con su hoja de contacto en `art/render/ui/`; aprobadas el
+  2026-11-06 con el cambio de la repisa.
+- [x] **Paso 2:** Producir el resto y registrarlo. Cuatro lotes: 8 comunes, 5 raras, 4 legendarias y
+  12 perks, cada uno con su generador y su fragmento de manifiesto.
+- [x] **Paso 3:** Ejecutar `lune run tools/manifest`. Esperado: sin problemas. No existe ese comando:
+  la comprobación del manifiesto es `lune run tools/check` (paso «Manifiesto»), que pasa sin
+  problemas con las 32 entradas nuevas.
+- [x] **Paso 4:** Hacer commit: `feat: añadir ilustraciones de cartas y perks`.
 
 ### Task 4: Lobby
 
@@ -203,3 +215,35 @@ Pendiente:
 - **Lobby:** el servidor no envía la lista de la party, así que no se ve quién está. La elección de ficha sigue al empezar la partida, no en el lobby. `lobby.project.json` no monta los scripts del cliente: el lugar del lobby no enseña su menú. `LobbyScene` no existe.
 - **`PlayerProfile`:** fuera de Studio escribe en un DataStore. Es el primer dato persistente de jugadores; aprobarlo antes de publicar.
 - **Maqueta anidada en la vista general:** sin causa encontrada. `ModelCity` quita de la copia cualquier maqueta anidada y lo avisa en la consola con la ruta de origen.
+
+## Estado al 2026-11-06 (rama `plan-09-tarea-3`)
+
+**Tarea 3 hecha en arte y en código; falta subir las imágenes y que el responsable las apruebe.**
+
+- **Las 20 ilustraciones y los 12 iconos existen** y son reproducibles: `python art/ui/cards/build_cards.py`
+  (y `--lote <nombre>` para construir un lote suelto) y `python art/ui/perks/build_perks.py`. Los dos
+  generan a 4× y reducen una sola vez, sin azar ni fechas: dos ejecuciones dan los mismos bytes.
+- **Sistema visual aprobado el 2026-11-06** con tres cartas de ejemplo. El papel caliza es el mismo en
+  las tres rarezas y lo que cambia es el borde: filete simple de 8 px (común), doble filete asfalto +
+  caliza + marino con esquinas achaflanadas (rara) y triple filete de oro con esquinas biseladas
+  (legendaria). El responsable pidió quitar la repisa que llevaba la legendaria encima del marco.
+- **Lenguaje de las ilustraciones:** cosas y señales, nunca personas (la ciudad del juego no tiene
+  gente). Fijado en `art/ui/cards/ilustraciones.md`, con el sujeto y los colores de las 20 cartas y de
+  los 12 perks.
+- **Registro:** las 32 entradas están en `art/manifest.json` como `UiImage` en `Draft`.
+- **Config nuevo:** `src/shared/config/CardArt.luau`, con el `manifestId` de cada imagen, la banda de
+  nombre y el aspecto de la carta; los `assetId` están vacíos hasta subirlos. Lo cubren nueve pruebas
+  puras en `tests/config/CardArt.spec.luau`.
+- **Integración:** `Components.Card` (la mano) y `Board.CardFace` (la vista grande) usan la imagen
+  cuando hay `assetId` y se quedan como estaban cuando no; `Board.DecisionCard` enseña el icono del
+  perk en la franja del tipo. Las tarjetas de decisión siguen sin ser `CanvasGroup` girados.
+
+Pendiente:
+
+- **Subir las 32 imágenes a Roblox.** Es publicar en la cuenta del responsable: hace falta su permiso.
+  Después, rellenar los `assetId` en `CardArt.luau` y las capturas en el manifiesto, y probarlo en
+  Studio con el MCP (mano, vista grande y elección de perk con el texto más largo).
+- **Aprobación de las 32 imágenes.** Están en `Draft`; solo el responsable las pasa a `Approved`.
+- **Móvil aplazado**, como el resto del plan.
+- **Discrepancia de conteos en la guía de estilo:** su tabla de sellos dice 5 legendarias, 7 raras y 8
+  comunes; `config/Cards.luau` tiene 5, 6 y 9. Manda la config, que es la fuente de verdad.

@@ -259,9 +259,36 @@ Carácter: un papel de calle en cartón: bloque de zona a sangre, precio en barr
 - **Pie:** franja de asfalto de 22 px con el tipo de carta y el código.
 - **Forma:** labio de 7 px en asfalto profundo al 50 % y borde de asfalto de 3 px. Ver The Lip Is Thickness Rule.
 
-### Naipe de la mano (`Components.Card`)
-Carácter: una carta de mano de papel de caliza, con título y sello. Provisional.
-- **Forma:** 104 × 150 px, radio 11 px, borde de asfalto de 3 px. Título en Oswald 13 px, sello a 40 px.
+### Carta de giro (`Components.Card`, `Board.CardFace`, `Board.DecisionCard`)
+Carácter: una carta de mesa con la señalética de la calle dentro. **Aprobada por el responsable el
+2026-11-06** sobre tres cartas de ejemplo (`Multa`, `Huelga` y `Huracán`); sustituye al naipe
+provisional.
+- **La imagen es la carta.** El PNG mide 312 × 450 (relación 2:3) y trae el marco, la ilustración, la
+  banda de nombre vacía y el pie; el juego solo escribe el nombre encima de la banda. Se ve nítida a
+  104 × 150 (mano) y a 250 × 360 (vista grande) porque se dibuja a 312 × 450 y se reduce.
+- **La rareza se lee por la forma del borde, no por el color**, y el papel caliza es el mismo en las
+  tres:
+  - **Común** — filete de asfalto de 8 px, esquinas redondeadas r = 14, pie con tres guiones.
+  - **Rara** — doble filete asfalto 7 + hueco de caliza 6 + **azul marino** 7, esquinas achaflanadas
+    de 16 px, pie con doble banda.
+  - **Legendaria** — triple filete **oro** 10 + asfalto 4 + caliza 3, esquinas superiores en **bisel
+    de 30 px**, sello rojo con rombo de oro y pie con banda de oro. **Sin repisa ni canto encima del
+    marco**: el responsable lo descartó el 2026-11-06.
+- **Sello de rareza** en la esquina superior derecha de la ventana (34 × 34): esa esquina queda libre
+  en las 20 ilustraciones.
+- **Ilustraciones:** cosas y señales, **nunca personas** — la ciudad del juego no tiene gente. Un solo
+  sujeto, cuatro colores planos como máximo + contorno de asfalto de 6 px, y la prueba de que se lee
+  es la tira de silueta a 95 × 95. El repertorio completo, con el sujeto de cada carta, está en
+  `art/ui/cards/ilustraciones.md`.
+- **Nombre sobre la banda:** asfalto en Builder Sans ExtraBold, centrado, con `TextScaled` y un tope
+  de 14 px para que «Ladrón de Escrituras» quepa sin salirse. La banda mide
+  300 × 122 px dentro de la carta (`CardArt.band`).
+- **Sin arte no hay hueco:** mientras una carta no tenga `assetId`, la mano y la vista grande se leen
+  con el texto, como antes. El arte se consulta siempre por `config/CardArt`, nunca desde la lógica.
+- **Tarjeta de decisión:** cuando la decisión es un perk, su icono de 22 × 22 va dentro de la franja
+  de asfalto, a la izquierda del tipo. Los iconos de perk son monocromos blancos (256 × 256) y se
+  tiñen con `ImageColor3`, igual que los de `art/ui/icons/`.
+- **Estados:** en `Draft` en `art/manifest.json` hasta que el responsable los apruebe.
 
 ### Calzada del plazo (`Components.Timer`)
 Carácter: el plazo es la calzada. El vehículo recorre el pie de la pantalla y se come los trazos hasta el cono.

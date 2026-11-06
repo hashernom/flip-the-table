@@ -59,6 +59,7 @@ local function boot()
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
 	local ActionMenu = require("./ui/ActionMenu")
+	local Billboard = require("./ui/Billboard")
 	local Hud = require("./ui/Hud")
 	local LobbyMenu = require("./ui/LobbyMenu")
 	local TokenMenu = require("./ui/TokenMenu")
@@ -106,6 +107,8 @@ local function boot()
 	end)
 	-- Gestionar propiedades (R-P53): la cámara enseña de cerca la propiedad elegida.
 	local manager = PropertyManager.create(playerGui)
+	-- Cartelera: la tirada del cartel cuando alguien cae en su casilla.
+	local billboard = Billboard.create(playerGui)
 	-- Sin partida todavía suena la música del lobby.
 	AudioDirector.setMusicState("Lobby")
 	-- Clic y roce de todos los botones, también de los menús que se crean más abajo.
@@ -412,6 +415,18 @@ local function boot()
 			if not ok then
 				warn(`Cliente: la escena del Portal falló: {err}`)
 			end
+		end,
+	})
+
+	-- Cartelera: el motor tira el cartel y el cliente lo enseña. No hay decisión que esperar: el panel
+	-- pasa por las cinco salidas y deja el resultado hasta que acaba la escena.
+	SceneDirector.register(scenes, "BillboardResult", {
+		run = function(ctx, event)
+			ctx.show("")
+			local view = StateStore.view(queue.state)
+			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
+			billboard.play(event.result :: string, event.amount :: number, playerName, ctx.duration)
+			ctx.wait(ctx.duration)
 		end,
 	})
 
