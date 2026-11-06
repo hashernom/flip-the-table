@@ -318,6 +318,8 @@ local TEXTS: { [string]: string } = {
 	["scene.round.first"] = "¡Empieza la partida!",
 	["scene.round.next"] = "Ronda {round}",
 	["scene.podium.winner"] = "Gana {name}",
+	["scene.buy.sold"] = "Comprada",
+	["scene.buy.mine"] = "¡Es de {name}!",
 	-- Suma de la escena de los dados: «4 + 3 = 7».
 	["scene.dice.total"] = "{dice} = {total}",
 	["scene.strike.sign"] = "Cerrado por huelga",

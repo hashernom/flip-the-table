@@ -86,6 +86,8 @@ local function boot()
 	local SquareScenes = require("./scenes/squares/SquareScenes")
 	local GameScenes = require("./scenes/game/GameScenes")
 	local TokenMarks = require("./world/TokenMarks")
+	local LegendaryKit = require("./scenes/legendary/LegendaryKit")
+	local TweenService = game:GetService("TweenService")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -604,18 +606,58 @@ local function boot()
 
 	-- Compra y subasta ganada: el resultado se ve al instante (halo del dueño y dinero de la barra), sin
 	-- esperar a que acabe el lote. La escena es corta: un tiempo muerto aquí se nota en cada turno.
-	local function settleNow(ctx: SceneDirector.Context, title: string)
+	-- Cartel de la compra sobre el edificio, con dos variaciones (plan 08, Tarea 7): «Comprada» en amarillo
+	-- taxi o «¡Es de …!» con el color del asiento. Se borra solo al acabar la escena.
+	local function buySign(ctx: SceneDirector.Context, event: any): Instance?
+		local handles = city
+		if handles == nil or type(event.index) ~= "number" or type(event.playerId) ~= "string" then
+			return nil
+		end
+		local folder = Instance.new("Folder")
+		folder.Name = "BuySign"
+		folder.Parent = handles.model
+		local lot = handles.lotOf(event.index)
+		local view = ctx.view
+		local name = if view ~= nil then ViewText.playerName(view, names, event.playerId) else ""
+		local seat = if view ~= nil then WorldRules.seatOf(view.players, event.playerId) else nil
+		local text = if ctx.variation == 2
+			then Strings.get("scene.buy.mine", { name = name })
+			else Strings.get("scene.buy.sold")
+		local color = if ctx.variation == 2 then seatColor(seat or 1):ToHex() else "F5C518"
+		local plate =
+			LegendaryKit.sign(folder, lot.Position + Vector3.new(0, 24, 0), text, 220, 56, `#{color}`, -5)
+		local scale = Instance.new("UIScale")
+		scale.Scale = 0.4
+		scale.Parent = plate
+		TweenService
+			:Create(
+				scale,
+				TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+				{ Scale = 1 }
+			)
+			:Play()
+		return folder
+	end
+	local function settleNow(ctx: SceneDirector.Context, title: string, event: any?)
 		ctx.show(title)
 		ctx.world.reconcile(ctx.view)
 		if ctx.view ~= nil then
 			hud.setView(ctx.view, names)
 		end
+		local sign = if event ~= nil then buySign(ctx, event) else nil
 		ctx.wait(ctx.duration)
+		if sign ~= nil then
+			sign:Destroy()
+		end
 	end
 	SceneDirector.register(scenes, "PropertyBought", {
 		run = function(ctx, event)
 			-- Un robo (Ladrón de Escrituras) llega como compra a precio 0: su escena ya lo enseñó.
-			settleNow(ctx, if event.price == 0 then "" else "PropertyBought")
+			if event.price == 0 then
+				settleNow(ctx, "")
+			else
+				settleNow(ctx, "PropertyBought", event)
+			end
 		end,
 	})
 	SceneDirector.register(

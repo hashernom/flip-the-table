@@ -154,6 +154,20 @@ end)
 
 **Estado (2026-11-06):** las 6 raras tienen escena en `src/client/scenes/cards/`: Ladrón de Escrituras, Demolición, Huelga, Inflación, Puñalada y Renta Rebotada, con sus reglas puras en `CardSceneRules` (10 pruebas) y su puesta en escena en `config/CardStaging`. Para poder enseñarlas, `CardPlayed` lleva `targetId` del socio en la Puñalada, y la Renta Rebotada emite su propio `CardPlayed`. Sin ver en Studio: falta la aprobación del responsable, y después las 9 comunes.
 
+**Estado de las comunes (2026-11-06):** las 9 comunes tienen escena en `cards/CommonCards`; el Escudo se enseña con `CardBlocked`. Cada escena lleva un cartel con quién actúa y a quién afecta, y su objeto:
+
+- Escudo: una burbuja contra la que rebota la carta.
+- Dado Extra: un tercer dado cae del cielo.
+- Marcha Atrás: una flecha en U da media vuelta.
+- Propina: llegan monedas de cada rival.
+- Descuento: una etiqueta con «-50 %».
+- Empujón: un guante de boxeo empuja la ficha.
+- Multa: un policía entrega el parte.
+- Soborno: se abre un maletín de billetes.
+- Espía: un foco y unos prismáticos.
+
+Sin ver en Studio.
+
 ### Task 5: Escenas de casillas
 
 **Módulos:** `client/scenes/squares/*`.
@@ -171,6 +185,14 @@ end)
 - [ ] **Paso 2:** Forzar cada resultado de la Cartelera y capturar.
 - [ ] **Paso 3:** Obtener la aprobación del responsable.
 - [ ] **Paso 4:** Hacer commit: `feat: añadir escenas de casillas`.
+
+**Estado (2026-11-06):** `squares/SquareScenes` tiene el Duelo, el Mercado Negro, el Giro (`CardDrawn`) y el Impuesto. La Cartelera y el Portal ya eran escenas propias (`ui/Billboard` y `scenes/PortalJump`), así que se quedan donde estaban.
+
+- Duelo: los dos frente a frente con un «VS». Sus elecciones se revelan a la vez y el ganador se ilumina con su premio. Al final la cámara pasa al perdedor.
+- Mercado y Giro: solo nombran la carta a su dueño (R-P44).
+- Impuesto: para enseñarlo, el motor emite `TaxPaid` antes del cobro (R-P57).
+
+Falta forzar cada resultado de la Cartelera y la aprobación.
 
 ### Task 6: Escenas de la partida
 
@@ -194,6 +216,18 @@ end)
 - [ ] **Paso 3:** Obtener la aprobación del responsable.
 - [ ] **Paso 4:** Hacer commit: `feat: añadir escenas de partida`.
 
+**Estado (2026-11-06):** `game/GameScenes` tiene escena para renta, construcción, hipoteca, subasta, bancarrota, pacto, traición, corona, furia, espectro, resurrección, Salida, trato, Zona Caliente, Última Ronda, inicio de la partida y podio.
+
+- `game/Dice`: los dados 3D muestran arriba los valores del evento.
+- `world/TokenMarks`: la corona va sobre el líder toda la partida, y la marca de traidor dura sus rondas.
+
+Simplificaciones frente al plan:
+- Inicio: la cámara gira sobre la ciudad, pero no hay puentes que se abren.
+- Bancarrota: la grúa se lleva la ficha, pero no hay animación de avatar a espectro (la vista lo deja así).
+- Podio: muestra los tres primeros. La pantalla de clasificación y revancha ya existente va después.
+
+Falta probarlo en Test Server y la aprobación.
+
 ### Task 7: Variaciones, ritmo y rendimiento
 
 **Módulos:** `config/Scenes`, `client/scenes/*`.
@@ -214,3 +248,7 @@ end)
 - [ ] **Paso 3:** Medir Huracán en el móvil de referencia, con ayuda del responsable.
 - [ ] **Paso 4:** Registrar los resultados.
 - [ ] **Paso 5:** Hacer commit: `perf: ajustar ritmo y coste de las escenas`.
+
+**Estado (2026-11-06):** dados, renta, construcción y compra tienen 2 variaciones. Las repeticiones se acortan, pero los dados no bajan de 1,4 s. `tests/sim-report` ya mide los segundos de escena por turno: de 4,3 s (8 jugadores) a 7 s (2). Resultados en [ritmo-escenas](resultados/ritmo-escenas.md).
+
+Faltan las medidas con el responsable: móvil, desfase entre clientes y turno real con decisiones.

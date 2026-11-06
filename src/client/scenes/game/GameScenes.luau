@@ -211,11 +211,30 @@ local function build(env: Env): Step
 		cable.Size = Vector3.new(0.25, math.max(0.1, length), 0.25)
 		cable.CFrame = CFrame.new((top + hookAt) / 2)
 		hook.CFrame = CFrame.new(hookAt)
+		cable.Transparency = 0
+		hook.Transparency = 0
 		local carrying = if up then p < 0.55 else p >= 0.55
 		local crateAt = if carrying then hookAt - Vector3.new(0, 2.5, 0) else seat
+		-- Variación 2: sin grúa. El añadido cae del cielo y bota en el tejado (o sale volando si baja de nivel).
+		if env.variation == 2 then
+			cable.Transparency = 1
+			hook.Transparency = 1
+			if up then
+				local fall = phase(p, 0.05, 0.45)
+				local hop = phase(p, 0.45, 0.6)
+				local y = seat.Y + 30 * (1 - fall * fall) + 4 * hop * (1 - hop) * 3
+				crateAt = Vector3.new(seat.X, y, seat.Z)
+				carrying = p < 0.6
+			else
+				local away = phase(p, 0.55, 0.95)
+				crateAt = seat + Vector3.new(0, away * away * 40, 0)
+				carrying = p >= 0.55
+			end
+		end
 		local crateVisible = carrying and p > 0.05 and p < 0.95
-		crate.CFrame = CFrame.new(crateAt)
-		stripe.CFrame = CFrame.new(crateAt)
+		local spin = if env.variation == 2 and carrying then CFrame.Angles(0, t * 4, 0) else CFrame.new()
+		crate.CFrame = CFrame.new(crateAt) * spin
+		stripe.CFrame = CFrame.new(crateAt) * spin
 		crate.Transparency = if crateVisible then 0 else 1
 		stripe.Transparency = if crateVisible then 0 else 1
 		label(p)

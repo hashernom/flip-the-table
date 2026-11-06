@@ -36,6 +36,7 @@ type ModeSummary = {
 	leaderWon: number,
 	turns: number,
 	unfinished: number,
+	sceneSeconds: number,
 }
 
 type SizeSummary = {
@@ -47,7 +48,7 @@ type SizeSummary = {
 }
 
 local function newModeSummary(): ModeSummary
-	return { matches = 0, leaderWon = 0, turns = 0, unfinished = 0 }
+	return { matches = 0, leaderWon = 0, turns = 0, unfinished = 0, sceneSeconds = 0 }
 end
 
 local function newSizeSummary(): SizeSummary
@@ -79,6 +80,12 @@ for _, players in PLAYER_COUNTS do
 	table.insert(playersBySize[sizeId], players)
 end
 
+-- Ritmo de escenas por número de jugadores: segundos de escena y turnos de las partidas terminadas.
+local paceByPlayers: { [number]: { seconds: number, turns: number } } = {}
+for _, players in PLAYER_COUNTS do
+	paceByPlayers[players] = { seconds = 0, turns = 0 }
+end
+
 local totalMatches = 0
 local allCards: { [string]: number } = {}
 local allPerks: { [string]: number } = {}
@@ -97,6 +104,10 @@ for sizeIndex = 1, #SIZE_ORDER do
 				modeSummary.matches += 1
 				if result.finished then
 					modeSummary.turns += result.turns
+					modeSummary.sceneSeconds += result.sceneSeconds
+					local pace = paceByPlayers[players]
+					pace.seconds += result.sceneSeconds
+					pace.turns += result.turns
 					if result.leaderAtHalfWon then
 						modeSummary.leaderWon += 1
 					end
@@ -164,11 +175,12 @@ for sizeIndex = 1, #SIZE_ORDER do
 		local finished = modeSummary.matches - modeSummary.unfinished
 		print(
 			string.format(
-				"  %-8s %4d partidas · líder a mitad ganó %5s %% · turnos medios %7s",
+				"  %-8s %4d partidas · líder a mitad ganó %5s %% · turnos medios %7s · escena por turno %4s s",
 				mode,
 				modeSummary.matches,
 				percentage(modeSummary.leaderWon, finished),
-				average(modeSummary.turns, finished)
+				average(modeSummary.turns, finished),
+				average(modeSummary.sceneSeconds, modeSummary.turns)
 			)
 		)
 	end
@@ -186,6 +198,13 @@ for sizeIndex = 1, #SIZE_ORDER do
 		local count = summary.perks[perk.id] or 0
 		print(string.format("    %-22s %-24s %6d", perk.id, perk.name, count))
 	end
+end
+
+print("")
+print("Ritmo de escenas (plan 08, Tarea 7): segundos de escena por turno, sin contar las decisiones.")
+for _, players in PLAYER_COUNTS do
+	local pace = paceByPlayers[players]
+	print(string.format("  %d jugadores: %4s s por turno", players, average(pace.seconds, pace.turns)))
 end
 
 print("")

@@ -166,6 +166,10 @@ end
 Scenes.variationCount = {
 	-- Dados: lanzados desde la ficha o caídos del cielo.
 	DiceRolled = 2,
+	-- Renta: monedas o un billete gigante. Construir: con grúa o caído del cielo. Compra: dos carteles.
+	RentPaid = 2,
+	BuildingChanged = 2,
+	PropertyBought = 2,
 } :: { [string]: number }
 
 -- Huella de un valor del evento: solo cuentan los datos simples, para que dos clientes con el mismo
