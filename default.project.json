@@ -1,6 +1,10 @@
 {
   "name": "flip-the-table",
-  "globIgnorePaths": ["**/.gitkeep", "src/server/lobby/main.server.luau"],
+  "globIgnorePaths": [
+    "**/.gitkeep",
+    "src/server/lobby/main.server.luau",
+    "**/lobby.client.luau"
+  ],
   "tree": {
     "$className": "DataModel",
     "ReplicatedStorage": {
