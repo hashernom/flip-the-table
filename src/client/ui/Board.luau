@@ -1120,35 +1120,92 @@ function Board.CardFace(parent: Instance, cardId: string, rarity: string): Canva
 	face.Size = UDim2.fromOffset(config.width, config.height)
 	face.Parent = parent
 	corner(face, Ui.radius.card)
-	stroke(face, color.asphalt, 4)
+	face:SetAttribute("BaseHeight", config.height)
 
-	-- Con arte, la carta es la ilustración: la imagen arriba a su proporción 312 x 450 y la descripción
-	-- debajo. Sin arte se queda la carta de papel de siempre.
+	-- Con arte, la imagen ES la carta: el PNG trae marco, ventana y una banda de caliza vacía, y el juego
+	-- escribe el nombre y la descripción dentro de esa banda. El sello de rareza va estampado sobre la
+	-- esquina de la ventana. Sin arte se queda la carta de papel de siempre.
 	local asset = CardArt.image(CardArt.card(cardId))
 	if asset ~= "" then
+		local cardArt = Ui.cardArt
 		local artHeight = math.floor(config.width / CardArt.ASPECT)
-		face.Size = UDim2.fromOffset(config.width, artHeight + Ui.cardArt.textHeight)
+		face.BackgroundTransparency = 1
+		face.Size = UDim2.fromOffset(config.width, artHeight)
+		face:SetAttribute("BaseHeight", artHeight)
+
+		-- La carta va arriba y centrada: si el área de juego ensancha la cara, la carta no se deforma.
+		local art = frame(face, "Art")
+		art.AnchorPoint = Vector2.new(0.5, 0)
+		art.Position = UDim2.fromScale(0.5, 0)
+		art.Size = UDim2.fromOffset(config.width, artHeight)
 		local picture = Instance.new("ImageLabel")
 		picture.Name = "Picture"
 		picture.BackgroundTransparency = 1
 		picture.BorderSizePixel = 0
 		picture.Image = asset
 		picture.ScaleType = Enum.ScaleType.Fit
-		picture.Size = UDim2.fromOffset(config.width, artHeight)
-		picture.Parent = face
+		picture.Size = UDim2.fromScale(1, 1)
+		picture.Parent = art
 
-		local body = frame(face, "Body")
-		body.Position = UDim2.fromOffset(0, artHeight)
-		body.Size = UDim2.new(1, 0, 1, -artHeight)
-		pad(body, 12)
-		list(body, Enum.FillDirection.Vertical, Theme.space.s)
-		local rule = frame(body, "Rule", color.asphalt)
-		rule.Size = UDim2.new(1, 0, 0, 2)
-		rule.LayoutOrder = 1
-		local detail = Board.text(body, "Detail", Strings.get(`card.{cardId}.description`), 2, 15)
-		detail.LayoutOrder = 2
+		local bandArea = CardArt.band
+		local band = frame(art, "Band")
+		band.Position = UDim2.fromScale(bandArea.left, bandArea.top)
+		band.Size = UDim2.fromScale(bandArea.width, bandArea.height)
+		pad(band, cardArt.bandPad)
+
+		-- Nombre arriba, en la voz de los letreros; se encoge antes que salirse de la banda.
+		local title = label(band, "Title", Strings.upper(Strings.get(`card.{cardId}.name`)), {
+			face = font.roadBold,
+			size = cardArt.previewNameSize,
+			tint = color.asphalt,
+			align = Enum.TextXAlignment.Center,
+		})
+		title.Size = UDim2.new(1, 0, 0, cardArt.previewNameSize + 4)
+		title.TextYAlignment = Enum.TextYAlignment.Center
+		title.TextScaled = true
+		local titleLimit = Instance.new("UITextSizeConstraint")
+		titleLimit.MinTextSize = cardArt.nameMinSize
+		titleLimit.MaxTextSize = cardArt.previewNameSize
+		titleLimit.Parent = title
+
+		local ruleTop = cardArt.previewNameSize + 8
+		local rule = frame(band, "Rule", color.asphalt)
+		rule.AnchorPoint = Vector2.new(0.5, 0)
+		rule.Position = UDim2.new(0.5, 0, 0, ruleTop)
+		rule.Size = UDim2.new(cardArt.ruleWidth, 0, 0, 2)
+
+		-- La descripción ocupa el resto de la banda y nunca se corta: con poco sitio, la letra baja hasta
+		-- el mínimo legible.
+		local detailTop = ruleTop + 8
+		local detail = label(band, "Detail", Strings.get(`card.{cardId}.description`), {
+			face = font.text,
+			size = cardArt.detailSize,
+			tint = color.asphalt,
+			wrap = true,
+			align = Enum.TextXAlignment.Center,
+		})
+		detail.Position = UDim2.fromOffset(0, detailTop)
+		detail.Size = UDim2.new(1, 0, 1, -detailTop)
+		detail.TextYAlignment = Enum.TextYAlignment.Top
+		detail.TextScaled = true
+		local detailLimit = Instance.new("UITextSizeConstraint")
+		detailLimit.MinTextSize = cardArt.detailMinSize
+		detailLimit.MaxTextSize = cardArt.detailSize
+		detailLimit.Parent = detail
+
+		-- Sello de goma con la rareza, estampado sobre la esquina superior izquierda de la ventana (la
+		-- derecha ya lleva la marca del PNG). Sobre la ventana oscura, el sello sin relleno lleva su papel.
+		local kind: Components.StampKind = RARITY_STAMP[rarity] or "Common"
+		local seal = Components.Stamp(art, Strings.get(`rarity.{rarity}`), kind, cardArt.sealSize)
+		seal.Position = UDim2.fromOffset(cardArt.sealInset, cardArt.sealInset)
+		seal.ZIndex = 3
+		if kind ~= "Legendary" then
+			seal.BackgroundColor3 = color.limestone
+			seal.BackgroundTransparency = 0
+		end
 		return face
 	end
+	stroke(face, color.asphalt, 4)
 
 	local band = frame(face, "Band", color.asphalt)
 	band.Size = UDim2.new(1, 0, 0, 30)

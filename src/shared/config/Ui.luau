@@ -191,7 +191,33 @@ return {
 	-- Arte de las cartas: con la ilustración, la vista grande crece hacia arriba lo que pide su
 	-- proporción 312 x 450 y el texto va debajo, en una franja de este alto. El nombre en la carta de
 	-- la mano se escribe sobre la banda de caliza del PNG, a este cuerpo de letra.
-	cardArt = { textHeight = 108, nameSize = 15, nameMinSize = 12 },
+	-- Carta con arte. Mano: nombre sobre la banda. Vista grande: nombre, filete y descripción dentro de
+	-- la banda, y sello de rareza estampado en la esquina de la ventana.
+	cardArt = {
+		nameSize = 15,
+		nameMinSize = 12,
+		previewNameSize = 22,
+		detailSize = 15,
+		detailMinSize = 11,
+		bandPad = 8,
+		ruleWidth = 0.4,
+		sealSize = 14,
+		sealInset = 14,
+	},
+	-- Cifras pintadas en las casillas de propiedad: color de cada tono (`WorldRules.PriceTone`) sobre el
+	-- asfalto, y transparencia de la cifra apagada.
+	squarePrices = {
+		tones = {
+			Buy = "#EDE5D3",
+			Muted = "#CFC5AE",
+			Rent0 = "#F5C518",
+			Rent1 = "#E07A3C",
+			Rent2 = "#E5483A",
+			Mortgage = "#A8AEB4",
+			Alert = "#E5483A",
+		},
+		mutedTransparency = 0.45,
+	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,

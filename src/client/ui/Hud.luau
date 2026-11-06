@@ -279,7 +279,12 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		else
 			areaHeight = config.actionPad * 2 + config.actionHeight
 		end
-		face.Size = UDim2.fromOffset(width, config.height + areaHeight)
+		-- La cara con arte mide lo que su imagen; la de papel, lo de siempre.
+		local baseHeight = face:GetAttribute("BaseHeight")
+		face.Size = UDim2.fromOffset(
+			width,
+			(if type(baseHeight) == "number" then baseHeight else config.height) + areaHeight
+		)
 		local body = face:FindFirstChild("Body") :: Frame?
 		if body ~= nil then
 			body.Size = UDim2.new(1, 0, 1, -30 - areaHeight)
