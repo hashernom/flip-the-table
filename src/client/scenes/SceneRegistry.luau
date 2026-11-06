@@ -15,6 +15,9 @@ local FINAL: { [string]: string } = {
 	PortalUsed = "PortalJump",
 	BillboardResult = "Billboard",
 	PlayerArrested = "Arrest",
+	DeedThief = "cards/DeedThief",
+	PropertyBought = "SettleNow",
+	AuctionWon = "SettleNow",
 }
 
 local byId: { [string]: string } = {}

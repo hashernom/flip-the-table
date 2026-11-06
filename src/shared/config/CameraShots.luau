@@ -24,6 +24,8 @@ return {
 	arrest = { back = 4, inward = 20, up = 8, ahead = 0, focusUp = 3, fixedSide = true } :: Shot,
 	-- Seguimiento de la patrulla en su vuelta al mapa: detrás y cerca, mirando hacia donde va.
 	arrestChase = { back = 20, inward = 0, up = 8, ahead = 16, focusUp = 2, fixedSide = true } :: Shot,
+	-- Ladrón de Escrituras: desde la calle, de frente a la fachada de la propiedad robada.
+	deed = { back = 44, inward = 0, up = 24, ahead = 0, focusUp = 10, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
 	-- Más cerca del tablero (2026-11-06): el anillo llena la vista y el exterior queda libre para los barrios.
 	-- Encuadra el tablero, no la ciudad (2026-11-06): el anillo con su calle llena la pantalla de frente.

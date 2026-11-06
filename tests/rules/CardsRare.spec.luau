@@ -202,7 +202,7 @@ describe("Ladrón de Escrituras", function()
 		local events = playCard(s, thief.id, "DeedThief", { index = idx })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = thief.id, cardId = "DeedThief" },
+			{ type = "CardPlayed", playerId = thief.id, cardId = "DeedThief", index = idx },
 			{ type = "PropertyBought", playerId = thief.id, index = idx, price = 0 },
 		}
 		expect(events).toEqual(expected)
@@ -408,7 +408,7 @@ describe("Demolición", function()
 		local events = playCard(s, caster.id, "Demolition", { index = idx })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = caster.id, cardId = "Demolition" },
+			{ type = "CardPlayed", playerId = caster.id, cardId = "Demolition", index = idx },
 			{ type = "BuildingChanged", index = idx, from = 2, to = 1 },
 		}
 		expect(events).toEqual(expected)

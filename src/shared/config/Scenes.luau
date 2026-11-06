@@ -210,6 +210,18 @@ Scenes.portal = {
 	sparkBurst = 30,
 }
 
+-- Escena del Ladrón de Escrituras: en qué parte de la escena cambia el dueño, y el sello que cae sobre el
+-- edificio (altura sobre el solar, tamaño en píxeles, giro y caída).
+Scenes.deedThief = {
+	swapAt = 0.35,
+	stampLift = 26,
+	stampWidth = 260,
+	stampHeight = 64,
+	stampTilt = -6,
+	stampFrom = 1.8,
+	stampSec = 0.28,
+}
+
 -- Tiempo de decisión de una fase (R-P20). GameOver no tiene temporizador y el resto de fases usa
 -- el valor común de Economy. Excepto subasta, Tribunal y reacción, que tienen el suyo.
 function Scenes.decisionSeconds(phase: Phase): number

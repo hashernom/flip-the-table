@@ -335,6 +335,15 @@ function BuildingView.setLevel(index: number, level: number)
 	end
 end
 
+-- Destello del edificio de una casilla, el mismo de una mejora. Lo usan las escenas que cambian algo del
+-- edificio sin subir de nivel (un robo, un cambio de dueño).
+function BuildingView.flash(index: number)
+	local model: Model? = buildings[index]
+	if model ~= nil then
+		flashUpgrade(model)
+	end
+end
+
 -- Papel de cada pieza real de un edificio, en el orden de `ArtAssets.piecesFor`: el cuerpo (tier 0) y
 -- los añadidos de cada nivel (tier = nivel). Las escenas lo leen con el atributo `Role` para llevarse
 -- los añadidos y marcadores sin tocar el cuerpo.

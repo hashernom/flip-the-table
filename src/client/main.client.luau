@@ -70,6 +70,7 @@ local function boot()
 	local Overview = require("./ui/Overview")
 	local ModelCity = require("./world/ModelCity")
 	local PortalJump = require("./scenes/PortalJump")
+	local DeedThiefScene = require("./scenes/cards/DeedThief")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -482,10 +483,24 @@ local function boot()
 		ctx.wait(ctx.duration)
 	end
 	SceneDirector.register(scenes, "PropertyBought", {
-		run = function(ctx)
-			settleNow(ctx, "PropertyBought")
+		run = function(ctx, event)
+			-- Un robo (Ladrón de Escrituras) llega como compra a precio 0: su escena ya lo enseñó.
+			settleNow(ctx, if event.price == 0 then "" else "PropertyBought")
 		end,
 	})
+	SceneDirector.register(
+		scenes,
+		"DeedThief",
+		DeedThiefScene.new({
+			director = director,
+			city = function()
+				return city
+			end,
+			nameOf = function(view: any, id: string): string
+				return ViewText.playerName(view, names, id)
+			end,
+		})
+	)
 	SceneDirector.register(scenes, "AuctionWon", {
 		run = function(ctx)
 			settleNow(ctx, "AuctionWon")

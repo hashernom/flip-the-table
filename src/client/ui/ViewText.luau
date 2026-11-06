@@ -15,6 +15,7 @@ local Property = require("../../shared/rules/Property")
 local Score = require("../../shared/rules/Score")
 local Squares = require("../../shared/rules/Squares")
 local Strings = require("../../shared/config/Strings")
+local Ui = require("../../shared/config/Ui")
 local Types = require("../../shared/rules/Types")
 
 type Action = Types.Action
@@ -141,9 +142,22 @@ function ViewText.cardTarget(view: any, names: Names?, action: Action): (string?
 		local zone = Strings.zone(tostring(action.zoneId))
 		return zone.name, zone.color
 	elseif action.targetId ~= nil then
-		return ViewText.playerName(view, names, tostring(action.targetId)), nil
+		-- El rival lleva el color de su asiento, el mismo de su placa y de su ficha.
+		local seat: number? = nil
+		for at, player in view.players or {} do
+			if player.id == action.targetId then
+				seat = at
+				break
+			end
+		end
+		local tint = if seat ~= nil then Ui.seatColors[(seat - 1) % #Ui.seatColors + 1] else nil
+		return ViewText.playerName(view, names, tostring(action.targetId)), tint
 	elseif type(action.index) == "number" then
-		return ViewText.squareName(view, action.index), nil
+		-- Una propiedad lleva el color de su zona, como su casilla en la calle.
+		local square = ViewText.board(view.sizeId).squares[action.index]
+		local zoneId = if square ~= nil then square.zoneId else nil
+		local tint = if zoneId ~= nil then Strings.zone(zoneId).color else nil
+		return ViewText.squareName(view, action.index), tint
 	elseif action.pactId ~= nil then
 		for _, pact in view.pacts or {} do
 			if pact.id == action.pactId then

@@ -276,6 +276,8 @@ local TEXTS: { [string]: string } = {
 	["option.kind.Ghost"] = "Espectro",
 	["option.kind.Other"] = "Opción",
 	["city.mortgaged"] = "Hipotecada",
+	-- Sello de la escena del Ladrón de Escrituras, sobre la propiedad robada.
+	["scene.deedThief.stamp"] = "Robada por {name}",
 	-- Cifras pintadas en cada casilla de propiedad, junto a su nombre.
 	["city.price.buy"] = "Compra",
 	["city.price.rent"] = "Renta",
