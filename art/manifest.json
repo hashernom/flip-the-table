@@ -2495,6 +2495,593 @@
       "screenshots": [],
       "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
       "assetId": "rbxassetid://123837626897918"
+    },
+    {
+      "id": "centro-backdrop-a",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/centro.py",
+      "triangles": 2520,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://122178561879081",
+      "assetIds": [
+        "rbxassetid://122178561879081",
+        "rbxassetid://139049280722625",
+        "rbxassetid://74653373289093",
+        "rbxassetid://71003987609128",
+        "rbxassetid://138532623128117",
+        "rbxassetid://79733160372152",
+        "rbxassetid://104513284500423",
+        "rbxassetid://135388183137079"
+      ]
+    },
+    {
+      "id": "centro-backdrop-b",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/centro.py",
+      "triangles": 2088,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://123349836414635",
+      "assetIds": [
+        "rbxassetid://123349836414635",
+        "rbxassetid://72578657853556",
+        "rbxassetid://82314416702073",
+        "rbxassetid://103981393537843",
+        "rbxassetid://75754827947665",
+        "rbxassetid://81715778649899",
+        "rbxassetid://116805688803621",
+        "rbxassetid://96134840082905"
+      ]
+    },
+    {
+      "id": "centro-bench",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 228,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://108035543184152",
+      "lods": [
+        90
+      ],
+      "assetIds": [
+        "rbxassetid://108035543184152",
+        "rbxassetid://81683147600041"
+      ]
+    },
+    {
+      "id": "centro-hydrant",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 236,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://138229098739674",
+      "lods": [
+        112
+      ],
+      "assetIds": [
+        "rbxassetid://138229098739674"
+      ]
+    },
+    {
+      "id": "centro-kiosk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 232,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://99573161184044",
+      "lods": [
+        104
+      ],
+      "assetIds": [
+        "rbxassetid://99573161184044",
+        "rbxassetid://95614100759726",
+        "rbxassetid://126778581711857",
+        "rbxassetid://78846843480992",
+        "rbxassetid://77866966187610",
+        "rbxassetid://123629586898413",
+        "rbxassetid://127355806758304",
+        "rbxassetid://84887442589453"
+      ]
+    },
+    {
+      "id": "centro-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 340,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://124954853762357",
+      "lods": [
+        170
+      ],
+      "assetIds": [
+        "rbxassetid://124954853762357",
+        "rbxassetid://90520237551408"
+      ]
+    },
+    {
+      "id": "centro-tree",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 316,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://127197089631950",
+      "lods": [
+        146
+      ],
+      "assetIds": [
+        "rbxassetid://127197089631950",
+        "rbxassetid://117297425677190",
+        "rbxassetid://95337781635191",
+        "rbxassetid://106461224324998"
+      ]
+    },
+    {
+      "id": "centro-walk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 348,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://124608845414570",
+      "lods": [
+        144
+      ],
+      "assetIds": [
+        "rbxassetid://124608845414570",
+        "rbxassetid://76145171643680",
+        "rbxassetid://135684564183112",
+        "rbxassetid://111568886165783"
+      ]
+    },
+    {
+      "id": "puerto-backdrop-a",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 1808,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://85053686246122",
+      "assetIds": [
+        "rbxassetid://85053686246122",
+        "rbxassetid://139474002236401",
+        "rbxassetid://75327692898480",
+        "rbxassetid://112912191069259",
+        "rbxassetid://99258985450509",
+        "rbxassetid://135377304296247",
+        "rbxassetid://113015111337066",
+        "rbxassetid://130573610083565",
+        "rbxassetid://71146592252199",
+        "rbxassetid://96635871407408",
+        "rbxassetid://80432778206056",
+        "rbxassetid://116127643565423",
+        "rbxassetid://106088942397553"
+      ]
+    },
+    {
+      "id": "puerto-backdrop-b",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 1592,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://139489967707097",
+      "assetIds": [
+        "rbxassetid://139489967707097",
+        "rbxassetid://81719368500393",
+        "rbxassetid://95034870153715",
+        "rbxassetid://91540652375431",
+        "rbxassetid://81707953967222",
+        "rbxassetid://107984612097136",
+        "rbxassetid://105281973859046",
+        "rbxassetid://113502724502868",
+        "rbxassetid://77226750908047",
+        "rbxassetid://131301113495861",
+        "rbxassetid://113831182075785",
+        "rbxassetid://131253230717384"
+      ]
+    },
+    {
+      "id": "puerto-bench",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 192,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://101648256083161",
+      "lods": [
+        78
+      ],
+      "assetIds": [
+        "rbxassetid://101648256083161",
+        "rbxassetid://98529992437576"
+      ]
+    },
+    {
+      "id": "puerto-bollard",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 188,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://79243218022411",
+      "lods": [
+        89
+      ],
+      "assetIds": [
+        "rbxassetid://79243218022411",
+        "rbxassetid://81034827485045"
+      ]
+    },
+    {
+      "id": "puerto-crates",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 432,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://115026828904719",
+      "lods": [
+        168
+      ],
+      "assetIds": [
+        "rbxassetid://115026828904719",
+        "rbxassetid://136590195402898"
+      ]
+    },
+    {
+      "id": "puerto-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 328,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://140374880507805",
+      "lods": [
+        158
+      ],
+      "assetIds": [
+        "rbxassetid://140374880507805",
+        "rbxassetid://130477744157518",
+        "rbxassetid://72088441517284"
+      ]
+    },
+    {
+      "id": "puerto-walk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/puerto.py",
+      "triangles": 1480,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/puerto.py",
+      "assetId": "rbxassetid://108616561992198",
+      "lods": [
+        680
+      ],
+      "assetIds": [
+        "rbxassetid://108616561992198",
+        "rbxassetid://140456224046123",
+        "rbxassetid://99387213420956",
+        "rbxassetid://123415668590226",
+        "rbxassetid://91180247933457",
+        "rbxassetid://127622547469009"
+      ]
+    },
+    {
+      "id": "zona-alta-backdrop-a",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 2484,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://100724996597392",
+      "assetIds": [
+        "rbxassetid://100724996597392",
+        "rbxassetid://74244300754736",
+        "rbxassetid://84538479286451",
+        "rbxassetid://79457629683831",
+        "rbxassetid://127565256225147",
+        "rbxassetid://108478175994312"
+      ]
+    },
+    {
+      "id": "zona-alta-backdrop-b",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 2712,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://136491715268277",
+      "assetIds": [
+        "rbxassetid://136491715268277",
+        "rbxassetid://81017522305766",
+        "rbxassetid://107306608501515",
+        "rbxassetid://95565917449294",
+        "rbxassetid://85198586308360",
+        "rbxassetid://133673963964670"
+      ]
+    },
+    {
+      "id": "zona-alta-bench",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 192,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://101885103706901",
+      "lods": [
+        72
+      ],
+      "assetIds": [
+        "rbxassetid://101885103706901",
+        "rbxassetid://114637050156965"
+      ]
+    },
+    {
+      "id": "zona-alta-bollard",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 196,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://75200526566414",
+      "lods": [
+        98
+      ],
+      "assetIds": [
+        "rbxassetid://75200526566414",
+        "rbxassetid://123484446499179"
+      ]
+    },
+    {
+      "id": "zona-alta-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 296,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://82508448173315",
+      "lods": [
+        144
+      ],
+      "assetIds": [
+        "rbxassetid://82508448173315",
+        "rbxassetid://137937556592704"
+      ]
+    },
+    {
+      "id": "zona-alta-planter",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 208,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://112172493719907",
+      "lods": [
+        88
+      ],
+      "assetIds": [
+        "rbxassetid://112172493719907",
+        "rbxassetid://92236235614405",
+        "rbxassetid://125602274056759",
+        "rbxassetid://94665360061156"
+      ]
+    },
+    {
+      "id": "zona-alta-walk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/zona-alta.py",
+      "triangles": 528,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/zona-alta.py",
+      "assetId": "rbxassetid://89295832601857",
+      "lods": [
+        212
+      ],
+      "assetIds": [
+        "rbxassetid://89295832601857",
+        "rbxassetid://96327942786296",
+        "rbxassetid://119193205401745",
+        "rbxassetid://138508963598029"
+      ]
+    },
+    {
+      "id": "industrial-backdrop-a",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 2624,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://118994852111493",
+      "assetIds": [
+        "rbxassetid://118994852111493",
+        "rbxassetid://130355821214015",
+        "rbxassetid://92396418332320",
+        "rbxassetid://80894614384097",
+        "rbxassetid://102594411160617",
+        "rbxassetid://132862589139536",
+        "rbxassetid://104946031655858",
+        "rbxassetid://109993377916268",
+        "rbxassetid://101634251450451"
+      ]
+    },
+    {
+      "id": "industrial-backdrop-b",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 2900,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://74059776074428",
+      "assetIds": [
+        "rbxassetid://74059776074428",
+        "rbxassetid://121761892375564",
+        "rbxassetid://119549880250092",
+        "rbxassetid://134017180367331",
+        "rbxassetid://94412295831565",
+        "rbxassetid://132550042605443",
+        "rbxassetid://82637871501001",
+        "rbxassetid://137995629395575",
+        "rbxassetid://77042200321866"
+      ]
+    },
+    {
+      "id": "industrial-barrier",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 416,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://78279126038522",
+      "lods": [
+        200
+      ],
+      "assetIds": [
+        "rbxassetid://78279126038522",
+        "rbxassetid://134950604656113",
+        "rbxassetid://72388374168590",
+        "rbxassetid://126284781116799",
+        "rbxassetid://88856214529379"
+      ]
+    },
+    {
+      "id": "industrial-container",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 860,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://94549663834950",
+      "lods": [
+        346
+      ],
+      "assetIds": [
+        "rbxassetid://94549663834950",
+        "rbxassetid://121309054574852",
+        "rbxassetid://135480972402589",
+        "rbxassetid://78504288571354"
+      ]
+    },
+    {
+      "id": "industrial-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 180,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://115831069095344",
+      "lods": [
+        86
+      ],
+      "assetIds": [
+        "rbxassetid://115831069095344",
+        "rbxassetid://130775793618705",
+        "rbxassetid://86243776687582",
+        "rbxassetid://124860083892458",
+        "rbxassetid://96309245133596"
+      ]
+    },
+    {
+      "id": "industrial-pallet",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 400,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://133830273635388",
+      "lods": [
+        174
+      ],
+      "assetIds": [
+        "rbxassetid://133830273635388",
+        "rbxassetid://137038158482076",
+        "rbxassetid://109840024060931",
+        "rbxassetid://136571888113617",
+        "rbxassetid://90637310206496"
+      ]
+    },
+    {
+      "id": "industrial-walk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/industrial.py",
+      "triangles": 544,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/industrial.py",
+      "assetId": "rbxassetid://86093265058162",
+      "lods": [
+        230
+      ],
+      "assetIds": [
+        "rbxassetid://86093265058162",
+        "rbxassetid://95994398611394",
+        "rbxassetid://81350047742460",
+        "rbxassetid://86595762271641",
+        "rbxassetid://107592477502047",
+        "rbxassetid://118763506202340",
+        "rbxassetid://128728481649112"
+      ]
     }
   ]
 }

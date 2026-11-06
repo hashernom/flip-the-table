@@ -1,6 +1,7 @@
 --!strict
 local Harness = require("../harness")
 local ArtAssets = require("../../src/shared/config/ArtAssets")
+local Barrios = require("../../src/shared/config/Barrios")
 local CityLayout = require("../../src/shared/config/CityLayout")
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
@@ -18,37 +19,77 @@ describe("ArtAssets", function()
 		expect(top[1].key).toBe(base[1].key)
 	end)
 
-	it("todo el mobiliario se carga y cada zona ambientada coloca piezas que existen", function()
+	it("todo el mobiliario se carga y cada barrio coloca piezas que existen", function()
 		local loaded: { [string]: boolean } = {}
 		for _, piece in ArtAssets.all() do
 			loaded[piece.key] = true
 		end
-		for _, zone in ArtAssets.dressedZones do
-			local items = CityLayout.dressingFor("S", zone)
-			expect(#items > 0).toBe(true)
-			for _, item in items do
-				for _, piece in ArtAssets.street[item.kind] do
-					expect(loaded[piece.key]).toBe(true)
+		local sizes = { "S", "M", "L" } :: { CityLayout.SizeId }
+		for _, sizeId in sizes do
+			for _, barrioId in CityLayout.barriosFor(sizeId :: any) do
+				-- Un barrio sin sus mallas todavía no amuebla nada; cuando las tenga, esto lo comprueba.
+				if not Barrios.has(barrioId) then
+					continue
+				end
+				local items = CityLayout.dressingFor(sizeId :: any, barrioId)
+				expect(#items > 0).toBe(true)
+				for _, item in items do
+					local pieces = ArtAssets.street[item.kind]
+					expect(pieces ~= nil).toBe(true)
+					for _, piece in pieces do
+						expect(loaded[piece.key]).toBe(true)
+					end
 				end
 			end
 		end
 	end)
 
 	it("el mobiliario va en la acera y la cebra en la calzada", function()
-		local span = CityLayout.spanFor("S")
-		local crosswalks = 0
-		for _, item in CityLayout.dressingFor("S", "carmesi") do
-			local fromAxis =
-				math.min(math.abs(item.x), math.abs(item.z), math.abs(item.x - span), math.abs(item.z - span))
-			if item.kind == "Crosswalk" then
-				crosswalks += 1
-				expect(fromAxis).toBe(0)
-			else
-				expect(fromAxis >= CityLayout.STREET_WIDTH_STUDS / 2).toBe(true)
-				expect(fromAxis <= CityLayout.STREET_WIDTH_STUDS / 2 + CityLayout.SIDEWALK_STUDS).toBe(true)
+		local barrio = Barrios.get("Centro")
+		local route = CityLayout.routeFor("S")
+		-- Distancia al eje de la calle de la casilla más cercana: la calle es un anillo, así que no vale
+		-- medir contra los cuatro ejes del cuadrado cuando la casilla está en una esquina.
+		local function fromAxis(item: CityLayout.Dressing): number
+			local nearest, best = nil, math.huge
+			for _, slot in route do
+				local dx, dz = item.x - slot.position.x, item.z - slot.position.z
+				local square = dx * dx + dz * dz
+				if square < best then
+					nearest, best = slot, square
+				end
+			end
+			local slot = nearest :: CityLayout.Slot
+			local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
+			return math.abs((item.x - slot.position.x) * outX + (item.z - slot.position.z) * outZ)
+		end
+
+		local first, last = math.huge, -math.huge
+		for index, slot in route do
+			if slot.barrioId == "Centro" then
+				first, last = math.min(first, index), math.max(last, index)
 			end
 		end
-		expect(crosswalks > 0).toBe(true)
+		-- La cebra cierra el barrio por cada extremo que dé a una recta: en una esquina ya hay cruce.
+		local expected = 0
+		if route[first - 1] ~= nil and route[first - 1].facing == route[first].facing then
+			expected += 1
+		end
+		if route[last + 1] ~= nil and route[last + 1].facing == route[last].facing then
+			expected += 1
+		end
+
+		local crosswalks = 0
+		for _, item in CityLayout.dressingFor("S", "Centro") do
+			local distance = fromAxis(item)
+			if item.kind == barrio.crosswalk then
+				crosswalks += 1
+				expect(distance < 1e-6).toBe(true)
+			else
+				expect(distance >= CityLayout.STREET_WIDTH_STUDS / 2).toBe(true)
+				expect(distance <= CityLayout.STREET_WIDTH_STUDS / 2 + CityLayout.SIDEWALK_STUDS).toBe(true)
+			end
+		end
+		expect(crosswalks).toBe(expected)
 	end)
 
 	it("el tráfico da la vuelta sin saltos, en su carril y mirando hacia donde va", function()

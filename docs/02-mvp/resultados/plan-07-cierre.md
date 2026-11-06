@@ -7,7 +7,7 @@ quedan las verificaciones que necesitan dos jugadores o el móvil, y la aprobaci
 
 | Tarea | Estado | Evidencia | Pendiente |
 | --- | --- | --- | --- |
-| 1. Trazado de barrios | A medias | Ciudad, puentes, mobiliario y las 34 propiedades; capturas de ruta S/M/L en Studio (vista sintética) | Captura de partida real y aprobación |
+| 1. Trazado de barrios | Arte aprobado | Ciudad, puentes, mobiliario y las 34 propiedades; capturas de ruta S/M/L en Studio (vista sintética). Los cuatro barrios con calle, mobiliario y fondo propios están en la rama `plan-07-barrios`, **aprobados por el responsable el 2026-11-06** ([detalle](plan-07-barrios.md)) | Capturas en el juego para pasar los 29 assets de `Draft` a `InGame`/`Approved`; captura de partida real |
 | 2. Propiedades por zona | Casi | 34 propiedades modeladas; 32 entradas de propiedad en el manifiesto, todas `Approved` o `InGame` | 13 capturas de propiedad y la prueba de cámara a nivel 5 |
 | 3. Casillas especiales | Código hecho | 8 lugares, iconos re-subidos como imágenes y verificados; Zona Caliente con banda y contorno; capturas de Salida, Tribunal y Portal en la ciudad | Captura real con 2 jugadores y aprobación |
 | 4. Maqueta | Código hecho | Plinto, miniatura, tarjetas, marcadores y cámara; revisión aprobada; **apertura medida en 0,036 s** | Captura real con 2 jugadores y aprobación |

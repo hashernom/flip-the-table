@@ -1,0 +1,70 @@
+{
+  "zona-alta-walk": {
+    "triangles": 528,
+    "lod": 212,
+    "pieces": [
+      "zona-alta-walk_flag",
+      "zona-alta-walk_flag_dark",
+      "zona-alta-walk_grate",
+      "zona-alta-walk_steel"
+    ]
+  },
+  "zona-alta-planter": {
+    "triangles": 208,
+    "lod": 88,
+    "pieces": [
+      "zona-alta-planter_grate",
+      "zona-alta-planter_leaf",
+      "zona-alta-planter_soil",
+      "zona-alta-planter_steel"
+    ]
+  },
+  "zona-alta-bench": {
+    "triangles": 192,
+    "lod": 72,
+    "pieces": [
+      "zona-alta-bench_steel",
+      "zona-alta-bench_wood"
+    ]
+  },
+  "zona-alta-lamp": {
+    "triangles": 296,
+    "lod": 144,
+    "pieces": [
+      "zona-alta-lamp_lamp_glass",
+      "zona-alta-lamp_steel"
+    ]
+  },
+  "zona-alta-bollard": {
+    "triangles": 196,
+    "lod": 98,
+    "pieces": [
+      "zona-alta-bollard_gold",
+      "zona-alta-bollard_steel"
+    ]
+  },
+  "zona-alta-backdrop-a": {
+    "triangles": 2484,
+    "lod": null,
+    "pieces": [
+      "zona-alta-backdrop-a_glass",
+      "zona-alta-backdrop-a_gold",
+      "zona-alta-backdrop-a_leaf",
+      "zona-alta-backdrop-a_steel",
+      "zona-alta-backdrop-a_stone",
+      "zona-alta-backdrop-a_stone_dark"
+    ]
+  },
+  "zona-alta-backdrop-b": {
+    "triangles": 2712,
+    "lod": null,
+    "pieces": [
+      "zona-alta-backdrop-b_glass",
+      "zona-alta-backdrop-b_gold",
+      "zona-alta-backdrop-b_leaf",
+      "zona-alta-backdrop-b_steel",
+      "zona-alta-backdrop-b_stone",
+      "zona-alta-backdrop-b_stone_dark"
+    ]
+  }
+}

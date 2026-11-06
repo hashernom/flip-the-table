@@ -1,0 +1,88 @@
+{
+  "industrial-walk": {
+    "triangles": 544,
+    "lod": 230,
+    "pieces": [
+      "industrial-walk_concrete",
+      "industrial-walk_curb",
+      "industrial-walk_flag_dark",
+      "industrial-walk_grate",
+      "industrial-walk_iron",
+      "industrial-walk_rust",
+      "industrial-walk_steel"
+    ]
+  },
+  "industrial-barrier": {
+    "triangles": 416,
+    "lod": 200,
+    "pieces": [
+      "industrial-barrier_concrete",
+      "industrial-barrier_iron",
+      "industrial-barrier_paint",
+      "industrial-barrier_red",
+      "industrial-barrier_steel"
+    ]
+  },
+  "industrial-pallet": {
+    "triangles": 400,
+    "lod": 174,
+    "pieces": [
+      "industrial-pallet_canvas",
+      "industrial-pallet_iron",
+      "industrial-pallet_rust",
+      "industrial-pallet_steel",
+      "industrial-pallet_wood"
+    ]
+  },
+  "industrial-container": {
+    "triangles": 860,
+    "lod": 346,
+    "pieces": [
+      "industrial-container_grate",
+      "industrial-container_paint",
+      "industrial-container_rust",
+      "industrial-container_steel"
+    ]
+  },
+  "industrial-lamp": {
+    "triangles": 180,
+    "lod": 86,
+    "pieces": [
+      "industrial-lamp_concrete",
+      "industrial-lamp_iron",
+      "industrial-lamp_lamp_glass",
+      "industrial-lamp_rust",
+      "industrial-lamp_steel"
+    ]
+  },
+  "industrial-backdrop-a": {
+    "triangles": 2624,
+    "lod": null,
+    "pieces": [
+      "industrial-backdrop-a_brick",
+      "industrial-backdrop-a_brick_dark",
+      "industrial-backdrop-a_concrete",
+      "industrial-backdrop-a_grate",
+      "industrial-backdrop-a_iron",
+      "industrial-backdrop-a_rust",
+      "industrial-backdrop-a_slate",
+      "industrial-backdrop-a_steel",
+      "industrial-backdrop-a_window"
+    ]
+  },
+  "industrial-backdrop-b": {
+    "triangles": 2900,
+    "lod": null,
+    "pieces": [
+      "industrial-backdrop-b_brick",
+      "industrial-backdrop-b_brick_dark",
+      "industrial-backdrop-b_concrete",
+      "industrial-backdrop-b_grate",
+      "industrial-backdrop-b_iron",
+      "industrial-backdrop-b_rust",
+      "industrial-backdrop-b_slate",
+      "industrial-backdrop-b_steel",
+      "industrial-backdrop-b_window"
+    ]
+  }
+}
