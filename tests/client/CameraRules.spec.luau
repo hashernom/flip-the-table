@@ -168,15 +168,18 @@ describe("CameraRules: vista general", function()
 		return dot(d, right) / (depth * half * 4 / 3), dot(d, up) / (depth * half)
 	end
 
-	it("toda la ciudad cabe en pantalla, en cualquier tamaño y en los cuatro giros rectos", function()
-		-- Más cerca a petición del responsable (2026-11-06): de frente cabe entera; girada en diagonal
-		-- pueden quedar fuera las puntas de las esquinas, y basta con arrastrar para verlas.
+	it("el tablero entero cabe en pantalla, en cualquier tamaño y en los cuatro giros rectos", function()
+		-- Lo que importa es el tablero, no el resto de la ciudad (responsable, 2026-11-06): la vista se
+		-- acerca hasta que el anillo de casillas, con el ancho de la calle, llena la pantalla. Girada en
+		-- diagonal pueden quedar fuera las puntas de las esquinas, y basta con arrastrar para verlas.
+		local edge = CityLayout.STREET_WIDTH_STUDS / 2
 		for _, sizeId in { "S", "M", "L" } do
 			local span = CityLayout.spanFor(sizeId :: any)
 			local center = CityLayout.centerFor(sizeId :: any)
 			for _, yaw in { 0, math.pi / 2, math.pi, 3 * math.pi / 2 } do
 				local eye, focus = CameraRules.overviewPose(center, span, yaw)
-				for _, corner in { { 0, 0 }, { span, 0 }, { 0, span }, { span, span } } do
+				local low, high = -edge, span + edge
+				for _, corner in { { low, low }, { high, low }, { low, high }, { high, high } } do
 					local x, y = project(eye, focus, { x = corner[1], y = 0, z = corner[2] })
 					expect(math.abs(x) < 1 and math.abs(y) < 1).toBe(true)
 				end

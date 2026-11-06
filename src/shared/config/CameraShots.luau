@@ -26,8 +26,8 @@ return {
 	arrestChase = { back = 20, inward = 0, up = 8, ahead = 16, focusUp = 2, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
 	-- Más cerca del tablero (2026-11-06): el anillo llena la vista y el exterior queda libre para los barrios.
-	-- Más cerca aún (2026-11-06, segunda vez): de frente cabe entera; en diagonal asoman las esquinas.
-	overview = { heightPerSpan = 0.85, backPerSpan = 0.08, panelShiftPerSpan = 0.08, radiansPerPixel = 0.006 },
+	-- Encuadra el tablero, no la ciudad (2026-11-06): el anillo con su calle llena la pantalla de frente.
+	overview = { heightPerSpan = 0.8, backPerSpan = 0.03, panelShiftPerSpan = 0.08, radiansPerPixel = 0.006 },
 	-- Con qué rapidez se acerca al plano, por segundo: cuanto mayor, más brusco. No depende de los FPS.
 	followRate = 5,
 }
