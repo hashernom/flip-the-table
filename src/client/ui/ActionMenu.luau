@@ -6,10 +6,13 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 
 local ActionMenuRules = require("./ActionMenuRules")
+local Board = require("./Board")
+local Cards = require("../../shared/config/Cards")
 local Components = require("./Components")
 local Strings = require("../../shared/config/Strings")
 local Theme = require("./Theme")
 local Ui = require("../../shared/config/Ui")
+local ViewText = require("./ViewText")
 
 export type Handles = {
 	-- `extras` son botones que no vienen de `legalActions`: tratos y pactos se deciden en su propia
@@ -17,7 +20,7 @@ export type Handles = {
 	-- `context` lleva la vista y los nombres.
 	setLegal: (
 		legal: { any },
-		extras: { { id: string, label: string, action: any } }?,
+		extras: { { id: string, label: string, action: any, key: string? } }?,
 		context: ActionMenuRules.Context?
 	) -> (),
 	-- Acción elegida por el jugador. El cliente la manda al servidor tal cual.
@@ -49,10 +52,55 @@ function ActionMenu.create(playerGui: Instance): Handles
 	layout.Parent = panel
 
 	local callback: ((action: any) -> ())? = nil
+	-- Vista y nombres del último `setLegal`: cada opción se pinta como tarjeta con su título y detalle.
+	local lastContext: ActionMenuRules.Context? = nil
+
+	-- Botones con acción, por id, con su texto original: el de una acción irreversible cambia a «¿Seguro?»
+	-- hasta la segunda pulsación o hasta que vence el plazo.
+	local buttonsById: { [string]: { button: Components.Button, label: string } } = {}
+	local pendingConfirmId: string? = nil
+	local pendingToken = 0
+
+	local function clearPending()
+		pendingToken += 1
+		local id = pendingConfirmId
+		pendingConfirmId = nil
+		local entry = if id ~= nil then buttonsById[id] else nil
+		if entry ~= nil then
+			entry.button.setText(entry.label)
+		end
+	end
+
+	-- Todo lo que sale del menú pasa por aquí, sea de un clic o de una tecla: la primera pulsación de una
+	-- acción irreversible solo la arma; la segunda, dentro del plazo, la envía.
 	local function emit(action: any)
 		local target = callback
-		if target ~= nil and action ~= nil then
-			target(action)
+		if target == nil or action == nil then
+			return
+		end
+		local id = ActionMenuRules.idFor(action)
+		if ActionMenuRules.needsConfirm(action) and id ~= pendingConfirmId then
+			clearPending()
+			pendingConfirmId = id
+			local token = pendingToken
+			local entry = buttonsById[id]
+			if entry ~= nil then
+				entry.button.setText(Strings.get("action.confirm"))
+			end
+			task.delay(Ui.confirmSeconds, function()
+				if pendingToken == token then
+					clearPending()
+				end
+			end)
+			return
+		end
+		clearPending()
+		target(action)
+	end
+
+	local function remember(action: any, button: Components.Button, label: string)
+		if action ~= nil then
+			buttonsById[ActionMenuRules.idFor(action)] = { button = button, label = label }
 		end
 	end
 
@@ -64,8 +112,15 @@ function ActionMenu.create(playerGui: Instance): Handles
 	local primaryButton: Components.Button? = nil
 	local primaryAction: any = nil
 	local declineAction: any = nil
+	-- La lista de opciones se ajusta al tamaño del panel; el panel vive siempre, así que esta conexión
+	-- se corta en cada reconstrucción o se acumularía una por cada panel con opciones.
+	local fitConnection: RBXScriptConnection? = nil
 
 	local function clear()
+		if fitConnection ~= nil then
+			fitConnection:Disconnect()
+			fitConnection = nil
+		end
 		for _, child in panel:GetChildren() do
 			if not child:IsA("UIListLayout") then
 				child:Destroy()
@@ -75,6 +130,10 @@ function ActionMenu.create(playerGui: Instance): Handles
 		primaryButton = nil
 		primaryAction = nil
 		declineAction = nil
+		-- Los botones se destruyen: la confirmación pendiente se olvida con ellos.
+		pendingToken += 1
+		pendingConfirmId = nil
+		buttonsById = {}
 	end
 
 	local function setShown(show: boolean)
@@ -113,15 +172,20 @@ function ActionMenu.create(playerGui: Instance): Handles
 		end
 	end
 
-	-- La escritura se reduce en pantallas bajas: botón y renuncia tienen que caber siempre.
-	local function deedScale(): number
+	-- La escritura se reduce en pantallas bajas: lo que va con ella tiene que caber siempre. En una
+	-- subasta van además el título y la fila de puja; sin contarlos, el botón de pujar quedaba debajo
+	-- del borde de la pantalla.
+	local function deedScale(extra: number): number
 		local camera = Workspace.CurrentCamera
 		local height = if camera ~= nil then camera.ViewportSize.Y else Ui.referenceViewport.y
-		local room = height - Ui.panelTop - Ui.roadHeight - Ui.panelActionsHeight
+		local room = height - Ui.panelTop - Ui.roadHeight - Ui.panelActionsHeight - extra
 		return math.clamp(room / Ui.deedHeight, Ui.deedMinScale, 1)
 	end
 
-	local function build(view: ActionMenuRules.Panel, extras: { { id: string, label: string, action: any } }?)
+	local function build(
+		view: ActionMenuRules.Panel,
+		extras: { { id: string, label: string, action: any, key: string? } }?
+	)
 		clear()
 		local order = 0
 		local function nextOrder(): number
@@ -146,7 +210,9 @@ function ActionMenu.create(playerGui: Instance): Handles
 		local deed = view.deed
 		if deed ~= nil then
 			-- La escritura va en un hueco del tamaño que ocupa de verdad, ya ladeada dentro.
-			local scale = deedScale()
+			local extra = (if view.title ~= nil then Ui.panelTitleHeight else 0)
+				+ (if view.bid ~= nil then Ui.bidControlsHeight else 0)
+			local scale = deedScale(extra)
 			local slot = Instance.new("Frame")
 			slot.Name = "DeedSlot"
 			slot.BackgroundTransparency = 1
@@ -220,6 +286,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 			button.root.Size = UDim2.new(1, -60, 0, 44)
 			button.root.Rotation = -0.8
 			button.root.LayoutOrder = nextOrder()
+			remember(action, button, Strings.get("action.decline"))
 			button.onActivated(function()
 				emit(action)
 			end)
@@ -239,23 +306,41 @@ function ActionMenu.create(playerGui: Instance): Handles
 			list.LayoutOrder = nextOrder()
 			list.Parent = panel
 			local listLayout = Instance.new("UIListLayout")
-			listLayout.Padding = UDim.new(0, 6)
+			listLayout.Padding = UDim.new(0, Ui.decisionCard.gap)
 			listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			listLayout.Parent = list
 			local listPad = Instance.new("UIPadding")
-			listPad.PaddingTop = UDim.new(0, 3)
-			listPad.PaddingBottom = UDim.new(0, 3)
-			listPad.PaddingLeft = UDim.new(0, 3)
+			-- Margen para que las tarjetas giradas y su sello no se recorten contra el borde de la lista.
+			listPad.PaddingTop = UDim.new(0, 8)
+			listPad.PaddingBottom = UDim.new(0, 8)
+			listPad.PaddingLeft = UDim.new(0, 6)
 			listPad.PaddingRight = UDim.new(0, 9)
 			listPad.Parent = list
+			local context = lastContext
 			for index, option in view.options do
 				local action = option.action
-				local button = Components.OptionButton(list, `Option{index}`, option.label)
-				button.root.LayoutOrder = index
+				local data: ViewText.OptionCard = if action ~= nil
+						and context ~= nil
+						and context.view ~= nil
+					then ViewText.optionCard(context.view, context.names, action)
+					else { kind = "Other", title = option.label }
+				local def = if data.cardId ~= nil then Cards.byId[data.cardId] else nil
+				-- Una a cada lado, como naipes repartidos sobre la mesa.
+				local tilt = if index % 2 == 0 then Ui.decisionCard.tilt else -Ui.decisionCard.tilt
+				local card = Board.DecisionCard(
+					list,
+					`Option{index}`,
+					data,
+					tilt,
+					if def ~= nil then def.rarity else nil
+				)
+				card.root.LayoutOrder = index
+				card.playIn((index - 1) * Ui.decisionCard.dealStep)
 				if action == nil then
-					button.setEnabled(false)
+					card.setEnabled(false)
 				else
-					button.onActivated(function()
+					remember(action, card, data.title)
+					card.onActivated(function()
 						emit(action)
 					end)
 				end
@@ -271,7 +356,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 				list.Size = UDim2.new(1, 0, 0, math.min(listLayout.AbsoluteContentSize.Y + 6, room))
 			end
 			listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fit)
-			panel:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+			fitConnection = panel:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 			task.defer(fit)
 		end
 
@@ -289,8 +374,9 @@ function ActionMenu.create(playerGui: Instance): Handles
 			rowLayout.Parent = row
 			for _, extra in extras do
 				local action = extra.action
-				local button = Components.SecondaryButton(row, `Extra_{extra.id}`, extra.label)
+				local button = Components.SecondaryButton(row, `Extra_{extra.id}`, extra.label, extra.key)
 				button.root.Size = UDim2.fromOffset(140, 44)
+				remember(action, button, extra.label)
 				button.onActivated(function()
 					emit(action)
 				end)
@@ -336,14 +422,16 @@ function ActionMenu.create(playerGui: Instance): Handles
 	return {
 		setLegal = function(
 			legal: { any },
-			extras: { { id: string, label: string, action: any } }?,
+			extras: { { id: string, label: string, action: any, key: string? } }?,
 			context: ActionMenuRules.Context?
 		)
+			lastContext = context
 			local view = ActionMenuRules.panelFor(legal, context)
 			local empty = view.primary == nil
 				and #view.options == 0
 				and (extras == nil or #(extras :: any) == 0)
 			if empty then
+				clearPending()
 				setShown(false)
 				currentKey = ""
 				bounds = nil

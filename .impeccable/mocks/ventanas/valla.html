@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Tratos - Valla de obra</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+/* La ventana es una valla de obra: dos largueros de barrera arriba y abajo, y entre ellos carteles pegados. */
+.valla{position:absolute;left:120px;top:40px;width:1200px;height:820px}
+.larguero{position:absolute;left:0;right:0;height:46px;border-radius:8px;border:3px solid var(--asfalto);background:repeating-linear-gradient(-45deg,var(--caliza) 0 26px,var(--asfalto) 26px 52px)}
+.larguero.arriba{top:0}.larguero.abajo{bottom:0}
+.poste{position:absolute;top:-14px;bottom:-14px;width:26px;background:var(--acero);border:3px solid var(--asfalto);border-radius:6px}
+.tablon{position:absolute;left:30px;right:30px;top:0;bottom:0;background:var(--asfalto);border:3px solid var(--caliza);border-radius:6px}
+.cartel{position:absolute;background:var(--caliza);color:var(--asfalto);border-radius:3px;padding:18px 20px;box-shadow:0 4px 0 rgba(20,23,26,.55)}
+.cinta{position:absolute;width:64px;height:20px;background:rgba(207,197,174,.85);border:1px solid #b9af98}
+.aviso{left:70px;top:74px;width:1060px;height:150px;transform:rotate(-.4deg)}
+.aviso h1{font:700 46px/1 Oswald,sans-serif;text-transform:uppercase}
+.aviso .ayuda{margin-top:10px}
+.aviso .comoboton{color:var(--asfalto)}
+.aviso .cerrar{position:absolute;right:18px;top:16px}
+.lado{top:250px;width:500px;height:440px}
+.lado.tu{left:70px;transform:rotate(.6deg)}
+.lado.el{left:630px;transform:rotate(-.7deg)}
+.lado h2{display:flex;align-items:center;gap:14px;font:700 24px/1 Oswald,sans-serif;text-transform:uppercase}
+.lado h2 .disco{width:58px;height:58px}
+.lado h2 .metro{margin-left:auto}
+.lado .rotulo{margin-top:16px;font:500 12px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#4a4f55}
+.recortes{display:flex;gap:12px;margin-top:10px;height:170px;align-items:flex-end}
+.recortes .esc{box-shadow:none}
+.recortes .elegida{transform:translateY(-10px);outline:3px solid var(--asfalto);outline-offset:4px}
+.recortes .elegida .sello{position:absolute;right:-12px;top:-12px}
+.dinero{margin-top:16px;display:flex;align-items:center;gap:12px}
+.dinero .max{color:#4a4f55}
+.desvio{position:absolute;left:556px;top:420px;width:88px;height:88px;border-radius:50%;background:var(--marino);border:5px solid var(--caliza);display:grid;place-items:center;z-index:2}
+.desvio svg{width:50px;height:40px}
+.resumen{position:absolute;left:70px;right:290px;bottom:70px;height:64px;display:flex;align-items:center;gap:16px;font:700 20px/1.1 Oswald,sans-serif;text-transform:uppercase}
+.resumen small{display:block;font:500 12px Oswald,sans-serif;letter-spacing:.1em;color:var(--caliza-apagada)}
+.enviar{position:absolute;right:70px;bottom:62px;width:250px}
+</style>
+</head>
+<body>
+<div class="ciudad"></div><div class="velo"></div>
+
+<div class="valla">
+  <span class="poste" style="left:10px"></span><span class="poste" style="right:10px"></span>
+  <div class="tablon"></div>
+  
+
+  <div class="cartel aviso">
+    <span class="cinta" style="left:-16px;top:-6px;transform:rotate(-30deg)"></span>
+    <span class="cinta" style="right:-16px;top:-6px;transform:rotate(30deg)"></span>
+    <h1>Tratos</h1>
+    <div class="ayuda">
+      <p>Cambia dinero, propiedades o las dos cosas con otro jugador. Solo se cierra si los dos aceptan.</p>
+      <span class="comoboton"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Cómo funciona</span>
+    </div>
+    <span class="pildora cerrar">Cerrar <span class="tecla">Esc</span></span>
+  </div>
+
+  <div class="cartel lado tu">
+    <span class="cinta" style="left:50%;top:-10px;transform:translateX(-50%)"></span>
+    <h2><span class="disco" style="--aro:#22D3EE"><i></i></span>Santi (tú)<span class="metro"><b>1</b><b class="p">.</b><b>2</b><b>4</b><b>0</b></span></h2>
+    <div class="rotulo">Entregas: toca tus escrituras</div>
+    <div class="recortes">
+      <div class="esc elegida" style="--z:#C97B3A"><div class="zona"><span>Callejón del Cobre</span><strong>Barbería Morro</strong></div><div class="precio"><small>PRECIO</small>60</div><div class="renta">Renta <b>6</b><br>Zona: <b>12</b></div><span class="sello rojo">Entregas</span></div>
+      <div class="esc" style="--z:#DC2626"><div class="zona"><span>Distrito Carmesí</span><strong>Cine Lux</strong></div><div class="precio"><small>PRECIO</small>240</div><div class="renta">Renta <b>24</b><br>1 casa: <b>96</b></div></div>
+      <div class="esc" style="--z:#22D3EE;--tinta:#23272C"><div class="zona"><span>Pasaje Cian</span><strong>Calle del Cable</strong></div><div class="precio"><small>PRECIO</small>100</div><div class="renta">Renta <b>10</b><br>Zona: <b>20</b></div></div>
+    </div>
+    <div class="dinero"><span class="rotulo" style="margin:0">Dinero</span><div class="campo"><div class="entrada activa"><b>150</b><span class="cursor"></span></div><span class="max">de 1.240</span></div></div>
+  </div>
+
+  <div class="desvio"><svg viewBox="0 0 50 40"><path d="M4 13h38l-8-8M46 27H8l8 8" fill="none" stroke="#EDE5D3" stroke-width="4" stroke-linejoin="round"/></svg></div>
+
+  <div class="cartel lado el">
+    <span class="cinta" style="left:50%;top:-10px;transform:translateX(-50%)"></span>
+    <h2><span class="disco" style="--aro:#E85D9E"><i></i></span>Leo<span class="metro"><b>9</b><b>8</b><b>0</b></span></h2>
+    <div class="rotulo">Pides: toca las escrituras de Leo</div>
+    <div class="recortes">
+      <div class="esc elegida" style="--z:#E85D9E"><div class="zona"><span>Bulevar Magenta</span><strong>Neo Mundo</strong></div><div class="precio"><small>PRECIO</small>200</div><div class="renta">Renta <b>20</b><br>Zona: <b>40</b></div><span class="sello rojo">Pides</span></div>
+      <div class="esc" style="--z:#DC2626"><div class="zona"><span>Distrito Carmesí</span><strong>Plaza del Jazz</strong></div><div class="precio"><small>PRECIO</small>220</div><div class="renta">Renta <b>22</b><br>1 casa: <b>88</b></div></div>
+      <div class="esc" style="--z:#F59E0B;--tinta:#23272C"><div class="zona"><span>Feria Naranja</span><strong>Mercado de la Séptima</strong></div><div class="precio"><small>PRECIO</small>180</div><div class="renta">Renta <b>18</b><br>Zona: <b>36</b></div></div>
+    </div>
+    <div class="dinero"><span class="rotulo" style="margin:0">Dinero</span><div class="campo"><div class="entrada"><b>0</b></div><span class="max">de 980</span></div></div>
+  </div>
+
+  <div class="resumen"><div><small>Entregas</small>Barbería Morro + 150</div><span style="color:var(--caliza-apagada)">·</span><div><small>Recibes</small>Neo Mundo</div></div>
+  <div class="enviar"><div class="principal"><div class="cara">Enviar</div></div></div>
+</div>
+</body>
+</html>

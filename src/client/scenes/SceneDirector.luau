@@ -28,12 +28,15 @@ export type Options = {
 	wait: (seconds: number) -> (),
 	show: ((text: string) -> ())?,
 	log: ((message: string) -> ())?,
+	-- Aviso al empezar cada evento, en su orden: el sonido de la interfaz suena con su escena.
+	onEvent: ((event: Event) -> ())?,
 }
 
 export type Director = {
 	wait: (seconds: number) -> (),
 	show: (text: string) -> (),
 	log: (message: string) -> (),
+	onEvent: (event: Event) -> (),
 	scenes: { [string]: Scene },
 	-- Cuántas veces se ha visto cada tipo de evento en esta partida: acorta las escenas repetidas.
 	seen: { [string]: number },
@@ -57,6 +60,7 @@ function SceneDirector.new(options: Options): Director
 			show(text)
 		end,
 		log = options.log or function(_message: string) end,
+		onEvent = options.onEvent or function(_event: Event) end,
 		scenes = {},
 		seen = {},
 		titled = false,
@@ -103,6 +107,7 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 
 		local seen = director.seen[event.type] or 0
 		director.seen[event.type] = seen + 1
+		director.onEvent(event)
 		local duration = math.max(SceneDirector.MIN_LATE_SEC, Scenes.durationFor(event, seen) - late)
 
 		local elapsed = 0

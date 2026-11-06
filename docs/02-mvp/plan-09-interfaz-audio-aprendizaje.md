@@ -83,13 +83,13 @@
 - Modificar: `Hud.luau`, `ActionMenu.luau`, `TradeMenu.luau`, `PactMenu.luau`, `Overview.luau`. `VoteMenu` y `PerkMenu` ya no existen: esas decisiones van en la barra de `ActionMenu`
 
 **Criterios de aceptación:**
-- [ ] Sigue funcionando toda la partida solo con menús.
-- [ ] La interfaz se oculta o se reduce durante las escenas.
-- [ ] Romper un pacto y otras acciones irreversibles requieren una segunda confirmación.
-- [ ] En teclado y ratón tiene atajos para lo más común.
+- [ ] Sigue funcionando toda la partida solo con menús. Código hecho; sin probar en Studio.
+- [ ] La interfaz se oculta o se reduce durante las escenas. Código hecho: el HUD se aparta y Tratos, Pactos y la vista general se cierran; sin probar en Studio.
+- [ ] Romper un pacto y otras acciones irreversibles requieren una segunda confirmación. Código y prueba (`ActionMenuRules.needsConfirm`); sin probar en Studio.
+- [ ] En teclado y ratón tiene atajos para lo más común. Espacio, N, M, T, P, K y Esc, listados en Ajustes; sin probar en Studio.
 - [ ] Los textos más largos no se cortan en la pantalla más pequeña admitida.
 
-- [ ] **Paso 1:** Sustituir cada menú y ejecutar `lune run tests/run ActionMenuRules`. Esperado: PASS.
+- [x] **Paso 1:** Sustituir cada menú y ejecutar `lune run tests/run ActionMenuRules`. Esperado: PASS. Todos los menús van sobre el tablón de obra (`client/ui/Board`), elegido por el responsable el 2026-11-05.
 - [ ] **Paso 2:** Capturar cada menú con su texto más largo, en móvil y en PC.
 - [ ] **Paso 3:** Obtener la aprobación del responsable.
 - [ ] **Paso 4:** Hacer commit: `feat: completar interfaz de partida`.
@@ -147,13 +147,13 @@
 - [ ] Solo quien no ha terminado una partida ve las explicaciones.
 - [ ] Cada concepto se explica una vez, en el momento en que aparece, en una frase.
 - [ ] Nunca se detiene la partida ni se obliga a cerrar nada.
-- [ ] Se explican: comprar, renta, cartas, perks, vista general, pactos, Tribunal y espectro.
+- [x] Se explican: comprar, renta, cartas, perks, vista general, pactos, Tribunal y espectro. Cubierto por prueba; sin probar en Studio.
 - [ ] Un jugador nuevo termina su primera partida sin ayuda externa en la prueba de la subfase 10.
 
-- [ ] **Paso 1:** Escribir pruebas: un consejo aparece una sola vez y `Rent` da el consejo de renta.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run GuidedMatchRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar los módulos.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 1:** Escribir pruebas: un consejo aparece una sola vez y `Rent` da el consejo de renta.
+- [x] **Paso 2:** Ejecutar `lune run tests/run GuidedMatchRules`. Esperado: FAIL.
+- [x] **Paso 3:** Implementar los módulos.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** Hacer commit: `feat: añadir primera partida guiada`.
 
 ### Task 6: Música y sonido
@@ -173,12 +173,32 @@
 - [ ] Música de lobby, partida, Última Ronda y podio.
 - [ ] Cada escena tiene su sonido; la ciudad, su ambiente.
 - [ ] Varias escenas seguidas no saturan el volumen.
-- [ ] El jugador puede ajustar música y efectos por separado.
+- [ ] El jugador puede ajustar música y efectos por separado. Ajustes con dos barras; sin probar en Studio.
 - [ ] Cada pieza se registra en el manifiesto y se aprueba.
 
-- [ ] **Paso 1:** Escribir pruebas de `AudioRules`: la ganancia baja al subir `activeCount` y nunca supera 1.
-- [ ] **Paso 2:** Ejecutar `lune run tests/run AudioRules`. Esperado: FAIL.
-- [ ] **Paso 3:** Implementar y conectar el audio.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 1:** Escribir pruebas de `AudioRules`: la ganancia baja al subir `activeCount` y nunca supera 1.
+- [x] **Paso 2:** Ejecutar `lune run tests/run AudioRules`. Esperado: FAIL.
+- [ ] **Paso 3:** Implementar y conectar el audio. Sistema hecho y conectado (`AudioDirector`, `config/Audio`, Ajustes); faltan las piezas, con sus ids vacíos hasta confirmar condiciones y aprobarlas.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** Obtener la aprobación del responsable con una partida grabada.
 - [ ] **Paso 6:** Hacer commit: `feat: añadir música y sonido`.
+
+## Estado al 2026-11-05 (rama `plan-09-tarea-2`, sin commit)
+
+Hecho en código, con pruebas puras donde hay lógica, y sin probar todavía en Studio:
+
+- **Estándar de ventana:** «tablón de obra», elegido por el responsable sobre tres maquetas (`.impeccable/mocks/ventanas/`). Tratos (proponer y recibido, con dinero libre), Pactos, Elegir ficha (ficha en 3D), Revancha, Lobby y Ajustes van sobre él. Las decisiones del panel (perks, Tribunal, Duelo, Mercado, reacción, espectro) son tarjetas pequeñas repartidas.
+- **Mano:** carta en grande al pasar el ratón y animación al robar.
+- **HUD:** «Un bot juega por ti» con RETOMAR (remoto `Reclaim`); botón y tecla de Ajustes.
+- **Plazo de decisión:** 100 s, por decisión del responsable.
+- **Tarea 5:** `GuidedMatchRules`, `GuidedMatch` y `PlayerProfile`.
+- **Tarea 6:** `AudioRules`, `AudioDirector`, `config/Audio` y Ajustes.
+
+Pendiente:
+
+- **Aprobaciones y capturas** de las Tareas 2, 4 y 6 en Studio; el móvil sigue aplazado.
+- **Tarea 3:** las ilustraciones de cartas y perks no se han producido.
+- **Tarea 6:** las piezas de audio no existen. Antes de generarlas hay que confirmar sus condiciones de uso comercial; sus ids quedan vacíos en `config/Audio`.
+- **Lobby:** el servidor no envía la lista de la party, así que no se ve quién está. La elección de ficha sigue al empezar la partida, no en el lobby. `lobby.project.json` no monta los scripts del cliente: el lugar del lobby no enseña su menú. `LobbyScene` no existe.
+- **`PlayerProfile`:** fuera de Studio escribe en un DataStore. Es el primer dato persistente de jugadores; aprobarlo antes de publicar.
+- **Maqueta anidada en la vista general:** sin causa encontrada. `ModelCity` quita de la copia cualquier maqueta anidada y lo avisa en la consola con la ruta de origen.

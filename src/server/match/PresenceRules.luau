@@ -120,6 +120,24 @@ function PresenceRules.onAction(seats: { Seat }, playerId: string): { Seat }
 	return copy
 end
 
+-- El jugador pide retomar su asiento a mano, con el botón del HUD. Con el bot jugando a los pocos
+-- décimos de segundo, esperar a que una acción suya llegue a tiempo (onAction) era casi imposible.
+-- Solo vale para quien está conectado y tiene un bot al mando; devuelve false en cualquier otro caso.
+function PresenceRules.onReclaim(seats: { Seat }, userId: number): (boolean, { Seat })
+	local copy = copySeats(seats)
+	local index = indexOfUserId(copy, userId)
+	if not index then
+		return false, copy
+	end
+	local value = copy[index]
+	if not value.connected or not value.bot then
+		return false, copy
+	end
+	value.bot = false
+	value.timeouts = 0
+	return true, copy
+end
+
 -- ¿El asiento lo controla un bot? Un playerId que no está en la mesa no lo controla nadie.
 function PresenceRules.isBotControlled(seats: { Seat }, playerId: string): boolean
 	local index = indexOfPlayerId(seats, playerId)

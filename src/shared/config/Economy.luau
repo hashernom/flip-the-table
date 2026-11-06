@@ -46,7 +46,8 @@ return {
 	pressureFromRound = 30,
 	hotZoneInterval = 3,
 	seconds = {
-		decision = 20,
+		-- Plazo de cualquier decisión sin plazo propio. El responsable lo subió de 20 a 100 s (2026-11-05).
+		decision = 100,
 		auction = 15,
 		tribunalVote = 10,
 		reaction = 5,

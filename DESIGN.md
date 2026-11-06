@@ -270,6 +270,14 @@ Carácter: el plazo es la calzada. El vehículo recorre el pie de la pantalla y 
 - **Cifra:** segundos en Oswald negrita 22 px, arriba a la derecha.
 - **Aviso:** en los últimos 5 segundos, los trazos que quedan y la cifra pasan a naranja obra.
 
+### Ventana: tablón de obra (`Board`)
+Carácter: cada ventana es un tablón de obra con carteles pegados. Elegido por el responsable el 2026-11-05 entre tres maquetas, sin las barras rayadas.
+- **Tablón:** chapa de asfalto de radio 6 con borde de caliza, entre dos postes de acero que asoman 16 px por arriba y por abajo. Ocupa hasta 1200 × 820 (Pactos, 900 × 620; Ajustes, 760 × 640) y sube 16 px al abrirse, con un velo de asfalto profundo.
+- **Cartel:** papel de caliza de radio 3, canto inferior de 4 px un poco más oscuro y dos tiras de cinta. Solo el cartel de título va torcido (−0,4°): una lista con scroll no recorta bien girada.
+- **Cabecera:** título en Oswald negrita de 44 px, Cerrar con su tecla Esc, una frase que explica la ventana y «Cómo funciona», que despliega dos o tres pasos numerados. Es igual en todas las ventanas.
+- **Elegido:** se distingue por forma y tono. La pestaña elegida va rellena y las demás solo con contorno. Una escritura elegida se despega 10 px, engorda el borde y lleva sello rojo. La ficha propia va invertida, con sello «TUYA»; la ajena, en papel apagado, con el disco del asiento de su dueño.
+- **Tarjeta de decisión:** papel pequeño con una franja de asfalto que dice el tipo, título en Oswald negrita y detalle. Entra repartida, se levanta 4 px al pasar el ratón y se hunde al pulsarla; un pase es una píldora de contorno.
+
 ### Named Rules
 **The Marks By Shape Rule.** Las marcas se distinguen por forma: sello con filete, pieza torcida, icono, texto. El color repite la información, nunca la lleva solo.
 

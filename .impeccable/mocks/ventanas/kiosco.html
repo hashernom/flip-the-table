@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440">
+<title>Tratos - Kiosco de prensa</title>
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="base.css">
+<style>
+/* La ventana es la portada del día: cabecera, titular que dice el trato y dos columnas, una por jugador. */
+.portada{position:absolute;left:150px;top:30px;width:1140px;height:840px;transform:rotate(-.5deg)}
+.grosor{position:absolute;left:6px;top:8px;right:-6px;bottom:-8px;background:#B9AF98;border-radius:4px}
+.papel{position:absolute;inset:0;background:var(--caliza);border-radius:4px;color:var(--asfalto);padding:22px 34px}
+.cabecera{display:flex;align-items:flex-end;justify-content:space-between;border-bottom:4px solid var(--asfalto);padding-bottom:8px}
+.cabecera h1{font:700 52px/1 Oswald,sans-serif;text-transform:uppercase;letter-spacing:.02em}
+.cabecera .fecha{font:500 13px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;text-align:right;line-height:1.5}
+.filete{height:2px;background:var(--asfalto);margin-top:3px}
+.titular{margin-top:16px;font:700 30px/1.12 Oswald,sans-serif;text-transform:uppercase;max-width:30ch}
+.entradilla{display:flex;gap:16px;align-items:flex-start;margin-top:10px;padding-bottom:14px;border-bottom:1px solid #9b9384}
+.entradilla p{font:400 17px/1.45 'Source Sans 3',sans-serif}
+.entradilla .comoboton{color:var(--asfalto)}
+.cols{display:grid;grid-template-columns:1fr 2px 1fr;gap:28px;margin-top:16px}
+.pliegue{background:#B9AF98}
+.col h2{display:flex;align-items:center;gap:14px;font:700 24px/1 Oswald,sans-serif;text-transform:uppercase}
+.col h2 .disco{width:56px;height:56px}
+.col h2 .sub{display:block;margin-top:4px;font:500 12px Oswald,sans-serif;letter-spacing:.1em;color:#4a4f55}
+.col .rotulo{margin-top:14px;font:500 12px Oswald,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:#4a4f55}
+.recortes{display:flex;gap:12px;margin-top:10px;height:170px;align-items:flex-end}
+.recortes .esc{box-shadow:none}
+.recortes .elegida{transform:translateY(-10px) rotate(-2deg);outline:3px solid var(--asfalto);outline-offset:4px}
+.recortes .elegida .sello{position:absolute;right:-12px;top:-12px}
+.dinero{margin-top:14px;display:flex;align-items:center;gap:12px}
+.dinero .campo .entrada{background:var(--asfalto)}
+.dinero .max{color:#4a4f55}
+.pie{position:absolute;left:34px;right:34px;bottom:22px;display:flex;align-items:center;gap:20px;border-top:4px solid var(--asfalto);padding-top:14px}
+.pie p{flex:1;font:400 14px/1.4 'Source Sans 3',sans-serif;color:#3b3f45}
+.pie .principal{width:250px}
+.cerrar{position:absolute;right:34px;top:26px}
+</style>
+</head>
+<body>
+<div class="ciudad"></div><div class="velo"></div>
+
+<div class="portada">
+  <div class="grosor"></div>
+  <div class="papel">
+    <div class="cabecera">
+      <h1>Tratos</h1>
+      <div class="fecha">Ronda 12 de 20<br>Edición de Santi</div>
+    </div>
+    <div class="filete"></div>
+
+    <div class="titular">Santi entrega Barbería Morro y 150 a Leo a cambio de Neo Mundo</div>
+    <div class="entradilla">
+      <p>Cambia dinero, propiedades o las dos cosas con otro jugador. Solo se cierra si los dos aceptan.</p>
+      <span class="comoboton"><svg viewBox="0 0 12 12"><path d="M2 4l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>Cómo funciona</span>
+    </div>
+
+    <div class="cols">
+      <section class="col">
+        <h2><span class="disco" style="--aro:#22D3EE"><i></i></span><span>Santi (tú)<span class="sub">Entregas</span></span><span class="metro" style="margin-left:auto"><b>1</b><b class="p">.</b><b>2</b><b>4</b><b>0</b></span></h2>
+        <div class="rotulo">Tus escrituras: toca para entregarlas</div>
+        <div class="recortes">
+          <div class="esc elegida" style="--z:#C97B3A"><div class="zona"><span>Callejón del Cobre</span><strong>Barbería Morro</strong></div><div class="precio"><small>PRECIO</small>60</div><div class="renta">Renta <b>6</b><br>Zona: <b>12</b></div><span class="sello rojo">Entregas</span></div>
+          <div class="esc" style="--z:#DC2626"><div class="zona"><span>Distrito Carmesí</span><strong>Cine Lux</strong></div><div class="precio"><small>PRECIO</small>240</div><div class="renta">Renta <b>24</b><br>1 casa: <b>96</b></div></div>
+          <div class="esc" style="--z:#22D3EE;--tinta:#23272C"><div class="zona"><span>Pasaje Cian</span><strong>Calle del Cable</strong></div><div class="precio"><small>PRECIO</small>100</div><div class="renta">Renta <b>10</b><br>Zona: <b>20</b></div></div>
+        </div>
+        <div class="dinero"><span class="rotulo" style="margin:0">Dinero</span><div class="campo"><div class="entrada activa"><b>150</b><span class="cursor"></span></div><span class="max">de 1.240</span></div></div>
+      </section>
+      <div class="pliegue"></div>
+      <section class="col">
+        <h2><span class="disco" style="--aro:#E85D9E"><i></i></span><span>Leo<span class="sub">Te da</span></span><span class="metro" style="margin-left:auto"><b>9</b><b>8</b><b>0</b></span></h2>
+        <div class="rotulo">Escrituras de Leo: toca para pedirlas</div>
+        <div class="recortes">
+          <div class="esc elegida" style="--z:#E85D9E"><div class="zona"><span>Bulevar Magenta</span><strong>Neo Mundo</strong></div><div class="precio"><small>PRECIO</small>200</div><div class="renta">Renta <b>20</b><br>Zona: <b>40</b></div><span class="sello rojo">Pides</span></div>
+          <div class="esc" style="--z:#DC2626"><div class="zona"><span>Distrito Carmesí</span><strong>Plaza del Jazz</strong></div><div class="precio"><small>PRECIO</small>220</div><div class="renta">Renta <b>22</b><br>1 casa: <b>88</b></div></div>
+          <div class="esc" style="--z:#F59E0B;--tinta:#23272C"><div class="zona"><span>Feria Naranja</span><strong>Mercado de la Séptima</strong></div><div class="precio"><small>PRECIO</small>180</div><div class="renta">Renta <b>18</b><br>Zona: <b>36</b></div></div>
+        </div>
+        <div class="dinero"><span class="rotulo" style="margin:0">Dinero</span><div class="campo"><div class="entrada"><b>0</b></div><span class="max">de 980</span></div></div>
+      </section>
+    </div>
+
+    <div class="pie">
+      <p>Otro rival: Ana · Marta · Bot 1. Leo verá la propuesta en su menú de tratos.</p>
+      <div class="principal"><div class="cara">Enviar</div></div>
+    </div>
+    <span class="pildora cerrar">Cerrar <span class="tecla">Esc</span></span>
+  </div>
+</div>
+</body>
+</html>

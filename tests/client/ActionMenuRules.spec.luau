@@ -286,3 +286,38 @@ describe("ActionMenuRules: temporizador", function()
 		expect(ActionMenuRules.remainingSeconds(nil, 100)).toBe(nil)
 	end)
 end)
+
+describe("ActionMenuRules.needsConfirm", function()
+	-- Solo las acciones sin vuelta atrás piden una segunda pulsación; el resto se manda al primer toque.
+	it("romper un pacto pide confirmación", function()
+		expect(ActionMenuRules.needsConfirm({ type = "BreakPact", pactId = "p1" } :: any)).toBe(true)
+	end)
+
+	it("no comprar pide confirmación", function()
+		expect(ActionMenuRules.needsConfirm({ type = "DeclineBuy" } :: any)).toBe(true)
+	end)
+
+	it("responder un trato pide confirmación, aceptando o rechazando", function()
+		expect(ActionMenuRules.needsConfirm({ type = "RespondTrade", accept = true } :: any)).toBe(true)
+		expect(ActionMenuRules.needsConfirm({ type = "RespondTrade", accept = false } :: any)).toBe(true)
+	end)
+
+	it("rechazar un pacto pide confirmación, aceptarlo no", function()
+		expect(ActionMenuRules.needsConfirm({ type = "RespondPact", pactId = "p1", accept = false } :: any)).toBe(
+			true
+		)
+		expect(ActionMenuRules.needsConfirm({ type = "RespondPact", pactId = "p1", accept = true } :: any)).toBe(
+			false
+		)
+	end)
+
+	it("comprar, tirar y terminar el turno se mandan al primer toque", function()
+		expect(ActionMenuRules.needsConfirm({ type = "Buy" } :: any)).toBe(false)
+		expect(ActionMenuRules.needsConfirm({ type = "Roll" } :: any)).toBe(false)
+		expect(ActionMenuRules.needsConfirm({ type = "EndTurn" } :: any)).toBe(false)
+	end)
+
+	it("proponer un pacto no pide confirmación", function()
+		expect(ActionMenuRules.needsConfirm({ type = "ProposePact", toId = "p2" } :: any)).toBe(false)
+	end)
+end)

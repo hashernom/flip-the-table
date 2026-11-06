@@ -166,6 +166,19 @@ describe("SocialRules: la propuesta que arma el menú la acepta el motor", funct
 		expect((action :: any).offer.giveSquares).toEqual({})
 	end)
 
+	it("el dinero pedido nunca supera el efectivo del rival", function()
+		local state, me, rival = setup()
+		local view = View.forPlayer(state, me.id)
+		local action = SocialRules.proposal(view, {
+			targetId = rival.id,
+			giveCash = 0,
+			wantCash = rival.cash + 500,
+			giveSquares = {},
+			wantSquares = {},
+		})
+		expect((action :: any).offer.wantCash).toBe(rival.cash)
+	end)
+
 	it("los importes salen de la configuración", function()
 		local steps = Ui.tradeCashSteps
 		expect(steps[1]).toBe(0)
@@ -200,5 +213,23 @@ describe("SocialRules: pactos", function()
 		expect(#list).toBe(1)
 		expect(list[1].partnerId).toBe(rival.id)
 		expect(list[1].id).toBe("X1")
+	end)
+end)
+
+describe("SocialRules.parseCash", function()
+	it("lee cifras con o sin punto de miles", function()
+		expect(SocialRules.parseCash("150")).toBe(150)
+		expect(SocialRules.parseCash("1.240")).toBe(1240)
+		expect(SocialRules.parseCash(" 75 ")).toBe(75)
+	end)
+
+	it("sin cifras es cero, y lo que no es cifra se ignora", function()
+		expect(SocialRules.parseCash("")).toBe(0)
+		expect(SocialRules.parseCash("abc")).toBe(0)
+		expect(SocialRules.parseCash("-50")).toBe(50)
+	end)
+
+	it("acota al máximo que se le pase", function()
+		expect(SocialRules.parseCash("99999", 980)).toBe(980)
 	end)
 end)

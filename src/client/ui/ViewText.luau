@@ -243,6 +243,81 @@ function ViewText.actionLabel(view: any, names: Names?, action: Action): string
 	return actionType
 end
 
+export type OptionKind = "Perk" | "Card" | "Vote" | "Duel" | "Ghost" | "Pass" | "Other"
+
+-- Una opción del panel de decisión dicha como tarjeta: título corto, detalle y una nota (precio u
+-- objetivo). `kind` decide su cara; `cardId`, si es una carta, para su rareza.
+export type OptionCard = {
+	kind: OptionKind,
+	title: string,
+	detail: string?,
+	note: string?,
+	cardId: string?,
+}
+
+function ViewText.optionCard(view: any, names: Names?, action: Action): OptionCard
+	local actionType = action.type
+	local label = ViewText.actionLabel(view, names, action)
+	if actionType == "DraftPerk" then
+		local perk = Perks.byId[action.perkId]
+		if perk ~= nil then
+			return { kind = "Perk", title = perk.name, detail = perk.description }
+		end
+	elseif actionType == "PlayCard" or actionType == "React" or actionType == "MarketBuy" then
+		local cardId = tostring(action.cardId)
+		local card = Cards.byId[cardId]
+		if card ~= nil then
+			local note: string? = nil
+			if actionType == "MarketBuy" then
+				local price = Squares.marketPriceFor(stateLike(view), view.playerId, cardId)
+				note = if price ~= nil then Strings.get("option.price", { price = price }) else nil
+			elseif label ~= `Jugar {card.name}` and label ~= `Reaccionar: {card.name}` then
+				-- Con objetivo, la etiqueta dice contra quién o dónde: va de nota.
+				note = label
+			end
+			return {
+				kind = "Card",
+				title = card.name,
+				detail = Strings.get(`card.{cardId}.description`),
+				note = note,
+				cardId = cardId,
+			}
+		end
+	elseif actionType == "PassReaction" or actionType == "MarketSkip" then
+		return { kind = "Pass", title = label }
+	elseif actionType == "TribunalVote" then
+		local title = label
+		if action.verdict == "Fine" then
+			title = Strings.get("option.fine", { amount = Economy.tribunal.fine })
+		elseif action.verdict == "SkipTurn" then
+			title = Strings.get("option.skipTurn")
+		elseif action.verdict == "PayToPlayer" and action.targetId ~= nil then
+			title = Strings.get("option.payTo", {
+				amount = Economy.tribunal.payToPlayer,
+				name = ViewText.playerName(view, names, tostring(action.targetId)),
+			})
+		end
+		return { kind = "Vote", title = title, detail = label }
+	elseif actionType == "DuelChoice" then
+		if action.rivalId ~= nil then
+			return {
+				kind = "Duel",
+				title = ViewText.playerName(view, names, tostring(action.rivalId)),
+				detail = label,
+			}
+		end
+		return { kind = "Duel", title = Strings.duelChoice(tostring(action.choice)) }
+	elseif actionType == "GhostAct" then
+		local haunt = action.kind == "Haunt"
+		return {
+			kind = "Ghost",
+			title = Strings.get(if haunt then "option.haunt" else "option.sabotage"),
+			detail = label,
+		}
+	end
+	return { kind = "Other", title = label }
+end
+
 -- Efectos de la mesa que dura unas rondas, con su nombre en español.
 local EFFECTS: { [string]: string } = {
 	Inflation = "Inflación",
@@ -428,6 +503,39 @@ end
 -- Podio del final con el evento `GameEnded`: el ganador, la clasificación en el orden del motor
 -- (patrimonio, luego efectivo) y los premios con su nombre. Sin evento, no hay podio. `view` sirve para
 -- resolver nombres: es la vista de la mesa al acabar, con todos sus asientos.
+export type Podium = {
+	winnerId: string?,
+	ranking: { { id: string, position: number, name: string, worth: number } },
+	awards: { { label: string, name: string } },
+}
+
+-- Podio con estructura, para que el tablón de la revancha pinte cada parte a su manera. Mismos datos
+-- que `podiumLines`: ganador, clasificación con el patrimonio del motor y premios.
+function ViewText.podium(event: any, view: any, names: Names?): Podium
+	local podium: Podium = { winnerId = nil, ranking = {}, awards = {} }
+	if event == nil or view == nil then
+		return podium
+	end
+	podium.winnerId = event.winnerId
+	local final =
+		{ board = ViewText.board(view.sizeId), players = view.players, properties = view.properties }
+	for position, id in event.ranking or {} do
+		table.insert(podium.ranking, {
+			id = id,
+			position = position,
+			name = ViewText.playerName(view, names, id),
+			worth = Score.netWorth(final :: any, id),
+		})
+	end
+	for _, award in event.awards or {} do
+		table.insert(podium.awards, {
+			label = Strings.award(award.id),
+			name = ViewText.playerName(view, names, award.playerId),
+		})
+	end
+	return podium
+end
+
 function ViewText.podiumLines(event: any, view: any, names: Names?): { string }
 	local lines: { string } = {}
 	if event == nil then

@@ -322,6 +322,19 @@ function ActionMenuRules.panelFor(legal: { Action }, context: Context?): Panel
 	return panel
 end
 
+-- Acciones que no tienen vuelta atrás: necesitan una segunda pulsación. Romper un pacto, renunciar a
+-- comprar, responder un trato y rechazar un pacto son irreversibles; aceptar un pacto no lo es.
+function ActionMenuRules.needsConfirm(action: Action): boolean
+	local actionType = action.type
+	if actionType == "BreakPact" or actionType == "DeclineBuy" or actionType == "RespondTrade" then
+		return true
+	end
+	if actionType == "RespondPact" then
+		return action.accept == false
+	end
+	return false
+end
+
 -- Segundos que quedan de una decisión. Sin plazo conocido no hay cuenta atrás: el menú esconde el
 -- temporizador en vez de inventarse uno.
 function ActionMenuRules.remainingSeconds(deadline: number?, now: number): number?
