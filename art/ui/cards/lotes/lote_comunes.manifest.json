@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ui-card-shield",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-extra-die",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-reverse",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-forced-tip",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-discount",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-shove",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-bribe",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-spy",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  }
+]

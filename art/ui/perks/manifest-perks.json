@@ -1,0 +1,134 @@
+[
+  {
+    "id": "ui-perk-banker",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-landlord",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-builder",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-smuggler",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-quick-fingers",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-lawyer",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-negotiator",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-lucky",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-hunter",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-armored",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-collector",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  },
+  {
+    "id": "ui-perk-restless-soul",
+    "category": "UiImage",
+    "source": "art/ui/perks/build_perks.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Pillow y Python, art/ui/perks/build_perks.py"
+  }
+]

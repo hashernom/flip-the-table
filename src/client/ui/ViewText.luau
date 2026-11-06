@@ -288,6 +288,8 @@ export type OptionCard = {
 	detail: string?,
 	note: string?,
 	cardId: string?,
+	-- Perk elegido, cuando la opción es una carta de perk: la tarjeta enseña su icono.
+	perkId: string?,
 }
 
 function ViewText.optionCard(view: any, names: Names?, action: Action): OptionCard
@@ -296,7 +298,12 @@ function ViewText.optionCard(view: any, names: Names?, action: Action): OptionCa
 	if actionType == "DraftPerk" then
 		local perk = Perks.byId[action.perkId]
 		if perk ~= nil then
-			return { kind = "Perk", title = perk.name, detail = perk.description }
+			return {
+				kind = "Perk",
+				title = perk.name,
+				detail = perk.description,
+				perkId = tostring(action.perkId),
+			}
 		end
 	elseif actionType == "PlayCard" or actionType == "React" or actionType == "MarketBuy" then
 		local cardId = tostring(action.cardId)

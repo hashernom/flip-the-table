@@ -559,7 +559,8 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 					`Card{index}`,
 					Strings.get(`card.{cardId}.name`),
 					stamp,
-					Strings.get(`rarity.{def.rarity}`)
+					Strings.get(`rarity.{def.rarity}`),
+					cardId
 				)
 				local offset = index - (count + 1) / 2
 				local slotX = (index - 1) * Ui.handCardStep

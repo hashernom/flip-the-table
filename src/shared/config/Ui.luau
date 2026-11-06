@@ -62,6 +62,8 @@ return {
 	decisionCard = {
 		inset = 6,
 		band = 22,
+		-- Icono del perk en la franja del tipo, cuando la decisión es elegir uno.
+		iconSize = 22,
 		hoverScale = 1.03,
 		dealScale = 0.88,
 		dealTilt = 4,
@@ -186,6 +188,10 @@ return {
 		captionHeight = 20,
 		targetMinText = 9,
 	},
+	-- Arte de las cartas: con la ilustración, la vista grande crece hacia arriba lo que pide su
+	-- proporción 312 x 450 y el texto va debajo, en una franja de este alto. El nombre en la carta de
+	-- la mano se escribe sobre la banda de caliza del PNG, a este cuerpo de letra.
+	cardArt = { textHeight = 108, nameSize = 15, nameMinSize = 12 },
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,
