@@ -1,0 +1,35 @@
+[
+  {
+    "id": "ui-card-fine",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-strike",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-hurricane",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  }
+]

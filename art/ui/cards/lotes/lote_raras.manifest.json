@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ui-card-inflation",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-bounce-rent",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-deed-thief",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-backstab",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  },
+  {
+    "id": "ui-card-demolition",
+    "category": "UiImage",
+    "source": "art/ui/cards/build_cards.py",
+    "triangles": 0,
+    "lods": [],
+    "textures": 0,
+    "status": "Draft",
+    "screenshots": [],
+    "generatedWith": "Python y Pillow, art/ui/cards/build_cards.py"
+  }
+]
