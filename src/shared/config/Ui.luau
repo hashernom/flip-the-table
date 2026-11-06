@@ -218,6 +218,22 @@ return {
 	},
 	-- Cartelera: vueltas del marco antes de pararse, curva de frenada, parte de la escena que dura el suspense,
 	-- crecimiento al encenderse y golpe de la salida ganadora. Meneo de burla cuando no sale nada.
+	-- Dados 3D de DiceRolled (scenes/game/Dice): tamaño en studs, dónde caen respecto a la ficha y el ritmo de
+	-- la caída como fracciones de la escena. `restAt` es cuándo se paran; el resto, la suma a la vista.
+	dice = {
+		size = 3.4,
+		gap = 5,
+		reach = 13,
+		throwHeight = 9,
+		skyHeight = 34,
+		bounceHeight = 7,
+		turns = 2.5,
+		stagger = 0.06,
+		restAt = 0.6,
+		signLift = 7,
+		signWidth = 190,
+		signHeight = 56,
+	},
 	billboard = {
 		laps = 3,
 		easePower = 3,

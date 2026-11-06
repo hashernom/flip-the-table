@@ -81,6 +81,7 @@ local function boot()
 	local ModelCity = require("./world/ModelCity")
 	local PortalJump = require("./scenes/PortalJump")
 	local DeedThiefScene = require("./scenes/cards/DeedThief")
+	local DiceScene = require("./scenes/game/Dice")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -251,6 +252,20 @@ local function boot()
 		Backstab = BackstabScene.new(legendaryOptions),
 		BounceRent = BounceRentScene.new(legendaryOptions),
 	}
+
+	-- Dados 3D: caen con los valores que mandó el servidor, con el color del asiento de quien tira.
+	local dice = DiceScene.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		colorOf = function(id: string): Color3
+			local view = StateStore.view(queue.state)
+			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
+			return seatColor(seat or 1)
+		end,
+		log = legendaryOptions.log,
+	})
+	legendaries.DiceRolled = dice
 
 	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
 	local function cancelScenes()

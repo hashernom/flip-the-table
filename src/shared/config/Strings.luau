@@ -278,6 +278,8 @@ local TEXTS: { [string]: string } = {
 	["city.mortgaged"] = "Hipotecada",
 	-- Sello de la escena del Ladrón de Escrituras, sobre la propiedad robada.
 	["scene.deedThief.stamp"] = "Robada por {name}",
+	-- Suma de la escena de los dados: «4 + 3 = 7».
+	["scene.dice.total"] = "{dice} = {total}",
 	["scene.strike.sign"] = "Cerrado por huelga",
 	["scene.backstab.stamp"] = "Traidor",
 	["scene.inflation.badge"] = "×{mult}",

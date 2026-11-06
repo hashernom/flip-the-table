@@ -138,13 +138,14 @@ end)
 describe("SceneDirector.reset", function()
 	it("una partida nueva vuelve a ver sus escenas enteras", function()
 		local record = recorder()
+		-- Los dados tienen su propio suelo (1,4 s): la segunda tirada no baja de ahí.
 		local dice = { seq = 1, events = { { type = "DiceRolled" } } }
 		SceneDirector.play(record.director, dice)
 		SceneDirector.play(record.director, dice)
-		expect(record.waits).toEqual({ 2, 1 })
+		expect(record.waits).toEqual({ 2, 1.4 })
 		SceneDirector.reset(record.director)
 		SceneDirector.play(record.director, dice)
-		expect(record.waits).toEqual({ 2, 1, 2 })
+		expect(record.waits).toEqual({ 2, 1.4, 2 })
 	end)
 end)
 

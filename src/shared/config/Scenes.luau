@@ -63,6 +63,11 @@ local MIN_DURATION = 0.5
 -- Duración de un evento que no está en la tabla. durationFor nunca devuelve 0, pero la prueba de
 -- cobertura exige que baseDuration lo conozca: un evento nuevo sin escena rompe la puerta.
 local UNKNOWN_DURATION = 2
+-- Suelo propio de las escenas que se repiten en cada turno y que, más cortas, no se entienden: los dados
+-- tienen que verse rodar y pararse en su cara.
+local MIN_BY_EVENT: { [string]: number } = {
+	DiceRolled = 1.4,
+}
 
 -- Cartas por rareza: comunes y raras de 2 a 4 s, legendarias hasta 10 s (ficha, «Las escenas no
 -- pueden frenar la partida»).
@@ -132,7 +137,7 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 		return base
 	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
-	return math.max(MIN_DURATION, base * REPEAT_FACTOR ^ seen)
+	return math.max(MIN_BY_EVENT[event.type] or MIN_DURATION, base * REPEAT_FACTOR ^ seen)
 end
 
 -- Una escena que empieza tarde arranca en su punto; si le queda menos que esto, se omite: no da tiempo a
@@ -157,7 +162,10 @@ end
 
 -- Cuántas variaciones tiene la escena de cada id. Lo que no está aquí tiene una sola. Las escenas
 -- frecuentes ganan variaciones en la Tarea 7.
-Scenes.variationCount = {} :: { [string]: number }
+Scenes.variationCount = {
+	-- Dados: lanzados desde la ficha o caídos del cielo.
+	DiceRolled = 2,
+} :: { [string]: number }
 
 -- Huella de un valor del evento: solo cuentan los datos simples, para que dos clientes con el mismo
 -- evento lleguen al mismo número sin depender del orden de las tablas.

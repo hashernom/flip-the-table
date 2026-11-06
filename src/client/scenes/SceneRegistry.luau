@@ -12,6 +12,7 @@ local PLACEHOLDER = "Placeholder"
 -- Escenas definitivas ya hechas. Todo id de `Scenes.allIds()` que no esté aquí usa la provisional.
 local FINAL: { [string]: string } = {
 	TokenMoved = "TokenRide",
+	DiceRolled = "game/Dice",
 	PortalUsed = "PortalJump",
 	BillboardResult = "Billboard",
 	PlayerArrested = "Arrest",
