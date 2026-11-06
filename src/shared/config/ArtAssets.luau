@@ -1721,7 +1721,8 @@ ArtAssets.street = {
 		piece("car_dark", "71989356457981", { 42, 46, 51 }, "SmoothPlastic"),
 		piece("car_steel", "134654656395339", { 168, 174, 180 }, "Metal"),
 	},
-	-- @barrios:inicio (generado por art/generators/city_assets.py)
+
+	-- @barrios:inicio centro
 	["centro-backdrop-a"] = {
 		piece("centro-backdrop-a_stone", "138532623128117", { 210, 201, 180 }, "Limestone"),
 		piece("centro-backdrop-a_stone_dark", "79733160372152", { 185, 176, 156 }, "Limestone"),
@@ -1775,7 +1776,165 @@ ArtAssets.street = {
 		piece("centro-walk_flag_dark", "135684564183112", { 124, 122, 116 }, "Concrete"),
 		piece("centro-walk_grate", "111568886165783", { 43, 47, 51 }, "Metal", 0.2),
 	},
-	-- @barrios:fin
+	-- @barrios:fin centro
+	-- @barrios:inicio puerto
+	["puerto-backdrop-a"] = {
+		piece("puerto-backdrop-a_stone_dark", "96635871407408", { 185, 176, 156 }, "Limestone"),
+		piece("puerto-backdrop-a_brick", "85053686246122", { 176, 102, 74 }, "Brick"),
+		piece("puerto-backdrop-a_brick_dark", "139474002236401", { 142, 82, 60 }, "Brick"),
+		piece("puerto-backdrop-a_slate", "130573610083565", { 74, 78, 84 }, "Slate"),
+		piece("puerto-backdrop-a_window", "116127643565423", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("puerto-backdrop-a_concrete", "75327692898480", { 196, 192, 184 }, "Concrete"),
+		piece("puerto-backdrop-a_glass", "112912191069259", { 127, 178, 217 }, "Glass", 0.25),
+		piece("puerto-backdrop-a_iron", "99258985450509", { 35, 40, 43 }, "Metal"),
+		piece("puerto-backdrop-a_paint", "135377304296247", { 222, 216, 200 }, "SmoothPlastic"),
+		piece("puerto-backdrop-a_rust", "113015111337066", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("puerto-backdrop-a_steel", "71146592252199", { 168, 174, 180 }, "Metal", 0.8),
+		piece("puerto-backdrop-a_water", "80432778206056", { 62, 127, 166 }, "Water"),
+		piece("puerto-backdrop-a_wood", "106088942397553", { 122, 84, 51 }, "Wood"),
+	},
+	["puerto-backdrop-b"] = {
+		piece("puerto-backdrop-b_stone_dark", "77226750908047", { 185, 176, 156 }, "Limestone"),
+		piece("puerto-backdrop-b_brick", "139489967707097", { 176, 102, 74 }, "Brick"),
+		piece("puerto-backdrop-b_brick_dark", "81719368500393", { 142, 82, 60 }, "Brick"),
+		piece("puerto-backdrop-b_window", "113831182075785", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("puerto-backdrop-b_concrete", "95034870153715", { 196, 192, 184 }, "Concrete"),
+		piece("puerto-backdrop-b_glass", "91540652375431", { 127, 178, 217 }, "Glass", 0.25),
+		piece("puerto-backdrop-b_iron", "81707953967222", { 35, 40, 43 }, "Metal"),
+		piece("puerto-backdrop-b_paint", "107984612097136", { 222, 216, 200 }, "SmoothPlastic"),
+		piece("puerto-backdrop-b_rust", "105281973859046", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("puerto-backdrop-b_steel", "113502724502868", { 168, 174, 180 }, "Metal", 0.8),
+		piece("puerto-backdrop-b_water", "131301113495861", { 62, 127, 166 }, "Water"),
+		piece("puerto-backdrop-b_wood", "131253230717384", { 122, 84, 51 }, "Wood"),
+	},
+	["puerto-bench"] = {
+		piece("puerto-bench_rust", "101648256083161", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("puerto-bench_wood", "98529992437576", { 122, 84, 51 }, "Wood"),
+	},
+	["puerto-bollard"] = {
+		piece("puerto-bollard_iron", "79243218022411", { 35, 40, 43 }, "Metal"),
+		piece("puerto-bollard_rust", "81034827485045", { 140, 74, 42 }, "CorrodedMetal"),
+	},
+	["puerto-crates"] = {
+		piece("puerto-crates_canvas", "115026828904719", { 224, 218, 202 }, "Fabric"),
+		piece("puerto-crates_wood", "136590195402898", { 122, 84, 51 }, "Wood"),
+	},
+	["puerto-lamp"] = {
+		piece("puerto-lamp_iron", "140374880507805", { 35, 40, 43 }, "Metal"),
+		piece("puerto-lamp_lamp_glass", "130477744157518", { 237, 229, 211 }, "SmoothPlastic"),
+		piece("puerto-lamp_rust", "72088441517284", { 140, 74, 42 }, "CorrodedMetal"),
+	},
+	["puerto-walk"] = {
+		piece("puerto-walk_stone_dark", "127622547469009", { 185, 176, 156 }, "Limestone"),
+		piece("puerto-walk_curb", "108616561992198", { 156, 154, 148 }, "Concrete"),
+		piece("puerto-walk_flag", "140456224046123", { 198, 190, 174 }, "Concrete"),
+		piece("puerto-walk_flag_dark", "99387213420956", { 124, 122, 116 }, "Concrete"),
+		piece("puerto-walk_iron", "123415668590226", { 35, 40, 43 }, "Metal"),
+		piece("puerto-walk_rust", "91180247933457", { 140, 74, 42 }, "CorrodedMetal"),
+	},
+	-- @barrios:fin puerto
+	-- @barrios:inicio zona-alta
+	["zona-alta-backdrop-a"] = {
+		piece("zona-alta-backdrop-a_stone", "127565256225147", { 210, 201, 180 }, "Limestone"),
+		piece("zona-alta-backdrop-a_stone_dark", "108478175994312", { 185, 176, 156 }, "Limestone"),
+		piece("zona-alta-backdrop-a_glass", "100724996597392", { 127, 178, 217 }, "Glass", 0.25),
+		piece("zona-alta-backdrop-a_gold", "74244300754736", { 201, 162, 39 }, "Metal", 0.9),
+		piece("zona-alta-backdrop-a_leaf", "84538479286451", { 78, 107, 60 }, "Grass"),
+		piece("zona-alta-backdrop-a_steel", "79457629683831", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["zona-alta-backdrop-b"] = {
+		piece("zona-alta-backdrop-b_stone", "85198586308360", { 210, 201, 180 }, "Limestone"),
+		piece("zona-alta-backdrop-b_stone_dark", "133673963964670", { 185, 176, 156 }, "Limestone"),
+		piece("zona-alta-backdrop-b_glass", "136491715268277", { 127, 178, 217 }, "Glass", 0.25),
+		piece("zona-alta-backdrop-b_gold", "81017522305766", { 201, 162, 39 }, "Metal", 0.9),
+		piece("zona-alta-backdrop-b_leaf", "107306608501515", { 78, 107, 60 }, "Grass"),
+		piece("zona-alta-backdrop-b_steel", "95565917449294", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["zona-alta-bench"] = {
+		piece("zona-alta-bench_steel", "101885103706901", { 168, 174, 180 }, "Metal", 0.8),
+		piece("zona-alta-bench_wood", "114637050156965", { 122, 84, 51 }, "Wood"),
+	},
+	["zona-alta-bollard"] = {
+		piece("zona-alta-bollard_gold", "75200526566414", { 201, 162, 39 }, "Metal", 0.9),
+		piece("zona-alta-bollard_steel", "123484446499179", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["zona-alta-lamp"] = {
+		piece("zona-alta-lamp_lamp_glass", "82508448173315", { 237, 229, 211 }, "SmoothPlastic"),
+		piece("zona-alta-lamp_steel", "137937556592704", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["zona-alta-planter"] = {
+		piece("zona-alta-planter_grate", "112172493719907", { 43, 47, 51 }, "Metal", 0.2),
+		piece("zona-alta-planter_leaf", "92236235614405", { 78, 107, 60 }, "Grass"),
+		piece("zona-alta-planter_soil", "125602274056759", { 47, 42, 37 }, "Ground"),
+		piece("zona-alta-planter_steel", "94665360061156", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["zona-alta-walk"] = {
+		piece("zona-alta-walk_flag", "89295832601857", { 198, 190, 174 }, "Concrete"),
+		piece("zona-alta-walk_flag_dark", "96327942786296", { 124, 122, 116 }, "Concrete"),
+		piece("zona-alta-walk_grate", "119193205401745", { 43, 47, 51 }, "Metal", 0.2),
+		piece("zona-alta-walk_steel", "138508963598029", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	-- @barrios:fin zona-alta
+	-- @barrios:inicio industrial
+	["industrial-backdrop-a"] = {
+		piece("industrial-backdrop-a_brick", "118994852111493", { 176, 102, 74 }, "Brick"),
+		piece("industrial-backdrop-a_brick_dark", "130355821214015", { 142, 82, 60 }, "Brick"),
+		piece("industrial-backdrop-a_slate", "104946031655858", { 74, 78, 84 }, "Slate"),
+		piece("industrial-backdrop-a_window", "101634251450451", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("industrial-backdrop-a_grate", "80894614384097", { 43, 47, 51 }, "Metal", 0.2),
+		piece("industrial-backdrop-a_concrete", "92396418332320", { 196, 192, 184 }, "Concrete"),
+		piece("industrial-backdrop-a_iron", "102594411160617", { 35, 40, 43 }, "Metal"),
+		piece("industrial-backdrop-a_rust", "132862589139536", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-backdrop-a_steel", "109993377916268", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["industrial-backdrop-b"] = {
+		piece("industrial-backdrop-b_brick", "74059776074428", { 176, 102, 74 }, "Brick"),
+		piece("industrial-backdrop-b_brick_dark", "121761892375564", { 142, 82, 60 }, "Brick"),
+		piece("industrial-backdrop-b_slate", "82637871501001", { 74, 78, 84 }, "Slate"),
+		piece("industrial-backdrop-b_window", "77042200321866", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("industrial-backdrop-b_grate", "134017180367331", { 43, 47, 51 }, "Metal", 0.2),
+		piece("industrial-backdrop-b_concrete", "119549880250092", { 196, 192, 184 }, "Concrete"),
+		piece("industrial-backdrop-b_iron", "94412295831565", { 35, 40, 43 }, "Metal"),
+		piece("industrial-backdrop-b_rust", "132550042605443", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-backdrop-b_steel", "137995629395575", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["industrial-barrier"] = {
+		piece("industrial-barrier_concrete", "78279126038522", { 196, 192, 184 }, "Concrete"),
+		piece("industrial-barrier_iron", "134950604656113", { 35, 40, 43 }, "Metal"),
+		piece("industrial-barrier_paint", "72388374168590", { 222, 216, 200 }, "SmoothPlastic"),
+		piece("industrial-barrier_red", "126284781116799", { 196, 56, 43 }, "Fabric"),
+		piece("industrial-barrier_steel", "88856214529379", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["industrial-container"] = {
+		piece("industrial-container_grate", "94549663834950", { 43, 47, 51 }, "Metal", 0.2),
+		piece("industrial-container_paint", "121309054574852", { 222, 216, 200 }, "SmoothPlastic"),
+		piece("industrial-container_rust", "135480972402589", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-container_steel", "78504288571354", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["industrial-lamp"] = {
+		piece("industrial-lamp_concrete", "115831069095344", { 196, 192, 184 }, "Concrete"),
+		piece("industrial-lamp_iron", "130775793618705", { 35, 40, 43 }, "Metal"),
+		piece("industrial-lamp_lamp_glass", "86243776687582", { 237, 229, 211 }, "SmoothPlastic"),
+		piece("industrial-lamp_rust", "124860083892458", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-lamp_steel", "96309245133596", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	["industrial-pallet"] = {
+		piece("industrial-pallet_canvas", "133830273635388", { 224, 218, 202 }, "Fabric"),
+		piece("industrial-pallet_iron", "137038158482076", { 35, 40, 43 }, "Metal"),
+		piece("industrial-pallet_rust", "109840024060931", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-pallet_steel", "136571888113617", { 168, 174, 180 }, "Metal", 0.8),
+		piece("industrial-pallet_wood", "90637310206496", { 122, 84, 51 }, "Wood"),
+	},
+	["industrial-walk"] = {
+		piece("industrial-walk_curb", "95994398611394", { 156, 154, 148 }, "Concrete"),
+		piece("industrial-walk_flag_dark", "81350047742460", { 124, 122, 116 }, "Concrete"),
+		piece("industrial-walk_grate", "86595762271641", { 43, 47, 51 }, "Metal", 0.2),
+		piece("industrial-walk_concrete", "86093265058162", { 196, 192, 184 }, "Concrete"),
+		piece("industrial-walk_iron", "107592477502047", { 35, 40, 43 }, "Metal"),
+		piece("industrial-walk_rust", "118763506202340", { 140, 74, 42 }, "CorrodedMetal"),
+		piece("industrial-walk_steel", "128728481649112", { 168, 174, 180 }, "Metal", 0.8),
+	},
+	-- @barrios:fin industrial
 } :: { [string]: { Piece } }
 
 -- Tráfico: la pieza que se pinta de cada color y los colores, apagados y sin amarillo para que ningún coche

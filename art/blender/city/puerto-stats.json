@@ -1,0 +1,84 @@
+{
+  "puerto-walk": {
+    "triangles": 1480,
+    "lod": 680,
+    "pieces": [
+      "puerto-walk_curb",
+      "puerto-walk_flag",
+      "puerto-walk_flag_dark",
+      "puerto-walk_iron",
+      "puerto-walk_rust",
+      "puerto-walk_stone_dark"
+    ]
+  },
+  "puerto-bollard": {
+    "triangles": 188,
+    "lod": 89,
+    "pieces": [
+      "puerto-bollard_iron",
+      "puerto-bollard_rust"
+    ]
+  },
+  "puerto-crates": {
+    "triangles": 432,
+    "lod": 168,
+    "pieces": [
+      "puerto-crates_canvas",
+      "puerto-crates_wood"
+    ]
+  },
+  "puerto-lamp": {
+    "triangles": 328,
+    "lod": 158,
+    "pieces": [
+      "puerto-lamp_iron",
+      "puerto-lamp_lamp_glass",
+      "puerto-lamp_rust"
+    ]
+  },
+  "puerto-bench": {
+    "triangles": 192,
+    "lod": 78,
+    "pieces": [
+      "puerto-bench_rust",
+      "puerto-bench_wood"
+    ]
+  },
+  "puerto-backdrop-a": {
+    "triangles": 1808,
+    "lod": null,
+    "pieces": [
+      "puerto-backdrop-a_brick",
+      "puerto-backdrop-a_brick_dark",
+      "puerto-backdrop-a_concrete",
+      "puerto-backdrop-a_glass",
+      "puerto-backdrop-a_iron",
+      "puerto-backdrop-a_paint",
+      "puerto-backdrop-a_rust",
+      "puerto-backdrop-a_slate",
+      "puerto-backdrop-a_steel",
+      "puerto-backdrop-a_stone_dark",
+      "puerto-backdrop-a_water",
+      "puerto-backdrop-a_window",
+      "puerto-backdrop-a_wood"
+    ]
+  },
+  "puerto-backdrop-b": {
+    "triangles": 1592,
+    "lod": null,
+    "pieces": [
+      "puerto-backdrop-b_brick",
+      "puerto-backdrop-b_brick_dark",
+      "puerto-backdrop-b_concrete",
+      "puerto-backdrop-b_glass",
+      "puerto-backdrop-b_iron",
+      "puerto-backdrop-b_paint",
+      "puerto-backdrop-b_rust",
+      "puerto-backdrop-b_steel",
+      "puerto-backdrop-b_stone_dark",
+      "puerto-backdrop-b_water",
+      "puerto-backdrop-b_window",
+      "puerto-backdrop-b_wood"
+    ]
+  }
+}

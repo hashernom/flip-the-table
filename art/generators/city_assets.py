@@ -20,7 +20,7 @@ CITY = os.path.join(REPO, "art", "blender", "city")
 ART_ASSETS = os.path.join(REPO, "src", "shared", "config", "ArtAssets.luau")
 MANIFEST = os.path.join(REPO, "art", "manifest.json")
 
-START = "\t-- @barrios:inicio (generado por art/generators/city_assets.py)"
+START = "\t-- @barrios:inicio"
 END = "\t-- @barrios:fin"
 
 # Material y color de cada pieza, por el sufijo de su malla. Sale de `art/guia-de-estilo.md` §2.2 y §6:
@@ -45,7 +45,8 @@ MATERIALS = {
     "paint": ((222, 216, 200), "SmoothPlastic", None),
     "red": ((196, 56, 43), "Fabric", None),
     "hydrant": ((168, 53, 42), "Metal", None),
-    "glass": ((46, 74, 99), "Glass", 0.25),
+    # El cristal de la ciudad es el azul de la guía (§2.2), no el de las ventanas: `window` es hueco.
+    "glass": ((127, 178, 217), "Glass", 0.25),
     "concrete": ((196, 192, 184), "Concrete", None),
     "rust": ((140, 74, 42), "CorrodedMetal", None),
     "steel": ((168, 174, 180), "Metal", 0.8),
@@ -189,15 +190,24 @@ def main():
         print("Nada que escribir")
         return 1
 
-    block = "\n".join([START] + lines + [END])
+    # Una marca por barrio: así un barrio no borra el bloque de los demás al regenerarse.
+    start_tag = f"{START} {args.barrio}"
+    end_tag = f"{END} {args.barrio}"
+    block = "\n".join([start_tag] + lines + [end_tag])
 
     with open(ART_ASSETS, encoding="utf-8") as handle:
         source = handle.read()
 
-    start = source.find("\t-- @barrios:inicio")
-    end = source.find(END)
-    if start != -1 and end != -1:
-        source = source[:start] + block + source[end + len(END) :]
+    # Formatos anteriores sin nombre de barrio: se retiran antes de insertar.
+    legacy = source.find("\t-- @barrios:inicio (generado")
+    if legacy != -1:
+        legacy_end = source.find(END, legacy)
+        source = source[:legacy] + source[legacy_end + len(END) :]
+
+    start = source.find(start_tag)
+    if start != -1:
+        end = source.find(end_tag, start)
+        source = source[:start] + block + source[end + len(end_tag) :]
     else:
         anchor = "ArtAssets.street = {"
         position = source.find(anchor)
