@@ -312,6 +312,9 @@ local function boot()
 			return {}
 		end,
 		log = legendaryOptions.log,
+		revealCard = function(cardId: string, seconds: number)
+			hud.revealCard(cardId, seconds)
+		end,
 		follow = function(id: string)
 			local token: Model? = tokens[id]
 			if token ~= nil then

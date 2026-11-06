@@ -249,6 +249,17 @@ return {
 		mockSwings = 3,
 		mockSec = 0.08,
 	},
+	-- Carta robada en grande en el centro (Hud.revealCard): altura en pantalla, giro y escala de entrada,
+	-- escala a la vista y al llegar a la mano, y tiempos de entrada y de salida.
+	cardReveal = {
+		top = 0.42,
+		tilt = -14,
+		scaleFrom = 0.3,
+		scale = 1.35,
+		scaleTo = 0.45,
+		inSec = 0.32,
+		outSec = 0.35,
+	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,

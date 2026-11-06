@@ -57,6 +57,8 @@ export type Env = {
 	-- Vista del lote (el estado al acabar) y variación de la escena (1 o 2), igual en todo el grupo.
 	view: any,
 	variation: number,
+	-- Segundos que dura la escena (ya descontado el atraso del cliente).
+	duration: number,
 }
 
 -- Paso por fotograma: `p` va de 0 a 1 a lo largo de la escena.
@@ -608,6 +610,7 @@ function CommonCards.runner(options: Options): {
 				event = event,
 				view = ctx.view,
 				variation = ctx.variation or 1,
+				duration = ctx.duration,
 			}
 			-- "none": la escena no necesita ficha y mueve la cámara ella misma (o no la mueve).
 			local free = spec.focus == "none"

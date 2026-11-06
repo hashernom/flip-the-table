@@ -27,6 +27,8 @@ local STAGING = CardStaging.squares
 export type Options = CommonCards.Options & {
 	-- Sigue a la ficha de un jugador: el Duelo acaba mirando al perdedor, que es quien se mueve.
 	follow: (id: string) -> (),
+	-- Enseña en grande la carta robada (solo llega el id a su dueño).
+	revealCard: ((cardId: string, seconds: number) -> ())?,
 }
 
 export type SquareScenes = {
@@ -35,6 +37,10 @@ export type SquareScenes = {
 }
 
 local SquareScenes = {}
+
+local function opts(env: Env): Options
+	return env.options :: any
+end
 
 -- Nombre de una carta, si el evento la trae (solo la ve su dueño); si no, «?».
 local function cardLabel(cardId: any): string
@@ -233,21 +239,58 @@ local function market(env: Env): Step
 	end
 end
 
--- Giro: una carta cae del cielo dando vueltas y se planta delante de la ficha que la roba.
+-- Giro: junto a la ficha aparece un mazo de cartas. La de arriba sale, sube girando y se da la vuelta.
+-- Para su dueño, la carta se enseña entonces en grande en pantalla (`revealCard`) y vuela a la mano. Los
+-- demás ven el dorso con «?»: la carta robada es secreta (R-P44).
 local function spin(env: Env): Step
 	local base = env.actorBase :: Vector3
 	local head = kit.header(env, base, kit.names(env, "scene.spin.header"), "#E07A3C")
 	local forward = kit.forwardOf(env.actorToken)
-	local rest = base + forward * 6 + Vector3.new(0, 4, 0)
+	local side = forward:Cross(Vector3.yAxis)
+	local deckAt = base + forward * 5 + side * 5
+	local yaw = CFrame.lookAt(deckAt, deckAt - forward).Rotation
+	-- El mazo: cartas tumbadas, una sobre otra, con el canto un poco desordenado.
+	local pile: { { part: Part, rest: CFrame } } = {}
+	for layer = 1, STAGING.spinDeck do
+		local wobble = math.rad(((layer * 37) % 9) - 4)
+		local rest = CFrame.new(deckAt + Vector3.new(0, 0.15 + layer * 0.22, 0))
+			* yaw
+			* CFrame.Angles(math.rad(90), 0, wobble)
+		local color = if layer % 2 == 0 then Theme.color.navy else Color3.fromHex(STAGING.spinBack)
+		local piece = LegendaryKit.part(env.run.props, "DeckCard", Vector3.new(3, 4.2, 0.2), color, rest)
+		table.insert(pile, { part = piece, rest = rest })
+	end
+	local top = CFrame.new(deckAt + Vector3.new(0, 0.15 + (STAGING.spinDeck + 1) * 0.22, 0))
+		* yaw
+		* CFrame.Angles(math.rad(90), 0, 0)
 	local card = makeCard(env, cardLabel(env.event.cardId))
+	local cardId = env.event.cardId
+	local revealed = false
+	local show = Vector3.new(base.X, base.Y + 9, base.Z) + forward * 4
 	return function(p: number, t: number)
 		head(p)
-		local fall = phase(p, 0.05, 0.5)
-		local y = rest.Y + 30 * (1 - LegendaryRules.ease(fall))
-		local turn = (1 - fall) * 10 + math.sin(t * 2) * 0.15
-		local frame = CFrame.lookAt(Vector3.new(rest.X, y, rest.Z), Vector3.new(rest.X, y, rest.Z) - forward)
-			* CFrame.Angles(0, turn, 0)
-		placeCard(card, frame, fall > 0 and p < 0.92)
+		-- El mazo se planta con un salto y se va al final.
+		local s = pop(phase(p, 0, 0.15)) * (1 - phase(p, 0.9, 1))
+		for _, item in pile do
+			item.part.CFrame = item.rest + Vector3.new(0, (1 - s) * -3, 0)
+			item.part.Transparency = if s > 0.01 then 0 else 1
+		end
+		-- La carta de arriba se levanta, gira sobre sí misma y queda de frente.
+		local lift = LegendaryRules.ease(phase(p, 0.15, 0.45))
+		local away = phase(p, 0.7, 0.9)
+		local at = top.Position:Lerp(show, lift) + Vector3.new(0, away * away * 18, 0)
+		local flat = CFrame.lookAt(at, at - forward)
+		local frame = flat
+			* CFrame.Angles(math.rad(90) * (1 - lift), lift * math.pi * 2 + math.sin(t * 2) * 0.1, 0)
+		placeCard(card, frame, p > 0.15 and away < 1 and s > 0.01)
+		-- Cuando la carta queda de frente, su dueño la ve en grande en pantalla.
+		if not revealed and lift >= 1 then
+			revealed = true
+			local reveal = opts(env).revealCard
+			if type(cardId) == "string" and reveal ~= nil then
+				pcall(reveal, cardId, env.duration * (1 - p))
+			end
+		end
 	end
 end
 

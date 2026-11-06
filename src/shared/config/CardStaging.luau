@@ -109,6 +109,9 @@ CardStaging.squares = {
 	marketGlow = "#9B5DE5",
 	stampWood = "#8A5A33",
 	taxCoins = 8,
+	-- Giro: cartas del mazo y color de su dorso.
+	spinDeck = 7,
+	spinBack = "#C4382B",
 }
 
 -- Escenas de la partida (scenes/game/GameScenes): monedas de la renta, grúa de construcción, mazo de la

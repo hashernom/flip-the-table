@@ -27,6 +27,9 @@ local font = Theme.font
 
 export type Handles = {
 	gui: ScreenGui,
+	-- Enseña en grande, en el centro, la carta que el jugador acaba de robar, y la manda hacia la mano
+	-- antes de `seconds`. Al pintar la mano, la carta cae en su sitio del abanico.
+	revealCard: (cardId: string, seconds: number) -> (),
 	setView: (view: any, names: ViewText.Names?) -> (),
 	-- Plazo de la decisión en tiempo del servidor; nil esconde la calzada.
 	setDeadline: (deadline: number?) -> (),
@@ -355,6 +358,10 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end
 	end
 
+	-- La carta robada que se enseña en grande (revealCard); el número corta una anterior a medias.
+	local revealFace: CanvasGroup? = nil
+	local revealToken = 0
+
 	local function showPreview(cardId: string, rarity: string, slotX: number, pinned: boolean?)
 		previewToken += 1
 		local current = preview
@@ -658,6 +665,57 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			if changed and show ~= nil then
 				show()
 			end
+		end,
+		revealCard = function(cardId: string, seconds: number)
+			local def = Cards.byId[cardId]
+			if def == nil then
+				return
+			end
+			revealToken += 1
+			local mine = revealToken
+			if revealFace ~= nil then
+				revealFace:Destroy()
+			end
+			local config = Ui.cardReveal
+			local face = Board.CardFace(gui, cardId, def.rarity)
+			face.Name = "DrawReveal"
+			face.AnchorPoint = Vector2.new(0.5, 0.5)
+			face.Position = UDim2.fromScale(0.5, config.top)
+			face.Rotation = config.tilt
+			face.ZIndex = 30
+			face.GroupTransparency = 1
+			local grow = Instance.new("UIScale")
+			grow.Scale = config.scaleFrom
+			grow.Parent = face
+			revealFace = face
+			-- Entra girada y pequeña, se planta en grande y se queda un momento a la vista.
+			local inInfo = TweenInfo.new(config.inSec, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+			TweenService:Create(grow, inInfo, { Scale = config.scale }):Play()
+			TweenService:Create(face, inInfo, { Rotation = 0, GroupTransparency = 0 }):Play()
+			local outSec = math.min(config.outSec, seconds * 0.4)
+			task.delay(math.max(config.inSec, seconds - outSec), function()
+				if revealToken ~= mine or face.Parent == nil then
+					return
+				end
+				-- Vuela hacia la mano, encogiéndose: allí la recoge el abanico al pintarse.
+				local handX = if mirrored then 1 else 0
+				local handOffset = if mirrored
+					then -Ui.handLeft - handWidth / 2
+					else Ui.handLeft + handWidth / 2
+				local outInfo = TweenInfo.new(outSec, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+				TweenService:Create(face, outInfo, {
+					Position = UDim2.new(handX, handOffset, 1, -Ui.handVisibleHeight),
+					Rotation = Ui.cardDraw.tilt,
+					GroupTransparency = 0.2,
+				}):Play()
+				TweenService:Create(grow, outInfo, { Scale = config.scaleTo }):Play()
+				task.delay(outSec, function()
+					if revealFace == face then
+						revealFace = nil
+					end
+					face:Destroy()
+				end)
+			end)
 		end,
 		onPlayCard = function(callback: (action: any) -> ())
 			table.insert(playListeners, callback)

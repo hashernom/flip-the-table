@@ -39,7 +39,7 @@ local BASE_DURATION: { [string]: number } = {
 	BankruptcyDeclared = 4,
 	GhostActed = 2.5,
 	GhostResurrected = 4,
-	CardDrawn = 2,
+	CardDrawn = 2.8,
 	CardDiscarded = 2,
 	CardPlayed = 3,
 	CardBlocked = 2.5,
@@ -68,6 +68,8 @@ local UNKNOWN_DURATION = 2
 -- tienen que verse rodar y pararse en su cara.
 local MIN_BY_EVENT: { [string]: number } = {
 	DiceRolled = 1.4,
+	-- El robo: la carta sale del mazo y su dueño la ve en grande antes de que vuele a la mano.
+	CardDrawn = 2,
 }
 
 -- Cartas por rareza: comunes y raras de 2 a 4 s, legendarias hasta 10 s (ficha, «Las escenas no
