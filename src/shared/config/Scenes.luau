@@ -48,6 +48,7 @@ local BASE_DURATION: { [string]: number } = {
 	DuelResolved = 4,
 	PortalUsed = 4.8,
 	MarketBought = 2.5,
+	TaxPaid = 2.5,
 	PactFormed = 3,
 	PactEnded = 2.5,
 	PactBroken = 3,

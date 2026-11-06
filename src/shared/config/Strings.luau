@@ -288,6 +288,13 @@ local TEXTS: { [string]: string } = {
 	["scene.common.fine"] = "Multa a {target}",
 	["scene.common.bribe"] = "{actor} soborna al Tribunal",
 	["scene.common.spy"] = "{actor} espía a {target}",
+	-- Escenas de casillas.
+	["scene.duel.vs"] = "VS",
+	["scene.duel.prize"] = "+{amount}",
+	["scene.duel.tie"] = "Empate",
+	["scene.market.header"] = "{actor} compra en el Mercado Negro",
+	["scene.spin.header"] = "{actor} roba una carta",
+	["scene.tax.header"] = "Impuesto: -{amount}",
 	-- Suma de la escena de los dados: «4 + 3 = 7».
 	["scene.dice.total"] = "{dice} = {total}",
 	["scene.strike.sign"] = "Cerrado por huelga",

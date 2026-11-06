@@ -37,6 +37,8 @@ return {
 	legendWide = { backPerSpan = 0.62, upPerSpan = 0.62, focusUp = 10 },
 	-- Ladrón de Escrituras: desde la calle, de frente a la fachada de la propiedad robada.
 	deed = { back = 44, inward = 0, up = 24, ahead = 0, focusUp = 10, fixedSide = true } :: Shot,
+	-- Duelo: de lado, con los dos rivales en el cuadro y el «VS» entre ellos.
+	duel = { back = 42, inward = 0, up = 18, ahead = 0, focusUp = 7, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.
 	-- Más cerca del tablero (2026-11-06): el anillo llena la vista y el exterior queda libre para los barrios.
 	-- Encuadra el tablero, no la ciudad (2026-11-06): el anillo con su calle llena la pantalla de frente.

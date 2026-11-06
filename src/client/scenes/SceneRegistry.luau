@@ -37,6 +37,10 @@ local FINAL: { [string]: string } = {
 	Fine = "cards/CommonCards",
 	Bribe = "cards/CommonCards",
 	Spy = "cards/CommonCards",
+	DuelResolved = "squares/SquareScenes",
+	MarketBought = "squares/SquareScenes",
+	CardDrawn = "squares/SquareScenes",
+	TaxPaid = "squares/SquareScenes",
 	PropertyBought = "SettleNow",
 	AuctionWon = "SettleNow",
 }

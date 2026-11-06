@@ -43,7 +43,7 @@ export type CommonCards = {
 }
 
 -- Lo que una carta necesita para montarse.
-type Env = {
+export type Env = {
 	run: Run,
 	handles: CityBuilder.CityHandles,
 	actorId: string?,
@@ -57,7 +57,7 @@ type Env = {
 }
 
 -- Paso por fotograma: `p` va de 0 a 1 a lo largo de la escena.
-type Step = (p: number, t: number) -> ()
+export type Step = (p: number, t: number) -> ()
 type Build = (env: Env) -> (Step, (() -> ())?)
 
 local function v3(p: LegendaryRules.Point3): Vector3
@@ -526,7 +526,7 @@ local function spy(env: Env): Step
 end
 
 -- Qué carta usa cada escena y a qué ficha mira la cámara: "actor" o "target".
-local BUILDS: { [string]: { build: Build, focus: string } } = {
+local BUILDS: { [string]: Spec } = {
 	Shield = { build = shield :: any, focus = "actor" },
 	ExtraDie = { build = extraDie :: any, focus = "actor" },
 	Reverse = { build = reverse :: any, focus = "actor" },
@@ -543,7 +543,31 @@ local CommonCards = {}
 CommonCards.CARD_IDS =
 	{ "Shield", "ExtraDie", "Reverse", "ForcedTip", "Discount", "Shove", "Fine", "Bribe", "Spy" }
 
-function CommonCards.new(options: Options): CommonCards
+-- Ficha de una escena para `runner`: su montaje, a qué ficha mira la cámara y, si hace falta, cómo saca del
+-- evento quién actúa y a quién afecta.
+export type Spec = {
+	build: Build,
+	focus: string,
+	ids: ((event: Types.Event) -> (string?, string?))?,
+}
+
+-- Piezas sueltas para las escenas que montan otras carpetas (`scenes/squares`).
+CommonCards.kit = {
+	header = header,
+	phase = phase,
+	pop = pop,
+	forwardOf = forwardOf,
+	coin = coin,
+	names = names,
+	v3 = v3,
+	p3 = p3,
+}
+
+-- El esqueleto de todas: cámara a la ficha, carpeta de piezas, paso por fotograma y limpieza segura.
+function CommonCards.runner(options: Options): {
+	scene: (label: string, spec: Spec) -> SceneDirector.Scene,
+	cancelAll: () -> (),
+}
 	local active: { [Run]: () -> () } = {}
 
 	local function cancelAll()
@@ -553,15 +577,19 @@ function CommonCards.new(options: Options): CommonCards
 		end
 	end
 
-	local function sceneFor(cardId: string): SceneDirector.Scene
-		local spec = BUILDS[cardId]
+	local function sceneFor(label: string, spec: Spec): SceneDirector.Scene
 		local function run(ctx: Context, event: Types.Event)
 			cancelAll()
 			ctx.show("")
 			local handles = options.city()
-			-- El Escudo llega como CardBlocked: quien se defiende es `byPlayerId`.
-			local actorId = if event.type == "CardBlocked" then event.byPlayerId else event.playerId
-			local targetId = event.targetId
+			local actorId: any, targetId: any
+			if spec.ids ~= nil then
+				actorId, targetId = spec.ids(event)
+			else
+				-- El Escudo llega como CardBlocked: quien se defiende es `byPlayerId`.
+				actorId = if event.type == "CardBlocked" then event.byPlayerId else event.playerId
+				targetId = event.targetId
+			end
 			local actorToken = if type(actorId) == "string" then options.token(actorId) else nil
 			local targetToken = if type(targetId) == "string" then options.token(targetId) else nil
 			local env: Env = {
@@ -584,7 +612,7 @@ function CommonCards.new(options: Options): CommonCards
 				return
 			end
 			options.director.follow(focusToken)
-			local current = LegendaryKit.begin(handles, `Card{cardId}`)
+			local current = LegendaryKit.begin(handles, `Scene{label}`)
 			env.run = current
 			local built: Step? = nil
 			local cleanup: (() -> ())? = nil
@@ -600,31 +628,39 @@ function CommonCards.new(options: Options): CommonCards
 				if cleanup ~= nil then
 					pcall(cleanup)
 				end
+				pcall(function()
+					options.director.setSceneFocus(nil)
+				end)
 				LegendaryKit.clear(current)
 			end
 			active[current] = finish
 			if not ok or built == nil then
-				options.log(`{cardId}: no se pudo montar la escena: {tostring(err)}`)
+				options.log(`{label}: no se pudo montar la escena: {tostring(err)}`)
 				finish()
 				ctx.wait(ctx.duration)
 				return
 			end
 			local step = built :: Step
 			local duration = math.max(ctx.duration, 0.01)
-			LegendaryKit.play(ctx, current, cardId, options.log, function(t: number)
+			LegendaryKit.play(ctx, current, label, options.log, function(t: number)
 				step(t / duration, t)
 			end, finish)
 		end
 		return { run = run }
 	end
 
+	return { scene = sceneFor, cancelAll = cancelAll }
+end
+
+function CommonCards.new(options: Options): CommonCards
+	local runner = CommonCards.runner(options)
 	local scenes: { [string]: SceneDirector.Scene } = {}
 	for _, cardId in CommonCards.CARD_IDS do
-		scenes[cardId] = sceneFor(cardId)
+		scenes[cardId] = runner.scene(cardId, BUILDS[cardId])
 	end
 	-- La reacción del Escudo es su propio evento.
 	scenes.CardBlocked = scenes.Shield
-	return { scenes = scenes, cancelAll = cancelAll }
+	return { scenes = scenes, cancelAll = runner.cancelAll }
 end
 
 return CommonCards

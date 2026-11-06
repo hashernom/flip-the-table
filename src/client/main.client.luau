@@ -83,6 +83,7 @@ local function boot()
 	local DeedThiefScene = require("./scenes/cards/DeedThief")
 	local DiceScene = require("./scenes/game/Dice")
 	local CommonCardsScene = require("./scenes/cards/CommonCards")
+	local SquareScenes = require("./scenes/squares/SquareScenes")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -269,14 +270,15 @@ local function boot()
 	legendaries.DiceRolled = dice
 
 	-- Las nueve comunes y el Escudo (CardBlocked): cada una con su objeto y su cartel de quién y a quién.
+	local function commonNameOf(id: string): string
+		local view = StateStore.view(queue.state)
+		return if view ~= nil then ViewText.playerName(view, names, id) else id
+	end
 	local commons = CommonCardsScene.new({
 		director = director,
 		city = legendaryOptions.city,
 		token = legendaryOptions.token,
-		nameOf = function(id: string): string
-			local view = StateStore.view(queue.state)
-			return if view ~= nil then ViewText.playerName(view, names, id) else id
-		end,
+		nameOf = commonNameOf,
 		rivalsOf = function(id: string): { string }
 			local view = StateStore.view(queue.state)
 			local list: { string } = {}
@@ -293,6 +295,28 @@ local function boot()
 	})
 	for cardId, scene in commons.scenes do
 		legendaries[cardId] = { scene = scene, cancelAll = commons.cancelAll }
+	end
+
+	-- Casillas (Tarea 5): Duelo, Mercado Negro, Giro e Impuesto. El Duelo acaba con la cámara en el perdedor,
+	-- que retrocede en la escena siguiente.
+	local squareScenes = SquareScenes.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = commonNameOf,
+		rivalsOf = function(_id: string): { string }
+			return {}
+		end,
+		log = legendaryOptions.log,
+		follow = function(id: string)
+			local token: Model? = tokens[id]
+			if token ~= nil then
+				director.follow(token)
+			end
+		end,
+	})
+	for eventType, scene in squareScenes.scenes do
+		legendaries[eventType] = { scene = scene, cancelAll = squareScenes.cancelAll }
 	end
 
 	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
@@ -540,19 +564,6 @@ local function boot()
 			local view = StateStore.view(queue.state)
 			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
 			billboard.play(event.result :: string, event.amount :: number, playerName, ctx.duration)
-			ctx.wait(ctx.duration)
-		end,
-	})
-
-	-- Duelo: hasta que llegue su escena final (plan 08, Tarea 5), la cámara pasa ya al perdedor, que es
-	-- quien se mueve después; sin perdedor (empate o duelo anulado) se queda donde estaba.
-	SceneDirector.register(scenes, "DuelResolved", {
-		run = function(ctx, event)
-			ctx.show("DuelResolved")
-			local loser = if type(event.loserId) == "string" then tokens[event.loserId] else nil
-			if loser ~= nil then
-				director.follow(loser)
-			end
 			ctx.wait(ctx.duration)
 		end,
 	})

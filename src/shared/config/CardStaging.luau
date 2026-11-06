@@ -100,4 +100,15 @@ CardStaging.common = {
 	beamColor = "#FFF2C4",
 }
 
+-- Escenas de casillas (scenes/squares/SquareScenes): carteles del Duelo, cuándo pasa la cámara al perdedor,
+-- el baúl del Mercado Negro y el sello del Impuesto.
+CardStaging.squares = {
+	duelSignLift = 13,
+	duelFollowAt = 0.85,
+	marketCrate = "#1E1A24",
+	marketGlow = "#9B5DE5",
+	stampWood = "#8A5A33",
+	taxCoins = 8,
+}
+
 return CardStaging
