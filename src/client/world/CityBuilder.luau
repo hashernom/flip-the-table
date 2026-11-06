@@ -12,6 +12,7 @@ local ArtAssets = require("../../shared/config/ArtAssets")
 local CityLayout = require("../../shared/config/CityLayout")
 local Strings = require("../../shared/config/Strings")
 local Types = require("../../shared/rules/Types")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
 export type SizeId = CityLayout.SizeId
@@ -34,6 +35,8 @@ export type CityHandles = {
 	setOwner: (index: number, color: Color3?) -> (),
 	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
 	setHotZone: (zoneId: string?) -> (),
+	-- Vuelve a colocar el fondo de los barrios: las mallas llegan después de construir la ciudad.
+	refreshBackdrops: () -> (),
 	destroy: () -> (),
 }
 
@@ -147,6 +150,47 @@ local function makeBridges(model: Model, sizeId: SizeId)
 		})
 		plank.Parent = model
 	end
+end
+
+-- El fondo de cada barrio: piezas de bajo detalle detrás de los solares, para que la ciudad no acabe en
+-- una pared. No tienen colisión ni se pueden consultar: son silueta y nadie las pisa (art/PIPELINE.md).
+local BACKDROP_FOLDER = "Backdrop"
+
+local function makeBackdrops(model: Model, sizeId: SizeId)
+	local previous = model:FindFirstChild(BACKDROP_FOLDER)
+	if previous ~= nil then
+		previous:Destroy()
+	end
+	local art = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	if art == nil then
+		return
+	end
+	local folder = Instance.new("Folder")
+	folder.Name = BACKDROP_FOLDER
+	for _, barrioId in CityLayout.barriosFor(sizeId) do
+		for _, item in CityLayout.backdropsFor(sizeId, barrioId) do
+			local pieces = ArtAssets.street[item.kind]
+			if pieces == nil then
+				continue
+			end
+			local position = Vector3.new(item.x, item.y, item.z)
+			local origin = CFrame.lookAt(position, position + Vector3.new(item.lookX, 0, item.lookZ))
+			for _, piece in pieces do
+				local source = art:FindFirstChild(piece.key)
+				if source ~= nil and source:IsA("BasePart") then
+					local mesh = source:Clone()
+					mesh.Name = piece.key
+					mesh.CFrame = origin * source.CFrame
+					mesh.Anchored = true
+					mesh.CanCollide = false
+					mesh.CanQuery = false
+					mesh.CanTouch = false
+					mesh.Parent = folder
+				end
+			end
+		end
+	end
+	folder.Parent = model
 end
 
 -- La calle: un tramo de asfalto por lado del anillo, con su acera a cada lado. Va por piezas largas, no
@@ -314,6 +358,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	makeGround(model, sizeId)
 	makeStreet(model, sizeId)
 	makeBridges(model, sizeId)
+	makeBackdrops(model, sizeId)
 
 	local squares: { [number]: BasePart } = {}
 	for order, slot in route do
@@ -413,6 +458,9 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		end,
 		lotOf = lotOf,
 		setHotZone = setHotZone,
+		refreshBackdrops = function()
+			makeBackdrops(model, sizeId)
+		end,
 		setOwner = function(index: number, color: Color3?)
 			local tile: BasePart? = squares[index]
 			if tile == nil then

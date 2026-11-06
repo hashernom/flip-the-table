@@ -1,0 +1,24 @@
+{
+  "name": "CentroCaptura",
+  "tree": {
+    "$className": "Folder",
+    "Barrios": {
+      "$path": "../../../src/shared/config/Barrios.luau"
+    },
+    "CityLayout": {
+      "$path": "../../../src/shared/config/CityLayout.luau"
+    },
+    "ArtAssets": {
+      "$path": "../../../src/shared/config/ArtAssets.luau"
+    },
+    "CityBuilder": {
+      "$path": "../../../src/client/world/CityBuilder.luau"
+    },
+    "StreetDressing": {
+      "$path": "../../../src/client/world/StreetDressing.luau"
+    },
+    "MainClient": {
+      "$path": "../../../src/client/main.client.luau"
+    }
+  }
+}

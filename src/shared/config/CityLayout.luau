@@ -9,6 +9,7 @@
 -- avanza siempre en el mismo sentido. La ciudad crece hacia fuera: Centro, Puerto, Zona Alta e
 -- Industrial, en ese orden a lo largo de la ruta, así que Centro y Puerto ocupan la cabeza del
 -- anillo en los tres tamaños.
+local Barrios = require("./Barrios")
 local Boards = require("./Boards")
 local Types = require("../rules/Types")
 
@@ -286,26 +287,42 @@ end
 -- Mobiliario de una manzana: va en las aceras y, en la junta entre dos casillas, sin pisar su pintura.
 -- Los árboles van en las juntas, a ambos lados: así no tapan fachadas ni nombres desde el interior del
 -- anillo, que es desde donde mira la cámara. La cebra cierra los dos extremos.
-local SIDEWALK_TOP = 0.4
 local JOINT_ALONG = SQUARE_SPACING / 2
-local LAMP_ALONG, LAMP_OUT = -13, 18
-local BENCH_ALONG, BENCH_OUT = 9, 22.6
-local TREE_OUT = 19.5
-local INNER_TREE_OUT = -20.5
 
--- Todo lo que amuebla las casillas de `zoneId`, de la primera a la última, con las de en medio incluidas.
-function CityLayout.dressingFor(sizeId: SizeId, zoneId: string): { Dressing }
-	local route = CityLayout.routeFor(sizeId)
+-- Primera y última casilla de un barrio a lo largo de la ruta. Cada barrio ocupa un tramo seguido.
+local function runFor(route: { Slot }, barrioId: string): (number, number)
 	local first, last = math.huge, -math.huge
 	for _, slot in route do
-		if slot.zoneId == zoneId then
+		if slot.barrioId == barrioId then
 			first, last = math.min(first, slot.index), math.max(last, slot.index)
 		end
 	end
+	return first, last
+end
+
+-- Barrios que entran en un tamaño, en el orden de la ruta y sin repetir.
+function CityLayout.barriosFor(sizeId: SizeId): { string }
+	local seen: { [string]: boolean } = {}
+	local ids: { string } = {}
+	for _, slot in CityLayout.routeFor(sizeId) do
+		if not seen[slot.barrioId] then
+			seen[slot.barrioId] = true
+			table.insert(ids, slot.barrioId)
+		end
+	end
+	return ids
+end
+
+-- Todo lo que amuebla las casillas del barrio, de la primera a la última, con las de en medio
+-- incluidas. Qué se pone y dónde vive en `Barrios`; aquí solo se convierte en posiciones.
+function CityLayout.dressingFor(sizeId: SizeId, barrioId: string): { Dressing }
+	local route = CityLayout.routeFor(sizeId)
+	local first, last = runFor(route, barrioId)
 	local items: { Dressing } = {}
 	if first > last then
 		return items
 	end
+	local barrio = Barrios.get(barrioId)
 
 	local function place(kind: string, slot: Slot, along: number, out: number, y: number)
 		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
@@ -327,19 +344,82 @@ function CityLayout.dressingFor(sizeId: SizeId, zoneId: string): { Dressing }
 		-- Una junta solo existe si la casilla vecina sigue en la misma recta: en la esquina no hay acera.
 		local straightBefore = before ~= nil and before.facing == slot.facing
 		local straightAfter = after ~= nil and after.facing == slot.facing
-		place("Lamp", slot, LAMP_ALONG, LAMP_OUT, SIDEWALK_TOP)
-		place("Bench", slot, BENCH_ALONG, BENCH_OUT, SIDEWALK_TOP)
-		if straightAfter then
-			if index < last then
-				place("Tree", slot, JOINT_ALONG, TREE_OUT, SIDEWALK_TOP)
-				place("Tree", slot, JOINT_ALONG, INNER_TREE_OUT, SIDEWALK_TOP)
-			else
-				place("Crosswalk", slot, JOINT_ALONG, 0, 0)
+		local order = index - first
+
+		for _, rule in barrio.rules do
+			if rule.from == "first" and index ~= first then
+				continue
 			end
+			if rule.from == "last" and index ~= last then
+				continue
+			end
+			if rule.exceptLast and index == last then
+				continue
+			end
+			if rule.straight and not straightAfter then
+				continue
+			end
+			if rule.every ~= nil and (order + (rule.skip or 0)) % rule.every ~= 0 then
+				continue
+			end
+			local along = if rule.at == "joint" then rule.along + JOINT_ALONG else rule.along
+			place(rule.kind, slot, along, rule.out, rule.y)
 		end
+
+		-- La calle como frontera: el paso de cebra cierra el barrio por sus dos extremos, y es lo
+		-- único que se pinta sobre el asfalto entre dos barrios (`art/guia-de-estilo.md` §7).
 		if index == first and straightBefore then
-			place("Crosswalk", slot, -JOINT_ALONG, 0, 0)
+			place(barrio.crosswalk, slot, -JOINT_ALONG, 0, 0)
 		end
+		if index == last and straightAfter then
+			place(barrio.crosswalk, slot, JOINT_ALONG, 0, 0)
+		end
+	end
+	return items
+end
+
+-- Fondo de ciudad: una pieza de dos casillas de ancho detrás de los solares. No se cruza, no se pisa
+-- y no tiene colisión: es silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del
+-- barrio para que la manzana no se repita.
+local BACKDROP_OUT = 56
+local BACKDROP_SLOTS = 2
+
+CityLayout.BACKDROP_OUT_STUDS = BACKDROP_OUT
+
+function CityLayout.backdropsFor(sizeId: SizeId, barrioId: string): { Dressing }
+	local route = CityLayout.routeFor(sizeId)
+	local first, last = runFor(route, barrioId)
+	local items: { Dressing } = {}
+	if first > last then
+		return items
+	end
+	local barrio = Barrios.get(barrioId)
+	if #barrio.backdrops == 0 then
+		return items
+	end
+
+	local variant = 0
+	for index = first, last - (BACKDROP_SLOTS - 1) do
+		if (index - first) % BACKDROP_SLOTS ~= 0 then
+			continue
+		end
+		local slot = route[index]
+		local nextSlot = route[index + 1]
+		-- En una esquina el fondo se cortaría con el de la calle vecina: mejor un hueco que un cruce.
+		if nextSlot == nil or nextSlot.facing ~= slot.facing then
+			continue
+		end
+		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
+		local along = SQUARE_SPACING / 2
+		variant += 1
+		table.insert(items, {
+			kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
+			x = slot.position.x + math.sin(slot.facing) * along + outX * BACKDROP_OUT,
+			y = 0,
+			z = slot.position.z + math.cos(slot.facing) * along + outZ * BACKDROP_OUT,
+			lookX = -outX,
+			lookZ = -outZ,
+		})
 	end
 	return items
 end

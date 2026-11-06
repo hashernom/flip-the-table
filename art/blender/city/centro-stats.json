@@ -1,0 +1,87 @@
+{
+  "centro-walk": {
+    "triangles": 348,
+    "lod": 144,
+    "pieces": [
+      "centro-walk_curb",
+      "centro-walk_flag",
+      "centro-walk_flag_dark",
+      "centro-walk_grate"
+    ]
+  },
+  "centro-tree": {
+    "triangles": 316,
+    "lod": 146,
+    "pieces": [
+      "centro-tree_bark",
+      "centro-tree_grate",
+      "centro-tree_leaf",
+      "centro-tree_soil"
+    ]
+  },
+  "centro-lamp": {
+    "triangles": 340,
+    "lod": 170,
+    "pieces": [
+      "centro-lamp_iron",
+      "centro-lamp_lamp_glass"
+    ]
+  },
+  "centro-bench": {
+    "triangles": 228,
+    "lod": 90,
+    "pieces": [
+      "centro-bench_iron",
+      "centro-bench_wood"
+    ]
+  },
+  "centro-kiosk": {
+    "triangles": 232,
+    "lod": 104,
+    "pieces": [
+      "centro-kiosk_brick_dark",
+      "centro-kiosk_iron",
+      "centro-kiosk_paint",
+      "centro-kiosk_red",
+      "centro-kiosk_slate",
+      "centro-kiosk_stone",
+      "centro-kiosk_window",
+      "centro-kiosk_wood"
+    ]
+  },
+  "centro-hydrant": {
+    "triangles": 236,
+    "lod": 112,
+    "pieces": [
+      "centro-hydrant_hydrant"
+    ]
+  },
+  "centro-backdrop-a": {
+    "triangles": 2520,
+    "lod": null,
+    "pieces": [
+      "centro-backdrop-a_brick",
+      "centro-backdrop-a_brick_dark",
+      "centro-backdrop-a_iron",
+      "centro-backdrop-a_slate",
+      "centro-backdrop-a_stone",
+      "centro-backdrop-a_stone_dark",
+      "centro-backdrop-a_window",
+      "centro-backdrop-a_wood"
+    ]
+  },
+  "centro-backdrop-b": {
+    "triangles": 2088,
+    "lod": null,
+    "pieces": [
+      "centro-backdrop-b_brick",
+      "centro-backdrop-b_brick_dark",
+      "centro-backdrop-b_iron",
+      "centro-backdrop-b_slate",
+      "centro-backdrop-b_stone",
+      "centro-backdrop-b_stone_dark",
+      "centro-backdrop-b_window",
+      "centro-backdrop-b_wood"
+    ]
+  }
+}

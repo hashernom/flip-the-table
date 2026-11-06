@@ -1721,6 +1721,61 @@ ArtAssets.street = {
 		piece("car_dark", "71989356457981", { 42, 46, 51 }, "SmoothPlastic"),
 		piece("car_steel", "134654656395339", { 168, 174, 180 }, "Metal"),
 	},
+	-- @barrios:inicio (generado por art/generators/city_assets.py)
+	["centro-backdrop-a"] = {
+		piece("centro-backdrop-a_stone", "138532623128117", { 210, 201, 180 }, "Limestone"),
+		piece("centro-backdrop-a_stone_dark", "79733160372152", { 185, 176, 156 }, "Limestone"),
+		piece("centro-backdrop-a_brick", "122178561879081", { 176, 102, 74 }, "Brick"),
+		piece("centro-backdrop-a_brick_dark", "139049280722625", { 142, 82, 60 }, "Brick"),
+		piece("centro-backdrop-a_slate", "71003987609128", { 74, 78, 84 }, "Slate"),
+		piece("centro-backdrop-a_window", "104513284500423", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("centro-backdrop-a_iron", "74653373289093", { 35, 40, 43 }, "Metal"),
+		piece("centro-backdrop-a_wood", "135388183137079", { 122, 84, 51 }, "Wood"),
+	},
+	["centro-backdrop-b"] = {
+		piece("centro-backdrop-b_stone", "75754827947665", { 210, 201, 180 }, "Limestone"),
+		piece("centro-backdrop-b_stone_dark", "81715778649899", { 185, 176, 156 }, "Limestone"),
+		piece("centro-backdrop-b_brick", "123349836414635", { 176, 102, 74 }, "Brick"),
+		piece("centro-backdrop-b_brick_dark", "72578657853556", { 142, 82, 60 }, "Brick"),
+		piece("centro-backdrop-b_slate", "103981393537843", { 74, 78, 84 }, "Slate"),
+		piece("centro-backdrop-b_window", "116805688803621", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("centro-backdrop-b_iron", "82314416702073", { 35, 40, 43 }, "Metal"),
+		piece("centro-backdrop-b_wood", "96134840082905", { 122, 84, 51 }, "Wood"),
+	},
+	["centro-bench"] = {
+		piece("centro-bench_iron", "108035543184152", { 35, 40, 43 }, "Metal"),
+		piece("centro-bench_wood", "81683147600041", { 122, 84, 51 }, "Wood"),
+	},
+	["centro-hydrant"] = {
+		piece("centro-hydrant_hydrant", "138229098739674", { 168, 53, 42 }, "Metal"),
+	},
+	["centro-kiosk"] = {
+		piece("centro-kiosk_stone", "123629586898413", { 210, 201, 180 }, "Limestone"),
+		piece("centro-kiosk_brick_dark", "99573161184044", { 142, 82, 60 }, "Brick"),
+		piece("centro-kiosk_slate", "77866966187610", { 74, 78, 84 }, "Slate"),
+		piece("centro-kiosk_window", "127355806758304", { 46, 58, 68 }, "SmoothPlastic"),
+		piece("centro-kiosk_iron", "95614100759726", { 35, 40, 43 }, "Metal"),
+		piece("centro-kiosk_paint", "126778581711857", { 222, 216, 200 }, "SmoothPlastic"),
+		piece("centro-kiosk_red", "78846843480992", { 196, 56, 43 }, "Fabric"),
+		piece("centro-kiosk_wood", "84887442589453", { 122, 84, 51 }, "Wood"),
+	},
+	["centro-lamp"] = {
+		piece("centro-lamp_iron", "124954853762357", { 35, 40, 43 }, "Metal"),
+		piece("centro-lamp_lamp_glass", "90520237551408", { 237, 229, 211 }, "SmoothPlastic"),
+	},
+	["centro-tree"] = {
+		piece("centro-tree_grate", "117297425677190", { 43, 47, 51 }, "Metal", 0.2),
+		piece("centro-tree_bark", "127197089631950", { 107, 88, 68 }, "Wood"),
+		piece("centro-tree_leaf", "95337781635191", { 78, 107, 60 }, "Grass"),
+		piece("centro-tree_soil", "106461224324998", { 47, 42, 37 }, "Ground"),
+	},
+	["centro-walk"] = {
+		piece("centro-walk_curb", "124608845414570", { 156, 154, 148 }, "Concrete"),
+		piece("centro-walk_flag", "76145171643680", { 198, 190, 174 }, "Concrete"),
+		piece("centro-walk_flag_dark", "135684564183112", { 124, 122, 116 }, "Concrete"),
+		piece("centro-walk_grate", "111568886165783", { 43, 47, 51 }, "Metal", 0.2),
+	},
+	-- @barrios:fin
 } :: { [string]: { Piece } }
 
 -- Tráfico: la pieza que se pinta de cada color y los colores, apagados y sin amarillo para que ningún coche
@@ -1762,8 +1817,8 @@ ArtAssets.jail = {
 	piece("jail_sign", "112253702709622", RED, "SmoothPlastic"),
 } :: { Piece }
 
--- Zonas con la calle ya ambientada: la de la porción vertical. El plan 07 añade las demás.
-ArtAssets.dressedZones = { "carmesi" }
+-- El mobiliario no se elige por zona desde aquí: lo decide `Barrios.luau`, que sabe qué calle, qué
+-- piezas y qué fondo tiene cada barrio. Este módulo solo dice qué malla es cada `kind`.
 
 -- Pintura desgastada de las casillas: texturas en blanco, teñidas con el color de la zona.
 ArtAssets.roadPaint = {

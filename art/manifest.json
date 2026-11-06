@@ -2355,6 +2355,165 @@
       ],
       "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
       "assetId": "rbxassetid://76952528758720"
+    },
+    {
+      "id": "centro-backdrop-a",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/centro.py",
+      "triangles": 2520,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://122178561879081",
+      "assetIds": [
+        "rbxassetid://122178561879081",
+        "rbxassetid://139049280722625",
+        "rbxassetid://74653373289093",
+        "rbxassetid://71003987609128",
+        "rbxassetid://138532623128117",
+        "rbxassetid://79733160372152",
+        "rbxassetid://104513284500423",
+        "rbxassetid://135388183137079"
+      ]
+    },
+    {
+      "id": "centro-backdrop-b",
+      "category": "CityBackdrop",
+      "source": "art/blender/city/centro.py",
+      "triangles": 2088,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://123349836414635",
+      "assetIds": [
+        "rbxassetid://123349836414635",
+        "rbxassetid://72578657853556",
+        "rbxassetid://82314416702073",
+        "rbxassetid://103981393537843",
+        "rbxassetid://75754827947665",
+        "rbxassetid://81715778649899",
+        "rbxassetid://116805688803621",
+        "rbxassetid://96134840082905"
+      ]
+    },
+    {
+      "id": "centro-bench",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 228,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://108035543184152",
+      "lods": [
+        90
+      ],
+      "assetIds": [
+        "rbxassetid://108035543184152",
+        "rbxassetid://81683147600041"
+      ]
+    },
+    {
+      "id": "centro-hydrant",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 236,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://138229098739674",
+      "lods": [
+        112
+      ],
+      "assetIds": [
+        "rbxassetid://138229098739674"
+      ]
+    },
+    {
+      "id": "centro-kiosk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 232,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://99573161184044",
+      "lods": [
+        104
+      ],
+      "assetIds": [
+        "rbxassetid://99573161184044",
+        "rbxassetid://95614100759726",
+        "rbxassetid://126778581711857",
+        "rbxassetid://78846843480992",
+        "rbxassetid://77866966187610",
+        "rbxassetid://123629586898413",
+        "rbxassetid://127355806758304",
+        "rbxassetid://84887442589453"
+      ]
+    },
+    {
+      "id": "centro-lamp",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 340,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://124954853762357",
+      "lods": [
+        170
+      ],
+      "assetIds": [
+        "rbxassetid://124954853762357",
+        "rbxassetid://90520237551408"
+      ]
+    },
+    {
+      "id": "centro-tree",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 316,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://127197089631950",
+      "lods": [
+        146
+      ],
+      "assetIds": [
+        "rbxassetid://127197089631950",
+        "rbxassetid://117297425677190",
+        "rbxassetid://95337781635191",
+        "rbxassetid://106461224324998"
+      ]
+    },
+    {
+      "id": "centro-walk",
+      "category": "RepeatedProp",
+      "source": "art/blender/city/centro.py",
+      "triangles": 348,
+      "textures": 0,
+      "status": "Draft",
+      "screenshots": [],
+      "generatedWith": "Blender 5.2, art/blender/city/centro.py",
+      "assetId": "rbxassetid://124608845414570",
+      "lods": [
+        144
+      ],
+      "assetIds": [
+        "rbxassetid://124608845414570",
+        "rbxassetid://76145171643680",
+        "rbxassetid://135684564183112",
+        "rbxassetid://111568886165783"
+      ]
     }
   ]
 }

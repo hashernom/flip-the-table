@@ -1,12 +1,13 @@
 --!strict
--- Amuebla las zonas ya ambientadas con las mallas de `ArtAssets`. Dónde va cada pieza lo decide
--- `CityLayout`, que es puro; aquí solo se copian. Sin mallas cargadas no pone nada, y se vuelve a llamar
--- cuando llegan: construir dos veces deja el mismo resultado.
+-- Amuebla cada barrio con las mallas de `ArtAssets`. Qué se pone lo decide `Barrios`, y dónde, `CityLayout`,
+-- que es puro; aquí solo se copian. Sin mallas cargadas no pone nada, y se vuelve a llamar cuando llegan:
+-- construir dos veces deja el mismo resultado.
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local ArtAssets = require("../../shared/config/ArtAssets")
+local Barrios = require("../../shared/config/Barrios")
 local CityBuilder = require("./CityBuilder")
 local CityLayout = require("../../shared/config/CityLayout")
 
@@ -29,11 +30,20 @@ function StreetDressing.build(city: CityBuilder.CityHandles)
 	end
 	local folder = Instance.new("Folder")
 	folder.Name = FOLDER
-	for _, zone in ArtAssets.dressedZones do
-		for _, item in CityLayout.dressingFor(city.sizeId, zone) do
+	for _, barrioId in CityLayout.barriosFor(city.sizeId) do
+		-- Un barrio que aún no tiene sus mallas se queda sin amueblar, pero la ciudad se construye.
+		if not Barrios.has(barrioId) then
+			continue
+		end
+		for _, item in CityLayout.dressingFor(city.sizeId, barrioId) do
+			local pieces = ArtAssets.street[item.kind]
+			if pieces == nil then
+				warn(`StreetDressing: {barrioId} pide "{item.kind}" y no está en ArtAssets`)
+				continue
+			end
 			local position = Vector3.new(item.x, item.y, item.z)
 			local origin = CFrame.lookAt(position, position + Vector3.new(item.lookX, 0, item.lookZ))
-			for _, piece in ArtAssets.street[item.kind] do
+			for _, piece in pieces do
 				local source = art:FindFirstChild(piece.key)
 				if source ~= nil and source:IsA("BasePart") then
 					local mesh = source:Clone()

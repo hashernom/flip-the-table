@@ -91,7 +91,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 
 ### Datos: `src/shared/config`
 
-`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings`, `CityLayout`, `ArtAssets`, `Tokens`, `TokenAnim`, `Ui` y `UiIcons`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño.
+`Economy`, `Boards`, `Cards`, `Perks`, `Squares`, `Scenes`, `Lobby`, `Places`, `Strings`, `CityLayout`, `Barrios`, `ArtAssets`, `Tokens`, `TokenAnim`, `Ui` y `UiIcons`. Todo número ajustable vive aquí, nunca en la lógica. `Places` guarda los identificadores de los dos lugares y vale `0` mientras no se hayan publicado. `Strings` tiene los nombres y colores de las 12 zonas y las 34 propiedades, y las etiquetas de las casillas especiales; `CityLayout` tiene la geometría de la ruta de cada tamaño y `Barrios` la calle de cada barrio.
 
 ### Servidor
 
@@ -129,7 +129,8 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/camera/CameraRules` | Qué modo de cámara toca y cuánto dura un recorrido | 05 |
 | `client/camera/CameraDirector` | Aplica el modo elegido a la cámara del jugador | 05 |
 | `client/ui/MiniMap` | Minimapa siempre visible y detalle de cada casilla | 06 |
-| `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
+| `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño; `build(sizeId, parent)` levanta la calle, las casillas y el fondo de cada barrio | 05 y 07 |
+| `client/world/StreetDressing` | Amuebla cada barrio con su acera, su mobiliario y su arbolado, y pone el tráfico a circular | 06 y 07 |
 | `client/world/TokenRider` | Sube el avatar a la ficha, recorre la ruta y anima reposo, marcha y celebración | 05 y 07 |
 | `client/world/SquareView` | Lugar propio de cada casilla especial y brillo de la Zona Caliente | 07 |
 | `client/world/ModelCity` | Maqueta de la vista general: `show(city, view, names)`, `hide`, `focus` y `radius`; `ModelCityRules` es su parte pura | 07 |
@@ -323,6 +324,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P50 (propiedades):** la ciudad sigue [la visión visual](../../art/vision-visual.md). La ruta es una calle de asfalto continua, con cada casilla pintada en el carril junto a su edificio; los valores viven en `config/CityLayout`. Cada propiedad es un edificio fijo que existe desde el inicio de la partida. El nivel solo añade marcadores junto al edificio y añadidos sobre él, y el aspecto sale siempre del nivel de la vista. Los daños de una escena duran lo que la escena: no hay estados permanentes de daño.
 - **R-P51 (cámara y mapa):** no hay primera persona. Todo el grupo ve el mismo plano (`CameraRules.modeFor`, `config/CameraShots`): el del turno, alejado y por el interior del anillo, desde donde se ven las fachadas de frente; el del recorrido, cercano; y el de la escena, que manda sobre todo. La información no depende de la cámara: `ui/MiniMap` enseña siempre todo el tablero, y la vista general sigue a un botón.
 - **R-P52 (interfaz):** sustituye en esto a R-P37. La interfaz usa `ScreenInsets.DeviceSafeInsets`: toda la ventana, también la franja de la barra de Roblox. El móvil revisará la muesca cuando le toque.
+- **R-P53 (barrios):** la ciudad está partida en barrios —Centro, Puerto, Zona Alta e Industrial— y cada uno tiene calle propia. `config/Barrios` es su identidad: la acera que pisa, el mobiliario que la amuebla, el fondo que tiene detrás y el paso de cebra que la cierra. `CityLayout.dressingFor(sizeId, barrioId)` y `CityLayout.backdropsFor(sizeId, barrioId)` convierten esa identidad en posiciones, y `CityLayout.barriosFor(sizeId)` dice qué barrios entran en cada tamaño. El mobiliario **ya no se elige por zona** (`dressedZones` desaparece): se elige por `slot.barrioId`. `CityBuilder.build` coloca el fondo de los barrios del tamaño y `refreshBackdrops` lo vuelve a colocar cuando llegan las mallas, porque llegan después que la ciudad. Los `kind` de `Barrios` son ids de `ArtAssets.street`: el mismo texto identifica la pieza en el manifiesto y en el código, y un barrio sin sus mallas se queda sin amueblar sin romper la ciudad.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 
 ## Datos iniciales

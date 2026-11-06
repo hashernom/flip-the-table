@@ -397,6 +397,8 @@ local function boot()
 		BuildingView.refreshArt()
 		if city ~= nil then
 			StreetDressing.build(city)
+			-- El fondo de cada barrio también espera a sus mallas: se vuelve a colocar ahora.
+			city.refreshBackdrops()
 			JailView.build(city)
 			SquareView.build(city)
 			StreetDressing.startTraffic(city)
