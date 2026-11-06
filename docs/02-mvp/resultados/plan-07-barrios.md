@@ -1,7 +1,9 @@
 # Trazado de barrios (Tarea 1 del plan 07)
 
 **Rama:** `plan-07-barrios`, abierta desde `main` el 2026-11-05. **Estado:** los cuatro barrios
-modelados, subidos e integrados; faltan las capturas en Studio y la aprobación del responsable.
+modelados, subidos e integrados, y **aprobados por el responsable el 2026-11-06** por sus láminas.
+Queda la captura en el juego: es lo único que falta para pasar los assets de `Draft` a `InGame` y
+`Approved`, y no es un trámite —`tools/manifest` rechaza un `Approved` sin capturas en el juego.
 
 ## Qué se ha producido
 
@@ -58,13 +60,40 @@ En [art/blender/city/README.md](../../../art/blender/city/README.md). Resumen:
   el modelo en Blender. Confirma la conversión de unidades y que el frente queda a -Z, el lado que
   `CFrame.lookAt` gira hacia la calle.
 
+## Aprobación del responsable
+
+**2026-11-06.** El responsable aprobó los cuatro barrios por sus láminas y dio por cerrado el lote de
+arte. La aprobación cubre el diseño —acera, mobiliario, fondo y cómo se distinguen entre sí—, no la
+colocación en el juego, que nadie ha visto todavía funcionando.
+
+Por eso los 29 assets siguen en **`Draft`** y no se han promovido:
+
+- `Approved` exige capturas **en el juego** (`art/PIPELINE.md` §8), y una lámina de Blender no lo es.
+  `tools/manifest` rechaza la entrada sin ellas, así que marcarlo ahora rompería `lune run tools/check`
+  y dejaría la rama sin poder fusionarse.
+- `InGame` significa «importado y colocado»: es verdad que el código los coloca, pero afirmarlo sin
+  haberlos visto cargar en Roblox sería dar por bueno algo no comprobado.
+
+La promoción es un cambio de dos campos por asset (`status` y `approvedBy`, más `screenshots`) y se hace
+en el mismo commit que las capturas.
+
 ## Lo que falta
 
 1. **Capturas en Studio** de los cuatro barrios y de sus fronteras, y la de partida real con 2 jugadores.
 2. **La prueba de fuego**: vista general con los cuatro barrios, en gris y en color.
-3. **Aprobación del responsable** por barrio. Nada se marca `Approved` ni `InGame` sin ella.
-4. **Cámara por casilla** con las 34 propiedades a nivel 5: ninguna vista puede quedar tapada.
-5. **Rendimiento**. Es el riesgo abierto: la ciudad de 56 casillas suma del orden de **1 300 piezas**
+3. **Cámara por casilla** con las 34 propiedades a nivel 5: ninguna vista puede quedar tapada.
+4. **Rendimiento**. Es el riesgo abierto: la ciudad de 56 casillas suma del orden de **1 300 piezas**
    entre acera (4-7 por casilla), arbolado, mobiliario y fondo. Cabe en Roblox, pero hay que medirlo en
    el móvil de referencia en la Tarea 7, y si aprieta, el primer recorte es fundir cada pieza de
    mobiliario en una sola malla con `SurfaceAppearance` en vez de una malla por material.
+
+## Cómo se cierra cuando haya Studio
+
+1. Abrir el lugar con el código de esta rama sincronizado (Rojo).
+2. Ejecutar `art/blender/city/capture.luau` en modo edición con el `PEDIDO` del barrio que toque: carga
+   sus mallas, levanta la ciudad del tamaño, la amuebla y devuelve `posicion` y `objetivo` para la
+   cámara.
+3. Capturar con `screen_capture`, guardar en `art/render/ingame/` y anotar el nombre del archivo en
+   `screenshots` de cada asset del manifiesto.
+4. Promover a `InGame` los que se vean colocados y a `Approved` los revisados, con `approvedBy`, y
+   volver a pasar `lune run tools/check`.
