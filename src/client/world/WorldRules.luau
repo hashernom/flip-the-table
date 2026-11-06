@@ -145,4 +145,48 @@ function WorldRules.priceCell(property: any, hot: boolean?): PriceCell?
 	return { caption = "city.price.rent", amount = property.rent or 0, tone = rentTone(property.level or 0) }
 end
 
+-- Avance de un recorrido de ficha, de 0 a 1, en el instante `elapsed` de `seconds`. Acelera al arrancar y
+-- frena al llegar, pero va a velocidad constante en medio: la ficha no se para en cada casilla.
+function WorldRules.rideProgress(elapsed: number, seconds: number, rampShare: number): number
+	if seconds <= 0 then
+		return 1
+	end
+	local t = math.clamp(elapsed / seconds, 0, 1)
+	local ramp = math.clamp(rampShare, 0, 0.5)
+	if ramp <= 0 then
+		return t
+	end
+	-- Perfil de velocidad trapezoidal: sube en `ramp`, se mantiene y baja en el último `ramp`.
+	local peak = 1 / (1 - ramp)
+	if t < ramp then
+		return peak * t * t / (2 * ramp)
+	elseif t > 1 - ramp then
+		local left = 1 - t
+		return 1 - peak * left * left / (2 * ramp)
+	end
+	return peak * (t - ramp / 2)
+end
+
+-- Tramo de una ruta en el que cae `distance`: `cumulative[k]` es la distancia acumulada al final del tramo
+-- k. Devuelve el tramo (1-based) y cuánto de él lleva recorrido, de 0 a 1.
+function WorldRules.segmentAt(cumulative: { number }, distance: number): (number, number)
+	local count = #cumulative
+	if count == 0 then
+		return 0, 1
+	end
+	local before = 0
+	for index = 1, count do
+		local finish = cumulative[index]
+		if distance <= finish or index == count then
+			local span = finish - before
+			if span <= 0 then
+				return index, 1
+			end
+			return index, math.clamp((distance - before) / span, 0, 1)
+		end
+		before = finish
+	end
+	return count, 1
+end
+
 return WorldRules

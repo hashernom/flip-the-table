@@ -394,3 +394,52 @@ describe("WorldRules.priceCell", function()
 		end
 	end)
 end)
+
+describe("WorldRules.rideProgress", function()
+	it("empieza en 0, acaba en 1 y nunca retrocede", function()
+		local last = -1
+		for step = 0, 100 do
+			local p = WorldRules.rideProgress(step / 100 * 3, 3, 0.2)
+			expect(p >= last - 1e-9).toBe(true)
+			last = p
+		end
+		expect(WorldRules.rideProgress(0, 3, 0.2)).toBe(0)
+		expect(math.abs(WorldRules.rideProgress(3, 3, 0.2) - 1) < 1e-9).toBe(true)
+	end)
+
+	it("en medio va a velocidad constante: no frena en cada casilla", function()
+		local a = WorldRules.rideProgress(1.0, 3, 0.2)
+		local b = WorldRules.rideProgress(1.5, 3, 0.2)
+		local c = WorldRules.rideProgress(2.0, 3, 0.2)
+		expect(math.abs((b - a) - (c - b)) < 1e-9).toBe(true)
+	end)
+
+	it("arranca y frena suave: el primer y el último instante avanzan poco", function()
+		local start = WorldRules.rideProgress(0.05, 3, 0.2)
+		local finish = 1 - WorldRules.rideProgress(2.95, 3, 0.2)
+		local middle = WorldRules.rideProgress(1.55, 3, 0.2) - WorldRules.rideProgress(1.5, 3, 0.2)
+		expect(start < middle and finish < middle).toBe(true)
+	end)
+
+	it("sin duración llega de golpe", function()
+		expect(WorldRules.rideProgress(0, 0, 0.2)).toBe(1)
+	end)
+end)
+
+describe("WorldRules.segmentAt", function()
+	it("encuentra el tramo y lo que lleva recorrido", function()
+		local cumulative = { 10, 20, 40 }
+		local index, fraction = WorldRules.segmentAt(cumulative, 5)
+		expect(index).toBe(1)
+		expect(fraction).toBe(0.5)
+		index, fraction = WorldRules.segmentAt(cumulative, 30)
+		expect(index).toBe(3)
+		expect(fraction).toBe(0.5)
+	end)
+
+	it("pasada la ruta se queda al final del último tramo", function()
+		local index, fraction = WorldRules.segmentAt({ 10, 20 }, 99)
+		expect(index).toBe(2)
+		expect(fraction).toBe(1)
+	end)
+end)
