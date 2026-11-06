@@ -51,6 +51,8 @@ Audio.pieces = {
 	["sfx.demolish"] = sfx("83634681025357", 0.6, 0.04),
 	["sfx.pactBreak"] = sfx("83259273157737", 0.55, 0.03),
 	["sfx.chime"] = sfx("123837626897918", 0.45, 0.02),
+	["sfx.moneyGain"] = sfx("78064391183870", 0.6, 0.02),
+	["sfx.moneyLoss"] = sfx("76003504901029", 0.6, 0.02),
 } :: { [string]: Piece }
 
 -- Archivo de cada efecto procedural en el repositorio, para subirlo y registrarlo en el manifiesto.
@@ -69,6 +71,8 @@ Audio.sfxFiles = {
 	["sfx.demolish"] = "art/audio/sfx/sfx-demolish.wav",
 	["sfx.pactBreak"] = "art/audio/sfx/sfx-pact-break.wav",
 	["sfx.chime"] = "art/audio/sfx/sfx-chime.wav",
+	["sfx.moneyGain"] = "art/audio/sfx/sfx-money-gain.wav",
+	["sfx.moneyLoss"] = "art/audio/sfx/sfx-money-loss.wav",
 } :: { [string]: string }
 
 -- Segundos mínimos entre dos sonidos de pasar el ratón: recorrer una lista no debe sonar a metralleta.

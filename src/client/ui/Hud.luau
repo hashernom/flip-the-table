@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
 local ActionMenuRules = require("./ActionMenuRules")
+local AudioDirector = require("../audio/AudioDirector")
 local Cards = require("../../shared/config/Cards")
 local Board = require("./Board")
 local Components = require("./Components")
@@ -702,6 +703,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			local width = HudRules.columnWidth(widths)
 
 			local seen: { [string]: boolean } = {}
+			-- Si en esta vista alguien cobra o paga, suena una vez de cada: el ingreso y la pérdida son
+			-- eventos de la mesa y los oyen todos los clientes, porque todos ven el mismo cambio de caja.
+			local gained, lost = false, false
 			for index, seated in view.players do
 				seen[seated.id] = true
 				local chip = chips[seated.id]
@@ -723,9 +727,21 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				local previous = lastCash[seated.id]
 				chip.set(rows[index], count, width, previous ~= nil)
 				if previous ~= nil and previous ~= seated.cash then
-					chip.floatMoney(seated.cash - previous)
+					local delta = seated.cash - previous
+					chip.floatMoney(delta)
+					if delta > 0 then
+						gained = true
+					else
+						lost = true
+					end
 				end
 				lastCash[seated.id] = seated.cash
+			end
+			if gained then
+				AudioDirector.play("sfx.moneyGain")
+			end
+			if lost then
+				AudioDirector.play("sfx.moneyLoss")
 			end
 			for id, chip in chips do
 				if not seen[id] then

@@ -3082,6 +3082,30 @@
         "rbxassetid://118763506202340",
         "rbxassetid://128728481649112"
       ]
+    },
+    {
+      "id": "sfx-money-gain",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-money-gain.wav",
+      "triangles": 0,
+      "lods": [],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://78064391183870"
+    },
+    {
+      "id": "sfx-money-loss",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-money-loss.wav",
+      "triangles": 0,
+      "lods": [],
+      "textures": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://76003504901029"
     }
   ]
 }

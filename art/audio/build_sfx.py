@@ -212,6 +212,26 @@ def sfx_chime() -> np.ndarray:
     return out
 
 
+def sfx_money_gain() -> np.ndarray:
+    # Dinero que entra: cuatro monedas que suben y una campanilla al final.
+    out = canvas(0.8)
+    coin = ((1, 1.0), (2.7, 0.5), (5.1, 0.22), (8.3, 0.1))
+    for i, f in enumerate((1047, 1319, 1568, 2093)):
+        place(out, tone(f, 0.45, 0.14, coin), i * 0.07, 0.26)
+    place(out, tone(3136, 0.6, 0.2, ((1, 1.0), (2.0, 0.3))), 0.30, 0.14)
+    return out
+
+
+def sfx_money_loss() -> np.ndarray:
+    # Dinero que sale: golpe sordo y tres notas que caen.
+    out = canvas(0.62)
+    thud = tone(72, 0.3, 0.09, ((1, 1.0), (1.4, 0.35))) + lowpass(noise(0.3), 320) * env(0.3, 0.002, 0.05)
+    place(out, thud, 0.0, 0.8)
+    for i, f in enumerate((392, 330, 262)):
+        place(out, tone(f, 0.3, 0.13, ((1, 1.0), (2.0, 0.22))), 0.03 + i * 0.075, 0.3)
+    return out
+
+
 EFFECTS = {
     "ui-press": ui_press,
     "ui-hover": ui_hover,
@@ -227,6 +247,8 @@ EFFECTS = {
     "sfx-demolish": sfx_demolish,
     "sfx-pact-break": sfx_pact_break,
     "sfx-chime": sfx_chime,
+    "sfx-money-gain": sfx_money_gain,
+    "sfx-money-loss": sfx_money_loss,
 }
 
 # Pico de cada archivo: deja margen para que la mezcla de `AudioDirector` no recorte.
