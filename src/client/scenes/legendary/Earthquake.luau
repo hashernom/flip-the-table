@@ -115,7 +115,8 @@ function Earthquake.new(options: LegendaryKit.Options): Earthquake
 			-- Con mejoras, cae el último marcador y el último añadido: lo que el motor le quita.
 			if BuildingView.levelOf(slot.index) > 0 then
 				local lot = handles.lotOf(slot.index)
-				local toward = -lot.LookVector * STAGING.fallTowardStreet
+				-- El solar mira a la calle con su LookVector.
+				local toward = lot.LookVector * STAGING.fallTowardStreet
 				local markers =
 					LegendaryKit.piecesWithRole(model, "Marker", BuildingView.ROLE, BuildingView.TIER)
 				local addons =

@@ -338,7 +338,7 @@ describe("Puñalada", function()
 		local events = playCard(s, caster.id, "Backstab", { pactId = "P1" })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = caster.id, cardId = "Backstab" },
+			{ type = "CardPlayed", playerId = caster.id, cardId = "Backstab", targetId = partner.id },
 			{ type = "PactBroken", pactId = "P1", playerId = caster.id },
 		}
 		expect(events).toEqual(expected)

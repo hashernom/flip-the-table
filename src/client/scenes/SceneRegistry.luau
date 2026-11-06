@@ -21,6 +21,11 @@ local FINAL: { [string]: string } = {
 	Earthquake = "legendary/Earthquake",
 	CrownStrike = "legendary/CrownStrike",
 	DeedThief = "cards/DeedThief",
+	Demolition = "cards/Demolition",
+	Strike = "cards/Strike",
+	Inflation = "cards/Inflation",
+	Backstab = "cards/Backstab",
+	BounceRent = "cards/BounceRent",
 	PropertyBought = "SettleNow",
 	AuctionWon = "SettleNow",
 }

@@ -57,6 +57,11 @@ local function boot()
 	local Hurricane = require("./scenes/legendary/Hurricane")
 	local Revolution = require("./scenes/legendary/Revolution")
 	local WorldFlip = require("./scenes/legendary/WorldFlip")
+	local BackstabScene = require("./scenes/cards/Backstab")
+	local BounceRentScene = require("./scenes/cards/BounceRent")
+	local DemolitionScene = require("./scenes/cards/Demolition")
+	local InflationScene = require("./scenes/cards/Inflation")
+	local StrikeScene = require("./scenes/cards/Strike")
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
@@ -219,7 +224,8 @@ local function boot()
 		end,
 	})
 
-	-- Las cinco legendarias, cada una con su cinemática (plan 08, Tarea 3). Comparten lo que necesitan del
+	-- Las cinco legendarias, cada una con su cinemática (plan 08, Tarea 3), y las raras con escena por
+	-- fotogramas (Tarea 4). Comparten lo que necesitan del
 	-- cliente: la cámara, la ciudad y las fichas.
 	local legendaryOptions = {
 		director = director,
@@ -239,6 +245,11 @@ local function boot()
 		Revolution = Revolution.new(legendaryOptions),
 		Earthquake = Earthquake.new(legendaryOptions),
 		CrownStrike = CrownStrike.new(legendaryOptions),
+		Demolition = DemolitionScene.new(legendaryOptions),
+		Strike = StrikeScene.new(legendaryOptions),
+		Inflation = InflationScene.new(legendaryOptions),
+		Backstab = BackstabScene.new(legendaryOptions),
+		BounceRent = BounceRentScene.new(legendaryOptions),
 	}
 
 	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.

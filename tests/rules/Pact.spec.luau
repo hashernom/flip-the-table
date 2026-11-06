@@ -849,7 +849,17 @@ describe("Renta Rebotada y pactos (R-P45)", function()
 		if not result.ok then
 			error(result.error, 2)
 		end
-		expect(result.events).toEqual({})
+		-- La carta se juega a la vista de todos, pero no hay cobro: ningún RentPaid.
+		local expected: { Types.Event } = {
+			{
+				type = "CardPlayed",
+				playerId = payer.id,
+				cardId = "BounceRent",
+				targetId = third.id,
+				index = index,
+			},
+		}
+		expect(result.events).toEqual(expected)
 		expect(s.phase).toBe("AwaitEnd")
 		expect(third.cash).toBe(thirdCash)
 		expect(owner.cash).toBe(ownerCash)

@@ -10,6 +10,8 @@ local CityBuilder = require("../../world/CityBuilder")
 local CityLayout = require("../../../shared/config/CityLayout")
 local LegendaryRules = require("./LegendaryRules")
 local SceneDirector = require("../SceneDirector")
+local Strings = require("../../../shared/config/Strings")
+local Theme = require("../../ui/Theme")
 
 type Context = SceneDirector.Context
 
@@ -157,6 +159,66 @@ function LegendaryKit.wide(
 		focusUp = wide.focusUp,
 		fixedSide = true,
 	}, facing, snap)
+end
+
+-- Cartel que flota en `position`, siempre de cara a la cámara: placa de color con texto en mayúsculas y
+-- borde de caliza, como los sellos de la interfaz. `tilt` lo tuerce. Devuelve la placa, para animarla.
+function LegendaryKit.sign(
+	parent: Instance,
+	position: Vector3,
+	text: string,
+	width: number,
+	height: number,
+	color: string,
+	tilt: number?
+): Frame
+	local anchor =
+		LegendaryKit.part(parent, "SignAnchor", Vector3.new(1, 1, 1), Color3.new(), CFrame.new(position))
+	anchor.Transparency = 1
+	local gui = Instance.new("BillboardGui")
+	gui.Size = UDim2.fromOffset(width, height)
+	gui.AlwaysOnTop = true
+	gui.LightInfluence = 0
+	gui.Parent = anchor
+	local plate = Instance.new("Frame")
+	plate.AnchorPoint = Vector2.new(0.5, 0.5)
+	plate.Position = UDim2.fromScale(0.5, 0.5)
+	plate.Size = UDim2.fromScale(1, 1)
+	plate.BackgroundColor3 = Color3.fromHex(color)
+	plate.BorderSizePixel = 0
+	plate.Rotation = tilt or 0
+	plate.Parent = gui
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, 4)
+	corner.Parent = plate
+	local rim = Instance.new("UIStroke")
+	rim.Color = Theme.color.limestone
+	rim.Thickness = 3
+	rim.Parent = plate
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.FontFace = Theme.font.roadBold
+	label.TextScaled = true
+	label.TextColor3 = Theme.color.limestone
+	label.Text = Strings.upper(text)
+	label.Parent = plate
+	local pad = Instance.new("UIPadding")
+	pad.PaddingLeft = UDim.new(0, 8)
+	pad.PaddingRight = UDim.new(0, 8)
+	pad.PaddingTop = UDim.new(0, 4)
+	pad.PaddingBottom = UDim.new(0, 4)
+	pad.Parent = label
+	return plate
+end
+
+-- Mueve un cartel de `sign`: su ancla está dos niveles por encima de la placa.
+function LegendaryKit.moveSign(plate: Frame, position: Vector3)
+	local gui = plate.Parent
+	local anchor = if gui ~= nil then gui.Parent else nil
+	if anchor ~= nil and anchor:IsA("BasePart") then
+		anchor.CFrame = CFrame.new(position)
+	end
 end
 
 -- Base de una ficha en el mundo (el suelo bajo su cuerpo).

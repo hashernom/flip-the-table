@@ -152,6 +152,8 @@ end)
 - [ ] **Paso 3:** Ejecutar `lune run tests/run Scenes`. Esperado: PASS.
 - [ ] **Paso 4:** Hacer commit: `feat: añadir escenas de cartas`.
 
+**Estado (2026-11-06):** las 6 raras tienen escena en `src/client/scenes/cards/`: Ladrón de Escrituras, Demolición, Huelga, Inflación, Puñalada y Renta Rebotada, con sus reglas puras en `CardSceneRules` (10 pruebas) y su puesta en escena en `config/CardStaging`. Para poder enseñarlas, `CardPlayed` lleva `targetId` del socio en la Puñalada, y la Renta Rebotada emite su propio `CardPlayed`. Sin ver en Studio: falta la aprobación del responsable, y después las 9 comunes.
+
 ### Task 5: Escenas de casillas
 
 **Módulos:** `client/scenes/squares/*`.

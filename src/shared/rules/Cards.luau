@@ -436,6 +436,11 @@ local function backstab(state: GameState, player: Player, _target: Player?, even
 	local ownDeposit = if pact.a == player.id then pact.depositA else pact.depositB
 	local partnerDeposit = if pact.a == player.id then pact.depositB else pact.depositA
 	local partnerId = if pact.a == player.id then pact.b else pact.a
+	-- El pacto era público: la escena enseña a quién traiciona, antes del PactBroken.
+	local played = events[1]
+	if played ~= nil and played.type == "CardPlayed" then
+		played.targetId = partnerId
+	end
 	table.remove(state.pacts, index)
 	Pact.creditIfActive(state, player.id, ownDeposit)
 	Pact.creditIfActive(state, partnerId, partnerDeposit)
