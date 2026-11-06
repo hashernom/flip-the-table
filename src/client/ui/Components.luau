@@ -128,7 +128,8 @@ function Components.Panel(parent: Instance, name: string, radius: number?, fill:
 end
 
 -- Taxímetro: cada cifra en su ventana de ancho fijo, para que el dinero no baile al rodar. Sube y baja
--- pasando por los valores intermedios y lanza el importe flotando cuando se le pide.
+-- pasando por los valores intermedios y lanza el importe flotando cuando se le pide. El importe flotante
+-- se cuelga de `overlay` (la placa entera) para quedar por delante del avatar, por el lado libre.
 export type MoneyLabel = {
 	root: Frame,
 	set: (amount: number, animate: boolean?) -> (),
@@ -136,7 +137,7 @@ export type MoneyLabel = {
 	setFace: (size: number, fill: Color3) -> (),
 }
 
-function Components.MoneyLabel(parent: Instance, name: string, size: number): MoneyLabel
+function Components.MoneyLabel(parent: Instance, name: string, size: number, overlay: Instance?): MoneyLabel
 	local textSize = size
 	local fill = color.asphaltDeep
 	local root = frame(parent, name, fill)
@@ -219,34 +220,34 @@ function Components.MoneyLabel(parent: Instance, name: string, size: number): Mo
 			if delta == 0 then
 				return
 			end
-			local tag = frame(
-				root.Parent :: Instance,
-				"MoneyFloat",
-				if delta < 0 then color.signal else color.limestone
-			)
-			tag.AnchorPoint = Vector2.new(0, 0.5)
+			local host = overlay or (root.Parent :: Instance)
+			local tag = frame(host, "MoneyFloat", if delta < 0 then color.signal else color.limestone)
+			-- Fuera del taxímetro y por el lado libre de la placa: el disco del avatar ocupa el otro.
+			local onLeft = Ui.hudMirror == true
+			tag.AnchorPoint = if onLeft then Vector2.new(1, 0.5) else Vector2.new(0, 0.5)
+			tag.Position = if onLeft then UDim2.new(0, -8, 0.5, 6) else UDim2.new(1, 8, 0.5, 6)
 			tag.AutomaticSize = Enum.AutomaticSize.X
-			tag.Position = UDim2.new(1, 8, 0.5, 6)
-			tag.Size = UDim2.fromOffset(0, 26)
+			tag.Size = UDim2.fromOffset(0, 32)
 			tag.Rotation = if delta < 0 then 3 else -3
-			tag.ZIndex = 12
-			corner(tag, 8)
+			tag.ZIndex = 60
+			corner(tag, 10)
 			stroke(tag, color.asphalt, 2)
 			local pad = Instance.new("UIPadding")
-			pad.PaddingLeft = UDim.new(0, 9)
-			pad.PaddingRight = UDim.new(0, 9)
+			pad.PaddingLeft = UDim.new(0, 11)
+			pad.PaddingRight = UDim.new(0, 11)
 			pad.Parent = tag
 			local sign = if delta > 0 then "+" else ""
 			local text = label(tag, "Amount", sign .. HudRules.formatMoney(delta), {
 				face = font.roadBold,
-				size = 18,
+				size = 22,
 				tint = if delta < 0 then color.limestone else color.asphalt,
 				align = Enum.TextXAlignment.Center,
 			})
 			text.AutomaticSize = Enum.AutomaticSize.X
 			text.Size = UDim2.fromScale(0, 1)
-			text.ZIndex = 13
-			tween(tag, Ui.motion.moneyFloat, { Position = UDim2.new(1, 8, 0.5, -14) })
+			text.ZIndex = 61
+			local rise = if onLeft then UDim2.new(0, -8, 0.5, -18) else UDim2.new(1, 8, 0.5, -18)
+			tween(tag, Ui.motion.moneyFloat, { Position = rise })
 			task.delay(Ui.motion.moneyFloat * 0.6, function()
 				if tag.Parent ~= nil then
 					tween(tag, Ui.motion.moneyFloat * 0.4, { BackgroundTransparency = 1 })
@@ -463,7 +464,7 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 
 	local nameLabel = label(content, "Name", "", { face = font.roadBold, size = 15 })
 	nameLabel.ZIndex = 5
-	local money = Components.MoneyLabel(content, "Money", 22)
+	local money = Components.MoneyLabel(content, "Money", 22, root)
 	money.root.ZIndex = 5
 
 	local marks = frame(content, "Marks")
