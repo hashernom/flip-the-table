@@ -54,11 +54,7 @@ local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 -- Suelo libre fuera del anillo (2026-11-06): 60 studs por lado, para los barrios. Lo comparten suelo y agua.
--- Con los barrios a los dos lados de la calle sube a 100: el prado y el fondo de fuera caben en el suelo.
-local GROUND_MARGIN = 130
--- Prado del lado de la cámara: del borde de la acera de fuera al fondo de ciudad.
-local GRASS = Color3.fromRGB(86, 120, 64)
-local VERGE = 10
+local GROUND_MARGIN = 100
 local NAME_DEPTH = 6
 -- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
 local FRAMED_NAME_SIDE = 7.5
@@ -400,14 +396,13 @@ local function makeStreet(model: Model, sizeId: SizeId)
 		along: Vector3,
 		length: number,
 		width: number,
-		color: Color3,
-		material: Enum.Material?
+		color: Color3
 	)
 		local size = if along == Vector3.xAxis
 			then Vector3.new(length, TILE_HEIGHT, width)
 			else Vector3.new(width, TILE_HEIGHT, length)
 		local part = makePart({ Name = name, Size = size, Color = color, CanCollide = true })
-		part.Material = material or if color == ASPHALT then Enum.Material.Asphalt else Enum.Material.Concrete
+		part.Material = if color == ASPHALT then Enum.Material.Asphalt else Enum.Material.Concrete
 		part.CFrame = CFrame.new(center)
 		part.Parent = model
 	end
@@ -430,16 +425,6 @@ local function makeStreet(model: Model, sizeId: SizeId)
 			span - street - walk * 2,
 			walk,
 			PAVEMENT
-		)
-		-- El otro lado de la calzada también es ciudad: prado con los árboles del barrio y, detrás, su fondo.
-		strip(
-			`Verge{order}`,
-			side.center + side.out * (walkOffset + walk / 2 + VERGE / 2) + curb,
-			side.along,
-			span - street,
-			VERGE,
-			GRASS,
-			Enum.Material.Grass
 		)
 	end
 end

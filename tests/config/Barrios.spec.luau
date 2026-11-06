@@ -108,8 +108,7 @@ describe("CityLayout.dressingFor, por barrio", function()
 				end
 				expect(expected > 0).toBe(true)
 				local items = dressingFor(sizeId, id)
-				-- La acera va en las dos aceras de la calle: la de los edificios y la de enfrente.
-				expect(countKind(items, Barrios.get(id).walk)).toBe(expected * 2)
+				expect(countKind(items, Barrios.get(id).walk)).toBe(expected)
 			end
 		end
 	end)
@@ -192,8 +191,7 @@ describe("CityLayout.backdropsFor", function()
 				end
 				local items = backdropsFor(sizeId, id)
 				expect(#items > 0).toBe(true)
-				-- Una fila detrás de los solares y otra al otro lado de la calle.
-				expect(#items <= math.ceil(#slots / 2) * 3 + 2).toBe(true)
+				expect(#items <= math.ceil(#slots / 2)).toBe(true)
 			end
 		end
 	end)

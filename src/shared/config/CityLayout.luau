@@ -413,11 +413,6 @@ function CityLayout.dressingFor(sizeId: SizeId, barrioId: string): { Dressing }
 			end
 			local along = if rule.at == "joint" then rule.along + JOINT_ALONG else rule.along
 			place(rule.kind, slot, along, rule.out, rule.y)
-			-- El fondo de la calle también es ciudad: lo que la regla marca «both» se repite en la
-			-- acera de enfrente, que es la que ve la cámara.
-			if rule.side == "both" then
-				place(rule.kind, slot, along, -rule.out, rule.y)
-			end
 		end
 
 		-- La calle como frontera: el paso de cebra cierra el barrio por sus dos extremos, y es lo
@@ -433,21 +428,9 @@ function CityLayout.dressingFor(sizeId: SizeId, barrioId: string): { Dressing }
 end
 
 -- Fondo de ciudad: una pieza de dos casillas de ancho. No se cruza, no se pisa y no tiene colisión: es
--- silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del barrio para que la manzana no
--- se repita. Va por los dos lados de la calle, siempre mirando a la calzada:
---
--- - Dentro, una hilera a 72: el solar acaba a 48 y así no lo atraviesa.
--- - Fuera, dos hileras (52 y 92) y una torre en la diagonal de cada esquina. Es el lado que ve la
---   cámara: sin ellas el mapa se acaba en una llanura gris.
--- silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del barrio para que la manzana no
--- se repita. Va por los dos lados de la calle, siempre mirando a la calzada:
---
--- - Dentro, una hilera a 72: el solar acaba a 48 y así no lo atraviesa.
--- - Fuera, dos hileras (52 y 92) y una torre en la diagonal de cada esquina. Es el lado que ve la
---   cámara: sin ellas el mapa se acaba en una llanura gris.
+-- silueta (`CityBackdrop`, art/PIPELINE.md). Se alternan las variantes del barrio para que la manzana
+-- no se repita. Va detrás de los solares y mira a la calle: a 72 del eje, porque el solar acaba a 48.
 local BACKDROP_OUT = 72
-local OUTER_ROWS = { 52, 92 }
-local OUTER_CORNER = 58
 local BACKDROP_SLOTS = 2
 
 CityLayout.BACKDROP_OUT_STUDS = BACKDROP_OUT
@@ -465,58 +448,36 @@ function CityLayout.backdropsFor(sizeId: SizeId, barrioId: string): { Dressing }
 	end
 
 	local variant = 0
-	local function add(x: number, z: number, lookX: number, lookZ: number)
-		variant += 1
-		table.insert(items, {
-			kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
-			x = x,
-			y = 0,
-			z = z,
-			lookX = lookX,
-			lookZ = lookZ,
-		})
-	end
-
-	for index = first, last do
-		local slot = route[index]
-		local before, nextSlot = route[index - 1], route[index + 1]
-		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
-
-		if slot.corner == true then
-			-- La esquina se queda sin hilera: la cierra una torre en la diagonal entre las dos calles.
-			if before == nil then
-				continue
-			end
-			local dx, dz = outX + math.cos(before.facing), outZ - math.sin(before.facing)
-			local length = math.sqrt(dx * dx + dz * dz)
-			if length < 1e-6 then
-				continue
-			end
-			dx, dz = dx / length, dz / length
-			add(slot.position.x + dx * OUTER_CORNER, slot.position.z + dz * OUTER_CORNER, -dx, -dz)
-			continue
-		end
-
+	for index = first, last - (BACKDROP_SLOTS - 1) do
 		if (index - first) % BACKDROP_SLOTS ~= 0 then
 			continue
 		end
-		-- La hilera de dentro no puede acabar en la manzana del cruce; la de fuera sí puede llegar.
-		local straight = before ~= nil and before.facing == slot.facing and nextSlot ~= nil
-		if not straight or nextSlot.facing ~= slot.facing then
+		local slot = route[index]
+		local before, nextSlot = route[index - 1], route[index + 1]
+		local afterNext = route[index + 2]
+		-- En una esquina el fondo se cortaría con el de la calle vecina: mejor un hueco que un cruce.
+		if nextSlot == nil or nextSlot.facing ~= slot.facing then
 			continue
 		end
-
+		if before == nil or before.facing ~= slot.facing then
+			continue
+		end
+		-- El fondo mide 80 y arranca 20 antes de la casilla: no puede acabar en la manzana del cruce.
+		if afterNext == nil or afterNext.facing ~= slot.facing then
+			continue
+		end
+		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
 		local along = SQUARE_SPACING / 2
-		local x = slot.position.x + math.sin(slot.facing) * along
-		local z = slot.position.z + math.cos(slot.facing) * along
-		local afterNext = route[index + 2]
-		if afterNext ~= nil and afterNext.facing == slot.facing then
-			local side = CityLayout.LOT_SIDE
-			add(x + outX * side * BACKDROP_OUT, z + outZ * side * BACKDROP_OUT, -outX * side, -outZ * side)
-		end
-		for _, row in OUTER_ROWS do
-			add(x + outX * row, z + outZ * row, -outX, -outZ)
-		end
+		local out = CityLayout.LOT_SIDE * BACKDROP_OUT
+		variant += 1
+		table.insert(items, {
+			kind = barrio.backdrops[(variant - 1) % #barrio.backdrops + 1],
+			x = slot.position.x + math.sin(slot.facing) * along + outX * out,
+			y = 0,
+			z = slot.position.z + math.cos(slot.facing) * along + outZ * out,
+			lookX = -outX * CityLayout.LOT_SIDE,
+			lookZ = -outZ * CityLayout.LOT_SIDE,
+		})
 	end
 	return items
 end
