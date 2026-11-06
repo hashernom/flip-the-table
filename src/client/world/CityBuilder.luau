@@ -50,6 +50,8 @@ local PAVEMENT = Color3.fromRGB(128, 123, 112)
 local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
+-- Suelo libre fuera del anillo (2026-11-06): 60 studs por lado, para los barrios. Lo comparten suelo y agua.
+local GROUND_MARGIN = 60
 local NAME_DEPTH = 6
 -- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
 local FRAMED_NAME_SIDE = 7.5
@@ -285,7 +287,7 @@ local function makeGround(model: Model, sizeId: SizeId)
 	local center = CityLayout.centerFor(sizeId)
 	local slab = makePart({
 		Name = "Ground",
-		Size = Vector3.new(span + 120, 2, span + 120),
+		Size = Vector3.new(span + 2 * GROUND_MARGIN, 2, span + 2 * GROUND_MARGIN),
 		CFrame = CFrame.new(center.x, -TILE_HEIGHT - 1, center.z),
 		Color = DARK_GREY,
 		CanCollide = true,
@@ -295,7 +297,7 @@ local function makeGround(model: Model, sizeId: SizeId)
 	if #CityLayout.bridgesFor(sizeId) > 0 then
 		local water = makePart({
 			Name = "Water",
-			Size = Vector3.new(span + 120, 0.2, span + 120),
+			Size = Vector3.new(span + 2 * GROUND_MARGIN, 0.2, span + 2 * GROUND_MARGIN),
 			CFrame = CFrame.new(center.x, -TILE_HEIGHT - 0.6, center.z),
 			Color = WATER,
 			Material = Enum.Material.Water,

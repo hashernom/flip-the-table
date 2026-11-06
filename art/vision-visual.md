@@ -57,7 +57,7 @@ El tablero se conoce siempre sin depender de esa cámara:
 ## El resto de la ciudad
 
 - **Ambiente de ciudad viva:** árboles, farolas, bancos, pasos de cebra, coches y taxis en movimiento. Sin peatones, como ya está decidido: la ciudad se lee como una maqueta de lujo.
-- **Dentro del anillo:** una plaza con fuente y parque, algún edificio singular y, detrás, el skyline. Es lo que da profundidad a la vista desde la calle y a la maqueta.
+- **Dentro del anillo:** una plaza con fuente y parque y algún edificio singular. El skyline de fondo se quitó el 2026-11-06: lo sustituye el fondo de cada barrio, que llega con el plan 07; hasta entonces, el exterior queda libre.
 - **Luz:** de día, la de [luz.md](luz.md). No hay atardecer ni neón nocturno.
 - **Identidad:** la de la [guía de estilo](guia-de-estilo.md), dirección Señalética.
 

@@ -219,9 +219,10 @@ local SLOT_DEPTH = 16
 local SLOT_SIDE = -3
 
 -- Lado de la calle donde van las propiedades (2026-11-05, espejo pedido por el responsable): 1 fuera del
--- anillo, -1 dentro. Las casillas especiales y la cárcel se quedan fuera, con la ciudad de fondo: en las
--- esquinas interiores no caben un edificio especial y la primera propiedad del lado siguiente, y el de la
--- esquina caería sobre la calle. `lotSideOf` da el lado de cada casilla. El exterior queda libre para los barrios.
+-- anillo, -1 dentro. Las casillas especiales y la cárcel se quedan fuera: en las esquinas interiores no caben
+-- un edificio especial y la primera propiedad del lado siguiente, y el de la esquina caería sobre la calle.
+-- `lotSideOf` da el lado de cada casilla. El exterior queda libre para los barrios (2026-11-06): aquí no se
+-- dibuja ninguna ciudad de fondo.
 CityLayout.LOT_SIDE = -1
 
 CityLayout.STREET_WIDTH_STUDS = STREET_WIDTH
