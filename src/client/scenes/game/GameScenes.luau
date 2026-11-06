@@ -13,7 +13,9 @@ local CardSceneRules = require("../cards/CardSceneRules")
 local CardStaging = require("../../../shared/config/CardStaging")
 local CityLayout = require("../../../shared/config/CityLayout")
 local CommonCards = require("../cards/CommonCards")
+local Economy = require("../../../shared/config/Economy")
 local LegendaryKit = require("../legendary/LegendaryKit")
+local Perks = require("../../../shared/config/Perks")
 local LegendaryRules = require("../legendary/LegendaryRules")
 local SceneDirector = require("../SceneDirector")
 local Strings = require("../../../shared/config/Strings")
@@ -28,6 +30,10 @@ local phase, pop = kit.phase, kit.pop
 local STAGING = CardStaging.game
 
 export type Options = CommonCards.Options & {
+	-- Socios de un pacto que ya no está en la vista (vencido): el cliente recuerda los últimos pactos.
+	pactOf: (pactId: string) -> (string?, string?),
+	-- Enseña el panel de la Cartelera durante `seconds`.
+	showBillboard: (event: any, seconds: number) -> (),
 	-- Concilia el mundo con la vista ya (nivel, dueño, Zona Caliente) a mitad de escena.
 	reconcile: (view: any) -> (),
 	-- Color del asiento de un jugador.
@@ -855,6 +861,230 @@ local function podium(env: Env): Step
 	end
 end
 
+-- Tribunal: un mazo de juez golpea junto al acusado y cae el veredicto. Con Soborno, el cartel dice que se
+-- libra.
+local function tribunal(env: Env): Step
+	local base = env.actorBase :: Vector3
+	local event = env.event
+	local key = if event.cancelled == true
+		then "scene.tribunal.bribed"
+		elseif event.verdict == "Fine" then "scene.tribunal.fine"
+		elseif event.verdict == "PayToPlayer" then "scene.tribunal.pay"
+		else "scene.tribunal.skip"
+	local head = kit.header(env, base, kit.names(env, "scene.tribunal.header"), "#1B3A6B")
+	local verdict = floating(
+		env,
+		base + Vector3.new(0, 10, 0),
+		kit.names(env, key, { fine = Economy.tribunal.fine, pay = Economy.tribunal.payToPlayer }),
+		if event.cancelled == true then "#5A9E5A" else "#C4382B",
+		0.5,
+		280
+	)
+	local forward = kit.forwardOf(env.actorToken)
+	local side = forward:Cross(Vector3.yAxis)
+	local wood = Color3.fromHex(STAGING.gavelWood)
+	local hammer =
+		LegendaryKit.part(env.run.props, "JudgeGavel", Vector3.new(5, 2.4, 2.4), wood, CFrame.new())
+	hammer.Shape = Enum.PartType.Cylinder
+	local shaft = LegendaryKit.part(env.run.props, "JudgeShaft", Vector3.new(0.7, 6, 0.7), wood, CFrame.new())
+	local pivot = base + side * 7 + Vector3.new(0, 8, 0)
+	return function(p: number)
+		head(p)
+		verdict(p)
+		local strike = math.sin(phase(p, 0.25, 0.5) * math.pi) * 1.3
+		local frame = CFrame.lookAt(pivot, pivot + forward)
+			* CFrame.Angles(0, 0, strike)
+			* CFrame.new(-3.5, 0, 0)
+		shaft.CFrame = frame * CFrame.Angles(0, 0, math.rad(90))
+		hammer.CFrame = frame * CFrame.new(-3, 0, 0) * CFrame.Angles(0, math.rad(90), 0)
+		local visible = p > 0.1 and p < 0.92
+		hammer.Transparency = if visible then 0 else 1
+		shaft.Transparency = if visible then 0 else 1
+	end
+end
+
+-- Pacto vencido: la cuerda dorada entre los dos socios se afloja y se desvanece, sin traición.
+local function pactEnded(env: Env): Step
+	local a = env.actorBase :: Vector3
+	local b = env.targetBase or a
+	local mid = (a + b) / 2
+	local rope = CardStaging.backstab
+	local segments: { Part } = {}
+	for i = 1, STAGING.pactSegments do
+		segments[i] = LegendaryKit.part(
+			env.run.props,
+			"Rope",
+			Vector3.new(rope.ropeThickness, rope.ropeThickness, 1),
+			Color3.fromHex(rope.ropeColor),
+			CFrame.new()
+		)
+	end
+	local sign =
+		floating(env, mid + Vector3.new(0, 14, 0), kit.names(env, "scene.pact.ended"), "#A8AEB4", 0.2, 260)
+	local from = a + Vector3.new(0, rope.ropeHeight, 0)
+	local to = b + Vector3.new(0, rope.ropeHeight, 0)
+	return function(p: number)
+		sign(p)
+		-- La cuerda se afloja (más comba) y sus tramos se apagan desde el centro.
+		local loose = phase(p, 0.2, 0.8)
+		local sag = rope.sagStuds * (1 + loose * 1.5)
+		for i, piece in segments do
+			local t0, t1 = (i - 1) / #segments, i / #segments
+			local p0 = kit.v3(CardSceneRules.rope(kit.p3(from), kit.p3(to), t0, sag))
+			local p1 = kit.v3(CardSceneRules.rope(kit.p3(from), kit.p3(to), t1, sag))
+			local length = (p1 - p0).Magnitude
+			piece.Size = Vector3.new(rope.ropeThickness, rope.ropeThickness, math.max(0.05, length))
+			if length > 1e-3 then
+				piece.CFrame = CFrame.lookAt((p0 + p1) / 2, p1)
+			end
+			local fromCenter = math.abs((i - 0.5) / #segments - 0.5) * 2
+			piece.Transparency = if p < 0.05 then 1 else math.clamp((loose - fromCenter * 0.6) * 1.6, 0, 1)
+		end
+	end
+end
+
+-- Perk elegido: una medalla dorada sube girando sobre la ficha con el nombre del perk.
+local function perk(env: Env): Step
+	local base = env.actorBase :: Vector3
+	local def = if type(env.event.perkId) == "string" then Perks.byId[env.event.perkId] else nil
+	local name = if def ~= nil then def.name else ""
+	local medal =
+		LegendaryKit.part(env.run.props, "Medal", Vector3.new(0.5, 4, 4), Theme.color.taxi, CFrame.new())
+	medal.Shape = Enum.PartType.Cylinder
+	medal.Material = Enum.Material.Metal
+	local core = LegendaryKit.part(
+		env.run.props,
+		"MedalCore",
+		Vector3.new(0.6, 2.4, 2.4),
+		Theme.color.navy,
+		CFrame.new()
+	)
+	core.Shape = Enum.PartType.Cylinder
+	local sign = floating(
+		env,
+		base + Vector3.new(0, 15, 0),
+		kit.names(env, "scene.perk.header", { perk = name }),
+		"#F5C518",
+		0.35,
+		280
+	)
+	return function(p: number, t: number)
+		sign(p)
+		local rise = LegendaryRules.ease(phase(p, 0.05, 0.4))
+		local at = base + Vector3.new(0, 4 + rise * 6, 0)
+		local frame = CFrame.new(at)
+			* CFrame.Angles(0, t * 3 + (1 - rise) * 8, 0)
+			* CFrame.Angles(0, math.rad(90), 0)
+		medal.CFrame = frame
+		core.CFrame = frame
+		local visible = p > 0.05 and p < 0.92
+		medal.Transparency = if visible then 0 else 1
+		core.Transparency = if visible then 0 else 1
+	end
+end
+
+-- Descarte: con la mano llena, la carta sale volando de la ficha dando vueltas y cae a una papelera.
+local function discard(env: Env): Step
+	local base = env.actorBase :: Vector3
+	local forward = kit.forwardOf(env.actorToken)
+	local side = forward:Cross(Vector3.yAxis)
+	local binAt = base + side * 8 + forward * 3
+	local bin = LegendaryKit.part(
+		env.run.props,
+		"Bin",
+		Vector3.new(4, 4.5, 4),
+		Theme.color.steel,
+		CFrame.new(binAt + Vector3.new(0, 2.25, 0))
+	)
+	local card = LegendaryKit.part(
+		env.run.props,
+		"Discard",
+		Vector3.new(2.4, 3.4, 0.2),
+		Theme.color.navy,
+		CFrame.new()
+	)
+	local sign = floating(
+		env,
+		base + Vector3.new(0, 13, 0),
+		kit.names(env, "scene.discard.header"),
+		"#A8AEB4",
+		0.1,
+		260
+	)
+	return function(p: number, t: number)
+		sign(p)
+		local s = pop(phase(p, 0, 0.15)) * (1 - phase(p, 0.9, 1))
+		bin.Transparency = if s > 0.01 then 0 else 1
+		bin.Size = Vector3.new(4, 4.5, 4) * math.max(0.01, s)
+		local q = phase(p, 0.2, 0.7)
+		local at = kit.v3(
+			LegendaryRules.arc(
+				kit.p3(base + Vector3.new(0, 6, 0)),
+				kit.p3(binAt + Vector3.new(0, 3, 0)),
+				q,
+				7
+			)
+		)
+		card.CFrame = CFrame.new(at) * CFrame.Angles(q * 9, t * 6, q * 4)
+		card.Transparency = if q > 0 and q < 1 then 0 else 1
+	end
+end
+
+-- Cartelera: primero el panel de la pantalla gigante (`ui/Billboard`); cuando se para, el resultado pasa en
+-- la ciudad. Premio: llueven billetes sobre la ficha. Multa: llega un policía con el parte. Carta: la escena
+-- del robo viene después. Nada: el panel ya se burla.
+local function billboard(env: Env): (Step, (() -> ())?)
+	local panelShare = STAGING.billboardPanelShare
+	pcall(opts(env).showBillboard, env.event, env.duration * panelShare)
+	local result = env.event.result
+	local sub: Step? = nil
+	local cleanup: (() -> ())? = nil
+	if result == "Fine" then
+		local fineEnv = table.clone(env)
+		fineEnv.targetId = env.actorId
+		fineEnv.targetToken = env.actorToken
+		fineEnv.targetBase = env.actorBase
+		local built, release = CommonCards.builds.Fine.build(fineEnv)
+		sub, cleanup = built, release
+	elseif result == "Prize" then
+		local base = env.actorBase :: Vector3
+		local amount = if type(env.event.amount) == "number" then env.event.amount else 0
+		local plus = floating(env, base + Vector3.new(0, 12, 0), `+{amount}`, "#5A9E5A", 0.1, 140)
+		type Bill = { parts: { Part }, seed: number }
+		local bills: { Bill } = {}
+		for i = 1, STAGING.prizeBills do
+			table.insert(bills, {
+				parts = LegendaryKit.bill(env.run.props, "#8DB86B", "#4E7A3A", CFrame.new(base)),
+				seed = (i * 0.618) % 1,
+			})
+		end
+		sub = function(p: number, t: number)
+			plus(p)
+			for _, bill in bills do
+				local q = phase(p, bill.seed * 0.4, bill.seed * 0.4 + 0.55)
+				local angle = bill.seed * math.pi * 2
+				local radius = 2 + bill.seed * 7
+				local at = base
+					+ Vector3.new(math.cos(angle) * radius, 28 * (1 - q) + 0.5, math.sin(angle) * radius)
+				for _, piece in bill.parts do
+					piece.Transparency = if q > 0 and q < 1 then 0 else 1
+				end
+				LegendaryKit.placeBill(
+					bill.parts,
+					CFrame.new(at) * CFrame.Angles(math.sin(t * 7 + bill.seed * 9) * 0.8, t * 2, 0)
+				)
+			end
+		end
+	end
+	return function(p: number, t: number)
+		local step = sub
+		if step ~= nil and p >= panelShare then
+			step(phase(p, panelShare, 1), t)
+		end
+	end,
+		cleanup
+end
+
 function GameScenes.new(options: Options): GameScenes
 	local runner = CommonCards.runner(options)
 	local function payer(event: Types.Event): (string?, string?)
@@ -910,6 +1140,29 @@ function GameScenes.new(options: Options): GameScenes
 		FinalRoundsStarted = runner.scene("FinalRounds", { build = finalRounds :: any, focus = "none" }),
 		RoundStarted = runner.scene("Round", { build = roundStarted :: any, focus = "none" }),
 		GameEnded = runner.scene("Podium", { build = podium :: any, focus = "none" }),
+		TribunalVerdict = runner.scene(
+			"Tribunal",
+			{ build = tribunal :: any, focus = "actor", ids = self :: any }
+		),
+		PactEnded = runner.scene("PactEnded", {
+			build = pactEnded :: any,
+			focus = "actor",
+			ids = function(event: Types.Event): (string?, string?)
+				if type(event.pactId) ~= "string" then
+					return nil, nil
+				end
+				return options.pactOf(event.pactId)
+			end :: any,
+		}),
+		PerkDrafted = runner.scene("Perk", { build = perk :: any, focus = "actor", ids = self :: any }),
+		CardDiscarded = runner.scene(
+			"Discard",
+			{ build = discard :: any, focus = "actor", ids = self :: any }
+		),
+		BillboardResult = runner.scene(
+			"Billboard",
+			{ build = billboard :: any, focus = "actor", ids = self :: any }
+		),
 	}
 	return { scenes = scenes, cancelAll = runner.cancelAll }
 end

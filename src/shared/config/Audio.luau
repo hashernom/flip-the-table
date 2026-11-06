@@ -104,6 +104,16 @@ Audio.eventSounds = {
 	CrownMoved = "sfx.chime",
 	FuryFilled = "sfx.chime",
 	HotZoneMoved = "sfx.chime",
+	-- Escenas del plan 08 sin sonido propio hasta ahora: se reutilizan los efectos ya subidos.
+	TaxPaid = "sfx.moneyLoss",
+	BankruptcyDeclared = "sfx.moneyLoss",
+	GhostActed = "ui.deny",
+	GhostResurrected = "sfx.chime",
+	FinalRoundsStarted = "sfx.chime",
+	GameEnded = "sfx.chime",
+	TribunalVerdict = "ui.deny",
+	DuelResolved = "ui.confirm",
+	BillboardResult = "ui.open",
 } :: { [string]: string }
 
 Audio.buildUpSound = "sfx.build"

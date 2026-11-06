@@ -129,6 +129,9 @@ CardStaging.game = {
 	startBills = 6,
 	podiumGap = 12,
 	podiumHeights = { 8, 5, 3 },
+	-- Cartelera: parte de la escena que ocupa el panel; el resto pasa en la ciudad.
+	billboardPanelShare = 0.62,
+	prizeBills = 10,
 }
 
 return CardStaging

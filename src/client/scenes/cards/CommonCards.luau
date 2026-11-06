@@ -367,8 +367,9 @@ local function fine(env: Env): (Step, () -> ())
 	local base = env.targetBase :: Vector3
 	local forward = forwardOf(env.targetToken)
 	local side = forward:Cross(Vector3.yAxis)
-	local head =
-		header(env, base, names(env, "scene.common.fine") .. "  -" .. tostring(Economy.cards.fine), "#C4382B")
+	-- La Multa de carta cobra lo de Economy; la de la Cartelera trae su importe en el evento.
+	local amount = if type(env.event.amount) == "number" then env.event.amount else Economy.cards.fine
+	local head = header(env, base, names(env, "scene.common.fine") .. "  -" .. tostring(amount), "#C4382B")
 	local from = base + side * 16 + forward * 4
 	local stop = base + side * 5 + forward * 1
 	local facing = (base - stop) * Vector3.new(1, 0, 1)
@@ -555,6 +556,9 @@ export type Spec = {
 	focus: string,
 	ids: ((event: Types.Event, view: any) -> (string?, string?))?,
 }
+
+-- Montajes de las comunes, para reutilizarlos (la Multa de la Cartelera usa el del policía).
+CommonCards.builds = BUILDS
 
 -- Piezas sueltas para las escenas que montan otras carpetas (`scenes/squares`).
 CommonCards.kit = {

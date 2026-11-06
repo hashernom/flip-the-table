@@ -326,6 +326,9 @@ local function boot()
 		legendaries[eventType] = { scene = scene, cancelAll = squareScenes.cancelAll }
 	end
 
+	-- Últimos pactos vistos: un pacto vencido ya no está en la vista del lote que lo cierra.
+	local knownPacts: { [string]: { a: string, b: string } } = {}
+
 	-- Partida (Tarea 6): renta, construcción, bancarrota, pactos, corona, espectros, Última Ronda y podio.
 	local gameScenes = GameScenes.new({
 		director = director,
@@ -346,6 +349,18 @@ local function boot()
 			local view = StateStore.view(queue.state)
 			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
 			return seatColor(seat or 1)
+		end,
+		pactOf = function(pactId: string): (string?, string?)
+			local pact = knownPacts[pactId]
+			if pact == nil then
+				return nil, nil
+			end
+			return pact.a, pact.b
+		end,
+		showBillboard = function(event: any, seconds: number)
+			local view = StateStore.view(queue.state)
+			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
+			billboard.play(event.result :: string, event.amount :: number, playerName, seconds)
 		end,
 	})
 	for eventType, scene in gameScenes.scenes do
@@ -459,6 +474,13 @@ local function boot()
 		end
 		-- Corona del líder y marca de traidor, siempre como dice la vista.
 		TokenMarks.sync(view, tokens)
+		if type(view.pacts) == "table" then
+			for _, pact in view.pacts do
+				if type(pact.id) == "string" then
+					knownPacts[pact.id] = { a = pact.a, b = pact.b }
+				end
+			end
+		end
 		BuildingView.sync(view.properties or {}, function(ownerId: string): Color3?
 			local seat = WorldRules.seatOf(view.players, ownerId)
 			return if seat ~= nil then seatColor(seat) else nil
@@ -588,18 +610,6 @@ local function boot()
 			if not ok then
 				warn(`Cliente: la escena del Portal falló: {err}`)
 			end
-		end,
-	})
-
-	-- Cartelera: el motor tira el cartel y el cliente lo enseña. No hay decisión que esperar: el panel
-	-- pasa por las cinco salidas y deja el resultado hasta que acaba la escena.
-	SceneDirector.register(scenes, "BillboardResult", {
-		run = function(ctx, event)
-			ctx.show("")
-			local view = StateStore.view(queue.state)
-			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
-			billboard.play(event.result :: string, event.amount :: number, playerName, ctx.duration)
-			ctx.wait(ctx.duration)
 		end,
 	})
 
