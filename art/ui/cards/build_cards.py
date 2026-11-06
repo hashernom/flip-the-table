@@ -11,6 +11,14 @@ Descubre todos los `lotes/lote_*.py`, junta sus `RARITY` y `PAINTERS` y escribe:
 * `art/render/ui/cards-hoja-<lote>.png` — una hoja de contacto por lote.
 * `art/render/ui/cards-paso1-hoja-contacto.png` — las cartas de `lote_ejemplo`.
 
+Un solo lote, para trabajar en paralelo sin pisar los PNG de los demas:
+
+    python art/ui/cards/build_cards.py --lote lote_comunes
+
+Con `--lote` escribe solo las cartas de ese lote y solo su hoja: no toca los PNG de
+otros lotes ni la hoja del paso 1. Si el lote no existe, sale con codigo 1 y la lista
+de lotes disponibles.
+
 Es idempotente y determinista: no usa azar ni fechas, y ordena ids y lotes.
 """
 import importlib.util
@@ -25,10 +33,33 @@ OUT = HERE
 SHEETS = ROOT / "art" / "render" / "ui"
 LOTES = HERE / "lotes"
 EXAMPLE_LOTE = "lote_ejemplo"
+USAGE = "uso: python art/ui/cards/build_cards.py [--lote <nombre de lote>]"
 
 #: Nombres que se escriben bajo cada carta en las hojas de contacto. Un lote puede
 #: traer su propio `LABELS` y se mezcla aqui; esto es el registro de las de ejemplo.
 DISPLAY = {"Fine": "Multa", "Strike": "Huelga", "Hurricane": "Hurac\u00e1n"}
+
+
+def parse_args(argv):
+    """Devuelve el lote pedido con `--lote`, o `None` si hay que hacerlos todos."""
+    only = None
+    rest = list(argv)
+    while rest:
+        arg = rest.pop(0)
+        if arg == "--lote":
+            if not rest:
+                raise SystemExit("%s\nfalta el nombre del lote" % USAGE)
+            only = rest.pop(0)
+        elif arg.startswith("--lote="):
+            only = arg.split("=", 1)[1]
+        elif arg in ("-h", "--help"):
+            print(__doc__.strip())
+            raise SystemExit(0)
+        else:
+            raise SystemExit("%s\nargumento desconocido: %s" % (USAGE, arg))
+    if only is not None and not only:
+        raise SystemExit("%s\nel nombre del lote esta vacio" % USAGE)
+    return only
 
 
 def load_lotes():
@@ -71,10 +102,24 @@ def collect(modules):
     return cards, labels
 
 
-def main():
+def _only_lote(modules, name):
+    """Deja el lote pedido; si no existe, error con la lista de los disponibles."""
+    available = [module_name for module_name, _ in modules]
+    if name not in available:
+        raise SystemExit(
+            "no existe el lote %r\nlotes disponibles: %s" % (name, ", ".join(available))
+        )
+    return [(module_name, module) for module_name, module in modules if module_name == name]
+
+
+def main(argv=None):
+    only = parse_args(sys.argv[1:] if argv is None else argv)
+
     modules = load_lotes()
     if not modules:
         raise SystemExit("no hay lotes en %s" % LOTES)
+    if only is not None:
+        modules = _only_lote(modules, only)
 
     cards, labels = collect(modules)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -98,6 +143,10 @@ def main():
         sheet = SHEETS / ("cards-hoja-%s.png" % name[5:])
         cardlib.contact_sheet(entries, sheet, title)
         print("hoja   %-12s %s" % (name, sheet.name))
+
+    if only is not None:
+        print("%d cartas, 1 lote (%s)" % (len(cards), only))
+        return 0
 
     example = dict(modules).get(EXAMPLE_LOTE)
     if example is None:

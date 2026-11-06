@@ -44,10 +44,10 @@ TRAZO = 24
 
 #: Anillo de papel visible entre el borde y la ventana.
 MARCO = 6
-#: Ventana de la Comun y la Rara, filetes incluidos. La Legendaria empieza mas abajo
-#: para que el bisel de 30 px y su canto de oro no la toquen.
+#: Ventana de la ilustracion, filetes incluidos, igual en las tres rarezas. El bisel de
+#: 30 px de la Legendaria recorta el filete de oro en las dos esquinas de arriba, que es
+#: justo la senal de forma que la distingue.
 WINDOW = (6, 6, 306, 290)
-WINDOW_LEGENDARY = (6, 26, 306, 290)
 #: Regla de 4 px de asfalto entre la ventana y la banda de nombre.
 RULE = (6, 290, 306, 294)
 #: Banda de nombre: caliza, vacia, a sangre dentro del marco. La escribe el juego.
@@ -114,9 +114,12 @@ _CORNER = {"Common": 14, "Rare": 16, "Legendary": 16}
 
 
 def window_box(rarity):
-    """`(x0, y0, x1, y1)` de la ventana, filetes incluidos, en px de 1x."""
+    """`(x0, y0, x1, y1)` de la ventana, filetes incluidos, en px de 1x.
+
+    Es la misma en las tres rarezas: la ilustracion mide igual en las 20 cartas.
+    """
     _check(rarity)
-    return WINDOW_LEGENDARY if rarity == "Legendary" else WINDOW
+    return WINDOW
 
 
 def illustration_box(rarity):
@@ -166,11 +169,9 @@ def render_card(card_id, rarity, painter):
     #    recorta, pero el relleno completo evita que el LANCZOS arrastre negro.
     draw.rectangle([0, 0, CANVAS[0] - 1, CANVAS[1] - 1], fill=_CAMPO[rarity])
 
-    # 2. Canto de oro de la Legendaria, siguiendo el bisel.
-    if rarity == "Legendary":
-        _cornice(draw)
-
-    # 3. Ventana: filetes concentricos, de fuera hacia dentro; el ultimo deja el fondo.
+    # 2. Ventana: filetes concentricos, de fuera hacia dentro; el ultimo deja el fondo.
+    #    La Legendaria no lleva nada encima del marco: el bisel de la silueta recorta el
+    #    filete de oro en las dos esquinas de arriba y esa es toda su senal.
     box = window_box(rarity)
     for color, width in _FILLETS[rarity]:
         _rect(draw, box, fill=color)
@@ -178,60 +179,37 @@ def render_card(card_id, rarity, painter):
     art = illustration_box(rarity)
     _rect(draw, art, fill=CALIZA)
 
-    # 4. Ilustracion.
+    # 3. Ilustracion.
     try:
         painter(draw, art)
     except Exception as exc:  # pragma: no cover - solo para diagnosticar un lote
         raise RuntimeError("el pintor de la carta %r fallo: %s" % (card_id, exc)) from exc
 
-    # 5. Sello de rareza, encima de la ilustracion.
+    # 4. Sello de rareza, encima de la ilustracion.
     _seal(draw, rarity)
 
-    # 6. Regla de asfalto entre la ventana y la banda.
+    # 5. Regla de asfalto entre la ventana y la banda.
     _rect(draw, RULE, fill=ASFALTO)
 
-    # 7. Banda de nombre: caliza limpia, sin texto ni marcas.
+    # 6. Banda de nombre: caliza limpia, sin texto ni marcas.
     _rect(draw, BAND, fill=CALIZA)
 
-    # 8. Pie con la marca de rareza.
+    # 7. Pie con la marca de rareza.
     _foot(draw, rarity)
 
-    # 9. Silueta: lo que queda fuera es transparente.
+    # 8. Silueta: lo que queda fuera es transparente.
     image.putalpha(_silhouette(rarity))
 
-    # 10. Reduccion unica a tamano final.
+    # 9. Reduccion unica a tamano final.
     out = image.resize(SIZE, Image.LANCZOS)
 
-    # 11. La banda se reestampa a 1x. Medido: el LANCZOS deja un anillo de mezcla de
+    # 10. La banda se reestampa a 1x. Medido: el LANCZOS deja un anillo de mezcla de
     #     ~3 px en cada borde y la pureza de la banda caia al 93,5 %; reestampada queda
     #     al 100 %. La banda es una superficie plana, no lleva detalle que perder.
     ImageDraw.Draw(out).rectangle(
         [BAND[0], BAND[1], BAND[2] - 1, BAND[3] - 1], fill=CALIZA
     )
     return out
-
-
-#: Canto de oro: banda de 16 px que sigue el borde superior y los dos biseles.
-_CORNICE_OUTER = [(0, BEVEL), (BEVEL, 0), (WIDTH - BEVEL, 0), (WIDTH, BEVEL)]
-_CORNICE_INNER = [
-    (22.6, BEVEL),
-    (36.6, 16.0),
-    (WIDTH - 36.6, 16.0),
-    (WIDTH - 22.6, BEVEL),
-]
-
-
-def _cornice(draw):
-    """Repisa de la Legendaria: canto de oro de 16 px sobre el bisel, con filete y sombra."""
-    band = _CORNICE_OUTER + list(reversed(_CORNICE_INNER))
-    draw.polygon(_points(band), fill=ORO)
-    draw.line(_points(_CORNICE_OUTER + [_CORNICE_OUTER[0]]),
-              fill=ASFALTO, width=5 * SS, joint="curve")
-    draw.line(_points(_CORNICE_INNER + [_CORNICE_INNER[0]]),
-              fill=ASFALTO, width=5 * SS, joint="curve")
-    # Sombra dura de 2 px: el canto vuela sobre el papel.
-    shadow = [(x, y + 5) for x, y in _CORNICE_INNER]
-    draw.line(_points(shadow + [shadow[0]]), fill=ASFALTO, width=2 * SS, joint="curve")
 
 
 def _seal(draw, rarity):
@@ -325,14 +303,20 @@ SHEET_H = 1180
 HAND = (104, 150)
 CORNER_CROP = 120
 CORNER_SCALE = 2
+#: Tira de silueta al pie de la hoja: cada ilustracion a dos tonos y a 95 x 95 exactos.
+SILHOUETTE = 95
+SILHOUETTE_GAP = 16
+SILHOUETTE_TITLE = "PRUEBA DE SILUETA \u00b7 95\u00d795"
+#: Distancia al color de fondo por debajo de la cual un pixel cuenta como fondo.
+SILHOUETTE_TOLERANCE = 40
 RARITY_RULE = (
     "Com\u00fan: filete simple \u00b7 Rara: doble filete y esquinas achaflanadas \u00b7 "
-    "Legendaria: marco de oro con repisa"
+    "Legendaria: triple filete de oro y esquinas biseladas"
 )
 CORNER_LABEL = {
     "Common": "redondeada r=14",
     "Rare": "chafl\u00e1n de 16 px",
-    "Legendary": "bisel de 30 px y repisa",
+    "Legendary": "bisel de 30 px",
 }
 
 
@@ -372,7 +356,11 @@ def contact_sheet(entries, path, title, labels=None, footer=None):
     corner_y = corner_label_y + 18
     panel_top = corner_y + CORNER_CROP * CORNER_SCALE + 28
     panel_h = 236
-    caption_y = panel_top + panel_h + 26
+    #: Tira de silueta, al pie y encima de la linea de cierre.
+    strip_title_y = panel_top + panel_h + 26
+    strip_y = strip_title_y + 22
+    strip_caption_y = strip_y + SILHOUETTE + 4
+    caption_y = strip_caption_y + 20 + 26
     height = max(SHEET_H, caption_y + 38)
 
     sheet = Image.new("RGBA", (SHEET_W, height), ASFALTO)
@@ -424,6 +412,16 @@ def contact_sheet(entries, path, title, labels=None, footer=None):
     _hand_group(sheet, draw, items, glued_x, hand_top, gap=0)
     draw.text((glued_x, hand_top + 158), "Pegadas \u00b7 sin separaci\u00f3n",
               font=_font(13), fill=ASFALTO)
+
+    # Tira de silueta: la prueba de que el sujeto se lee sin color ni detalle.
+    draw.text((60, strip_title_y), SILHOUETTE_TITLE,
+              font=_font(15, bold=True), fill=CALIZA_APAGADA)
+    for index, item in enumerate(items):
+        x = 60 + index * (SILHOUETTE + SILHOUETTE_GAP)
+        sheet.alpha_composite(_silhouette_thumb(item["png"], item["rarity"]),
+                              (x, strip_y))
+        draw.text((x, strip_caption_y), item["label"],
+                  font=_font(13), fill=CALIZA_APAGADA)
 
     draw.text((60, caption_y), footer or RARITY_RULE, font=_font(17), fill=CALIZA_APAGADA)
     draw.text(
@@ -499,6 +497,40 @@ def _hand_group(sheet, draw, items, x, y, gap):
         _name_on_band(
             draw, x + index * (HAND[0] + gap), y, HAND, item["label"], 15
         )
+
+
+def _silhouette_thumb(png, rarity):
+    """Ilustracion a dos tonos y 95 x 95 exactos, para la tira de silueta.
+
+    Se recorta la ventana que pinta el pintor, se reduce a 95 x 95 y cada pixel se
+    lleva a uno de los dos tonos segun su distancia al color de fondo, que es el mas
+    frecuente del recorte. El sujeto va en asfalto sobre caliza, o al reves si la
+    ilustracion ya es clara sobre oscuro, que es lo que se lee mejor.
+    """
+    card = Image.open(png).convert("RGB")
+    crop = card.crop(illustration_box(rarity)).resize(
+        (SILHOUETTE, SILHOUETTE), Image.LANCZOS
+    )
+    pixels = list(crop.getdata())
+    background = max(
+        crop.getcolors(SILHOUETTE * SILHOUETTE), key=lambda entry: entry[0]
+    )[1]
+    light = (
+        0.299 * background[0] + 0.587 * background[1] + 0.114 * background[2]
+    ) >= 128
+    subject, field = (ASFALTO, CALIZA) if light else (CALIZA, ASFALTO)
+    limit = SILHOUETTE_TOLERANCE * SILHOUETTE_TOLERANCE
+    tones = []
+    for red, green, blue in pixels:
+        distance = (
+            (red - background[0]) ** 2
+            + (green - background[1]) ** 2
+            + (blue - background[2]) ** 2
+        )
+        tones.append(subject if distance > limit else field)
+    thumb = Image.new("RGBA", (SILHOUETTE, SILHOUETTE))
+    thumb.putdata(tones)
+    return thumb
 
 
 def _text_width(draw, text, font):
