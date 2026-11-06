@@ -3,10 +3,12 @@
 -- las manos ajenas, los ids de las cartas robadas, las jugadas del Duelo, las papeletas del
 -- Tribunal, la revelación del Espía, el generador de azar, las ofertas públicas y la inmutabilidad
 -- de los eventos.
+local Building = require("../../src/shared/rules/Building")
 local Deck = require("../../src/shared/rules/Deck")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
 local Harness = require("../harness")
+local Property = require("../../src/shared/rules/Property")
 local Types = require("../../src/shared/rules/Types")
 local View = require("../../src/shared/rules/View")
 
@@ -423,9 +425,30 @@ describe("View.forPlayer: contrato", function()
 		local index = firstPropertyIndex(state)
 		Fixtures.give(state, "P2", index)
 		local view = View.forPlayer(state, "P1")
-		expect(view.properties[index]).toEqual({ ownerId = "P2", level = 0 })
-		view.properties[index].ownerId = "P1"
+		local seen = view.properties[index]
+		expect(seen.ownerId).toBe("P2")
+		expect(seen.level).toBe(0)
+		seen.ownerId = "P1"
 		expect(state.properties[index].ownerId).toBe("P2")
+	end)
+
+	it("cada propiedad trae las cifras que pinta su casilla, calculadas con las reglas", function()
+		local state = Fixtures.game({ players = 2 })
+		local index = firstPropertyIndex(state)
+		Fixtures.give(state, "P2", index)
+		local seen = View.forPlayer(state, "P1").properties[index]
+		expect(seen.price).toBe(state.board.squares[index].price)
+		expect(seen.rent).toBe(Property.rentFor(state, index))
+		expect(seen.mortgageValue).toBe(Building.mortgageValue(state, index))
+		expect(seen.unmortgageCost).toBe(Building.unmortgageCost(state, index))
+	end)
+
+	it("una hipotecada pinta renta 0", function()
+		local state = Fixtures.game({ players = 2 })
+		local index = firstPropertyIndex(state)
+		Fixtures.give(state, "P2", index)
+		state.properties[index].mortgaged = true
+		expect(View.forPlayer(state, "P1").properties[index].rent).toBe(0)
 	end)
 
 	it("incluye las acciones legales de ese jugador", function()

@@ -6,8 +6,15 @@ local CityLayout = require("../../shared/config/CityLayout")
 
 export type PropertyChange = { index: number, ownerId: string?, level: number, mortgaged: boolean? }
 
+-- Tono de una cifra pintada en la casilla. El color sale de `Ui.squarePrices.tones`; la etiqueta de
+-- encima dice qué es cada cifra, así que el color repite la información y nunca la lleva solo.
+export type PriceTone = "Buy" | "Muted" | "Rent0" | "Rent1" | "Rent2" | "Mortgage" | "Alert"
+export type PriceCell = { caption: string, amount: number, tone: PriceTone }
+
 local PAINT_DESATURATE = 0.3
 local PAINT_DIM = 0.75
+-- Nivel desde el que la renta se pinta en rojo: hotel y rascacielos.
+local RENT_HOT_LEVEL = 3
 
 local WorldRules = {}
 
@@ -106,6 +113,48 @@ function WorldRules.tokenOffsets(players: { any }): { [string]: CityLayout.Token
 		end
 	end
 	return offsets
+end
+
+-- Tono de la renta según el nivel: amarilla sin mejoras, naranja con casas y roja con hotel o más. Cuanto
+-- más cálida, más duele caer ahí.
+local function rentTone(level: number): PriceTone
+	if level >= RENT_HOT_LEVEL then
+		return "Rent2"
+	elseif level >= 1 then
+		return "Rent1"
+	end
+	return "Rent0"
+end
+
+-- Las tres cifras de una casilla de propiedad, de izquierda a derecha: lo que cuesta, lo que cobra ahora
+-- y lo que da la hipoteca. Con dueño, el precio de compra se apaga; hipotecada, la renta queda en 0 y la
+-- tercera cifra pasa a ser lo que cuesta levantarla. Las cifras vienen calculadas en la vista.
+function WorldRules.priceCells(property: any): { PriceCell }
+	if type(property) ~= "table" or type(property.price) ~= "number" then
+		return {}
+	end
+	local owned = property.ownerId ~= nil
+	local mortgaged = property.mortgaged == true
+	local cells: { PriceCell } = {
+		{ caption = "city.price.buy", amount = property.price, tone = if owned then "Muted" else "Buy" },
+	}
+	if mortgaged then
+		table.insert(cells, { caption = "city.price.rent", amount = 0, tone = "Muted" })
+		table.insert(
+			cells,
+			{ caption = "city.price.unmortgage", amount = property.unmortgageCost or 0, tone = "Alert" }
+		)
+	else
+		table.insert(
+			cells,
+			{ caption = "city.price.rent", amount = property.rent or 0, tone = rentTone(property.level or 0) }
+		)
+		table.insert(
+			cells,
+			{ caption = "city.price.mortgage", amount = property.mortgageValue or 0, tone = "Mortgage" }
+		)
+	end
+	return cells
 end
 
 return WorldRules

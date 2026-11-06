@@ -4,7 +4,10 @@
 -- papeletas del Tribunal, la mano que revela el Espía y el generador de azar nunca salen de aquí.
 -- Todo es lógica pura: no usa game, Instance, task ni ningún reloj, no muta el estado y devuelve
 -- copias para que la vista sea una instantánea (R-P4).
+local Board = require("./Board")
+local Building = require("./Building")
 local Engine = require("./Engine")
+local Property = require("./Property")
 local Types = require("./Types")
 
 type GameState = Types.GameState
@@ -59,12 +62,20 @@ local function viewPlayers(state: GameState, viewerId: PlayerId): { ViewPlayer }
 	return players
 end
 
--- Las propiedades son públicas: copia cada una para no compartir la tabla del estado.
-local function viewProperties(state: GameState): { [number]: Types.PropertyState }
-	local properties: { [number]: Types.PropertyState } = {}
+-- Las propiedades son públicas: copia cada una para no compartir la tabla del estado, con las cifras
+-- que la ciudad pinta en su casilla. La renta sale de las mismas reglas que la cobran.
+local function viewProperties(state: GameState): { [number]: Types.ViewProperty }
+	local properties: { [number]: Types.ViewProperty } = {}
 	for index, property in state.properties do
-		properties[index] =
-			{ ownerId = property.ownerId, level = property.level, mortgaged = property.mortgaged }
+		properties[index] = {
+			ownerId = property.ownerId,
+			level = property.level,
+			mortgaged = property.mortgaged,
+			price = Board.square(state, index).price or 0,
+			rent = Property.rentFor(state, index),
+			mortgageValue = Building.mortgageValue(state, index),
+			unmortgageCost = Building.unmortgageCost(state, index),
+		}
 	end
 	return properties
 end

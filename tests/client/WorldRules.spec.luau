@@ -329,3 +329,61 @@ Harness.describe("WorldRules.ownerTag", function()
 		Harness.expect(WorldRules.ownerTag("Ana", 3)).toBe("Ana · Nivel 3")
 	end)
 end)
+
+describe("WorldRules.priceCells", function()
+	local function property(fields: { [string]: any }): any
+		local base = { level = 0, price = 200, rent = 20, mortgageValue = 100, unmortgageCost = 110 }
+		for key, value in fields do
+			base[key] = value
+		end
+		return base
+	end
+
+	it("una casilla libre enseña compra, renta y hipoteca", function()
+		local cells = WorldRules.priceCells(property({}))
+		expect(#cells).toBe(3)
+		expect(cells[1].caption).toBe("city.price.buy")
+		expect(cells[1].amount).toBe(200)
+		expect(cells[1].tone).toBe("Buy")
+		expect(cells[2].caption).toBe("city.price.rent")
+		expect(cells[2].amount).toBe(20)
+		expect(cells[2].tone).toBe("Rent0")
+		expect(cells[3].caption).toBe("city.price.mortgage")
+		expect(cells[3].amount).toBe(100)
+	end)
+
+	it("con dueño, el precio de compra se apaga", function()
+		expect(WorldRules.priceCells(property({ ownerId = "P1" }))[1].tone).toBe("Muted")
+	end)
+
+	it("la renta sube de tono con las mejoras", function()
+		expect(WorldRules.priceCells(property({ ownerId = "P1", level = 2, rent = 300 }))[2].tone).toBe(
+			"Rent1"
+		)
+		expect(WorldRules.priceCells(property({ ownerId = "P1", level = 4, rent = 900 }))[2].tone).toBe(
+			"Rent2"
+		)
+	end)
+
+	it("hipotecada: renta 0 y lo que cuesta levantarla", function()
+		local cells = WorldRules.priceCells(property({ ownerId = "P1", mortgaged = true }))
+		expect(cells[2].amount).toBe(0)
+		expect(cells[2].tone).toBe("Muted")
+		expect(cells[3].caption).toBe("city.price.unmortgage")
+		expect(cells[3].amount).toBe(110)
+		expect(cells[3].tone).toBe("Alert")
+	end)
+
+	it("sin cifras en la vista no pinta nada", function()
+		expect(#WorldRules.priceCells({ level = 0 })).toBe(0)
+		expect(#WorldRules.priceCells(nil)).toBe(0)
+	end)
+
+	it("cada casilla de la vista real trae sus tres cifras", function()
+		local state = Fixtures.game({ players = 2 })
+		local view = View.forPlayer(state, "P1")
+		for _, seen in view.properties do
+			expect(#WorldRules.priceCells(seen)).toBe(3)
+		end
+	end)
+end)

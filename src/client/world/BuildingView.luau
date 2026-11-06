@@ -381,6 +381,11 @@ function BuildingView.sync(
 		refreshTag(change.index)
 	end
 	lastProperties = properties
+	-- Las cifras cambian también sin cambio de dueño (Zona Caliente, Inflación, zona completa): se repintan
+	-- en cada vista, y `setPrices` solo toca los textos que cambiaron.
+	for index, property in properties do
+		handles.setPrices(index, WorldRules.priceCells(property))
+	end
 end
 
 return BuildingView
