@@ -11,15 +11,12 @@
 local Scenes = require("../../shared/config/Scenes")
 local Types = require("../../shared/rules/Types")
 local PlaceholderScene = require("./PlaceholderScene")
+local SceneContext = require("./SceneContext")
 
 type Event = Types.Event
 type Batch = { seq: number, startsAt: number?, events: { Event }?, view: any? }
 
-export type Context = PlaceholderScene.Context & {
-	-- Tiempo que la escena ya consumió fuera de `wait` (un recorrido que corre por su cuenta). El
-	-- director lo descuenta para no esperar dos veces el mismo hueco.
-	spent: (seconds: number) -> (),
-}
+export type Context = SceneContext.SceneContext
 export type Scene = { run: (ctx: Context, event: Event) -> () }
 
 export type Options = {
@@ -30,6 +27,11 @@ export type Options = {
 	log: ((message: string) -> ())?,
 	-- Aviso al empezar cada evento, en su orden: el sonido de la interfaz suena con su escena.
 	onEvent: ((event: Event) -> ())?,
+	world: SceneContext.WorldApi?,
+	camera: SceneContext.CameraApi?,
+	audio: SceneContext.AudioApi?,
+	-- Reloj para `startedAt`. Sin él, las escenas empiezan en 0.
+	now: (() -> number)?,
 }
 
 export type Director = {
@@ -37,6 +39,10 @@ export type Director = {
 	show: (text: string) -> (),
 	log: (message: string) -> (),
 	onEvent: (event: Event) -> (),
+	world: SceneContext.WorldApi,
+	camera: SceneContext.CameraApi,
+	audio: SceneContext.AudioApi,
+	now: () -> number,
 	scenes: { [string]: Scene },
 	-- Cuántas veces se ha visto cada tipo de evento en esta partida: acorta las escenas repetidas.
 	seen: { [string]: number },
@@ -45,10 +51,6 @@ export type Director = {
 }
 
 local SceneDirector = {}
-
--- Suelo de la escena de un cliente atrasado: suficiente para que el grupo vea que algo pasa, sin
--- repetir entera una escena que el resto ya vio.
-SceneDirector.MIN_LATE_SEC = 0.2
 
 function SceneDirector.new(options: Options): Director
 	local show = options.show or function(_text: string) end
@@ -61,6 +63,12 @@ function SceneDirector.new(options: Options): Director
 		end,
 		log = options.log or function(_message: string) end,
 		onEvent = options.onEvent or function(_event: Event) end,
+		world = options.world or SceneContext.noWorld,
+		camera = options.camera or SceneContext.noCamera,
+		audio = options.audio or SceneContext.noAudio,
+		now = options.now or function()
+			return 0
+		end,
 		scenes = {},
 		seen = {},
 		titled = false,
@@ -92,8 +100,10 @@ end
 -- Reproduce un lote entero y devuelve cuántas escenas se reprodujeron. `ctx.wait` de la escena y la
 -- espera del director comparten un contador, así que una escena que espera lo suyo no se espera dos
 -- veces y una que falla a la primera sigue ocupando su hueco.
--- `behindSec` es cuánto lleva vencido el lote: un cliente que se quedó atrás descuenta ese tiempo en
--- vez de repetir escenas que el resto ya vio.
+-- `behindSec` es cuánto lleva vencido el lote: un cliente que se quedó atrás empieza cada escena en su
+-- punto, y omite la que se queda con menos de `Scenes.skipBelowSec`.
+-- Al acabar, el mundo se pone como la vista del lote, aunque una escena haya fallado o se haya omitido:
+-- la escena solo muestra, y la última palabra es del estado.
 function SceneDirector.play(director: Director, batch: Batch, behindSec: number?): number
 	local late = math.max(0, behindSec or 0)
 	local events: { Event } = batch.events or {}
@@ -108,7 +118,13 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 		local seen = director.seen[event.type] or 0
 		director.seen[event.type] = seen + 1
 		director.onEvent(event)
-		local duration = math.max(SceneDirector.MIN_LATE_SEC, Scenes.durationFor(event, seen) - late)
+		local full = Scenes.durationFor(event, seen)
+		local duration = full - late
+		-- El atraso ya se gastó en esta escena: la siguiente del lote empieza a su hora.
+		late = math.max(0, late - full)
+		if duration < Scenes.skipBelowSec then
+			continue
+		end
 
 		local elapsed = 0
 		local function wait(seconds: number)
@@ -119,8 +135,16 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 			director.wait(seconds)
 		end
 
-		local ctx: Context = {
+		local ctx: Context = SceneContext.new({
+			event = event,
+			view = batch.view,
+			startedAt = director.now(),
 			duration = duration,
+			shortened = seen > 0,
+			variation = Scenes.variationFor(event),
+			world = director.world,
+			camera = director.camera,
+			audio = director.audio,
 			show = director.show,
 			wait = wait,
 			spent = function(seconds: number)
@@ -128,14 +152,15 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 					elapsed = math.min(duration, elapsed + seconds)
 				end
 			end,
-		}
+		})
 
 		-- Una escena definitiva se ve sola: no se queda encima el título del evento anterior.
 		if scene ~= nil and director.titled then
 			director.titled = false
 			director.show("")
 		end
-		local target: Scene = scene or PlaceholderScene
+		-- La provisional solo usa `show`, `wait` y `duration`, que el contexto completo también trae.
+		local target: Scene = scene or (PlaceholderScene :: any)
 		local ok, err = (pcall :: any)(target.run, ctx, event)
 		if not ok then
 			director.log(`SceneDirector: la escena {id} falló: {tostring(err)}`)
@@ -150,6 +175,12 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 		end
 
 		played += 1
+	end
+	if batch.view ~= nil then
+		local ok, err = (pcall :: any)(director.world.reconcile, batch.view)
+		if not ok then
+			director.log(`SceneDirector: no se pudo poner el mundo como la vista: {tostring(err)}`)
+		end
 	end
 	return played
 end

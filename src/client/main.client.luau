@@ -346,6 +346,27 @@ local function boot()
 		end
 	end
 
+	-- Lo que las escenas pueden tocar. Al acabar cada lote el director pone el mundo como la vista, aunque
+	-- una escena falle o se omita; `syncTokens` deja en paz al detenido hasta que acabe su escena.
+	scenes.world = {
+		reconcile = function(view: any)
+			syncTokens(view)
+		end,
+	}
+	scenes.camera = {
+		follow = function(target: any)
+			director.follow(target)
+		end,
+	}
+	scenes.audio = {
+		play = function(id: string)
+			AudioDirector.play(id)
+		end,
+	}
+	scenes.now = function()
+		return Workspace:GetServerTimeNow()
+	end
+
 	-- El recorrido de una ficha es una escena: el grupo entero ve cómo se mueve. `ride` corre por su
 	-- cuenta y devuelve lo que tardó, que el director descuenta del hueco de la escena.
 	SceneDirector.register(scenes, "TokenMoved", {
@@ -976,6 +997,8 @@ local function boot()
 				end
 			end
 		end
+		-- El director ya concilió con la vista del lote; esto cubre el lote sin vista y lo que cambió
+		-- después, como el detenido que se libera al acabar la partida. Si no hay nada nuevo, no mueve nada.
 		local view = StateStore.view(queue.state)
 		syncTokens(view)
 		followActive(view)

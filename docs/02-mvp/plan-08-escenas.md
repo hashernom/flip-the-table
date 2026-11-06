@@ -31,7 +31,7 @@
 ## Global Constraints
 
 - Todo el grupo ve la misma escena a la vez, como en Mario Party.
-- Comunes de 2 a 4 s; legendarias, hasta 10 s.
+- Comunes y raras de 2 a 4 s; legendarias, hasta 10 s. Excepción decidida por el responsable (2026-11-06): el arresto dura 15 s.
 - Las escenas repetidas tienen variaciones y se acortan si ya se vieron en esa partida.
 - Tono caricaturesco y apto para todo público.
 - Una escena no se interrumpe con la vista general.
@@ -60,12 +60,12 @@
 - Produce: `Scenes.allIds(): { string }`, y `SceneRegistry.ids(): { string }`.
 
 **Criterios de aceptación:**
-- [ ] Toda carta y todo evento de la lista tiene entrada en `Scenes` y una escena registrada.
-- [ ] Al terminar, el mundo coincide con `view`, aunque la escena falle o se salte.
-- [ ] Una escena iniciada tarde empieza en su punto correcto o se omite si le quedan menos de 500 ms.
-- [ ] La variación se calcula con los datos del evento, así todos ven la misma.
+- [x] Toda carta y todo evento de la lista tiene entrada en `Scenes` y una escena registrada.
+- [x] Al terminar, el mundo coincide con `view`, aunque la escena falle o se salte.
+- [x] Una escena iniciada tarde empieza en su punto correcto o se omite si le quedan menos de 500 ms.
+- [x] La variación se calcula con los datos del evento, así todos ven la misma.
 
-- [ ] **Paso 1: Escribir las pruebas**
+- [x] **Paso 1: Escribir las pruebas**
 
 ```luau
 it("toda carta tiene escena y duración", function()
@@ -82,9 +82,9 @@ it("respeta los límites de duración", function()
 end)
 ```
 
-- [ ] **Paso 2:** Ejecutar `lune run tests/run Scenes`. Esperado: FAIL si falta algún dato.
-- [ ] **Paso 3:** Implementar el contexto, la conciliación con `view` y el registro.
-- [ ] **Paso 4:** Ejecutar el comando. Esperado: PASS.
+- [x] **Paso 2:** Ejecutar `lune run tests/run Scenes`. Esperado: FAIL si falta algún dato.
+- [x] **Paso 3:** Implementar el contexto, la conciliación con `view` y el registro.
+- [x] **Paso 4:** Ejecutar el comando. Esperado: PASS.
 - [ ] **Paso 5:** En Test Server, unir un segundo cliente durante una escena. Esperado: el mundo coincide con `view`.
 - [ ] **Paso 6:** Hacer commit: `feat: completar el director de escenas`.
 
