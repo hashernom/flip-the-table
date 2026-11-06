@@ -222,3 +222,25 @@ describe("CameraRules: gestionar propiedades", function()
 		expect(focus.z).toBe(0)
 	end)
 end)
+
+describe("CameraRules.isBackward", function()
+	it("avanzar a la casilla siguiente no es retroceder", function()
+		expect(CameraRules.isBackward(4, { 5, 6, 7 })).toBe(false)
+	end)
+
+	it("dar la vuelta por la Salida no es retroceder", function()
+		expect(CameraRules.isBackward(40, { 1, 2 })).toBe(false)
+	end)
+
+	it("el perdedor de un Duelo retrocede", function()
+		expect(CameraRules.isBackward(7, { 6, 5, 4 })).toBe(true)
+	end)
+
+	it("retroceder desde la Salida da la vuelta hacia atrás", function()
+		expect(CameraRules.isBackward(1, { 40, 39 })).toBe(true)
+	end)
+
+	it("sin ruta no hay retroceso", function()
+		expect(CameraRules.isBackward(3, {})).toBe(false)
+	end)
+end)

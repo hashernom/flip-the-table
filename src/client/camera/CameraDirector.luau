@@ -19,7 +19,8 @@ export type Director = {
 	requestOverview: (on: boolean) -> (),
 	rotateOverview: (pixels: number) -> (),
 	mode: () -> Mode,
-	follow: (token: Model?) -> (),
+	-- `reverse`: la ficha va marcha atrás y la cámara se pone delante, mirando hacia donde va.
+	follow: (token: Model?, reverse: boolean?) -> (),
 	-- Foco de una escena. Con `shot` la cámara toma ese plano desde `position`, mirando hacia
 	-- `facing`; sin él, la cámara se aleja con el plano por defecto. Sin posición se limpia el foco. Con
 	-- `snap` la cámara va directa al plano, sin suavizado: para cortes y para seguir algo muy rápido.
@@ -58,6 +59,7 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	local mode: Mode = "Turn"
 	local overviewWanted = false
 	local followToken: Model? = nil
+	local followReverse = false
 	local sceneFocus: Vector3? = nil
 	local sceneShot: CameraShots.Shot? = nil
 	local sceneFacing = 0
@@ -92,7 +94,7 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		local eye, focus = CameraRules.pose(
 			shot,
 			{ x = base.X, y = base.Y - body.Size.Y / 2, z = base.Z },
-			math.atan2(look.X, look.Z)
+			math.atan2(look.X, look.Z) + (if followReverse then math.pi else 0)
 		)
 		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
@@ -171,8 +173,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		mode = function(): Mode
 			return mode
 		end,
-		follow = function(token: Model?)
+		follow = function(token: Model?, reverse: boolean?)
 			followToken = token
+			followReverse = reverse == true
 		end,
 		setSize = setSize,
 		setSceneFocus = function(

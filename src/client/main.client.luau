@@ -40,6 +40,7 @@ local function boot()
 	end
 
 	local CameraDirector = require("./camera/CameraDirector")
+	local CameraRules = require("./camera/CameraRules")
 	local ArtAssets = require("../shared/config/ArtAssets")
 	local StreetDressing = require("./world/StreetDressing")
 	local BuildingView = require("./world/BuildingView")
@@ -394,8 +395,10 @@ local function boot()
 			-- La vista del lote ya lleva el resultado, así que se sabe a qué sitio de la casilla llega.
 			local view = StateStore.view(queue.state)
 			local arrival = if view ~= nil then WorldRules.tokenOffsets(view.players)[id] else nil
-			-- Todo el grupo sigue a esa ficha de cerca mientras recorre la calle (R-P51).
-			director.follow(token)
+			-- Todo el grupo sigue a esa ficha de cerca mientras recorre la calle (R-P51). Si retrocede, la
+			-- cámara se pone delante para ver la ficha y no la calle que deja.
+			local backward = type(event.from) == "number" and CameraRules.isBackward(event.from, path)
+			director.follow(token, backward)
 			riding = true
 			local used = TokenRider.ride(token, path, ctx.duration, arrival)
 			riding = false
@@ -447,6 +450,19 @@ local function boot()
 			local view = StateStore.view(queue.state)
 			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
 			billboard.play(event.result :: string, event.amount :: number, playerName, ctx.duration)
+			ctx.wait(ctx.duration)
+		end,
+	})
+
+	-- Duelo: hasta que llegue su escena final (plan 08, Tarea 5), la cámara pasa ya al perdedor, que es
+	-- quien se mueve después; sin perdedor (empate o duelo anulado) se queda donde estaba.
+	SceneDirector.register(scenes, "DuelResolved", {
+		run = function(ctx, event)
+			ctx.show("DuelResolved")
+			local loser = if type(event.loserId) == "string" then tokens[event.loserId] else nil
+			if loser ~= nil then
+				director.follow(loser)
+			end
 			ctx.wait(ctx.duration)
 		end,
 	})

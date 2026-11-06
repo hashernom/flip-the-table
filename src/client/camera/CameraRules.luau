@@ -127,6 +127,17 @@ function CameraRules.followAlpha(rate: number, dt: number): number
 	return 1 - math.exp(-rate * dt)
 end
 
+-- ¿El recorrido va marcha atrás? Hacia delante, el primer paso es la casilla siguiente o la Salida al dar
+-- la vuelta; cualquier otro primer paso es un retroceso (el perdedor de un Duelo). La cámara se pone
+-- entonces delante de la ficha, mirando hacia donde va, para que se vea a quién retrocede.
+function CameraRules.isBackward(from: number, path: { number }): boolean
+	local first = path[1]
+	if first == nil then
+		return false
+	end
+	return first ~= from + 1 and first ~= 1
+end
+
 -- Duración de un recorrido, acotada por el tope de `Scenes`. Sea cual sea la distancia, la ficha
 -- nunca tarda más: el turno se mide en segundos, no en studs.
 function CameraRules.rideSeconds(requested: number): number
