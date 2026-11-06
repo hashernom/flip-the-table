@@ -55,10 +55,10 @@ local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 -- Suelo libre fuera del anillo (2026-11-06): 60 studs por lado, para los barrios. Lo comparten suelo y agua.
 -- Con los barrios a los dos lados de la calle sube a 100: el prado y el fondo de fuera caben en el suelo.
-local GROUND_MARGIN = 100
+local GROUND_MARGIN = 130
 -- Prado del lado de la cámara: del borde de la acera de fuera al fondo de ciudad.
 local GRASS = Color3.fromRGB(86, 120, 64)
-local VERGE = 36
+local VERGE = 10
 local NAME_DEPTH = 6
 -- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
 local FRAMED_NAME_SIDE = 7.5

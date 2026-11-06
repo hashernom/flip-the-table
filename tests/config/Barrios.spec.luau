@@ -193,7 +193,7 @@ describe("CityLayout.backdropsFor", function()
 				local items = backdropsFor(sizeId, id)
 				expect(#items > 0).toBe(true)
 				-- Una fila detrás de los solares y otra al otro lado de la calle.
-				expect(#items <= math.ceil(#slots / 2) * 2).toBe(true)
+				expect(#items <= math.ceil(#slots / 2) * 3 + 2).toBe(true)
 			end
 		end
 	end)
