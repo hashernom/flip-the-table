@@ -59,14 +59,23 @@ local hintText = Components.label(hint.root, "Text", Strings.get("lobbyPark.hint
 hintText.Size = UDim2.new(1, -24, 1, 0)
 hintText.Position = UDim2.fromOffset(12, 0)
 
+-- Botones de abajo: crear o unirse a una party (abre el tablón) y partida rápida (la cola pública).
 local friends = Components.PrimaryButton(gui, "Friends", Strings.get("lobbyPark.friends"))
-friends.root.AnchorPoint = Vector2.new(0.5, 1)
-friends.root.Position = UDim2.new(0.5, 0, 1, -24)
+friends.root.AnchorPoint = Vector2.new(1, 1)
+friends.root.Position = UDim2.new(0.5, -8, 1, -24)
 friends.root.Size = UDim2.fromOffset(300, 64)
+local quick = Components.SecondaryButton(gui, "Quick", Strings.get("lobbyPark.quick"))
+quick.root.AnchorPoint = Vector2.new(0, 1)
+quick.root.Position = UDim2.new(0.5, 8, 1, -32)
+quick.root.Size = UDim2.fromOffset(240, 52)
+quick.onActivated(function()
+	send({ type = "QueueJoin" })
+end)
 
 local function setMenu(open: boolean)
 	menu.setVisible(open)
 	friends.root.Visible = not open
+	quick.root.Visible = not open
 	hint.root.Visible = not open
 end
 

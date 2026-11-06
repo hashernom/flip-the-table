@@ -245,7 +245,8 @@ local TEXTS: { [string]: string } = {
 	["lobby.shareCode"] = "Comparte este código con tu grupo para que entre.",
 	-- Lobby provisional: el parque con mesas.
 	["lobbyPark.hint"] = "Siéntate en una mesa con otros jugadores para empezar una partida",
-	["lobbyPark.friends"] = "Jugar con amigos",
+	["lobbyPark.friends"] = "Crear o unirse a party",
+	["lobbyPark.quick"] = "Partida rápida",
 	["lobby.settings"] = "Configuración",
 	["lobby.settings.on"] = "Sí",
 	["lobby.settings.off"] = "No",
