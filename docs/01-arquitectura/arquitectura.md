@@ -266,7 +266,7 @@ export type Summary = {
 
 `RoundStarted`, `FinalRoundsStarted`, `PerkDrafted`, `DiceRolled`, `TokenMoved`, `PassedStart`, `PropertyBought`, `RentPaid`, `AuctionStarted`, `AuctionWon`, `AuctionNoSale`, `BuildingChanged`, `PropertyMortgaged`, `PropertyUnmortgaged`, `TradeCompleted`, `PlayerArrested`, `TribunalVerdict`, `BankruptcyDeclared`, `GhostActed`, `GhostResurrected`, `CardDrawn`, `CardDiscarded`, `CardPlayed`, `CardBlocked`, `HotZoneMoved`, `BillboardResult`, `DuelResolved`, `PortalUsed`, `MarketBought`, `PactFormed`, `PactEnded`, `PactBroken`, `CrownMoved`, `FuryFilled`, `GameEnded`.
 
-Cada carta legendaria y rara se expresa como `CardPlayed` más los eventos concretos que causa. `Scenes` asigna escena y duración por evento y por carta.
+Cada carta legendaria y rara se expresa como `CardPlayed` más los eventos concretos que causa. Una carta que apunta a una zona lleva `zoneId` en su `CardPlayed`, para que la escena sepa dónde ocurre antes de los eventos que causa. `Scenes` asigna escena y duración por evento y por carta.
 
 ### Decisiones que cambian los contratos
 

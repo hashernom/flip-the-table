@@ -149,7 +149,9 @@ describe("Huelga", function()
 		Fixtures.hand(s, a.id, "Strike")
 
 		local events = playCard(s, a.id, "Strike", { zoneId = zoneIdOf(s, 1) })
-		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Strike" } })
+		expect(events).toEqual({
+			{ type = "CardPlayed", playerId = a.id, cardId = "Strike", zoneId = zoneIdOf(s, 1) },
+		})
 		expect(s.modifiers).toEqual({
 			{
 				kind = "Strike",

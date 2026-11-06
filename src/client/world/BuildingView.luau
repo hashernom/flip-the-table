@@ -26,7 +26,15 @@ local UPGRADE_GLOW = "UpgradeGlow"
 local UPGRADE_FILL = Color3.fromRGB(255, 236, 170)
 local UPGRADE_OUTLINE = Color3.fromRGB(255, 250, 225)
 
+-- Atributos de cada pieza: qué es (Base, Addon o Marker) y su nivel. Las escenas se llevan añadidos y
+-- marcadores sin tocar el cuerpo del edificio (art/vision-visual.md).
+local ROLE = "Role"
+local TIER = "Tier"
+
 local BuildingView = {}
+
+BuildingView.ROLE = ROLE
+BuildingView.TIER = TIER
 
 local city: CityBuilder.CityHandles? = nil
 local buildings: { [number]: Model } = {}
@@ -38,7 +46,7 @@ local pending: { [number]: boolean } = {}
 local tagsVisible = false
 local hotZoneId: string? = nil
 
-local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance)
+local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance): Part
 	local piece = Instance.new("Part")
 	piece.Name = name
 	piece.Anchored = true
@@ -50,6 +58,7 @@ local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Col
 	piece.Size = size
 	piece.CFrame = cframe
 	piece.Parent = parent
+	return piece
 end
 
 -- Comprueba que la malla ya está en la carpeta de la que copia `placeMesh`.
@@ -240,25 +249,33 @@ function BuildingView.setLevel(index: number, level: number)
 	local placedReal = real ~= nil
 	if real ~= nil then
 		local origin = lot * CFrame.new(0, 0, ArtAssets.FRONT_OFFSET)
+		local roles = BuildingView.rolesFor(handles.labelOf(index), level)
 		for order, piece in real do
 			local mesh = placeMesh(piece, origin, model)
 			if mesh == nil then
 				placedReal = false
-			elseif order == 1 then
-				mesh.Name = "Base"
+			else
+				if order == 1 then
+					mesh.Name = "Base"
+				end
+				local role = roles[order]
+				mesh:SetAttribute(ROLE, role.role)
+				mesh:SetAttribute(TIER, role.tier)
 			end
 		end
 	end
 	if not placedReal then
 		model:ClearAllChildren()
 		for order, block in CityLayout.buildingBlocks(level) do
-			makePiece(
+			local piece = makePiece(
 				if order == 1 then "Base" else `Addon{order - 1}`,
 				Vector3.new(block.width, block.height, block.depth),
 				lot * CFrame.new(block.along, block.y + block.height / 2, block.front),
 				if order == 1 then BLOCK_COLOR else ADDON_COLOR,
 				model
 			)
+			piece:SetAttribute(ROLE, if order == 1 then "Base" else "Addon")
+			piece:SetAttribute(TIER, order - 1)
 		end
 	end
 	-- Pendiente solo si había piezas reales que no pudieron colocarse: el modelo real se pone al llegar.
@@ -271,6 +288,12 @@ function BuildingView.setLevel(index: number, level: number)
 		local origin = lot * CFrame.new(marker.along, 0, marker.front)
 		local stone = placeMesh(ArtAssets.mojon.stone, origin, model)
 		local ring = placeMesh(ArtAssets.mojon.ring, origin, model)
+		for _, mesh in { stone, ring } do
+			if mesh ~= nil then
+				mesh:SetAttribute(ROLE, "Marker")
+				mesh:SetAttribute(TIER, order)
+			end
+		end
 		if ring ~= nil then
 			local slot = CityLayout.routeFor(handles.sizeId)[index]
 			if slot ~= nil and slot.zoneId ~= nil then
@@ -278,13 +301,15 @@ function BuildingView.setLevel(index: number, level: number)
 			end
 		end
 		if stone == nil then
-			makePiece(
+			local block = makePiece(
 				`Marker{order}`,
 				Vector3.new(marker.width, marker.height, marker.depth),
 				lot * CFrame.new(marker.along, marker.height / 2, marker.front),
 				MARKER_COLOR,
 				model
 			)
+			block:SetAttribute(ROLE, "Marker")
+			block:SetAttribute(TIER, order)
 		end
 	end
 	model.Parent = handles.model
@@ -294,6 +319,36 @@ function BuildingView.setLevel(index: number, level: number)
 	if before ~= nil and level > before then
 		flashUpgrade(model)
 	end
+end
+
+-- Papel de cada pieza real de un edificio, en el orden de `ArtAssets.piecesFor`: el cuerpo (tier 0) y
+-- los añadidos de cada nivel (tier = nivel). Las escenas lo leen con el atributo `Role` para llevarse
+-- los añadidos y marcadores sin tocar el cuerpo.
+function BuildingView.rolesFor(name: string, level: number): { { role: string, tier: number } }
+	local roles: { { role: string, tier: number } } = {}
+	local property = ArtAssets.properties[name]
+	if property == nil then
+		return roles
+	end
+	for _ in property.base do
+		table.insert(roles, { role = "Base", tier = 0 })
+	end
+	for order = 1, math.min(level, #property.addons) do
+		for _ in property.addons[order] do
+			table.insert(roles, { role = "Addon", tier = order })
+		end
+	end
+	return roles
+end
+
+-- Modelo del edificio de una casilla, o nil si no hay ciudad o no es propiedad.
+function BuildingView.modelOf(index: number): Model?
+	return buildings[index]
+end
+
+-- Nivel que la ciudad muestra ahora en esa casilla (puede ir por detrás de la vista durante una escena).
+function BuildingView.levelOf(index: number): number
+	return levels[index] or 0
 end
 
 -- Vuelve a levantar lo que está en la ciudad cuando terminan de cargar los modelos reales.

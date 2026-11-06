@@ -695,6 +695,10 @@ function Cards.play(state: GameState, playerId: PlayerId, cardId: string, args: 
 	if target then
 		events[1].targetId = target.id
 	end
+	-- La zona elegida es pública y la escena la necesita antes que los eventos que causa (Terremoto, Huelga).
+	if type(args.zoneId) == "string" then
+		events[1].zoneId = args.zoneId
+	end
 
 	-- La carta se gasta aunque su efecto cierre la partida (por ejemplo, una Multa que arruina
 	-- al último rival) y cuenta para el premio de cartas jugadas.
