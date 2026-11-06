@@ -168,11 +168,13 @@ describe("CameraRules: vista general", function()
 		return dot(d, right) / (depth * half * 4 / 3), dot(d, up) / (depth * half)
 	end
 
-	it("toda la ciudad cabe en pantalla, en cualquier tamaño y giro", function()
+	it("toda la ciudad cabe en pantalla, en cualquier tamaño y en los cuatro giros rectos", function()
+		-- Más cerca a petición del responsable (2026-11-06): de frente cabe entera; girada en diagonal
+		-- pueden quedar fuera las puntas de las esquinas, y basta con arrastrar para verlas.
 		for _, sizeId in { "S", "M", "L" } do
 			local span = CityLayout.spanFor(sizeId :: any)
 			local center = CityLayout.centerFor(sizeId :: any)
-			for yaw = 0, 6, 0.5 do
+			for _, yaw in { 0, math.pi / 2, math.pi, 3 * math.pi / 2 } do
 				local eye, focus = CameraRules.overviewPose(center, span, yaw)
 				for _, corner in { { 0, 0 }, { span, 0 }, { 0, span }, { span, span } } do
 					local x, y = project(eye, focus, { x = corner[1], y = 0, z = corner[2] })

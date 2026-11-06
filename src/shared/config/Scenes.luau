@@ -23,10 +23,12 @@ local BASE_DURATION: { [string]: number } = {
 	DiceRolled = 2,
 	TokenMoved = 2,
 	PassedStart = 2,
-	PropertyBought = 2.5,
+	-- La compra y la subasta ganada se ven al instante (la escena aplica el resultado al empezar): una
+	-- espera larga aquí era tiempo muerto en cada turno (responsable, 2026-11-06).
+	PropertyBought = 1.2,
 	RentPaid = 2.5,
 	AuctionStarted = 3,
-	AuctionWon = 3,
+	AuctionWon = 1.8,
 	AuctionNoSale = 2.5,
 	BuildingChanged = 2,
 	PropertyMortgaged = 2,

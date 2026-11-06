@@ -471,6 +471,27 @@ local function boot()
 	-- al mapa y entran en la cárcel; al acabar la escena reaparece la ficha y sigue la partida.
 	SceneDirector.register(scenes, "PlayerArrested", arrest.scene)
 
+	-- Compra y subasta ganada: el resultado se ve al instante (halo del dueño y dinero de la barra), sin
+	-- esperar a que acabe el lote. La escena es corta: un tiempo muerto aquí se nota en cada turno.
+	local function settleNow(ctx: SceneDirector.Context, title: string)
+		ctx.show(title)
+		ctx.world.reconcile(ctx.view)
+		if ctx.view ~= nil then
+			hud.setView(ctx.view, names)
+		end
+		ctx.wait(ctx.duration)
+	end
+	SceneDirector.register(scenes, "PropertyBought", {
+		run = function(ctx)
+			settleNow(ctx, "PropertyBought")
+		end,
+	})
+	SceneDirector.register(scenes, "AuctionWon", {
+		run = function(ctx)
+			settleNow(ctx, "AuctionWon")
+		end,
+	})
+
 	-- La cámara sigue a la ficha del turno, sea de quien sea: es lo que hace que el resto del grupo vea
 	-- la jugada del activo, como pide la tabla «Qué ve cada jugador».
 	local function followActive(view: any)
