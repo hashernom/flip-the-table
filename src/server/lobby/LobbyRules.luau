@@ -3,6 +3,7 @@
 -- datos del teletransporte y reintentos de reserva. No usa game, task ni relojes: el instante y
 -- la espera entran por parámetro, así que Lune las prueba igual que Roblox.
 local Lobby = require("../../shared/config/Lobby")
+local MatchSettings = require("../../shared/config/MatchSettings")
 local Types = require("../../shared/rules/Types")
 
 -- Una fiesta: código, anfitrión, miembros en orden de llegada, servidor del lobby donde vive el
@@ -25,6 +26,8 @@ export type MatchData = {
 	endMode: Types.EndMode,
 	code: string?,
 	size: number,
+	-- Configuración de la partida privada (config/MatchSettings), ya normalizada. La cola pública no la lleva.
+	settings: MatchSettings.Settings?,
 }
 
 -- Datos del salto lobby → lobby cuando la fiesta vive en otro servidor: solo el código, para que
@@ -163,8 +166,20 @@ end
 
 -- Datos de una party: el código para el registro del servidor de partida y el modo que eligió el
 -- anfitrión.
-function LobbyRules.partyData(seed: number, code: string, endMode: Types.EndMode, size: number): MatchData
-	return { seed = seed, endMode = endMode, code = code, size = size }
+function LobbyRules.partyData(
+	seed: number,
+	code: string,
+	endMode: Types.EndMode,
+	size: number,
+	settings: any?
+): MatchData
+	return {
+		seed = seed,
+		endMode = endMode,
+		code = code,
+		size = size,
+		settings = MatchSettings.normalize(settings),
+	}
 end
 
 -- Reintenta `attempt` hasta `attempts` veces, esperando Lobby.teleportRetrySec entre intentos.

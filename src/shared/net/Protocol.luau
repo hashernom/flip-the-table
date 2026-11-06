@@ -253,13 +253,38 @@ end
 
 local END_MODES = { "Rounds", "Endless" }
 
+-- Configuración de la partida privada: aquí solo la forma (pocas claves de texto con valores simples). Qué
+-- valores valen lo decide `MatchSettings.normalize` en el servidor.
+local MAX_SETTINGS_KEYS = 16
+
+local function isSettings(value: any): boolean
+	if type(value) ~= "table" then
+		return false
+	end
+	local count = 0
+	for key, item in value do
+		count += 1
+		if count > MAX_SETTINGS_KEYS or type(key) ~= "string" or #key > 32 then
+			return false
+		end
+		local kind = type(item)
+		if kind ~= "number" and kind ~= "boolean" and kind ~= "string" then
+			return false
+		end
+		if kind == "string" and #item > 32 then
+			return false
+		end
+	end
+	return true
+end
+
 -- Peticiones del lobby (R-P29). Viven en Protocol, igual que las acciones de la partida, para que
 -- el nombre y la forma tengan una sola fuente de verdad. El lobby no las valida con
 -- Protocol.validate: un tipo de partida no debe colarse por el remoto del lobby ni al revés.
 local LOBBY_SPECS: { [string]: ActionSpec } = {
 	PartyCreate = { required = {}, fields = {} },
 	PartyJoin = { required = { "code" }, fields = { code = isPartyCode } },
-	PartyStart = { required = { "endMode" }, fields = { endMode = oneOf(END_MODES) } },
+	PartyStart = { required = { "endMode" }, fields = { endMode = oneOf(END_MODES), settings = isSettings } },
 	QueueJoin = { required = {}, fields = {} },
 }
 

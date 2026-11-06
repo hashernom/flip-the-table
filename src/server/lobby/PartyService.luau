@@ -263,7 +263,7 @@ end
 -- Con el lugar de partida sin publicar no se intenta teletransportar: se contesta que falta
 -- publicarlo (R-P31). Un fallo del teletransporte se reintenta y, si persiste, el grupo sigue en
 -- el lobby con un aviso.
-function PartyService.start(host: Player, endMode: Types.EndMode): (boolean, string?)
+function PartyService.start(host: Player, endMode: Types.EndMode, settings: any?): (boolean, string?)
 	local config = current()
 	local userId = host.UserId
 	local code: string? = codeByUser[userId]
@@ -310,7 +310,7 @@ function PartyService.start(host: Player, endMode: Types.EndMode): (boolean, str
 	end
 
 	starting[code] = true
-	local data = LobbyRules.partyData(config.seed(), code, endMode, #players)
+	local data = LobbyRules.partyData(config.seed(), code, endMode, #players, settings)
 	local ok, failure = LobbyRules.retry(function(): (boolean, string?)
 		return config.teleport.reserve(players, data)
 	end, Lobby.teleportAttempts, task.wait)

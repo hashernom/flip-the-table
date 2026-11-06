@@ -127,7 +127,7 @@ Remotes.remote(Protocol.REMOTES.PartyStart).OnServerEvent:Connect(function(playe
 		return
 	end
 	forward("empezar party", function()
-		PartyService.start(player, accepted.endMode)
+		PartyService.start(player, accepted.endMode, accepted.settings)
 	end)
 end)
 

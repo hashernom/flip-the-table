@@ -294,4 +294,18 @@ describe("LobbyRules datos de teletransporte", function()
 		expect(data.endMode).toBe("Endless")
 		expect(data.size).toBe(3)
 	end)
+
+	it("la party lleva la configuración del anfitrión, siempre validada", function()
+		local data = LobbyRules.partyData(
+			42,
+			"AB3K9Z",
+			"Rounds",
+			3,
+			{ startingCash = 2500, auctions = false, perks = 5 }
+		)
+		local settings = data.settings :: any
+		expect(settings.startingCash).toBe(2500)
+		expect(settings.auctions).toBe(false)
+		expect(settings.perks).toBe(true)
+	end)
 end)

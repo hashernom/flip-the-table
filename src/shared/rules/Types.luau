@@ -111,6 +111,15 @@ export type GameState = {
 	players: { Player },
 	turnIndex: number,
 	endMode: EndMode,
+	-- Configuración elegida al crear la partida (config/MatchSettings). nil = la de por defecto.
+	settings: {
+		startingCash: number,
+		startBonus: number,
+		length: string,
+		auctions: boolean,
+		perks: boolean,
+		hotZone: boolean,
+	}?,
 	round: number,
 	maxRounds: number?,
 	phase: Phase,

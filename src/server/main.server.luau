@@ -33,6 +33,7 @@ type JoinData = {
 	endMode: EndMode,
 	code: string?,
 	size: number?,
+	settings: any?,
 }
 
 -- Rango del estado de Rng (31 bits): la semilla del motor no puede salir de ahí.
@@ -84,6 +85,8 @@ local function readJoinData(player: Player): JoinData?
 		endMode = endMode :: EndMode,
 		code = if type(code) == "string" then code else nil,
 		size = size :: number?,
+		-- MatchService la normaliza: un dato roto vuelve a la configuración por defecto.
+		settings = teleportData.settings,
 	}
 end
 
@@ -149,7 +152,8 @@ local function tryStart()
 	-- `starting` cubre el hueco entre el aviso de PlayerAdded y el bucle de espera: MatchService
 	-- no debe arrancar dos veces la misma partida.
 	starting = true
-	local ok, err = pcall(MatchService.start, group, seed, endMode)
+	local settings = if data ~= nil then data.settings else nil
+	local ok, err = pcall(MatchService.start, group, seed, endMode, settings)
 	starting = false
 	if not ok then
 		warn(`Lugar de partida: no se pudo empezar la partida: {err}`)
