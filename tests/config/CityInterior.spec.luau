@@ -123,18 +123,66 @@ describe("CityInterior.itemsFor", function()
 end)
 
 describe("CityInterior.exteriorFor", function()
-	it("llena el borde exterior de árboles fuera de la calle", function()
+	-- Borde de la acera de fuera, desde el eje de la calle.
+	local SIDEWALK_EDGE = CityLayout.STREET_WIDTH_STUDS / 2 + CityLayout.SIDEWALK_STUDS
+
+	it("llena el borde exterior sin pisar la calle ni la acera", function()
 		for _, sizeId in SIZES do
 			local span = CityLayout.spanFor(sizeId)
 			local items = CityInterior.exteriorFor(sizeId)
 			expect(#items > 0).toBe(true)
 			for _, item in items do
-				local outside = item.x < -LOT_REACH
-					or item.x > span + LOT_REACH
-					or item.z < -LOT_REACH
-					or item.z > span + LOT_REACH
+				local outside = item.x < -SIDEWALK_EDGE
+					or item.x > span + SIDEWALK_EDGE
+					or item.z < -SIDEWALK_EDGE
+					or item.z > span + SIDEWALK_EDGE
 				expect(outside).toBe(true)
 			end
+		end
+	end)
+
+	it("no pone nada delante de una casilla especial ni de la cárcel: ahí está su lugar", function()
+		for _, sizeId in SIZES do
+			local items = CityInterior.exteriorFor(sizeId)
+			for _, slot in CityLayout.routeFor(sizeId) do
+				if CityLayout.lotSideOf(slot) > 0 or slot.kind == "Tribunal" then
+					local lot = CityLayout.outsideLotCenter(slot)
+					for _, item in items do
+						local dx, dz = item.x - lot.x, item.z - lot.z
+						local near = math.abs(dx) < CityLayout.LOT_WIDTH_STUDS / 2
+							and math.abs(dz) < CityLayout.LOT_WIDTH_STUDS / 2
+						if near then
+							error(`{item.name} pisa el lugar de la casilla {slot.index} en {sizeId}`, 2)
+						end
+					end
+				end
+			end
+		end
+	end)
+
+	it("da vida a la franja verde delante de las propiedades, sin llenarla entera", function()
+		for _, sizeId in SIZES do
+			local spots = CityInterior.vergeFor(sizeId)
+			local eligible = 0
+			for _, slot in CityLayout.routeFor(sizeId) do
+				if CityInterior.vergeOpen(slot) then
+					eligible += 1
+				end
+			end
+			local kinds: { [string]: boolean } = {}
+			local filled = 0
+			for _, spot in spots do
+				if spot.kind ~= "Empty" then
+					filled += 1
+					kinds[spot.kind] = true
+				end
+			end
+			expect(filled > 0 and filled < eligible).toBe(true)
+			local variety = 0
+			for _ in kinds do
+				variety += 1
+			end
+			expect(variety >= 3).toBe(true)
 		end
 	end)
 end)

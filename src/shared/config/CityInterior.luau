@@ -987,18 +987,486 @@ function CityInterior.itemsFor(sizeId: CityLayout.SizeId): { Item }
 	return items
 end
 
+-- Franja verde de fuera, delante de las propiedades (2026-11-06): su solar va dentro, así que el de fuera
+-- queda libre entre la acera y los fondos de barrio. Se le da algo de vida sin llenarla: jardincillos,
+-- quioscos, alguna casa, aparcamientos y parques infantiles, con huecos de césped entre ellos.
+export type VergeKind = "Empty" | "Garden" | "Kiosk" | "House" | "Parking" | "Playground"
+export type VergeSpot = { slot: CityLayout.Slot, kind: VergeKind }
+
+local VERGE_DECK: { VergeKind } = { "Garden", "Kiosk", "House", "Parking", "Playground", "Garden", "House" }
+-- Probabilidad de dejar el solar de césped: la franja no tiene que llenarse.
+local VERGE_EMPTY = 0.35
+-- Centro de la franja, desde el eje de la calle: entre la acera (24) y el fondo del solar (46).
+local VERGE_OUT = CityLayout.STREET_WIDTH_STUDS / 2
+	+ CityLayout.SIDEWALK_STUDS
+	+ CityLayout.LOT_DEPTH_STUDS / 2
+local CAR_COLORS = { "#C4382B", "#2E5E8C", "#E1D8C3", "#3A3E44", "#F5C518", "#4E7A3A" }
+local SAND = "#D8C08A"
+
+-- ¿Está libre el solar de fuera de esta casilla? Las esquinas, las especiales vecinas de esquina y la
+-- cárcel (frente al Tribunal) tienen allí su lugar.
+function CityInterior.vergeOpen(slot: CityLayout.Slot): boolean
+	return CityLayout.lotSideOf(slot) < 0
+		and slot.corner ~= true
+		and slot.edge ~= true
+		and slot.kind ~= "Tribunal"
+end
+
+function CityInterior.vergeFor(sizeId: CityLayout.SizeId): { VergeSpot }
+	local rng: Rng = { seed = SEEDS[sizeId] * 17 + 11 }
+	local spots: { VergeSpot } = {}
+	local dealt = 0
+	for _, slot in CityLayout.routeFor(sizeId) do
+		if CityInterior.vergeOpen(slot) then
+			local kind: VergeKind = "Empty"
+			if nextRandom(rng) >= VERGE_EMPTY then
+				dealt += 1
+				kind = VERGE_DECK[(dealt - 1) % #VERGE_DECK + 1]
+			end
+			table.insert(spots, { slot = slot, kind = kind })
+		end
+	end
+	return spots
+end
+
+-- Marco local de un solar de fuera: `along` a lo largo de la calle y `out` hacia fuera, desde el eje.
+type Frame = { slot: CityLayout.Slot, yaw: number }
+
+local function at(frame: Frame, along: number, out: number): (number, number)
+	local f = frame.slot.facing
+	return frame.slot.position.x + math.sin(f) * along + math.cos(f) * out,
+		frame.slot.position.z + math.cos(f) * along - math.sin(f) * out
+end
+
+-- Pieza en el marco del solar: su giro se suma al del solar, que mira con su frente (-Z) a la calle.
+local function onLot(
+	items: { Item },
+	frame: Frame,
+	name: string,
+	along: number,
+	out: number,
+	y: number,
+	sx: number,
+	sy: number,
+	sz: number,
+	color: string,
+	material: string,
+	extra: { yaw: number?, transparency: number?, flat: boolean?, shape: Shape? }?
+)
+	local x, z = at(frame, along, out)
+	local source: { yaw: number?, transparency: number?, flat: boolean?, shape: Shape? } = extra or {}
+	block(items, name, x, y, z, sx, sy, sz, color, material, {
+		yaw = frame.yaw + (source.yaw or 0),
+		transparency = source.transparency,
+		flat = source.flat,
+		shape = source.shape,
+	})
+end
+
+local function vergeGarden(items: { Item }, rng: Rng, frame: Frame)
+	onLot(
+		items,
+		frame,
+		"GardenBed",
+		0,
+		VERGE_OUT,
+		SLAB_TOP + 0.03,
+		28,
+		0.2,
+		16,
+		PALETTE.grassDark,
+		"Grass",
+		{ flat = true }
+	)
+	onLot(
+		items,
+		frame,
+		"GardenPath",
+		0,
+		VERGE_OUT - 4,
+		SLAB_TOP + 0.08,
+		20,
+		0.12,
+		3,
+		PALETTE.pavement,
+		"Pavement",
+		{ flat = true }
+	)
+	for _, spot in { { -10, VERGE_OUT + 4 }, { 10, VERGE_OUT + 5 }, { 3, VERGE_OUT + 7 } } do
+		local x, z = at(frame, spot[1], spot[2])
+		tree(items, rng, x, z)
+	end
+	local bx, bz = at(frame, -2, VERGE_OUT - 1.5)
+	bench(items, bx, bz, frame.yaw)
+	local lx, lz = at(frame, 7, VERGE_OUT - 2.5)
+	lamp(items, lx, lz)
+	onLot(
+		items,
+		frame,
+		"Flowers",
+		-6,
+		VERGE_OUT + 1,
+		SLAB_TOP + 0.4,
+		3,
+		0.8,
+		2,
+		"#C4382B",
+		"Grass",
+		{ flat = true }
+	)
+	onLot(
+		items,
+		frame,
+		"Flowers",
+		6,
+		VERGE_OUT + 1,
+		SLAB_TOP + 0.4,
+		3,
+		0.8,
+		2,
+		"#F5C518",
+		"Grass",
+		{ flat = true }
+	)
+end
+
+local function vergeKiosk(items: { Item }, rng: Rng, frame: Frame)
+	onLot(
+		items,
+		frame,
+		"KioskPad",
+		0,
+		VERGE_OUT - 1,
+		SLAB_TOP + 0.05,
+		16,
+		0.12,
+		12,
+		PALETTE.pavement,
+		"Pavement",
+		{ flat = true }
+	)
+	local awning = pick(rng, { "#C4382B", "#2E5E8C", "#E07A3C", "#4E7A3A" })
+	onLot(
+		items,
+		frame,
+		"Kiosk",
+		-2,
+		VERGE_OUT + 1,
+		SLAB_TOP + 2.5,
+		6,
+		5,
+		5,
+		pick(rng, PALETTE.walls),
+		"Concrete"
+	)
+	onLot(items, frame, "KioskAwning", -2, VERGE_OUT - 1.6, SLAB_TOP + 5.2, 7, 0.4, 3, awning, "Fabric")
+	onLot(
+		items,
+		frame,
+		"KioskCounter",
+		-2,
+		VERGE_OUT - 1.2,
+		SLAB_TOP + 1.2,
+		6,
+		0.4,
+		1,
+		"#7A5A3C",
+		"Wood",
+		{ flat = true }
+	)
+	-- Mesa con sombrilla.
+	onLot(
+		items,
+		frame,
+		"TablePole",
+		5,
+		VERGE_OUT - 2,
+		SLAB_TOP + 2,
+		0.3,
+		4,
+		0.3,
+		PALETTE.lamp,
+		"Metal",
+		{ flat = true }
+	)
+	onLot(
+		items,
+		frame,
+		"Umbrella",
+		5,
+		VERGE_OUT - 2,
+		SLAB_TOP + 4.1,
+		5,
+		0.3,
+		1,
+		awning,
+		"Fabric",
+		{ shape = "Disk" }
+	)
+	onLot(
+		items,
+		frame,
+		"Table",
+		5,
+		VERGE_OUT - 2,
+		SLAB_TOP + 1.3,
+		2.4,
+		0.2,
+		1,
+		"#E1D8C3",
+		"SmoothPlastic",
+		{ shape = "Disk", flat = true }
+	)
+	local x, z = at(frame, 12, VERGE_OUT + 5)
+	tree(items, rng, x, z)
+end
+
+local function vergeHouse(items: { Item }, rng: Rng, frame: Frame)
+	local x, z = at(frame, 0, VERGE_OUT + 2)
+	house(items, rng, x, z, 13, 10, frame.yaw)
+	onLot(
+		items,
+		frame,
+		"HousePath",
+		0,
+		VERGE_OUT - 5.5,
+		SLAB_TOP + 0.05,
+		2,
+		0.12,
+		5,
+		PALETTE.pavement,
+		"Pavement",
+		{ flat = true }
+	)
+	local tx, tz = at(frame, -12, VERGE_OUT + 4)
+	tree(items, rng, tx, tz, 0.9)
+	-- Valla baja delante del jardín, con hueco para el camino.
+	onLot(
+		items,
+		frame,
+		"GardenFence",
+		7,
+		VERGE_OUT - 7,
+		SLAB_TOP + 0.6,
+		9,
+		1.2,
+		0.3,
+		"#E1D8C3",
+		"Wood",
+		{ flat = true }
+	)
+	onLot(
+		items,
+		frame,
+		"GardenFence",
+		-7,
+		VERGE_OUT - 7,
+		SLAB_TOP + 0.6,
+		9,
+		1.2,
+		0.3,
+		"#E1D8C3",
+		"Wood",
+		{ flat = true }
+	)
+end
+
+local function vergeParking(items: { Item }, rng: Rng, frame: Frame)
+	onLot(
+		items,
+		frame,
+		"ParkingLot",
+		0,
+		VERGE_OUT,
+		SLAB_TOP + 0.04,
+		30,
+		0.12,
+		16,
+		PALETTE.asphalt,
+		"Asphalt",
+		{ flat = true }
+	)
+	for k = -2, 2 do
+		onLot(
+			items,
+			frame,
+			"ParkingLine",
+			k * 6,
+			VERGE_OUT + 1,
+			SLAB_TOP + 0.12,
+			0.3,
+			0.05,
+			10,
+			PALETTE.line,
+			"SmoothPlastic",
+			{ flat = true }
+		)
+	end
+	local cars = 2 + math.floor(nextRandom(rng) * 2)
+	for k = 1, cars do
+		local along = -15 + k * 6 + 3
+		local color = pick(rng, CAR_COLORS)
+		-- El coche aparca de morro hacia la calle: su largo va hacia fuera.
+		onLot(
+			items,
+			frame,
+			"ParkedCar",
+			along,
+			VERGE_OUT + 1,
+			SLAB_TOP + 1.1,
+			4.2,
+			1.6,
+			8.6,
+			color,
+			"SmoothPlastic"
+		)
+		onLot(
+			items,
+			frame,
+			"ParkedCarCabin",
+			along,
+			VERGE_OUT + 1.6,
+			SLAB_TOP + 2.5,
+			3.6,
+			1.3,
+			4.6,
+			"#2E4A63",
+			"Glass",
+			{ flat = true }
+		)
+	end
+end
+
+local function vergePlayground(items: { Item }, rng: Rng, frame: Frame)
+	onLot(
+		items,
+		frame,
+		"Sandbox",
+		0,
+		VERGE_OUT,
+		SLAB_TOP + 0.04,
+		24,
+		0.15,
+		15,
+		SAND,
+		"Ground",
+		{ flat = true }
+	)
+	-- Tobogán: torre, tejadillo y rampa.
+	onLot(items, frame, "SlideTower", -6, VERGE_OUT + 3, SLAB_TOP + 2.5, 3, 5, 3, "#E07A3C", "SmoothPlastic")
+	onLot(
+		items,
+		frame,
+		"SlideRoof",
+		-6,
+		VERGE_OUT + 3,
+		SLAB_TOP + 5.5,
+		3.6,
+		1,
+		3.6,
+		"#C4382B",
+		"SmoothPlastic"
+	)
+	onLot(
+		items,
+		frame,
+		"Slide",
+		-6,
+		VERGE_OUT - 1.5,
+		SLAB_TOP + 1.6,
+		1.8,
+		3.2,
+		6,
+		"#F5C518",
+		"SmoothPlastic",
+		{
+			shape = "Wedge",
+			yaw = math.pi,
+		}
+	)
+	-- Columpios: dos postes, travesaño y dos asientos.
+	for _, side in { -1, 1 } do
+		onLot(
+			items,
+			frame,
+			"SwingPost",
+			6 + side * 4,
+			VERGE_OUT + 1,
+			SLAB_TOP + 2.75,
+			0.4,
+			5.5,
+			0.4,
+			"#2E5E8C",
+			"Metal",
+			{ flat = true }
+		)
+		onLot(
+			items,
+			frame,
+			"SwingSeat",
+			6 + side * 1.6,
+			VERGE_OUT + 1,
+			SLAB_TOP + 1.2,
+			1.4,
+			0.2,
+			0.8,
+			"#3A3E44",
+			"SmoothPlastic",
+			{ flat = true }
+		)
+	end
+	onLot(
+		items,
+		frame,
+		"SwingBar",
+		6,
+		VERGE_OUT + 1,
+		SLAB_TOP + 5.5,
+		8.4,
+		0.4,
+		0.4,
+		"#2E5E8C",
+		"Metal",
+		{ flat = true }
+	)
+	local x, z = at(frame, 12, VERGE_OUT + 5)
+	tree(items, rng, x, z, 0.9)
+	local bx, bz = at(frame, 0, VERGE_OUT - 6)
+	bench(items, bx, bz, frame.yaw)
+end
+
+local VERGE_BUILDERS: { [VergeKind]: (items: { Item }, rng: Rng, frame: Frame) -> () } = {
+	Empty = function() end,
+	Garden = vergeGarden,
+	Kiosk = vergeKiosk,
+	House = vergeHouse,
+	Parking = vergeParking,
+	Playground = vergePlayground,
+}
+
+local function buildVerge(items: { Item }, sizeId: CityLayout.SizeId)
+	local rng: Rng = { seed = SEEDS[sizeId] * 19 + 7 }
+	for _, spot in CityInterior.vergeFor(sizeId) do
+		local slot = spot.slot
+		-- El solar mira a la calle: su +Z va hacia fuera, (cos f, -sin f).
+		local frame: Frame = { slot = slot, yaw = math.atan2(math.cos(slot.facing), -math.sin(slot.facing)) }
+		VERGE_BUILDERS[spot.kind](items, rng, frame)
+	end
+end
+
 -- Borde exterior: los fondos de barrio van a 72 studs de la calle. Más allá, arboledas que cierran la
 -- ciudad, y un parquecito en cada esquina, donde no hay fondo.
 local EXTERIOR_TREES_FROM = 128
-local EXTERIOR_ROWS = 2
+local EXTERIOR_ROWS = 1
 local EXTERIOR_ROW_GAP = 14
-local EXTERIOR_STEP = 26
+local EXTERIOR_STEP = 22
 local CORNER_PARK = 40
 
 function CityInterior.exteriorFor(sizeId: CityLayout.SizeId): { Item }
 	local items: { Item } = {}
 	local span = CityLayout.spanFor(sizeId)
 	local rng: Rng = { seed = SEEDS[sizeId] * 13 + 5 }
+	buildVerge(items, sizeId)
 	for row = 0, EXTERIOR_ROWS - 1 do
 		local out = EXTERIOR_TREES_FROM + row * EXTERIOR_ROW_GAP
 		local along = -out + (row * EXTERIOR_STEP / 2)
