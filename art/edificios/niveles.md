@@ -27,9 +27,9 @@ Cómo crece una propiedad sin cambiar de edificio. Las medidas y el flujo están
 
 No se modelan por propiedad. `CityLayout.levelMarkers` coloca un único mojón en el nivel 5, en la franja delantera del solar, con el anillo en el color de la zona.
 
-### Pendiente: mejoras sobre la isla
+### Mejoras sobre la isla
 
-Propuesta sin implementar, a la espera del responsable. Las propiedades tienen en la calle una isla pintada del lado del edificio, pensada para el sistema clásico de mejoras:
+Implementadas el 2026-11-06 con las mallas ya subidas (`marker_house`, `marker_hotel` y `marker_tower`), reducidas por código: `CityLayout.islandMarkers` y `ArtAssets.islandMarkers`, colocadas por `BuildingView`. Falta verlas en Studio y la aprobación del responsable; si se ven toscas, se modelan otras. Las propiedades tienen en la calle una isla pintada del lado del edificio, pensada para el sistema clásico de mejoras:
 
 - Niveles 1 a 3: de 1 a 3 casitas. Nivel 4: hotel. Nivel 5: rascacielos, además del mojón.
 - Son modelos 3D a escala de ficha: casita de unos 2 studs y rascacielos de hasta 4.

@@ -559,6 +559,45 @@ function CityLayout.buildingBlocks(level: number): { BuildingBlock }
 	return blocks
 end
 
+-- Piezas de mejora sobre la isla pintada de la casilla (art/edificios/niveles.md): de 1 a 3 casas en los
+-- niveles 1 a 3, un hotel en el 4 y un rascacielos en el 5. `along` es la distancia en studs a lo largo de la
+-- calle desde el centro de la casilla; `height` es la altura a la que se reduce la malla. La isla mide 6 studs
+-- y queda del lado del edificio, dentro del marco pintado.
+export type IslandMarker = { kind: string, along: number, height: number }
+
+CityLayout.ISLAND_STUDS = 6
+local ISLAND_SPACING = 4.2
+local ISLAND_HEIGHTS = { House = 3, Hotel = 4.2, Tower = 6 }
+
+function CityLayout.islandMarkers(level: number): { IslandMarker }
+	local list: { IslandMarker } = {}
+	if level >= 1 and level <= 3 then
+		for i = 1, level do
+			table.insert(list, {
+				kind = "House",
+				along = (i - (level + 1) / 2) * ISLAND_SPACING,
+				height = ISLAND_HEIGHTS.House,
+			})
+		end
+	elseif level == 4 then
+		table.insert(list, { kind = "Hotel", along = 0, height = ISLAND_HEIGHTS.Hotel })
+	elseif level >= 5 then
+		table.insert(list, { kind = "Tower", along = 0, height = ISLAND_HEIGHTS.Tower })
+	end
+	return list
+end
+
+-- Centro de la isla de una casilla de propiedad y hacia dónde queda el edificio (vector plano unitario).
+function CityLayout.islandCenter(slot: Slot): ({ x: number, z: number }, { x: number, z: number })
+	local fx, fz = math.sin(slot.facing), math.cos(slot.facing)
+	-- `inward` es el mismo de CityBuilder; el edificio queda en `-inward * lotSide`.
+	local ix, iz = -fz, fx
+	local side = CityLayout.lotSideOf(slot)
+	local bx, bz = -ix * side, -iz * side
+	local reach = CityLayout.PAINT_ACROSS_STUDS / 2 - CityLayout.ISLAND_STUDS / 2
+	return { x = slot.position.x + bx * reach, z = slot.position.z + bz * reach }, { x = bx, z = bz }
+end
+
 -- Marcadores de mejora de un nivel. Dicen la renta de un vistazo, sin mirar el edificio.
 function CityLayout.levelMarkers(level: number): { LevelMarker }
 	if level ~= MARKER_LEVEL then

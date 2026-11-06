@@ -82,6 +82,31 @@ local function placeMesh(piece: ArtAssets.Piece, origin: CFrame, parent: Instanc
 	return mesh
 end
 
+-- Como `placeMesh`, pero reduce la malla a `height` studs de alto: las piezas de la isla se subieron a otra
+-- escala. El origen sigue en el centro de la base.
+local function placeIslandMesh(
+	piece: ArtAssets.Piece,
+	origin: CFrame,
+	height: number,
+	parent: Instance
+): BasePart?
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local source = if folder ~= nil then folder:FindFirstChild(piece.key) else nil
+	if source == nil or not source:IsA("BasePart") or source.Size.Y <= 0 then
+		return nil
+	end
+	local scale = height / source.Size.Y
+	local mesh = source:Clone()
+	mesh.Size = source.Size * scale
+	mesh.CFrame = origin * CFrame.new(source.CFrame.Position * scale) * source.CFrame.Rotation
+	mesh.Color = Color3.fromRGB(piece.color[1], piece.color[2], piece.color[3])
+	mesh.CanCollide = false
+	mesh.CanQuery = false
+	mesh.CanTouch = false
+	mesh.Parent = parent
+	return mesh
+end
+
 -- Crea o actualiza la etiqueta de dueño y nivel sobre el edificio.
 local function refreshTag(index: number)
 	local model: Model? = buildings[index]
@@ -324,6 +349,32 @@ function BuildingView.setLevel(index: number, level: number)
 			)
 			block:SetAttribute(ROLE, "Marker")
 			block:SetAttribute(TIER, order)
+		end
+	end
+	-- Casas, hotel o rascacielos sobre la isla pintada de la casilla, mirando a la calle.
+	local slot = CityLayout.routeFor(handles.sizeId)[index]
+	if slot ~= nil and slot.kind == "Property" then
+		local center, toward = CityLayout.islandCenter(slot)
+		local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
+		local towardBuilding = Vector3.new(toward.x, 0, toward.z)
+		for order, marker in CityLayout.islandMarkers(level) do
+			local at = Vector3.new(center.x, 0, center.z) + forward * marker.along
+			local origin = CFrame.lookAt(at, at - towardBuilding)
+			local mesh = placeIslandMesh(ArtAssets.islandMarkers[marker.kind], origin, marker.height, model)
+			if mesh == nil then
+				-- Sin la malla aún: un bloque del mismo tamaño, para que el nivel se lea igual.
+				local width = marker.height * 0.7
+				mesh = makePiece(
+					`Island{order}`,
+					Vector3.new(width, marker.height, width),
+					origin * CFrame.new(0, marker.height / 2, 0),
+					MARKER_COLOR,
+					model
+				)
+			end
+			local placed = mesh :: BasePart
+			placed:SetAttribute(ROLE, "Marker")
+			placed:SetAttribute(TIER, order)
 		end
 	end
 	model.Parent = handles.model
