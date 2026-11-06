@@ -9,12 +9,15 @@
 local CameraShots = require("../../shared/config/CameraShots")
 local CityLayout = require("../../shared/config/CityLayout")
 local Scenes = require("../../shared/config/Scenes")
+local Ui = require("../../shared/config/Ui")
 
-export type Mode = "Turn" | "Ride" | "Scene" | "Overview"
+export type Mode = "Turn" | "Ride" | "Scene" | "Overview" | "Manage"
 export type Context = {
 	riding: boolean?,
 	sceneRunning: boolean?,
 	overviewRequested: boolean?,
+	-- «Gestionar propiedades» abierto: primer plano de la propiedad elegida (R-P53).
+	managing: boolean?,
 }
 
 -- Recorrido más corto que se acepta: por debajo, la ficha parece teletransportarse.
@@ -36,10 +39,30 @@ function CameraRules.modeFor(ctx: Context): Mode
 	if ctx.sceneRunning == true then
 		return if ctx.riding == true then "Ride" else "Scene"
 	end
+	if ctx.managing == true then
+		return "Manage"
+	end
 	if ctx.overviewRequested == true then
 		return "Overview"
 	end
 	return "Turn"
+end
+
+-- Primer plano de una propiedad: la cámara se pone del lado de la calle, delante de la fachada y algo
+-- por encima, y mira al solar. `toRoad` es la dirección del solar hacia su calle (no hace falta normalizada).
+function CameraRules.managePose(
+	lot: CityLayout.Vector3Like,
+	toRoad: CityLayout.Vector3Like
+): (CityLayout.Vector3Like, CityLayout.Vector3Like)
+	local shot = CameraShots.manage
+	local length = math.sqrt(toRoad.x * toRoad.x + toRoad.z * toRoad.z)
+	local dx, dz = 0, 1
+	if length > 1e-6 then
+		dx, dz = toRoad.x / length, toRoad.z / length
+	end
+	local eye = { x = lot.x + dx * shot.distance, y = lot.y + shot.up, z = lot.z + dz * shot.distance }
+	local focus = { x = lot.x, y = lot.y + shot.focusUp, z = lot.z }
+	return eye, focus
 end
 
 -- Dónde va la cámara y a qué mira, para una ficha en `position` que avanza según `facing`. La ruta gira
@@ -50,7 +73,9 @@ function CameraRules.pose(
 	facing: number
 ): (CityLayout.Vector3Like, CityLayout.Vector3Like)
 	local forwardX, forwardZ = math.sin(facing), math.cos(facing)
-	local rightX, rightZ = -forwardZ, forwardX
+	-- `inward` se mide hacia la mitad libre de la calle, la contraria a los edificios (`LOT_SIDE`).
+	local side = if shot.fixedSide then 1 else CityLayout.LOT_SIDE
+	local rightX, rightZ = -forwardZ * side, forwardX * side
 	local eye = {
 		x = position.x - forwardX * shot.back + rightX * shot.inward,
 		y = position.y + shot.up,
@@ -71,8 +96,9 @@ function CameraRules.overviewPose(
 	yaw: number
 ): (CityLayout.Vector3Like, CityLayout.Vector3Like)
 	local back = span * CameraShots.overview.backPerSpan
-	-- Se aparta a la izquierda de la pantalla para que el tablero quede fuera del panel lateral.
-	local shift = span * CameraShots.overview.panelShiftPerSpan
+	-- Se aparta para que el tablero quede fuera del panel lateral, que en espejo (`Ui.hudMirror`) está a la
+	-- izquierda.
+	local shift = span * CameraShots.overview.panelShiftPerSpan * (if Ui.hudMirror then -1 else 1)
 	local sine, cosine = math.sin(yaw), math.cos(yaw)
 	local focusX, focusZ = center.x - cosine * shift, center.z + sine * shift
 	local focus = { x = focusX, y = center.y, z = focusZ }

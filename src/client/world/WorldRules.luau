@@ -4,7 +4,7 @@
 -- probarlas con Lune.
 local CityLayout = require("../../shared/config/CityLayout")
 
-export type PropertyChange = { index: number, ownerId: string?, level: number }
+export type PropertyChange = { index: number, ownerId: string?, level: number, mortgaged: boolean? }
 
 local PAINT_DESATURATE = 0.3
 local PAINT_DIM = 0.75
@@ -24,8 +24,15 @@ function WorldRules.propertyChanges(
 		local old = before[index]
 		local oldOwner = if old ~= nil then old.ownerId else nil
 		local oldLevel = if old ~= nil then old.level else 0
-		if property.ownerId ~= oldOwner or property.level ~= oldLevel then
-			table.insert(changes, { index = index, ownerId = property.ownerId, level = property.level })
+		local oldMortgaged = old ~= nil and old.mortgaged == true
+		local mortgaged = property.mortgaged == true
+		if property.ownerId ~= oldOwner or property.level ~= oldLevel or mortgaged ~= oldMortgaged then
+			table.insert(changes, {
+				index = index,
+				ownerId = property.ownerId,
+				level = property.level,
+				mortgaged = if mortgaged then true else nil,
+			})
 		end
 	end
 	for index, old in before do

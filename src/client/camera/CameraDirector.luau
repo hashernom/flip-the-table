@@ -27,6 +27,8 @@ export type Director = {
 	-- Foco de la vista general: centro y mitad del ancho de lo que se enseña. Sin centro vuelve a la
 	-- ciudad entera; lo usa la maqueta para que la cámara la encuadre a ella y no al tablero.
 	setOverviewFocus: (position: Vector3?, radius: number?) -> (),
+	-- Gestionar propiedades: el solar a enseñar (su CFrame mira a la calle). nil sale del primer plano.
+	setManageFocus: (lot: CFrame?) -> (),
 	setSize: (sizeId: SizeId) -> (),
 	destroy: () -> (),
 }
@@ -63,6 +65,7 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 	local spin = 0
 	local overviewFocus: Vector3? = nil
 	local overviewRadius: number? = nil
+	local manageLot: CFrame? = nil
 	player.CameraMode = Enum.CameraMode.Classic
 
 	local function bodyOf(token: Model?): BasePart?
@@ -102,6 +105,16 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
 	end
 
+	local function manageTarget(): CFrame
+		local lot = manageLot :: CFrame
+		local toRoad = lot.LookVector
+		local eye, focus = CameraRules.managePose(
+			{ x = lot.Position.X, y = 0, z = lot.Position.Z },
+			{ x = toRoad.X, y = 0, z = toRoad.Z }
+		)
+		return CFrame.lookAt(Vector3.new(eye.x, eye.y, eye.z), Vector3.new(focus.x, focus.y, focus.z))
+	end
+
 	-- Hasta que cada escena tenga su cámara (plan 08), se ve desde el plano del turno.
 	local function sceneTarget(): CFrame
 		local focus = sceneFocus
@@ -122,12 +135,15 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 				riding = ctx.riding,
 				sceneRunning = ctx.sceneRunning,
 				overviewRequested = overviewWanted,
+				managing = manageLot ~= nil,
 			})
 			if mode == "Scene" and sceneSnap and sceneFocus ~= nil then
 				camera.CameraType = Enum.CameraType.Scriptable
 				camera.CFrame = sceneTarget()
 			elseif mode == "Scene" then
 				apply(sceneTarget(), dt)
+			elseif mode == "Manage" then
+				apply(manageTarget(), dt)
 			elseif mode == "Overview" then
 				apply(overviewTarget(), dt)
 			elseif mode == "Ride" then
@@ -148,6 +164,9 @@ function CameraDirector.new(player: Player, sizeId: SizeId): Director
 		setOverviewFocus = function(position: Vector3?, radius: number?)
 			overviewFocus = position
 			overviewRadius = radius
+		end,
+		setManageFocus = function(lot: CFrame?)
+			manageLot = lot
 		end,
 		mode = function(): Mode
 			return mode

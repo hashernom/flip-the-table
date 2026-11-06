@@ -103,6 +103,10 @@ function Property.rentFor(state: GameState, index: number): number
 		error(`Property.rentFor: la casilla {index} no es una propiedad`, 2)
 	end
 	local property = propertyAt(state, index)
+	-- R-P53: una hipotecada no cobra.
+	if property.mortgaged then
+		return 0
+	end
 	local zoneMultiplier = 1
 	if property.ownerId and square.zoneId and Board.ownsZone(state, property.ownerId, square.zoneId) then
 		zoneMultiplier = Economy.completeZoneRentMultiplier

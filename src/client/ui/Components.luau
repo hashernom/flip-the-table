@@ -436,11 +436,19 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 	arrow.Size = UDim2.fromScale(1, 1)
 	arrow.ZIndex = 3
 	arrow.Visible = false
+	-- En espejo (`Ui.hudMirror`) la flecha apunta a la izquierda: cada pieza lee su trozo de imagen al revés
+	-- (un `ImageRectSize` negativo voltea la imagen) y la punta pasa al otro extremo.
+	local mirrored = Ui.hudMirror == true
 	local function arrowPiece(pieceName: string, fromX: number, toX: number): ImageLabel
 		local piece = icon(arrow, pieceName, "plate-arrow")
 		piece.ScaleType = Enum.ScaleType.Stretch
-		piece.ImageRectOffset = Vector2.new(fromX, 0)
-		piece.ImageRectSize = Vector2.new(toX - fromX, Ui.arrowImageHeight)
+		if mirrored then
+			piece.ImageRectOffset = Vector2.new(toX, 0)
+			piece.ImageRectSize = Vector2.new(fromX - toX, Ui.arrowImageHeight)
+		else
+			piece.ImageRectOffset = Vector2.new(fromX, 0)
+			piece.ImageRectSize = Vector2.new(toX - fromX, Ui.arrowImageHeight)
+		end
 		piece.ZIndex = 3
 		return piece
 	end
@@ -509,11 +517,19 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 				local leftWidth = math.ceil(arrowCut.left * unit)
 				local tipWidth = math.ceil((Ui.arrowImageWidth - arrowCut.right) * unit)
 				arrowLeft.Size = UDim2.fromOffset(leftWidth, height)
-				arrowTip.AnchorPoint = Vector2.new(1, 0)
-				arrowTip.Position = UDim2.fromScale(1, 0)
 				arrowTip.Size = UDim2.fromOffset(tipWidth, height)
-				arrowMiddle.Position = UDim2.fromOffset(leftWidth - 1, 0)
 				arrowMiddle.Size = UDim2.new(1, -leftWidth - tipWidth + 2, 0, height)
+				if mirrored then
+					arrowLeft.AnchorPoint = Vector2.new(1, 0)
+					arrowLeft.Position = UDim2.fromScale(1, 0)
+					arrowTip.AnchorPoint = Vector2.new(0, 0)
+					arrowTip.Position = UDim2.fromScale(0, 0)
+					arrowMiddle.Position = UDim2.fromOffset(tipWidth - 1, 0)
+				else
+					arrowTip.AnchorPoint = Vector2.new(1, 0)
+					arrowTip.Position = UDim2.fromScale(1, 0)
+					arrowMiddle.Position = UDim2.fromOffset(leftWidth - 1, 0)
+				end
 			end
 			plate.body.BackgroundTransparency = if data.isGhost == true or data.hasLeft == true
 				then 0.3
@@ -522,7 +538,9 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 			screw.Visible = not isArrow
 
 			disc.setSize(tier.disc)
-			disc.root.Position = UDim2.new(0, 4, 0.5, 0)
+			disc.root.Position = if mirrored then UDim2.new(1, -4, 0.5, 0) else UDim2.new(0, 4, 0.5, 0)
+			screw.AnchorPoint = if mirrored then Vector2.new(0, 0) else Vector2.new(1, 0)
+			screw.Position = if mirrored then UDim2.fromOffset(8, 7) else UDim2.new(1, -8, 0, 7)
 			disc.set({
 				tint = data.tint,
 				userId = data.userId,
@@ -538,21 +556,36 @@ function Components.PlayerChip(parent: Instance, name: string): PlayerChip
 			local block = nameSize + 2 + gap + moneySize + 4
 			local top = math.floor((height - block) / 2)
 
-			nameLabel.Position = UDim2.fromOffset(left, top)
+			-- En espejo todo se ancla a la derecha, junto al disco: el texto se alinea hacia él.
+			nameLabel.Position = if mirrored then UDim2.fromOffset(14, top) else UDim2.fromOffset(left, top)
 			nameLabel.Size = UDim2.new(1, -left - 14, 0, nameSize + 2)
+			nameLabel.TextXAlignment = if mirrored
+				then Enum.TextXAlignment.Right
+				else Enum.TextXAlignment.Left
 			nameLabel.TextSize = nameSize
 			nameLabel.TextTruncate = Enum.TextTruncate.AtEnd
 			nameLabel.TextColor3 = ink
 			nameLabel.Text = Strings.upper(data.name)
 
-			money.root.Position = UDim2.fromOffset(left, top + nameSize + 2 + gap)
+			money.root.AnchorPoint = if mirrored then Vector2.new(1, 0) else Vector2.new(0, 0)
+			money.root.Position = if mirrored
+				then UDim2.new(1, -left, 0, top + nameSize + 2 + gap)
+				else UDim2.fromOffset(left, top + nameSize + 2 + gap)
 			money.setFace(moneySize, if isArrow then color.asphalt else color.asphaltDeep)
 			money.set(data.cash, animate == true and lastCash ~= nil)
 			lastCash = data.cash
 
 			-- Las marcas empiezan donde acaba el taxímetro, que crece con sus cifras.
-			marks.Position =
-				UDim2.fromOffset(left + moneyWidth(data.cash, moneySize) + 8, top + nameSize + 2 + gap)
+			marks.AnchorPoint = if mirrored then Vector2.new(1, 0) else Vector2.new(0, 0)
+			marksLayout.HorizontalAlignment = if mirrored
+				then Enum.HorizontalAlignment.Right
+				else Enum.HorizontalAlignment.Left
+			marks.Position = if mirrored
+				then UDim2.new(1, -(left + moneyWidth(data.cash, moneySize) + 8), 0, top + nameSize + 2 + gap)
+				else UDim2.fromOffset(
+					left + moneyWidth(data.cash, moneySize) + 8,
+					top + nameSize + 2 + gap
+				)
 			marks.Size = UDim2.new(1, -left - moneyWidth(data.cash, moneySize) - 14, 0, moneySize + 4)
 			for _, child in marks:GetChildren() do
 				if child:IsA("GuiObject") then

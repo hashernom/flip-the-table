@@ -12,7 +12,7 @@ local describe, it, expect = Harness.describe, Harness.it, Harness.expect
 
 local RULES_DIR = "src/shared/rules"
 
--- Las 21 acciones de la arquitectura no son eventos y no llevan escena. Se excluyen del barrido
+-- Las 24 acciones de la arquitectura no son eventos y no llevan escena. Se excluyen del barrido
 -- porque también se escriben como literales `type = "..."` en las tablas del motor.
 local ACTIONS: { [string]: boolean } = {
 	DraftPerk = true,
@@ -25,6 +25,9 @@ local ACTIONS: { [string]: boolean } = {
 	React = true,
 	PassReaction = true,
 	Build = true,
+	SellBuilding = true,
+	Mortgage = true,
+	Unmortgage = true,
 	ProposeTrade = true,
 	RespondTrade = true,
 	ProposePact = true,

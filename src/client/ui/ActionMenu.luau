@@ -36,12 +36,17 @@ function ActionMenu.create(playerGui: Instance): Handles
 	local panel = Instance.new("Frame")
 	panel.Name = "Panel"
 	panel.BackgroundTransparency = 1
-	panel.AnchorPoint = Vector2.new(1, 0)
+	-- En espejo (`Ui.hudMirror`) el panel entra por la izquierda.
+	panel.AnchorPoint = if Ui.hudMirror then Vector2.new(0, 0) else Vector2.new(1, 0)
 	panel.Size = UDim2.new(0, Ui.panelWidth, 1, -Ui.panelTop - Ui.roadHeight - Ui.panelGap)
 	panel.Parent = gui
 
-	local shownAt = UDim2.new(1, -Ui.panelRight, 0, Ui.panelTop)
-	local hiddenAt = UDim2.new(1, Ui.panelWidth + 20, 0, Ui.panelTop)
+	local shownAt = if Ui.hudMirror
+		then UDim2.fromOffset(Ui.panelRight, Ui.panelTop)
+		else UDim2.new(1, -Ui.panelRight, 0, Ui.panelTop)
+	local hiddenAt = if Ui.hudMirror
+		then UDim2.fromOffset(-(Ui.panelWidth + 20), Ui.panelTop)
+		else UDim2.new(1, Ui.panelWidth + 20, 0, Ui.panelTop)
 	panel.Position = hiddenAt
 
 	local layout = Instance.new("UIListLayout")

@@ -32,8 +32,11 @@ export type CityHandles = {
 	colorOf: (index: number) -> Color3,
 	-- Solar de la casilla: en el suelo, junto a la baldosa, con su frente mirando a la calle.
 	lotOf: (index: number) -> CFrame,
+	-- Solar fuera del anillo aunque los solares vayan dentro: el de la cárcel.
+	outsideLotOf: (index: number) -> CFrame,
 	-- Pinta el solar con el color del dueño. La baldosa conserva el de su zona; `nil` libera el solar.
-	setOwner: (index: number, color: Color3?) -> (),
+	-- `mortgaged` apaga la placa y planta el cartel de hipotecada (R-P53).
+	setOwner: (index: number, color: Color3?, mortgaged: boolean?) -> (),
 	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
 	setHotZone: (zoneId: string?) -> (),
 	-- Marca gruesa de la Zona Caliente para la vista general: desde lo alto la raya y los contornos no se ven.
@@ -71,6 +74,12 @@ local OWNER_EDGE_STUDS = 0.45
 local OWNER_GUI_PIXELS_PER_STUD = 20
 local OWNER_LIGHT_RANGE = 6
 local OWNER_LIGHT_BRIGHTNESS = 0.35
+-- Hipotecada: la placa pierde el halo y la luz, se apaga hacia el gris y lleva un cartel rojo en la acera
+-- del solar. Se distingue en blanco y negro por el cartel, no solo por el color.
+local MORTGAGE_DIM = 0.65
+local MORTGAGE_RED = Color3.fromRGB(196, 48, 43)
+local MORTGAGE_SIGN_SIZE = Vector3.new(9, 3.6, 0.3)
+local MORTGAGE_POST_HEIGHT = 3
 -- Icono de una casilla especial: va sobre la pintura, un poco hacia la calle para no pisar el nombre.
 local ICON_SIZE = 14
 local ICON_OFFSET = -3
@@ -85,8 +94,8 @@ local HOT_ZONE_EDGE = CityLayout.PAINT_ACROSS_STUDS / 2 - 0.9
 local HOT_ZONE_HEIGHT = 0.08
 local HOT_ZONE_Y = PAINT_HEIGHT + 0.02
 -- Vista general: relleno naranja translúcido sobre cada casilla de la zona y un rótulo flotante en medio.
-local HOT_ZONE_FILL_TRANSPARENCY = 0.45
-local HOT_ZONE_TAG_SIZE = UDim2.fromOffset(240, 44)
+local HOT_ZONE_FILL_TRANSPARENCY = 0.68
+local HOT_ZONE_TAG_SIZE = UDim2.fromOffset(150, 28)
 local HOT_ZONE_TAG_LIFT = 14
 
 local CityBuilder = {}
@@ -129,15 +138,86 @@ local function ownerSurface(parent: BasePart, name: string, light: number): Surf
 	return gui
 end
 
--- Placa del dueño de un solar, con su canto y su halo. Se rehace entera al cambiar de dueño.
-local function makeOwnerPlate(lot: CFrame, color: Color3): Part
+-- Cartel de hipotecada: un tablón rojo sobre un poste, en la esquina del solar que da a la calle y mirando a
+-- ella. Lleva el texto y una banda diagonal, para leerse también sin color.
+local function makeMortgageSign(lot: CFrame, plate: Part)
+	local width, depth = CityLayout.LOT_WIDTH_STUDS, CityLayout.LOT_DEPTH_STUDS
+	-- El solar mira a la calle con su -Z: el frente queda en z = -depth / 2.
+	local foot = lot * CFrame.new(width / 2 - MORTGAGE_SIGN_SIZE.X / 2 - 1, 0, -depth / 2 + 1.5)
+	local post = makePart({
+		Name = "MortgagePost",
+		Size = Vector3.new(0.4, MORTGAGE_POST_HEIGHT, 0.4),
+		CFrame = foot * CFrame.new(0, MORTGAGE_POST_HEIGHT / 2, 0),
+		Color = Color3.fromRGB(60, 62, 66),
+	})
+	post.Parent = plate
+	local board = makePart({
+		Name = "MortgageSign",
+		Size = MORTGAGE_SIGN_SIZE,
+		CFrame = foot * CFrame.new(0, MORTGAGE_POST_HEIGHT + MORTGAGE_SIGN_SIZE.Y / 2, 0),
+		Color = MORTGAGE_RED,
+	})
+	board.Parent = plate
+	for _, face in { Enum.NormalId.Front, Enum.NormalId.Back } do
+		local gui = Instance.new("SurfaceGui")
+		gui.Face = face
+		gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+		gui.PixelsPerStud = 40
+		gui.LightInfluence = 0.3
+		gui.Parent = board
+		local stripe = Instance.new("Frame")
+		stripe.BorderSizePixel = 0
+		stripe.BackgroundColor3 = Color3.fromRGB(245, 236, 214)
+		stripe.AnchorPoint = Vector2.new(0.5, 0.5)
+		stripe.Position = UDim2.fromScale(0.5, 0.5)
+		stripe.Size = UDim2.new(1.4, 0, 0, 10)
+		stripe.Rotation = -14
+		stripe.BackgroundTransparency = 0.35
+		stripe.Parent = gui
+		local text = Instance.new("TextLabel")
+		text.BackgroundTransparency = 1
+		text.Size = UDim2.fromScale(1, 1)
+		text.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.ExtraBold)
+		text.TextScaled = true
+		text.TextColor3 = Color3.fromRGB(255, 248, 232)
+		text.TextStrokeTransparency = 0.4
+		text.Text = Strings.upper(Strings.get("city.mortgaged"))
+		text.ZIndex = 2
+		text.Parent = gui
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft = UDim.new(0.06, 0)
+		pad.PaddingRight = UDim.new(0.06, 0)
+		pad.PaddingTop = UDim.new(0.12, 0)
+		pad.PaddingBottom = UDim.new(0.12, 0)
+		pad.Parent = text
+	end
+end
+
+-- Placa del dueño de un solar, con su canto y su halo. Se rehace entera al cambiar de dueño o de hipoteca.
+local function makeOwnerPlate(lot: CFrame, color: Color3, mortgaged: boolean?): Part
 	local width, depth = CityLayout.LOT_WIDTH_STUDS, CityLayout.LOT_DEPTH_STUDS
 	local plate = makePart({
 		Name = OWNER_PLATE,
 		Size = Vector3.new(width, TILE_HEIGHT, depth),
 		CFrame = lot,
-		Color = color:Lerp(DARK_GREY, OWNER_PLATE_DIM),
+		Color = color:Lerp(DARK_GREY, if mortgaged then MORTGAGE_DIM else OWNER_PLATE_DIM),
 	})
+	if mortgaged then
+		-- Sin halo ni luz: apagada. Un canto rojo y el cartel dicen por qué.
+		local edgeGui = ownerSurface(plate, "Edge", 1)
+		local edge = Instance.new("Frame")
+		edge.Name = "Edge"
+		edge.BackgroundTransparency = 1
+		edge.Size = UDim2.fromScale(1, 1)
+		edge.Parent = edgeGui
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = MORTGAGE_RED
+		stroke.Thickness = OWNER_EDGE_STUDS * OWNER_GUI_PIXELS_PER_STUD
+		stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		stroke.Parent = edge
+		makeMortgageSign(lot, plate)
+		return plate
+	end
 
 	-- Canto: un marco claro por dentro del borde de la placa.
 	local edgeGui = ownerSurface(plate, "Edge", 1.2)
@@ -203,9 +283,12 @@ end
 local function makeGround(model: Model, sizeId: SizeId)
 	local span = CityLayout.spanFor(sizeId)
 	local center = CityLayout.centerFor(sizeId)
+	-- Llega hasta la última fila de la ciudad de fondo (`CityLayout.BACKDROP`), con margen.
+	local backdrop = CityLayout.BACKDROP
+	local reach = 2 * (backdrop.cornerOut * 1.5 + backdrop.cornerSize)
 	local slab = makePart({
 		Name = "Ground",
-		Size = Vector3.new(span + 120, 2, span + 120),
+		Size = Vector3.new(span + reach, 2, span + reach),
 		CFrame = CFrame.new(center.x, -TILE_HEIGHT - 1, center.z),
 		Color = DARK_GREY,
 		CanCollide = true,
@@ -308,6 +391,8 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 	local center = CityLayout.slotCenter(slot)
 	local position = Vector3.new(center.x, PAINT_HEIGHT / 2, center.z)
 	local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
+	-- Lado del edificio de esta casilla: dentro las propiedades, fuera las especiales (`CityLayout.lotSideOf`).
+	local slotSide = CityLayout.lotSideOf(slot)
 	local color = Color3.fromHex(Strings.colorFor(toSquare(slot)))
 
 	local tile = makePart({
@@ -329,7 +414,7 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 			Name = "RoadPaint",
 			Size = Vector3.new(across, PAINT_HEIGHT, if corner then across else CityLayout.PAINT_ALONG_STUDS),
 			-- Girada: el borde izquierdo de la textura, el de la isla, queda del lado del edificio.
-			CFrame = CFrame.lookAt(middle, middle - forward),
+			CFrame = CFrame.lookAt(middle, middle - forward * slotSide),
 			Transparency = 1,
 		})
 		frame.Parent = tile
@@ -346,11 +431,14 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 
 	-- Señalética del tipo de casilla: el icono blanco de `art/textures/casillas/iconos`, teñido como la
 	-- pintura del nombre. Va en su propia pieza para no tocar el desgaste de la pintura de la zona.
+	-- Hacia el interior del anillo. Con `LOT_SIDE` todo lo pintado se mide hacia la mitad libre de la calle,
+	-- la contraria a los edificios.
 	local inward = Vector3.new(-forward.Z, 0, forward.X)
+	local towardFree = inward * slotSide
 	local iconId = ArtAssets.roadIcons[slot.kind]
 	if iconId ~= nil then
 		local middle = Vector3.new(slot.position.x, PAINT_HEIGHT / 2 + 0.01, slot.position.z)
-			+ inward * ICON_OFFSET
+			+ towardFree * ICON_OFFSET
 		local icon = makePart({
 			Name = "RoadIcon",
 			Size = Vector3.new(ICON_SIZE, PAINT_HEIGHT, ICON_SIZE),
@@ -369,13 +457,14 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 	-- El nombre va pintado en el carril libre, junto a la casilla: la ficha nunca lo tapa. Mira hacia el
 	-- interior del anillo, que es desde donde mira la cámara.
 	local namePosition = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
-		+ inward * FRAMED_NAME_SIDE
+		+ towardFree * FRAMED_NAME_SIDE
 	-- Dentro del marco, el rótulo deja margen para no tocar el contorno.
 	local nameLength = CityLayout.PAINT_ALONG_STUDS - 2 * FRAMED_NAME_MARGIN
 	local plate = makePart({
 		Name = "NamePaint",
 		Size = Vector3.new(NAME_DEPTH, PAINT_HEIGHT, nameLength),
-		CFrame = CFrame.lookAt(namePosition, namePosition + forward),
+		-- Se lee desde la mitad libre, que es desde donde mira la cámara.
+		CFrame = CFrame.lookAt(namePosition, namePosition + forward * CityLayout.LOT_SIDE),
 		Transparency = 1,
 	})
 	plate.Parent = tile
@@ -450,7 +539,8 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			end
 			local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
 			local inward = Vector3.new(-forward.Z, 0, forward.X)
-			local middle = Vector3.new(slot.position.x, HOT_ZONE_Y, slot.position.z) - inward * HOT_ZONE_EDGE
+			local middle = Vector3.new(slot.position.x, HOT_ZONE_Y, slot.position.z)
+				- inward * CityLayout.LOT_SIDE * HOT_ZONE_EDGE
 			local strip = makePart({
 				Name = `HotZone{slot.index}`,
 				Size = Vector3.new(HOT_ZONE_WIDTH, HOT_ZONE_HEIGHT, HOT_ZONE_LENGTH),
@@ -520,13 +610,13 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			flame.BackgroundTransparency = 1
 			flame.Image = UiIcons.flame
 			flame.ImageColor3 = Color3.fromRGB(40, 30, 20)
-			flame.Position = UDim2.fromOffset(12, 8)
-			flame.Size = UDim2.fromOffset(28, 28)
+			flame.Position = UDim2.fromOffset(8, 4)
+			flame.Size = UDim2.fromOffset(20, 20)
 			flame.Parent = plate
 			local text = Instance.new("TextLabel")
 			text.BackgroundTransparency = 1
-			text.Position = UDim2.fromOffset(46, 0)
-			text.Size = UDim2.new(1, -56, 1, 0)
+			text.Position = UDim2.fromOffset(32, 2)
+			text.Size = UDim2.new(1, -40, 1, -4)
 			text.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.ExtraBold)
 			text.TextScaled = true
 			text.TextColor3 = Color3.fromRGB(40, 30, 20)
@@ -572,6 +662,14 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		return CFrame.lookAt(position, road)
 	end
 
+	local function outsideLotOf(index: number): CFrame
+		local slot = slotAt(index)
+		local center = CityLayout.outsideLotCenter(slot)
+		local position = Vector3.new(center.x, 0, center.z)
+		local road = Vector3.new(slot.position.x, 0, slot.position.z)
+		return CFrame.lookAt(position, road)
+	end
+
 	local handles: CityHandles = {
 		model = model,
 		sizeId = sizeId,
@@ -593,9 +691,10 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			return Color3.fromHex(Strings.colorFor(toSquare(slot)))
 		end,
 		lotOf = lotOf,
+		outsideLotOf = outsideLotOf,
 		setHotZone = setHotZone,
 		setHotZoneOverview = setHotZoneOverview,
-		setOwner = function(index: number, color: Color3?)
+		setOwner = function(index: number, color: Color3?, mortgaged: boolean?)
 			local tile: BasePart? = squares[index]
 			if tile == nil then
 				return
@@ -610,7 +709,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 			if current ~= nil then
 				current:Destroy()
 			end
-			makeOwnerPlate(lotOf(index), color).Parent = tile
+			makeOwnerPlate(lotOf(index), color, mortgaged).Parent = tile
 		end,
 		destroy = function()
 			model:Destroy()

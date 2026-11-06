@@ -49,6 +49,9 @@ local LABELS: { [string]: string } = {
 	React = "Reaccionar",
 	PassReaction = "Pasar",
 	Build = "Construir",
+	SellBuilding = "Vender edificio",
+	Mortgage = "Hipotecar",
+	Unmortgage = "Levantar hipoteca",
 	ProposeTrade = "Proponer trato",
 	RespondTrade = "Responder trato",
 	ProposePact = "Proponer pacto",
@@ -327,6 +330,29 @@ end
 -- Separa las jugadas de carta del resto: las cartas se juegan desde la mano (clic en la carta y confirmar
 -- dentro de su vista grande), no desde el panel. Devuelve lo que queda para el panel y las jugadas de
 -- cada carta, una por objetivo posible. Las reacciones se quedan en el panel: son una decisión con plazo.
+-- R-P53: las acciones de gestión (construir, vender, hipotecar y levantar la hipoteca) no van en el
+-- panel: van en «Gestionar propiedades», agrupadas por casilla. Devuelve lo que queda para el panel.
+local MANAGE: { [string]: boolean } =
+	{ Build = true, SellBuilding = true, Mortgage = true, Unmortgage = true }
+
+function ActionMenuRules.splitManageActions(legal: { Action }): ({ Action }, { [number]: { Action } })
+	local rest: { Action } = {}
+	local byIndex: { [number]: { Action } } = {}
+	for _, action in legal do
+		if MANAGE[action.type] and type(action.index) == "number" then
+			local list = byIndex[action.index]
+			if list == nil then
+				list = {}
+				byIndex[action.index] = list
+			end
+			table.insert(list, action)
+		else
+			table.insert(rest, action)
+		end
+	end
+	return rest, byIndex
+end
+
 function ActionMenuRules.splitHandActions(legal: { Action }): ({ Action }, { [string]: { Action } })
 	local rest: { Action } = {}
 	local byCard: { [string]: { Action } } = {}

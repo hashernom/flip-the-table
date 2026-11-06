@@ -29,7 +29,8 @@ function JailView.build(city: CityBuilder.CityHandles)
 	end
 
 	-- El solar mira a la calle con su -Z; el edificio se retrasa hacia el fondo, igual que las propiedades.
-	local origin = city.lotOf(slot.index) * CFrame.new(0, 0, ArtAssets.FRONT_OFFSET)
+	-- La cárcel siempre queda fuera del anillo: la escena de la detención está montada así.
+	local origin = city.outsideLotOf(slot.index) * CFrame.new(0, 0, ArtAssets.FRONT_OFFSET)
 	local folder = Instance.new("Folder")
 	folder.Name = FOLDER
 	for _, piece in ArtAssets.jail do

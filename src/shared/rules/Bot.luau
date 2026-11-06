@@ -132,6 +132,23 @@ local function cheapestBuild(state: GameState, player: Player, actions: { Action
 	return best
 end
 
+-- R-P53: hipoteca más barata de recuperar que deja al bot por encima de su reserva de obra. El bot
+-- nunca hipoteca por su cuenta: si le falta dinero, la venta forzosa de Bankruptcy ya decide.
+local function cheapestUnmortgage(state: GameState, player: Player, actions: { Action }): Action?
+	local best: Action? = nil
+	local bestCost = math.huge
+	for _, action in actions do
+		if action.type == "Unmortgage" then
+			local cost = Building.unmortgageCost(state, action.index)
+			if player.cash - cost > Economy.bot.buildReserve and cost < bestCost then
+				best = action
+				bestCost = cost
+			end
+		end
+	end
+	return best
+end
+
 -- Garantía que depositaría el jugador. El Negociador paga la reducida; el id se consulta sin
 -- require Perks, igual que hace Pact con sus perks.
 local function depositOf(player: Player): number
@@ -399,6 +416,10 @@ function Bot.choose(state: GameState, playerId: PlayerId): Action?
 		local card = firstEndCard(state, player, actions)
 		if card then
 			return card
+		end
+		local unmortgage = cheapestUnmortgage(state, player, actions)
+		if unmortgage then
+			return unmortgage
 		end
 		local build = cheapestBuild(state, player, actions)
 		if build then

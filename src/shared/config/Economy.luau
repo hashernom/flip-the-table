@@ -18,6 +18,9 @@ return {
 	-- Multiplicador de renta de los niveles 1 a 5: una, dos y tres casas, hotel y rascacielos.
 	buildingRentMultiplier = { 2, 3, 5, 8, 12 },
 	buildingCostRate = 0.5,
+	-- R-P53: hipoteca. Se cobra `rate` del precio y recuperarla cuesta `repayRate`. Vender un edificio
+	-- devuelve la mitad del coste del nivel, igual que la venta forzosa de Bankruptcy.
+	mortgage = { rate = 0.5, repayRate = 0.55 },
 	maxRentMultiplier = 4,
 	maxBuildingLevel = 5,
 	-- Puja representativa que enumera Engine.legalActions: min(alta + paso, efectivo).

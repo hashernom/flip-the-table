@@ -56,18 +56,22 @@ describe("CameraRules.pose", function()
 	end
 
 	for _, size in { "S", "M", "L" } do
-		it(`en el tablero {size} la cámara siempre va por el interior y mira las fachadas`, function()
-			local center = CityLayout.centerFor(size :: any)
-			for _, slot in CityLayout.routeFor(size :: any) do
-				local eye = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
-				-- Las esquinas se doblan: se mide solo a lo largo del lado donde va la casilla.
-				local edge = flat(slot.position, center)
-				local towards = (eye.x - slot.position.x) * (center.x - slot.position.x)
-					+ (eye.z - slot.position.z) * (center.z - slot.position.z)
-				expect(edge > 0).toBe(true)
-				expect(towards > 0).toBe(true)
+		it(
+			`en el tablero {size} la cámara va por el lado contrario a los edificios y mira las fachadas`,
+			function()
+				local center = CityLayout.centerFor(size :: any)
+				for _, slot in CityLayout.routeFor(size :: any) do
+					local eye = CameraRules.pose(CameraShots.turn, slot.position, slot.facing)
+					-- Las esquinas se doblan: se mide solo a lo largo del lado donde va la casilla.
+					local edge = flat(slot.position, center)
+					local towards = (eye.x - slot.position.x) * (center.x - slot.position.x)
+						+ (eye.z - slot.position.z) * (center.z - slot.position.z)
+					expect(edge > 0).toBe(true)
+					-- Con los solares dentro (`LOT_SIDE` = -1) la cámara va por fuera del anillo.
+					expect(towards * CityLayout.LOT_SIDE > 0).toBe(true)
+				end
 			end
-		end)
+		)
 	end
 
 	it("el plano del turno ve por encima del edificio más alto", function()
@@ -199,5 +203,22 @@ describe("CameraRules: altura del avatar", function()
 
 	it("una altura imposible no da un desplazamiento negativo", function()
 		expect(CameraRules.seatOffset(-3)).toBe(CameraRules.MIN_SEAT_OFFSET)
+	end)
+end)
+
+describe("CameraRules: gestionar propiedades", function()
+	it("gestionar manda sobre la vista general y el turno, pero nunca sobre una escena", function()
+		expect(CameraRules.modeFor({ managing = true })).toBe("Manage")
+		expect(CameraRules.modeFor({ managing = true, overviewRequested = true })).toBe("Manage")
+		expect(CameraRules.modeFor({ managing = true, sceneRunning = true })).toBe("Scene")
+	end)
+
+	it("el primer plano mira la fachada desde la calle, por encima del solar", function()
+		-- Solar en el origen mirando a +Z (la calle queda hacia +Z).
+		local eye, focus = CameraRules.managePose({ x = 0, y = 0, z = 0 }, { x = 0, y = 0, z = 1 })
+		expect(eye.z > 0).toBe(true)
+		expect(eye.y > focus.y).toBe(true)
+		expect(math.abs(eye.x) < 1e-6).toBe(true)
+		expect(focus.z).toBe(0)
 	end)
 end)

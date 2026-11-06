@@ -22,6 +22,8 @@ ArrestRules.STEPS = { "detach", "sirens", "closeUp", "board", "depart", "lap", "
 ArrestRules.FRACTIONS = ArrestStaging.FRACTIONS
 
 -- Dónde está el detenido: su casilla. Es el mismo punto que `CityLayout.slotCenter`.
+-- La escena está montada con la cárcel fuera del anillo (`CityLayout.outsideLotCenter`), aunque los solares
+-- vayan dentro: el detenido espera a 3 studs del eje, del lado de la cárcel, y todo se coloca en torno a él.
 ArrestRules.DETAINED = { along = 0, side = CityLayout.SLOT_SIDE_STUDS }
 
 -- Fachada de la cárcel: en la acera exterior, a la distancia de la calle que marca la configuración.

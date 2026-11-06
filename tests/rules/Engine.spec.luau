@@ -183,6 +183,19 @@ describe("acciones ilegales", function()
 	end)
 end)
 
+-- Las acciones de gestión de R-P53 (vender, hipotecar, levantar) tienen sus pruebas en Mortgage.spec; aquí
+-- se apartan para comprobar solo lo que cada prueba mira.
+local MANAGE: { [string]: boolean } = { SellBuilding = true, Mortgage = true, Unmortgage = true }
+local function withoutManage(actions: { Types.Action }): { Types.Action }
+	local out: { Types.Action } = {}
+	for _, action in actions do
+		if not MANAGE[action.type] then
+			table.insert(out, action)
+		end
+	end
+	return out
+end
+
 describe("Engine.legalActions", function()
 	it("enumera Roll y una Build por casilla edificable", function()
 		local s = Fixtures.game({ players = 2 })
@@ -194,7 +207,7 @@ describe("Engine.legalActions", function()
 		for _, member in zone do
 			table.insert(expected, { type = "Build", index = member })
 		end
-		expect(Engine.legalActions(s, actor.id)).toEqual(expected)
+		expect(withoutManage(Engine.legalActions(s, actor.id))).toEqual(expected)
 	end)
 
 	it("enumera PlayCard con un objetivo válido y la acción se aplica", function()
@@ -230,10 +243,10 @@ describe("Engine.legalActions", function()
 		for position = 1, #zone - 1 do
 			Fixtures.give(s, actor.id, zone[position])
 		end
-		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
+		expect(withoutManage(Engine.legalActions(s, actor.id))).toEqual({ { type = "Roll" } })
 		Fixtures.give(s, actor.id, zone[#zone])
 		actor.cash = Building.costOf(s, actor.id, zone[1]) - 1
-		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
+		expect(withoutManage(Engine.legalActions(s, actor.id))).toEqual({ { type = "Roll" } })
 	end)
 
 	it("un espectro en turno no tira dados: su turno es GhostTurn (R-P43)", function()
@@ -328,7 +341,7 @@ describe("Engine.legalActions", function()
 		for _, member in zone do
 			table.insert(expected, { type = "Build", index = member })
 		end
-		expect(Engine.legalActions(s, actor.id)).toEqual(expected)
+		expect(withoutManage(Engine.legalActions(s, actor.id))).toEqual(expected)
 	end)
 
 	it("no enumera ofertas de intercambio aunque haya alguna viva", function()
@@ -346,7 +359,7 @@ describe("Engine.legalActions", function()
 			round = 1,
 			turnIndex = 1,
 		})
-		expect(Engine.legalActions(s, actor.id)).toEqual({ { type = "Roll" } })
+		expect(withoutManage(Engine.legalActions(s, actor.id))).toEqual({ { type = "Roll" } })
 	end)
 
 	it("no enumera nada en otras fases ni con la partida terminada", function()

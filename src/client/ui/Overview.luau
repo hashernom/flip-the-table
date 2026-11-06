@@ -31,16 +31,26 @@ function Overview.create(playerGui: Instance): Handles
 
 	-- Botón que despliega el cartel de datos. Está plegado al abrir la vista: lo primero es la maqueta.
 	local toggle = Components.SecondaryButton(gui, "DataToggle", Strings.get("overview.showData"))
-	toggle.root.AnchorPoint = Vector2.new(1, 0)
-	toggle.root.Position = UDim2.new(1, -Ui.panelRight, 0, Ui.panelTop)
+	-- En espejo (`Ui.hudMirror`) va abajo a la izquierda: arriba está el panel de acciones con su botón amarillo,
+	-- que no se puede tapar.
+	local bottomOffset = Ui.roadHeight + Ui.overviewBottom
+	toggle.root.AnchorPoint = if Ui.hudMirror then Vector2.new(0, 1) else Vector2.new(1, 0)
+	toggle.root.Position = if Ui.hudMirror
+		then UDim2.new(0, Ui.panelRight, 1, -bottomOffset)
+		else UDim2.new(1, -Ui.panelRight, 0, Ui.panelTop)
 	toggle.root.Size = UDim2.fromOffset(Ui.panelWidth, 44)
 	toggle.root.Visible = false
 
 	local posterTop = Ui.panelTop + 44 + Theme.space.s
 	local poster = Board.Poster(gui, "Sheet", 0, false)
-	poster.root.AnchorPoint = Vector2.new(1, 0)
-	poster.root.Position = UDim2.new(1, -Ui.panelRight, 0, posterTop)
-	poster.root.Size = UDim2.new(0, Ui.panelWidth, 1, -(posterTop + Ui.roadHeight + Ui.overviewBottom))
+	-- En espejo el cartel crece hacia arriba desde su botón, y ocupa como mucho la mitad de la pantalla.
+	poster.root.AnchorPoint = if Ui.hudMirror then Vector2.new(0, 1) else Vector2.new(1, 0)
+	poster.root.Position = if Ui.hudMirror
+		then UDim2.new(0, Ui.panelRight, 1, -(bottomOffset + 44 + Theme.space.s))
+		else UDim2.new(1, -Ui.panelRight, 0, posterTop)
+	poster.root.Size = if Ui.hudMirror
+		then UDim2.new(0, Ui.panelWidth, Ui.overviewPosterFraction, 0)
+		else UDim2.new(0, Ui.panelWidth, 1, -(posterTop + Ui.roadHeight + Ui.overviewBottom))
 	poster.root.Visible = false
 
 	local title = Board.caption(poster.content, "Title", Strings.get("overview.title"), 1)

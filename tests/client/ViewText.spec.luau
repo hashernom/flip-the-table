@@ -512,3 +512,17 @@ describe("ViewText.optionCard", function()
 		expect(titles).toEqual({ "Piedra", "Papel", "Tijera" })
 	end)
 end)
+
+describe("ViewText.cardTarget", function()
+	it("da solo el objetivo de una jugada de carta, con el color si es una zona", function()
+		local Strings = require("../../src/shared/config/Strings")
+		local view = { players = {}, sizeId = "S" }
+		local zoneId = "carmesi"
+		local text, tint =
+			ViewText.cardTarget(view, nil, { type = "PlayCard", cardId = "x", zoneId = zoneId })
+		expect(text).toBe(Strings.zone(zoneId).name)
+		expect(tint).toBe(Strings.zone(zoneId).color)
+		local none = ViewText.cardTarget(view, nil, { type = "PlayCard", cardId = "x" })
+		expect(none).toBe(nil)
+	end)
+end)

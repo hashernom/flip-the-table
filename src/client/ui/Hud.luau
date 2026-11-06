@@ -36,13 +36,17 @@ export type Handles = {
 	-- Durante una escena la interfaz se aparta.
 	setSceneMode: (active: boolean) -> (),
 	onOverview: (callback: () -> ()) -> (),
+	-- El jugador pulsó «Propiedades».
+	onManage: (callback: () -> ()) -> (),
 	-- El jugador pulsó Ajustes en el letrero.
 	onSettings: (callback: () -> ()) -> (),
 	-- El jugador pulsó «Retomar»: un bot jugaba su asiento y quiere volver a mandar él.
 	onReclaim: (callback: () -> ()) -> (),
 	onEmote: (callback: (emote: string) -> ()) -> (),
 	-- Jugadas de carta legales ahora, por carta, cada una con su texto («Jugar Empujón contra Ana»).
-	setPlayable: (byCard: { [string]: { { action: any, label: string } } }) -> (),
+	setPlayable: (
+		byCard: { [string]: { { action: any, label: string, target: string?, tint: string? } } }
+	) -> (),
 	-- El jugador confirmó una jugada desde la vista grande de una carta de su mano.
 	onPlayCard: (callback: (action: any) -> ()) -> (),
 	destroy: (() -> ())?,
@@ -102,7 +106,10 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	roundCorner.Parent = roundDisc
 
 	local headline = Components.label(sign.row, "Headline", "", { face = font.road, size = 15, wrap = true })
-	headline.Size = UDim2.fromOffset(Ui.roundSignWidth - 62 - 190 - 116 - Ui.settingsButtonWidth - 64, 40)
+	headline.Size = UDim2.fromOffset(
+		Ui.roundSignWidth - 62 - 190 - Ui.manageButtonWidth - 116 - Ui.settingsButtonWidth - 72,
+		40
+	)
 	headline.LayoutOrder = 2
 	headline.ZIndex = 5
 
@@ -116,10 +123,21 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	overviewButton.root.Size = UDim2.fromOffset(190, 44)
 	overviewButton.root.LayoutOrder = 3
 
+	-- Gestionar propiedades (R-P53): recorre las propias con la cámara.
+	local manageButton = Components.SecondaryButton(
+		sign.row,
+		"ManageButton",
+		Strings.get("manage.title"),
+		Strings.get("manage.key"),
+		"plate-arrow"
+	)
+	manageButton.root.Size = UDim2.fromOffset(Ui.manageButtonWidth, 44)
+	manageButton.root.LayoutOrder = 4
+
 	local emoteButton =
 		Components.SecondaryButton(sign.row, "EmoteButton", Strings.get("hud.emotes"), nil, "smile")
 	emoteButton.root.Size = UDim2.fromOffset(116, 44)
-	emoteButton.root.LayoutOrder = 4
+	emoteButton.root.LayoutOrder = 5
 
 	local settingsButton = Components.SecondaryButton(
 		sign.row,
@@ -128,9 +146,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		Strings.get("hud.settingsKey")
 	)
 	settingsButton.root.Size = UDim2.fromOffset(Ui.settingsButtonWidth, 44)
-	settingsButton.root.LayoutOrder = 5
+	settingsButton.root.LayoutOrder = 6
 
-	for _, button in { overviewButton.root, emoteButton.root, settingsButton.root } do
+	for _, button in { overviewButton.root, manageButton.root, emoteButton.root, settingsButton.root } do
 		button.ZIndex = 5
 		for _, child in button:GetDescendants() do
 			if child:IsA("GuiObject") then
@@ -143,8 +161,14 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	local hand = Instance.new("Frame")
 	hand.Name = "Hand"
 	hand.BackgroundTransparency = 1
-	hand.AnchorPoint = Vector2.new(0, 1)
-	hand.Position = UDim2.new(0, Ui.handLeft, 1, 0)
+	-- En espejo (`Ui.hudMirror`) la mano va a la derecha.
+	local mirrored = Ui.hudMirror == true
+	local handWidth = Ui.handCardStep * Ui.handMaxCards
+	local function handAt(drop: number): UDim2
+		return if mirrored then UDim2.new(1, -Ui.handLeft, 1, drop) else UDim2.new(0, Ui.handLeft, 1, drop)
+	end
+	hand.AnchorPoint = if mirrored then Vector2.new(1, 1) else Vector2.new(0, 1)
+	hand.Position = handAt(0)
 	hand.Size = UDim2.fromOffset(Ui.handCardStep * Ui.handMaxCards, Ui.handVisibleHeight + Ui.roadHeight)
 	hand.Parent = gui
 	local handKey = ""
@@ -159,7 +183,7 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	-- Carta fijada con un clic: su vista grande se queda abierta, con los botones para jugarla dentro.
 	local pinnedCard: number? = nil
 	local pinnedShow: (() -> ())? = nil
-	local playable: { [string]: { { action: any, label: string } } } = {}
+	local playable: { [string]: { { action: any, label: string, target: string?, tint: string? } } } = {}
 	local playListeners: { (action: any) -> () } = {}
 	local function hidePreview()
 		previewToken += 1
@@ -186,12 +210,75 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 
 	-- Botones de jugar dentro de la carta fijada. Un objetivo: «Confirmar». Varios: uno por objetivo.
 	-- Sin jugada legal ahora, una línea que lo dice. La carta crece hacia arriba lo que ocupan.
+	-- Botón compacto de un objetivo: solo su nombre, con una franja del color de su zona si la tiene. El texto
+	-- se encoge para caber: nunca se sale del botón.
+	local function targetButton(parent: Instance, order: number, text: string, tint: string?): TextButton
+		local config = Ui.cardPreview
+		local button = Instance.new("TextButton")
+		button.Name = `Target{order}`
+		button.AutoButtonColor = false
+		button.Text = ""
+		button.BackgroundColor3 = color.asphaltDeep
+		button.LayoutOrder = order
+		button.Parent = parent
+		Theme.corner(button, 8)
+		local rim = Instance.new("UIStroke")
+		rim.Color = color.limestone
+		rim.Transparency = 0.55
+		rim.Thickness = 1.5
+		rim.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		rim.Parent = button
+		local left = 10
+		if tint ~= nil then
+			local swatch = Instance.new("Frame")
+			swatch.Name = "Zone"
+			swatch.BorderSizePixel = 0
+			swatch.BackgroundColor3 = Color3.fromHex(tint)
+			swatch.AnchorPoint = Vector2.new(0, 0.5)
+			swatch.Position = UDim2.new(0, 6, 0.5, 0)
+			swatch.Size = UDim2.new(0, 6, 1, -12)
+			swatch.Parent = button
+			Theme.corner(swatch, 3)
+			left = 18
+		end
+		local label = Components.label(button, "Text", text, { face = font.roadBold, size = 13 })
+		label.Position = UDim2.fromOffset(left, 0)
+		label.Size = UDim2.new(1, -left - 6, 1, 0)
+		label.TextYAlignment = Enum.TextYAlignment.Center
+		label.TextScaled = true
+		local fit = Instance.new("UITextSizeConstraint")
+		fit.MaxTextSize = Theme.textSize(13)
+		fit.MinTextSize = config.targetMinText
+		fit.Parent = label
+		button.MouseEnter:Connect(function()
+			rim.Transparency = 0
+		end)
+		button.MouseLeave:Connect(function()
+			rim.Transparency = 0.55
+		end)
+		return button
+	end
+
+	-- Botones de jugar dentro de la carta fijada. Un objetivo: «Confirmar». Varios: una rejilla de dos columnas
+	-- con solo el nombre de cada objetivo, bajo la frase «Elige dónde». Sin jugada legal ahora, una línea que
+	-- lo dice. La carta crece hacia arriba lo que ocupan.
 	local function addPlayArea(face: CanvasGroup, cardId: string)
 		local config = Ui.cardPreview
-		local options: { { action: any, label: string } } = playable[cardId] or {}
-		local rows = math.max(#options, 1)
-		local areaHeight = config.actionPad * 2 + rows * config.actionHeight + (rows - 1) * config.actionGap
-		face.Size = UDim2.fromOffset(config.width, config.height + areaHeight)
+		local options: { { action: any, label: string, target: string?, tint: string? } } = playable[cardId]
+			or {}
+		local many = #options > 1
+		local width = if many then config.wideWidth else config.width
+		local areaHeight: number
+		if many then
+			local rows = math.ceil(#options / 2)
+			areaHeight = config.actionPad * 2
+				+ config.captionHeight
+				+ rows * config.targetHeight
+				+ (rows - 1) * config.actionGap
+		else
+			areaHeight = config.actionPad * 2 + config.actionHeight
+		end
+		face.Size = UDim2.fromOffset(width, config.height + areaHeight)
 		local body = face:FindFirstChild("Body") :: Frame?
 		if body ~= nil then
 			body.Size = UDim2.new(1, 0, 1, -30 - areaHeight)
@@ -210,10 +297,12 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		inset.PaddingLeft = UDim.new(0, config.actionPad)
 		inset.PaddingRight = UDim.new(0, config.actionPad)
 		inset.Parent = area
-		local layout = Instance.new("UIListLayout")
-		layout.Padding = UDim.new(0, config.actionGap)
-		layout.SortOrder = Enum.SortOrder.LayoutOrder
-		layout.Parent = area
+		local function play(action: any)
+			unpin()
+			for _, listener in playListeners do
+				listener(action)
+			end
+		end
 		if #options == 0 then
 			local note = Components.label(area, "NotNow", Strings.get("hand.notNow"), {
 				face = font.textBold,
@@ -226,17 +315,36 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			note.TextYAlignment = Enum.TextYAlignment.Center
 			return
 		end
-		for order, option in options do
-			local text = if #options == 1 then Strings.get("hand.confirm") else option.label
-			local button = Components.SecondaryButton(area, `Play{order}`, text)
+		if not many then
+			local button = Components.SecondaryButton(area, "Play1", Strings.get("hand.confirm"))
 			button.root.Size = UDim2.new(1, 0, 0, config.actionHeight)
-			button.root.LayoutOrder = order
-			local action = option.action
+			local action = options[1].action
 			button.onActivated(function()
-				unpin()
-				for _, listener in playListeners do
-					listener(action)
-				end
+				play(action)
+			end)
+			return
+		end
+		local caption = Components.label(area, "Choose", Strings.upper(Strings.get("hand.chooseTarget")), {
+			face = font.road,
+			size = 12,
+			tint = color.limestoneDim,
+		})
+		caption.Size = UDim2.new(1, 0, 0, config.captionHeight - 4)
+		local grid = Instance.new("Frame")
+		grid.Name = "Targets"
+		grid.BackgroundTransparency = 1
+		grid.Position = UDim2.fromOffset(0, config.captionHeight)
+		grid.Size = UDim2.new(1, 0, 1, -config.captionHeight)
+		grid.Parent = area
+		local layout = Instance.new("UIGridLayout")
+		layout.CellSize = UDim2.new(0.5, -config.actionGap / 2, 0, config.targetHeight)
+		layout.CellPadding = UDim2.fromOffset(config.actionGap, config.actionGap)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = grid
+		for order, option in options do
+			local action = option.action
+			targetButton(grid, order, option.target or option.label, option.tint).Activated:Connect(function()
+				play(action)
 			end)
 		end
 	end
@@ -253,8 +361,10 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			addPlayArea(face, cardId)
 		end
 		face.AnchorPoint = Vector2.new(0, 1)
-		face.Position =
-			UDim2.new(0, Ui.handLeft + slotX, 1, -(Ui.handVisibleHeight + Ui.roadHeight + config.gap))
+		local lift = -(Ui.handVisibleHeight + Ui.roadHeight + config.gap)
+		face.Position = if mirrored
+			then UDim2.new(1, -Ui.handLeft - handWidth + slotX, 1, lift)
+			else UDim2.new(0, Ui.handLeft + slotX, 1, lift)
 		face.ZIndex = 20
 		face.GroupTransparency = 1
 		local grow = Instance.new("UIScale")
@@ -508,9 +618,11 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end
 	end
 
-	local function playableKey(options: { { action: any, label: string } }?): string
+	local function playableKey(
+		options: { { action: any, label: string, target: string?, tint: string? } }?
+	): string
 		local labels = {}
-		local list: { { action: any, label: string } } = options or {}
+		local list: { { action: any, label: string, target: string?, tint: string? } } = options or {}
 		for _, option in list do
 			table.insert(labels, option.label)
 		end
@@ -519,7 +631,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 
 	local handles: Handles = {
 		gui = gui,
-		setPlayable = function(byCard: { [string]: { { action: any, label: string } } })
+		setPlayable = function(byCard: {
+			[string]: { { action: any, label: string, target: string?, tint: string? } },
+		})
 			local changed = false
 			for cardId, options in byCard do
 				if playableKey(playable[cardId]) ~= playableKey(options) then
@@ -596,7 +710,11 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 					chip = Components.PlayerChip(tableFrame, `Seat{index}`)
 					chips[seated.id] = chip
 				end
-				local goal = UDim2.fromOffset(Ui.plateColumnLeft, slots[index].y)
+				-- En espejo la columna de jugadores va a la derecha y las placas se anclan por su derecha.
+				chip.root.AnchorPoint = if mirrored then Vector2.new(1, 0) else Vector2.new(0, 0)
+				local goal = if mirrored
+					then UDim2.new(1, -Ui.plateColumnLeft, 0, slots[index].y)
+					else UDim2.fromOffset(Ui.plateColumnLeft, slots[index].y)
 				if isNew then
 					chip.root.Position = goal
 				else
@@ -662,15 +780,11 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end,
 		setSceneMode = function(active: boolean)
 			sceneActive = active
-			local shift = if active then -(Ui.plateColumnLeft + Ui.plateMaxWidth + Ui.arrowTipWidth) else 0
+			local away = Ui.plateColumnLeft + Ui.plateMaxWidth + Ui.arrowTipWidth
+			local shift = if not active then 0 elseif mirrored then away else -away
 			Components.tween(tableFrame, Ui.motion.open, { Position = UDim2.fromOffset(shift, 0) })
 			Components.tween(hand, Ui.motion.open, {
-				Position = UDim2.new(
-					0,
-					Ui.handLeft,
-					1,
-					if active then Ui.handVisibleHeight + Ui.roadHeight else 0
-				),
+				Position = handAt(if active then Ui.handVisibleHeight + Ui.roadHeight else 0),
 			})
 			Components.tween(sign.root, Ui.motion.open, {
 				Position = UDim2.new(0.5, 0, 0, if active then -(Ui.signTop + 70) else Ui.signTop),
@@ -686,6 +800,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end,
 		onOverview = function(callback: () -> ())
 			table.insert(overviewListeners, callback)
+		end,
+		onManage = function(callback: () -> ())
+			manageButton.onActivated(callback)
 		end,
 		onEmote = function(callback: (emote: string) -> ())
 			emoteButton.onActivated(function()

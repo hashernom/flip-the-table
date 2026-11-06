@@ -190,6 +190,18 @@ local ACTION_SPECS: { [string]: ActionSpec } = {
 		required = { "index" },
 		fields = { index = isPositiveInteger },
 	},
+	SellBuilding = {
+		required = { "index" },
+		fields = { index = isPositiveInteger },
+	},
+	Mortgage = {
+		required = { "index" },
+		fields = { index = isPositiveInteger },
+	},
+	Unmortgage = {
+		required = { "index" },
+		fields = { index = isPositiveInteger },
+	},
 	ProposeTrade = {
 		required = { "offer" },
 		fields = { offer = isTradeOffer },

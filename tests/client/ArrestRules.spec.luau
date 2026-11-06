@@ -73,13 +73,14 @@ end)
 describe("ArrestRules: geometría de la esquina Tribunal", function()
 	for _, size in SIZES do
 		it(
-			`en el tablero {size} hay casilla Tribunal y el marco la sitúa donde la pinta la ciudad`,
+			`en el tablero {size} hay casilla Tribunal y el detenido espera en ella, del lado de la cárcel`,
 			function()
 				local slot, frame = tribunalOf(size)
 				local detained = ArrestRules.toWorld(frame, ArrestRules.DETAINED)
-				local center = CityLayout.slotCenter(slot)
-				expect(math.abs(detained.x - center.x) < EPS).toBe(true)
-				expect(math.abs(detained.z - center.z) < EPS).toBe(true)
+				local jail = CityLayout.outsideLotCenter(slot)
+				-- A 3 studs del eje de la calle y más cerca de la cárcel que el propio eje.
+				expect(math.abs(distanceXZ(detained, slot.position) - 3) < EPS).toBe(true)
+				expect(distanceXZ(detained, jail) < distanceXZ(slot.position, jail)).toBe(true)
 			end
 		)
 
@@ -88,7 +89,7 @@ describe("ArrestRules: geometría de la esquina Tribunal", function()
 			function()
 				local slot, frame = tribunalOf(size)
 				local gate = ArrestRules.toWorld(frame, ArrestRules.gate())
-				local lot = CityLayout.lotCenter(slot)
+				local lot = CityLayout.outsideLotCenter(slot)
 				-- La entrada cae en el borde del solar que da a la calle: a media profundidad del solar.
 				expect(distanceXZ(gate, lot) <= CityLayout.LOT_DEPTH_STUDS / 2 + EPS).toBe(true)
 				expect(ArrestRules.gate().side < 0).toBe(true)

@@ -61,6 +61,8 @@ describe("Strings.eventTitle", function()
 			"AuctionWon",
 			"AuctionNoSale",
 			"BuildingChanged",
+			"PropertyMortgaged",
+			"PropertyUnmortgaged",
 			"TradeCompleted",
 			"PlayerArrested",
 			"TribunalVerdict",

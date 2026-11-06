@@ -67,6 +67,17 @@ describe("WorldRules.propertyChanges", function()
 		expect(WorldRules.propertyChanges(before, after)).toEqual({ { index = 2, level = 0 } })
 	end)
 
+	it("detecta una hipoteca y su levantamiento, sin cambio de dueño ni nivel (R-P53)", function()
+		local before = { [2] = { level = 0, ownerId = "1" } }
+		local mortgaged = { [2] = { level = 0, ownerId = "1", mortgaged = true } }
+		expect(WorldRules.propertyChanges(before, mortgaged)).toEqual({
+			{ index = 2, ownerId = "1", level = 0, mortgaged = true },
+		})
+		expect(WorldRules.propertyChanges(mortgaged, before)).toEqual({
+			{ index = 2, ownerId = "1", level = 0 },
+		})
+	end)
+
 	it("una partida nueva limpia lo que ya no está en la vista", function()
 		local before = { [2] = { level = 3, ownerId = "1" } }
 		expect(WorldRules.propertyChanges(before, {})).toEqual({ { index = 2, level = 0 } })
@@ -254,14 +265,17 @@ describe("CityLayout.levelMarkers", function()
 end)
 
 describe("CityLayout.lotCenter", function()
-	it("cae por fuera del anillo y fuera de la baldosa", function()
+	it("cae del lado de `LOT_SIDE` y fuera de la baldosa", function()
 		local center = CityLayout.centerFor("S")
 		for _, slot in CityLayout.routeFor("S") do
 			local lot = CityLayout.lotCenter(slot)
 			local fromCenter = math.max(math.abs(lot.x - center.x), math.abs(lot.z - center.z))
 			local slotFromCenter =
 				math.max(math.abs(slot.position.x - center.x), math.abs(slot.position.z - center.z))
-			expect(fromCenter > slotFromCenter).toBe(true)
+			-- Las esquinas no cuentan: ahí el solar se aparta a lo largo de la otra calle.
+			if math.abs(fromCenter - slotFromCenter) > 1e-6 then
+				expect((fromCenter - slotFromCenter) * CityLayout.lotSideOf(slot) > 0).toBe(true)
+			end
 		end
 	end)
 end)

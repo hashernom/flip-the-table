@@ -252,3 +252,87 @@ describe("CityLayout.bridgesFor", function()
 		end
 	end)
 end)
+
+Harness.describe("CityLayout: espejo (propiedades dentro)", function()
+	for _, size in { "S", "M", "L" } do
+		Harness.it(`en el tablero {size} ningún solar pisa a otro`, function()
+			local route = CityLayout.routeFor(size :: any)
+			local rects = {}
+			for _, slot in route do
+				local c = CityLayout.lotCenter(slot)
+				local fx, fz = math.abs(math.sin(slot.facing)), math.abs(math.cos(slot.facing))
+				local hw, hd = CityLayout.LOT_WIDTH_STUDS / 2, CityLayout.LOT_DEPTH_STUDS / 2
+				local ax, az = fx * hw + fz * hd, fz * hw + fx * hd
+				table.insert(rects, { x0 = c.x - ax, x1 = c.x + ax, z0 = c.z - az, z1 = c.z + az })
+			end
+			for a = 1, #rects do
+				for b = a + 1, #rects do
+					local r, q = rects[a], rects[b]
+					local overlap = r.x0 < q.x1 - 0.01
+						and q.x0 < r.x1 - 0.01
+						and r.z0 < q.z1 - 0.01
+						and q.z0 < r.z1 - 0.01
+					Harness.expect(overlap).toBe(false)
+				end
+			end
+		end)
+	end
+
+	Harness.it("las propiedades van del lado de LOT_SIDE y las especiales fuera", function()
+		for _, slot in CityLayout.routeFor("S") do
+			local expected = if slot.kind == "Property" then CityLayout.LOT_SIDE else 1
+			Harness.expect(CityLayout.lotSideOf(slot)).toBe(expected)
+		end
+	end)
+end)
+
+Harness.describe("CityLayout.backdropFor (ciudad de fondo)", function()
+	local function rectOfLot(slot: any): any
+		local c = CityLayout.lotCenter(slot)
+		local fx, fz = math.abs(math.sin(slot.facing)), math.abs(math.cos(slot.facing))
+		local hw, hd = CityLayout.LOT_WIDTH_STUDS / 2, CityLayout.LOT_DEPTH_STUDS / 2
+		local ax, az = fx * hw + fz * hd, fz * hw + fx * hd
+		return { x0 = c.x - ax, x1 = c.x + ax, z0 = c.z - az, z1 = c.z + az }
+	end
+
+	for _, size in { "S", "M", "L" } do
+		Harness.it(
+			`en el tablero {size} todo va fuera del anillo, sin pisar la calle ni los solares`,
+			function()
+				local items = CityLayout.backdropFor(size :: any)
+				Harness.expect(#items > 0).toBe(true)
+				local span = CityLayout.spanFor(size :: any)
+				local center = CityLayout.centerFor(size :: any)
+				local streetOut = CityLayout.STREET_WIDTH_STUDS / 2 + CityLayout.SIDEWALK_STUDS
+				local lots = {}
+				for _, slot in CityLayout.routeFor(size :: any) do
+					table.insert(lots, rectOfLot(slot))
+				end
+				for _, item in items do
+					local fromCenter = math.max(math.abs(item.x - center.x), math.abs(item.z - center.z))
+					-- Fuera de la acera exterior del anillo (las farolas van en la propia acera).
+					local limit = span / 2
+						+ if item.kind == "Lamp" or item.kind == "Tree" then 10 else streetOut - 1
+					Harness.expect(fromCenter > limit).toBe(true)
+					if item.kind == "Block" then
+						-- Huella orientada: el fondo va según `look` y el ancho, de través.
+						local lx, lz = math.abs(item.lookX), math.abs(item.lookZ)
+						local ax = lx * (item.d :: number) / 2 + lz * (item.w :: number) / 2
+						local az = lz * (item.d :: number) / 2 + lx * (item.w :: number) / 2
+						for _, lot in lots do
+							local overlap = item.x + ax > lot.x0
+								and item.x - ax < lot.x1
+								and item.z + az > lot.z0
+								and item.z - az < lot.z1
+							Harness.expect(overlap).toBe(false)
+						end
+					end
+				end
+			end
+		)
+	end
+
+	Harness.it("siempre sale igual: es decorado, no azar", function()
+		Harness.expect(CityLayout.backdropFor("S")).toEqual(CityLayout.backdropFor("S"))
+	end)
+end)

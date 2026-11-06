@@ -92,6 +92,13 @@ function Building.buildReason(state: GameState, playerId: PlayerId, index: any):
 	if not zoneId or not Board.ownsZone(state, playerId, zoneId) then
 		return "Necesitas la zona completa para construir"
 	end
+	local zone: { number } = Board.zoneOf(state, index) or {}
+	for _, member in zone do
+		local other = state.properties[member]
+		if other and other.mortgaged then
+			return "No se construye con una propiedad hipotecada en la zona"
+		end
+	end
 	if property.level >= Economy.maxBuildingLevel then
 		return "La propiedad ya está al nivel máximo"
 	end
@@ -121,6 +128,134 @@ function Building.build(state: GameState, playerId: PlayerId, index: number): Ap
 	return {
 		ok = true,
 		events = { { type = "BuildingChanged", index = index, from = from, to = property.level } },
+	}
+end
+
+-- Comprobaciones comunes de las tres acciones de gestión: jugador activo y dueño de una propiedad.
+local function ownedReason(state: GameState, playerId: PlayerId, index: any): string?
+	if type(index) ~= "number" or index % 1 ~= 0 then
+		return "La casilla indicada no es válida"
+	end
+	local player = findPlayer(state, playerId)
+	if not player then
+		return `El jugador {playerId} no está en la partida`
+	end
+	if player.status ~= "Active" then
+		return "Solo los jugadores activos gestionan propiedades"
+	end
+	local square = state.board.squares[index]
+	if not square or square.kind ~= "Property" then
+		return "La casilla no es una propiedad"
+	end
+	if propertyAt(state, index).ownerId ~= playerId then
+		return "No eres el dueño de esta propiedad"
+	end
+	return nil
+end
+
+-- Lo que da la hipoteca y lo que cuesta recuperarla. Públicos para la interfaz y el patrimonio.
+function Building.mortgageValue(state: GameState, index: number): number
+	local price = Board.square(state, index).price or 0
+	return math.floor(price * Economy.mortgage.rate)
+end
+
+function Building.unmortgageCost(state: GameState, index: number): number
+	local price = Board.square(state, index).price or 0
+	return math.floor(price * Economy.mortgage.repayRate)
+end
+
+-- Lo que devuelve vender un nivel: la mitad del coste base del nivel, sin perks.
+function Building.sellRefund(state: GameState, index: number): number
+	return math.floor(baseCostAt(state, index) / 2)
+end
+
+function Building.mortgageReason(state: GameState, playerId: PlayerId, index: any): string?
+	local reason = ownedReason(state, playerId, index)
+	if reason then
+		return reason
+	end
+	if propertyAt(state, index).mortgaged then
+		return "La propiedad ya está hipotecada"
+	end
+	local zone: { number } = Board.zoneOf(state, index) or {}
+	for _, member in zone do
+		local other = state.properties[member]
+		if other and other.level > 0 then
+			return "Vende antes los edificios de la zona"
+		end
+	end
+	return nil
+end
+
+function Building.mortgage(state: GameState, playerId: PlayerId, index: number): ApplyResult
+	local reason = Building.mortgageReason(state, playerId, index)
+	if reason then
+		return { ok = false, error = reason }
+	end
+	local amount = Building.mortgageValue(state, index)
+	propertyAt(state, index).mortgaged = true
+	playerOf(state, playerId).cash += amount
+	return {
+		ok = true,
+		events = { { type = "PropertyMortgaged", playerId = playerId, index = index, amount = amount } },
+	}
+end
+
+function Building.unmortgageReason(state: GameState, playerId: PlayerId, index: any): string?
+	local reason = ownedReason(state, playerId, index)
+	if reason then
+		return reason
+	end
+	if not propertyAt(state, index).mortgaged then
+		return "La propiedad no está hipotecada"
+	end
+	if playerOf(state, playerId).cash < Building.unmortgageCost(state, index) then
+		return "No tienes efectivo suficiente"
+	end
+	return nil
+end
+
+function Building.unmortgage(state: GameState, playerId: PlayerId, index: number): ApplyResult
+	local reason = Building.unmortgageReason(state, playerId, index)
+	if reason then
+		return { ok = false, error = reason }
+	end
+	local cost = Building.unmortgageCost(state, index)
+	propertyAt(state, index).mortgaged = nil
+	playerOf(state, playerId).cash -= cost
+	return {
+		ok = true,
+		events = { { type = "PropertyUnmortgaged", playerId = playerId, index = index, amount = cost } },
+	}
+end
+
+function Building.sellReason(state: GameState, playerId: PlayerId, index: any): string?
+	local reason = ownedReason(state, playerId, index)
+	if reason then
+		return reason
+	end
+	if propertyAt(state, index).level <= 0 then
+		return "La propiedad no tiene edificios"
+	end
+	return nil
+end
+
+-- Vende un nivel al banco: baja el edificio y devuelve la mitad de su coste.
+function Building.sell(state: GameState, playerId: PlayerId, index: number): ApplyResult
+	local reason = Building.sellReason(state, playerId, index)
+	if reason then
+		return { ok = false, error = reason }
+	end
+	local property = propertyAt(state, index)
+	local from = property.level
+	local refund = Building.sellRefund(state, index)
+	property.level = from - 1
+	playerOf(state, playerId).cash += refund
+	return {
+		ok = true,
+		events = {
+			{ type = "BuildingChanged", index = index, from = from, to = property.level, refund = refund },
+		},
 	}
 end
 

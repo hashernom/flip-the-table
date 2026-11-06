@@ -38,6 +38,7 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 	local gui = Theme.screenGui(playerGui, "MiniMap", 5)
 
 	local plate = Components.Panel(gui, "Plate", 22)
+	-- Siempre arriba a la derecha (2026-11-06). En espejo los jugadores van justo debajo (`Ui.plateColumnTop`).
 	plate.root.AnchorPoint = Vector2.new(1, 0)
 	plate.root.Position = UDim2.new(1, -Ui.miniMapRight, 0, Ui.miniMapTop)
 	plate.root.Size = UDim2.fromOffset(Ui.miniMapSize, Ui.miniMapSize)
@@ -150,6 +151,10 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 							then Theme.color.limestone
 							else seatColor(info.ownerSeat :: number)
 						stroke.Parent = cell
+					end
+					-- Hipotecada: un punto rojo delante de todo, que se lee aunque no se distinga el color del dueño.
+					if info.mortgaged then
+						dot(cell, 5, Theme.color.signal)
 					end
 					for _ = 1, info.level do
 						dot(cell, 3, Theme.color.limestone)

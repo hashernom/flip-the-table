@@ -17,6 +17,8 @@ export type Cell = {
 	isProperty: boolean,
 	-- Tipo de casilla: las especiales pintan su símbolo (el mismo de la calle) sobre el gris.
 	kind: string,
+	-- R-P53: hipotecada (no cobra renta).
+	mortgaged: boolean,
 	ownerSeat: number?,
 	level: number,
 	-- Asientos de las fichas que hay en la casilla.
@@ -60,6 +62,7 @@ function MiniMapRules.cells(view: any): { Cell }
 			kind = slot.kind :: string,
 			ownerSeat = if property ~= nil and property.ownerId ~= nil then seats[property.ownerId] else nil,
 			level = if property ~= nil then property.level else 0,
+			mortgaged = property ~= nil and property.mortgaged == true,
 			tokens = tokens,
 			isTurn = slot.index == turnPosition,
 		})

@@ -56,6 +56,10 @@ function Score.netWorth(state: GameState, playerId: PlayerId): number
 		if property.ownerId == playerId then
 			local price = priceOf(state, index)
 			total += price + property.level * levelCost(price)
+			-- R-P53: una hipotecada vale el precio menos lo que ya dio la hipoteca.
+			if property.mortgaged then
+				total -= math.floor(price * Economy.mortgage.rate)
+			end
 		end
 	end
 	return total

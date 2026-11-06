@@ -68,6 +68,7 @@ local function boot()
 	local Overview = require("./ui/Overview")
 	local ModelCity = require("./world/ModelCity")
 	local PortalJump = require("./scenes/PortalJump")
+	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local SettingsMenu = require("./ui/SettingsMenu")
@@ -103,6 +104,8 @@ local function boot()
 	hud.onSettings(function()
 		settings.setOpen(not settings.isOpen())
 	end)
+	-- Gestionar propiedades (R-P53): la cámara enseña de cerca la propiedad elegida.
+	local manager = PropertyManager.create(playerGui)
 	-- Sin partida todavía suena la música del lobby.
 	AudioDirector.setMusicState("Lobby")
 	-- Clic y roce de todos los botones, también de los menús que se crean más abajo.
@@ -174,6 +177,13 @@ local function boot()
 	local mountLocal: () -> () = function() end
 	local sceneRunning = false
 	local riding = false
+	-- Lote de solo obras e hipotecas con el gestor abierto: no cierra menús ni toma la cámara.
+	local quietScene = false
+	local MANAGE_EVENTS: { [string]: boolean } = {
+		BuildingChanged = true,
+		PropertyMortgaged = true,
+		PropertyUnmortgaged = true,
+	}
 	-- Salto sin ruta pendiente de su escena (Portal): quién salta y adónde.
 	local pendingJump: { playerId: string, to: any }? = nil
 	local city: CityBuilder.CityHandles? = nil
@@ -421,7 +431,7 @@ local function boot()
 	end
 
 	local function context()
-		return { riding = riding, sceneRunning = sceneRunning }
+		return { riding = riding, sceneRunning = sceneRunning and not quietScene }
 	end
 
 	CameraDirector.start(director, context)
@@ -451,6 +461,27 @@ local function boot()
 		for _, token in tokens do
 			TokenRider.dress(token)
 		end
+	end)
+
+	local function toggleManager()
+		if manager.isOpen() then
+			manager.setOpen(false)
+		elseif not manager.setOpen(true) then
+			hud.setToast(Strings.get("manage.none"))
+		end
+	end
+	hud.onManage(toggleManager)
+	game:GetService("UserInputService").InputBegan:Connect(function(input: InputObject, processed: boolean)
+		if not processed and input.KeyCode == Enum.KeyCode.G then
+			toggleManager()
+		end
+	end)
+	manager.onFocus(function(index: number?)
+		local handles = city
+		director.setManageFocus(if index ~= nil and handles ~= nil then handles.lotOf(index) else nil)
+	end)
+	manager.onAction(function(action: any)
+		sendAction(action)
 	end)
 
 	local overviewWanted = false
@@ -689,15 +720,21 @@ local function boot()
 					end
 				end
 				-- Las cartas se juegan desde la mano; el panel de la derecha no las repite.
-				local rest, byCard = ActionMenuRules.splitHandActions(view.legalActions or {})
-				local playable: { [string]: { { action: any, label: string } } } = {}
+				local afterManage, byIndex = ActionMenuRules.splitManageActions(view.legalActions or {})
+				manager.setData(view, byIndex)
+				local rest, byCard = ActionMenuRules.splitHandActions(afterManage)
+				local playable: { [string]: { { action: any, label: string, target: string?, tint: string? } } } =
+					{}
 				for cardId, actions in byCard do
 					local options = {}
 					for _, action in actions do
-						table.insert(
-							options,
-							{ action = action, label = ViewText.actionLabel(view, names, action) }
-						)
+						local target, tint = ViewText.cardTarget(view, names, action)
+						table.insert(options, {
+							action = action,
+							label = ViewText.actionLabel(view, names, action),
+							target = target,
+							tint = tint,
+						})
 					end
 					playable[cardId] = options
 				end
@@ -759,6 +796,7 @@ local function boot()
 		-- Ninguna hoja tapa una escena: tratos, pactos y la vista general se cierran al empezar.
 		tradeMenu.setOpen(false)
 		pactMenu.setOpen(false)
+		manager.setOpen(false)
 		if overviewWanted then
 			overviewWanted = false
 			director.requestOverview(false)
@@ -860,7 +898,16 @@ local function boot()
 	local function playBatch(due: any, now: number)
 		StateStore.apply(queue.state, due)
 		local events = due.events
-		local hasScene = events ~= nil and #events > 0
+		-- Con «Propiedades» abierto, un lote que solo trae obras e hipotecas no cierra el gestor ni mueve la
+		-- cámara: el jugador sigue gestionando de corrido y los demás ven el mismo primer plano.
+		local manageOnly = manager.isOpen() and events ~= nil and #events > 0
+		for _, event in events or {} do
+			if not MANAGE_EVENTS[event.type] then
+				manageOnly = false
+			end
+		end
+		quietScene = manageOnly
+		local hasScene = events ~= nil and #events > 0 and not manageOnly
 		if hasScene then
 			hideMenus()
 			hud.setSceneMode(true)
@@ -879,6 +926,7 @@ local function boot()
 		end
 		SceneDirector.play(scenes, due, EventQueue.behindSec(due, now))
 		sceneRunning = false
+		quietScene = false
 		riding = false
 		-- Una elección que llegó a mitad de escena se aplica ahora, con las fichas ya paradas.
 		if tokenRefreshPending then

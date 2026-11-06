@@ -63,7 +63,8 @@ end
 local function viewProperties(state: GameState): { [number]: Types.PropertyState }
 	local properties: { [number]: Types.PropertyState } = {}
 	for index, property in state.properties do
-		properties[index] = { ownerId = property.ownerId, level = property.level }
+		properties[index] =
+			{ ownerId = property.ownerId, level = property.level, mortgaged = property.mortgaged }
 	end
 	return properties
 end

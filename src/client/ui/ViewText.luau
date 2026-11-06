@@ -133,6 +133,29 @@ end
 
 -- Etiqueta de un botón con el objeto de la acción dicho por su nombre: quien lo lee sabe qué compra,
 -- a quién retará o dónde construye. Una acción que no se conoce se muestra con su tipo, como siempre.
+-- Solo el objetivo de una jugada de carta («Callejón del Cobre», «Ana»), y el color de su zona si lo tiene.
+-- Sirve para los botones de una carta con varios objetivos: el nombre de la carta ya está en la carta.
+-- nil si la jugada no tiene objetivo.
+function ViewText.cardTarget(view: any, names: Names?, action: Action): (string?, string?)
+	if action.zoneId ~= nil then
+		local zone = Strings.zone(tostring(action.zoneId))
+		return zone.name, zone.color
+	elseif action.targetId ~= nil then
+		return ViewText.playerName(view, names, tostring(action.targetId)), nil
+	elseif type(action.index) == "number" then
+		return ViewText.squareName(view, action.index), nil
+	elseif action.pactId ~= nil then
+		for _, pact in view.pacts or {} do
+			if pact.id == action.pactId then
+				local a = ViewText.playerName(view, names, tostring(pact.a))
+				local b = ViewText.playerName(view, names, tostring(pact.b))
+				return `{a} y {b}`, nil
+			end
+		end
+	end
+	return nil, nil
+end
+
 function ViewText.actionLabel(view: any, names: Names?, action: Action): string
 	local actionType = action.type
 	local pending = pendingOf(view)
@@ -182,6 +205,18 @@ function ViewText.actionLabel(view: any, names: Names?, action: Action): string
 		local level = if property ~= nil then property.level + 1 else 1
 		local cost = Building.costOf(stateLike(view), me, index)
 		return `Construir en {square(index)} (nivel {level}) por {cost}`
+	elseif actionType == "SellBuilding" or actionType == "Mortgage" or actionType == "Unmortgage" then
+		local index = action.index
+		if type(index) ~= "number" then
+			return actionType
+		end
+		local state = stateLike(view)
+		if actionType == "SellBuilding" then
+			return `Vender un nivel de {square(index)} por {Building.sellRefund(state, index)}`
+		elseif actionType == "Mortgage" then
+			return `Hipotecar {square(index)} por {Building.mortgageValue(state, index)}`
+		end
+		return `Levantar la hipoteca de {square(index)} por {Building.unmortgageCost(state, index)}`
 	elseif actionType == "PlayCard" then
 		local card = Cards.byId[action.cardId]
 		local name = ViewText.cardName(tostring(action.cardId))

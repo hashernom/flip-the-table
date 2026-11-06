@@ -373,7 +373,7 @@ function BuildingView.sync(
 	end
 	for _, change in WorldRules.propertyChanges(lastProperties, properties) do
 		local color = if change.ownerId ~= nil then colorOf(change.ownerId) else nil
-		handles.setOwner(change.index, color)
+		handles.setOwner(change.index, color, change.mortgaged)
 		owners[change.index] = if change.ownerId ~= nil and color ~= nil
 			then { name = nameOf(change.ownerId), color = color }
 			else nil

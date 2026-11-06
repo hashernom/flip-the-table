@@ -329,6 +329,38 @@ local function bid(state: GameState, playerId: PlayerId, action: Action): { Even
 	return result.events
 end
 
+-- R-P53: hipotecar, recuperar y vender un nivel. Building es la única regla; aquí solo se enlazan.
+local function mortgageCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Building.mortgageReason(state, playerId, action.index)
+end
+
+local function unmortgageCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Building.unmortgageReason(state, playerId, action.index)
+end
+
+local function sellBuildingCheck(state: GameState, playerId: PlayerId, action: Action): string?
+	return Building.sellReason(state, playerId, action.index)
+end
+
+local function resultEvents(result: Types.ApplyResult): { Event }
+	if not result.ok then
+		error(result.error, 3)
+	end
+	return result.events
+end
+
+local function mortgage(state: GameState, playerId: PlayerId, action: Action): { Event }
+	return resultEvents(Building.mortgage(state, playerId, action.index))
+end
+
+local function unmortgage(state: GameState, playerId: PlayerId, action: Action): { Event }
+	return resultEvents(Building.unmortgage(state, playerId, action.index))
+end
+
+local function sellBuilding(state: GameState, playerId: PlayerId, action: Action): { Event }
+	return resultEvents(Building.sell(state, playerId, action.index))
+end
+
 -- Motivo por el que Build no puede aplicarse, o nil. Building.buildReason es la única regla.
 local function buildCheck(state: GameState, playerId: PlayerId, action: Action): string?
 	return Building.buildReason(state, playerId, action.index)
@@ -600,6 +632,24 @@ local rules: { [string]: ActionRule } = {
 	DeclineBuy = { phases = { "AwaitBuy" }, turnOnly = true, check = declineBuyCheck, handler = declineBuy },
 	Bid = { phases = { "Auction" }, turnOnly = false, check = bidCheck, handler = bid },
 	Build = { phases = { "AwaitRoll", "AwaitEnd" }, turnOnly = true, check = buildCheck, handler = build },
+	SellBuilding = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = sellBuildingCheck,
+		handler = sellBuilding,
+	},
+	Mortgage = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = mortgageCheck,
+		handler = mortgage,
+	},
+	Unmortgage = {
+		phases = { "AwaitRoll", "AwaitEnd" },
+		turnOnly = true,
+		check = unmortgageCheck,
+		handler = unmortgage,
+	},
 	PlayCard = {
 		phases = { "AwaitRoll", "AwaitEnd" },
 		turnOnly = true,
@@ -760,6 +810,9 @@ function Engine.legalActions(state: GameState, playerId: PlayerId): { Action }
 		for _, square in state.board.squares do
 			if square.kind == "Property" then
 				table.insert(candidates, { type = "Build", index = square.index })
+				table.insert(candidates, { type = "SellBuilding", index = square.index })
+				table.insert(candidates, { type = "Mortgage", index = square.index })
+				table.insert(candidates, { type = "Unmortgage", index = square.index })
 			end
 		end
 		-- PlayCard se juega en las mismas fases que Roll/EndTurn y Build (Cards decide con

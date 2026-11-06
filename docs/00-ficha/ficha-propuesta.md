@@ -88,7 +88,7 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 | Propiedades | Compra, renta y grupos de color | Igual |
 | Subastas | Si nadie compra | Rápidas, de 15 segundos |
 | Edificios | Cuatro casas y un hotel | Tres casas, hotel y rascacielos: cinco pasos. En tu turno puedes vender un nivel por la mitad de su coste |
-| Hipotecas | Mitad del precio y sin renta | Igual: cobras el 50 % del precio, no cobra renta y recuperarla cuesta el 55 %. Solo sin edificios en la zona, y en tu turno |
+| Hipotecas | Mitad del precio y sin renta | Igual: cobras el 50 % del precio, no cobra renta y recuperarla cuesta el 55 %. Solo sin edificios en la zona, y en tu turno. Primero se venden los edificios; hipotecar es la última opción para salir de un apuro o reunir capital de golpe, y la propiedad sigue siendo tuya. Si no pagas una deuda, el juego vende al banco como siempre. Una hipotecada lleva un aviso visible en la ciudad |
 | Intercambios | Libres entre jugadores | Igual, y además pactos con reglas que el juego hace cumplir |
 | Final | Queda un solo jugador | Rondas: límite de rondas y gana el mayor patrimonio, o antes si todos los rivales están en bancarrota. Sin Fin: queda un solo jugador activo, como en el clásico |
 | Bancarrota | Eliminación | Vuelves como espectro y sigues jugando |

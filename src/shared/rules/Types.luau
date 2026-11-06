@@ -54,6 +54,8 @@ export type Board = {
 export type PropertyState = {
 	ownerId: PlayerId?,
 	level: number,
+	-- R-P53: hipotecada. No cobra renta y su zona no admite obras. nil equivale a false.
+	mortgaged: boolean?,
 }
 
 export type Player = {

@@ -77,6 +77,8 @@ return {
 	cashField = { width = 150, height = 48 },
 	-- Hueco que deja el cartel de la vista general sobre la calzada del plazo.
 	overviewBottom = 24,
+	-- En espejo: alto del cartel de datos de la vista general, en fracción de la pantalla.
+	overviewPosterFraction = 0.5,
 	-- Minimapa: lado y distancia a los bordes de la ventana.
 	miniMapSize = 192,
 	miniMapTop = 12,
@@ -112,11 +114,13 @@ return {
 	-- Lo que la punta de la flecha del turno sobresale de la placa.
 	arrowTipWidth = 46,
 	plateColumnLeft = 44,
-	plateColumnTop = 70,
+	-- Primera placa de jugador. En espejo la columna va a la derecha, bajo el minimapa: su alto
+	-- (`miniMapTop` + `miniMapSize`) más un respiro.
+	plateColumnTop = 226,
 	plateTiers = {
 		large = { upTo = 3, plateHeight = 70, step = 80, disc = 58, name = 15, money = 20, arrow = 84 },
 		normal = { upTo = 5, plateHeight = 66, step = 75, disc = 56, name = 14, money = 19, arrow = 80 },
-		compact = { upTo = 8, plateHeight = 60, step = 67, disc = 52, name = 14, money = 18, arrow = 74 },
+		compact = { upTo = 8, plateHeight = 58, step = 65, disc = 50, name = 14, money = 18, arrow = 72 },
 	},
 
 	-- Chapa de la flecha del turno: medidas de la imagen y dónde se corta en tres piezas.
@@ -124,8 +128,8 @@ return {
 	arrowImageHeight = 312,
 	arrowCuts = { left = 110, right = 700 },
 
-	-- Panel de decisión, a la derecha, bajo el minimapa.
-	panelTop = 216,
+	-- Panel de decisión. En espejo va a la izquierda, solo, justo bajo los botones de Roblox.
+	panelTop = 72,
 	panelRight = 12,
 	panelWidth = 296,
 	panelGap = 8,
@@ -145,8 +149,9 @@ return {
 	reclaimTop = 120,
 	reclaimWidth = 560,
 	-- Letrero de ronda, título de escena y aviso.
-	roundSignWidth = 690,
+	roundSignWidth = 870,
 	settingsButtonWidth = 128,
+	manageButtonWidth = 180,
 	-- El letrero cuelga del borde superior de la ventana.
 	signTop = 12,
 	bannerTop = 22,
@@ -175,6 +180,11 @@ return {
 		actionHeight = 44,
 		actionGap = 8,
 		actionPad = 12,
+		-- Varios objetivos: la carta se ensancha y cada objetivo es un botón compacto en dos columnas.
+		wideWidth = 320,
+		targetHeight = 34,
+		captionHeight = 20,
+		targetMinText = 9,
 	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
@@ -194,6 +204,22 @@ return {
 		turnSwayPeriod = 3.2,
 		turnSwayDegrees = 1,
 		plateShift = 0.25,
+	},
+
+	-- HUD en espejo (2026-11-05, a juego con la ciudad en espejo): minimapa arriba a la derecha y, debajo, los
+	-- jugadores, con sus placas apuntando hacia dentro; la mano también a la derecha. El panel de acciones va a
+	-- la izquierda, y el cartel de datos de la vista general, abajo a la izquierda.
+	hudMirror = true,
+
+	-- Gestionar propiedades: ficha al pie, flechas a los lados y hueco sobre la calzada del plazo.
+	manage = {
+		width = 430,
+		height = 196,
+		arrowWidth = 46,
+		gap = 10,
+		band = 28,
+		bottomGap = 14,
+		buttonHeight = 34,
 	},
 
 	-- Minimapa: las casillas especiales van en gris con su símbolo, para no confundirse con una zona.

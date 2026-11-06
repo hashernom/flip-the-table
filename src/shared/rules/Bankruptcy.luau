@@ -105,7 +105,10 @@ end
 local function propertiesOf(state: GameState, playerId: PlayerId): { Asset }
 	local assets: { Asset } = {}
 	for _, index in ownedSquares(state, playerId) do
-		table.insert(assets, { index = index, value = half(priceOf(state, index)) })
+		-- R-P53: una hipotecada ya dio su dinero; venderla al banco no saca nada.
+		if not state.properties[index].mortgaged then
+			table.insert(assets, { index = index, value = half(priceOf(state, index)) })
+		end
 	end
 	table.sort(assets, function(left, right)
 		if left.value ~= right.value then
@@ -122,11 +125,14 @@ local function sellBuilding(state: GameState, payer: Player, asset: Asset)
 	payer.cash += asset.value
 end
 
--- Vende la propiedad al banco: vuelve libre y sin edificios.
+-- Vende la propiedad al banco: vuelve libre, sin edificios y sin hipoteca. La venta forzosa no hipoteca:
+-- con las propiedades atrapadas en manos del deudor, las partidas Sin Fin no terminaban (simulación del
+-- 2026-11-06). Hipotecar es una decisión del jugador, desde «Gestionar propiedades».
 local function sellProperty(state: GameState, payer: Player, asset: Asset)
 	local property = state.properties[asset.index]
 	property.level = 0
 	property.ownerId = nil
+	property.mortgaged = nil
 	payer.cash += asset.value
 end
 
@@ -137,6 +143,7 @@ local function returnProperties(state: GameState, playerId: PlayerId)
 		local property = state.properties[index]
 		property.ownerId = nil
 		property.level = 0
+		property.mortgaged = nil
 	end
 end
 

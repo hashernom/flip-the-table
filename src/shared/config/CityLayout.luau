@@ -214,9 +214,15 @@ local STREET_WIDTH = 34
 local SIDEWALK = 7
 local SLOT_LENGTH = 30
 local SLOT_DEPTH = 16
--- Sitio del centro de la casilla desde el eje de la calle. Negativo: a la izquierda de la marcha, el
--- exterior del anillo, que es donde están los edificios.
+-- Sitio del centro de la casilla desde el eje de la calle, hacia los edificios (3 studs). Negativo: el valor
+-- de siempre, medido hacia el exterior; `LOT_SIDE` lo lleva al lado donde estén los edificios.
 local SLOT_SIDE = -3
+
+-- Lado de la calle donde van las propiedades (2026-11-05, espejo pedido por el responsable): 1 fuera del
+-- anillo, -1 dentro. Las casillas especiales y la cárcel se quedan fuera, con la ciudad de fondo: en las
+-- esquinas interiores no caben un edificio especial y la primera propiedad del lado siguiente, y el de la
+-- esquina caería sobre la calle. `lotSideOf` da el lado de cada casilla.
+CityLayout.LOT_SIDE = -1
 
 CityLayout.STREET_WIDTH_STUDS = STREET_WIDTH
 CityLayout.SIDEWALK_STUDS = SIDEWALK
@@ -266,8 +272,13 @@ local function outward(slot: Slot, distance: number): Vector3Like
 end
 
 -- Centro de la casilla pintada.
+-- Lado de su edificio: el de las propiedades (`LOT_SIDE`) o fuera, si es una casilla especial.
+function CityLayout.lotSideOf(slot: Slot): number
+	return if slot.kind == "Property" then CityLayout.LOT_SIDE else 1
+end
+
 function CityLayout.slotCenter(slot: Slot): Vector3Like
-	return outward(slot, -SLOT_SIDE)
+	return outward(slot, -SLOT_SIDE * CityLayout.lotSideOf(slot))
 end
 
 -- El solar de cada casilla, tras la acera. Su fondo es el de `art/escala.md` y su ancho, provisional, el
@@ -280,7 +291,141 @@ CityLayout.LOT_DEPTH_STUDS = LOT_DEPTH
 
 -- Centro del solar de una casilla.
 function CityLayout.lotCenter(slot: Slot): Vector3Like
+	return outward(slot, CityLayout.lotSideOf(slot) * (STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2))
+end
+
+-- Centro de un solar fuera del anillo, sea cual sea `LOT_SIDE`. Lo usa la cárcel: la escena de la
+-- detención está montada con ella fuera, frente a su casilla.
+function CityLayout.outsideLotCenter(slot: Slot): Vector3Like
 	return outward(slot, STREET_WIDTH / 2 + SIDEWALK + LOT_DEPTH / 2)
+end
+
+-- Ciudad de fondo, fuera del anillo (2026-11-05): con las propiedades dentro, el exterior se amuebla con
+-- farolas y árboles en la acera, parques y edificios bajos donde antes estaban los solares, y dos filas de
+-- manzanas más altas detrás. Los edificios son bloques: se ven de lejos y nunca tapan la partida. Es decorado
+-- fijo: sale siempre igual y no depende de la partida.
+export type Backdrop = {
+	kind: string,
+	x: number,
+	z: number,
+	lookX: number,
+	lookZ: number,
+	w: number?,
+	d: number?,
+	h: number?,
+	tone: number?,
+}
+
+CityLayout.BACKDROP = {
+	lampAlong = -13,
+	lampOut = 18,
+	treeOut = 19.5,
+	firstOut = 35,
+	firstWidth = 30,
+	firstDepth = 18,
+	firstHeights = { 9, 12, 15, 11, 14 },
+	parkEvery = 3,
+	parkTreeAlong = 10,
+	parkTreeOut = 39,
+	benchOut = 27.5,
+	grassWidth = 34,
+	grassDepth = 20,
+	secondOut = 62,
+	secondWidth = 34,
+	secondDepth = 20,
+	secondHeights = { 22, 30, 26, 38, 24, 34 },
+	thirdOut = 96,
+	thirdWidth = 38,
+	thirdDepth = 26,
+	thirdHeights = { 44, 58, 50, 70, 46, 64 },
+	cornerOut = 80,
+	cornerSize = 40,
+	cornerHeight = 72,
+	tones = 6,
+}
+
+-- Altura «al azar» pero fija de la manzana `index` en una fila.
+local function pick(list: { number }, index: number, salt: number): number
+	return list[(index * 7 + salt * 3) % #list + 1]
+end
+
+function CityLayout.backdropFor(sizeId: SizeId): { Backdrop }
+	local config = CityLayout.BACKDROP
+	local route = CityLayout.routeFor(sizeId)
+	local items: { Backdrop } = {}
+	local count = #route
+	local function add(slot: Slot, kind: string, along: number, out: number, extra: { [string]: any }?)
+		local fx, fz = math.sin(slot.facing), math.cos(slot.facing)
+		local ox, oz = math.cos(slot.facing), -math.sin(slot.facing)
+		local item: Backdrop = {
+			kind = kind,
+			x = slot.position.x + fx * along + ox * out,
+			z = slot.position.z + fz * along + oz * out,
+			-- Todo mira a la calle.
+			lookX = -ox,
+			lookZ = -oz,
+		}
+		local fields: { [string]: any } = extra or {}
+		for key, value in fields do
+			(item :: any)[key] = value
+		end
+		table.insert(items, item)
+	end
+	for index, slot in route do
+		local before = route[if index == 1 then count else index - 1]
+		local after = route[if index == count then 1 else index + 1]
+		local corner = before.facing ~= slot.facing
+		if corner then
+			-- La esquina exterior: una torre en la diagonal, fuera de las dos calles.
+			local ax, az = math.cos(slot.facing), -math.sin(slot.facing)
+			local bx, bz = math.cos(before.facing), -math.sin(before.facing)
+			table.insert(items, {
+				kind = "Block",
+				x = slot.position.x + (ax + bx) * config.cornerOut,
+				z = slot.position.z + (az + bz) * config.cornerOut,
+				lookX = -(ax + bx) / 2,
+				lookZ = -(az + bz) / 2,
+				w = config.cornerSize,
+				d = config.cornerSize,
+				h = config.cornerHeight,
+				tone = index % config.tones + 1,
+			})
+			continue
+		end
+		add(slot, "Lamp", config.lampAlong, config.lampOut)
+		if after.facing == slot.facing then
+			add(slot, "Tree", SQUARE_SPACING / 2, config.treeOut)
+		end
+		-- Donde antes iba el solar de una propiedad: parque o edificio bajo. Las especiales conservan el suyo.
+		if slot.kind == "Property" and CityLayout.lotSideOf(slot) ~= 1 then
+			if index % config.parkEvery == 0 then
+				add(slot, "Grass", 0, config.firstOut, { w = config.grassWidth, d = config.grassDepth })
+				add(slot, "Tree", -config.parkTreeAlong, config.parkTreeOut)
+				add(slot, "Tree", config.parkTreeAlong, config.parkTreeOut)
+				add(slot, "Bench", 0, config.benchOut)
+			else
+				add(slot, "Block", 0, config.firstOut, {
+					w = config.firstWidth,
+					d = config.firstDepth,
+					h = pick(config.firstHeights, index, 1),
+					tone = index % config.tones + 1,
+				})
+			end
+		end
+		add(slot, "Block", 0, config.secondOut, {
+			w = config.secondWidth,
+			d = config.secondDepth,
+			h = pick(config.secondHeights, index, 2),
+			tone = (index + 2) % config.tones + 1,
+		})
+		add(slot, "Block", 0, config.thirdOut, {
+			w = config.thirdWidth,
+			d = config.thirdDepth,
+			h = pick(config.thirdHeights, index, 3),
+			tone = (index + 4) % config.tones + 1,
+		})
+	end
+	return items
 end
 
 -- Mobiliario de una manzana: va en las aceras y, en la junta entre dos casillas, sin pisar su pintura.
@@ -307,7 +452,9 @@ function CityLayout.dressingFor(sizeId: SizeId, zoneId: string): { Dressing }
 		return items
 	end
 
-	local function place(kind: string, slot: Slot, along: number, out: number, y: number)
+	local function place(kind: string, slot: Slot, along: number, side: number, y: number)
+		-- `side` se mide hacia los edificios; aquí pasa a «hacia fuera del anillo».
+		local out = side * CityLayout.LOT_SIDE
 		local outX, outZ = math.cos(slot.facing), -math.sin(slot.facing)
 		-- Mira a la calle desde cualquiera de las dos aceras.
 		local towardStreet = if out > 0 then -1 else 1

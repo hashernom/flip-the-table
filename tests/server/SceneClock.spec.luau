@@ -25,9 +25,9 @@ type GameState = Types.GameState
 type Phase = Types.Phase
 
 -- Lista literal de «Eventos» de docs/01-arquitectura/arquitectura.md. Se escribe a mano a
--- propósito: si la arquitectura cambia, esta prueba obliga a revisar Scenes. La sección lista 33
+-- propósito: si la arquitectura cambia, esta prueba obliga a revisar Scenes. La sección lista 35
 -- tipos de evento; las cinco legendarias se anuncian con su id (CardPlayed + cardId), así que los
--- nombres con escena son 38: los 33 eventos y las 5 cartas legendarias.
+-- nombres con escena son 40: los 35 eventos y las 5 cartas legendarias.
 local ARCHITECTURE_EVENTS: { string } = {
 	"RoundStarted",
 	"FinalRoundsStarted",
@@ -41,6 +41,8 @@ local ARCHITECTURE_EVENTS: { string } = {
 	"AuctionWon",
 	"AuctionNoSale",
 	"BuildingChanged",
+	"PropertyMortgaged",
+	"PropertyUnmortgaged",
 	"TradeCompleted",
 	"PlayerArrested",
 	"TribunalVerdict",
@@ -93,8 +95,8 @@ local function stepOf(
 end
 
 describe("Scenes", function()
-	it("da escena a los 33 eventos de la arquitectura y a las 5 legendarias", function()
-		expect(#ARCHITECTURE_EVENTS).toBe(33)
+	it("da escena a los 35 eventos de la arquitectura y a las 5 legendarias", function()
+		expect(#ARCHITECTURE_EVENTS).toBe(35)
 		expect(#LEGENDARY_CARDS).toBe(5)
 		for _, eventType in ARCHITECTURE_EVENTS do
 			expect(baseDuration(eventType) > 0).toBeTruthy()
