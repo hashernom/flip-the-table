@@ -3,7 +3,7 @@
   "lighting": {
     "ClockTime": 10.6,
     "GeographicLatitude": 41.7333,
-    "Brightness": 3.135,
+    "Brightness": 2.95,
     "Ambient": [58, 62, 74],
     "OutdoorAmbient": [112, 116, 128],
     "ShadowSoftness": 0.2,

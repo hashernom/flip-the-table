@@ -111,6 +111,10 @@ CardStaging.squares = {
 	taxCoins = 8,
 	-- Giro: cartas del mazo y color de su dorso.
 	spinDeck = 7,
+	-- Tamaño del mazo y de su carta (veces el normal) y dónde va respecto a la ficha.
+	spinScale = 1.7,
+	spinAhead = 14,
+	spinSide = 9,
 	spinBack = "#C4382B",
 }
 
@@ -124,7 +128,10 @@ CardStaging.game = {
 	gavelWood = "#8A5A33",
 	pactSegments = 10,
 	spotColor = "#FFF2C4",
-	heatColor = "#FF7A2E",
+	heatColor = "#FF9A55",
+	-- Columnas de calor: bajas y bastante transparentes, para que no deslumbren en el primer plano.
+	heatHeight = 26,
+	heatTransparency = 0.72,
 	ghostColor = "#B9A8E8",
 	startBills = 6,
 	podiumGap = 12,

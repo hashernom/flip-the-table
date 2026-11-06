@@ -673,10 +673,10 @@ local function zoneSlots(handles: any, zoneId: any): { CityLayout.Slot }
 	return list
 end
 
--- Zona Caliente: la cámara abre a la ciudad y en cada propiedad de la zona nueva sube una columna de calor
--- naranja; a mitad de escena la ciudad se pinta con la zona nueva.
+-- Zona Caliente: la cámara se acerca a la zona nueva, desde su calle, y en cada propiedad sube una columna de
+-- calor naranja, suave; a mitad de escena la ciudad se pinta con la zona nueva. Desde arriba, con toda la
+-- ciudad, los edificios tapaban la zona.
 local function hotZone(env: Env): Step
-	LegendaryKit.wide(env.options.director, env.handles.sizeId, math.pi * 0.25)
 	local columns: { { part: Part, at: Vector3, delay: number } } = {}
 	local slots = zoneSlots(env.handles, env.event.to)
 	for order, slot in slots do
@@ -693,7 +693,19 @@ local function hotZone(env: Env): Step
 		table.insert(columns, { part = piece, at = at, delay = (order - 1) * 0.06 })
 	end
 	local zoneName = if type(env.event.to) == "string" then Strings.zone(env.event.to).name else ""
-	local center = if #columns > 0 then columns[1].at else Vector3.zero
+	-- Centro de la zona y hacia dónde mira desde su calle (el solar del medio).
+	local center = Vector3.zero
+	for _, column in columns do
+		center += column.at
+	end
+	center = if #columns > 0 then center / #columns else Vector3.zero
+	if #slots > 0 then
+		local middle = env.handles.lotOf(slots[math.ceil(#slots / 2)].index)
+		local look = middle.LookVector
+		env.options.director.setSceneFocus(center, CameraShots.hotZone, math.atan2(-look.X, -look.Z))
+	else
+		LegendaryKit.wide(env.options.director, env.handles.sizeId, math.pi * 0.25)
+	end
 	local sign = floating(
 		env,
 		center + Vector3.new(0, 40, 0),
@@ -708,12 +720,12 @@ local function hotZone(env: Env): Step
 		sign(p)
 		for _, column in columns do
 			local q = phase(p, 0.2 + column.delay, 0.55 + column.delay) * (1 - phase(p, 0.85, 1))
-			local height = 50 * q
+			local height = STAGING.heatHeight * q
 			column.part.Size =
 				Vector3.new(math.max(0.1, height), 9 + math.sin(t * 6) * 0.6, 9 + math.sin(t * 6) * 0.6)
 			column.part.CFrame = CFrame.new(column.at + Vector3.new(0, height / 2, 0))
 				* CFrame.Angles(0, 0, math.rad(90))
-			column.part.Transparency = if q > 0 then 0.45 else 1
+			column.part.Transparency = if q > 0 then STAGING.heatTransparency else 1
 		end
 	end
 end

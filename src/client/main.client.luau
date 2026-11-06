@@ -773,6 +773,7 @@ local function boot()
 		while true do
 			local open = overviewWanted and director.mode() == "Overview"
 			overview.setOpen(open)
+			hud.setOverviewMode(open)
 			-- La vista general es la ciudad real desde lo alto, con las etiquetas de dueño encima. La maqueta
 			-- en miniatura ya no se enseña (decisión del responsable, 2026-11-05): se veía como una copia
 			-- dentro de la ciudad. `ModelCity` sigue en el código por si se recupera.
