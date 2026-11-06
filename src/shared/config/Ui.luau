@@ -209,14 +209,12 @@ return {
 	squarePrices = {
 		tones = {
 			Buy = "#EDE5D3",
-			Muted = "#CFC5AE",
 			Rent0 = "#F5C518",
 			Rent1 = "#E07A3C",
 			Rent2 = "#E5483A",
-			Mortgage = "#A8AEB4",
+			Hot = "#FFA830",
 			Alert = "#E5483A",
 		},
-		mutedTransparency = 0.45,
 	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.

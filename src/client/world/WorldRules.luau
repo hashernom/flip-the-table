@@ -8,7 +8,7 @@ export type PropertyChange = { index: number, ownerId: string?, level: number, m
 
 -- Tono de una cifra pintada en la casilla. El color sale de `Ui.squarePrices.tones`; la etiqueta de
 -- encima dice qué es cada cifra, así que el color repite la información y nunca la lleva solo.
-export type PriceTone = "Buy" | "Muted" | "Rent0" | "Rent1" | "Rent2" | "Mortgage" | "Alert"
+export type PriceTone = "Buy" | "Rent0" | "Rent1" | "Rent2" | "Hot" | "Alert"
 export type PriceCell = { caption: string, amount: number, tone: PriceTone }
 
 local PAINT_DESATURATE = 0.3
@@ -126,35 +126,23 @@ local function rentTone(level: number): PriceTone
 	return "Rent0"
 end
 
--- Las tres cifras de una casilla de propiedad, de izquierda a derecha: lo que cuesta, lo que cobra ahora
--- y lo que da la hipoteca. Con dueño, el precio de compra se apaga; hipotecada, la renta queda en 0 y la
--- tercera cifra pasa a ser lo que cuesta levantarla. Las cifras vienen calculadas en la vista.
-function WorldRules.priceCells(property: any): { PriceCell }
+-- La cifra que importa ahora en una casilla de propiedad, una sola: libre, lo que cuesta; con dueño, lo
+-- que cobra (en la Zona Caliente, con su etiqueta propia); hipotecada, lo que cuesta deshipotecarla. Las
+-- cifras vienen calculadas en la vista. `nil` si la vista no trae cifras.
+function WorldRules.priceCell(property: any, hot: boolean?): PriceCell?
 	if type(property) ~= "table" or type(property.price) ~= "number" then
-		return {}
+		return nil
 	end
-	local owned = property.ownerId ~= nil
-	local mortgaged = property.mortgaged == true
-	local cells: { PriceCell } = {
-		{ caption = "city.price.buy", amount = property.price, tone = if owned then "Muted" else "Buy" },
-	}
-	if mortgaged then
-		table.insert(cells, { caption = "city.price.rent", amount = 0, tone = "Muted" })
-		table.insert(
-			cells,
-			{ caption = "city.price.unmortgage", amount = property.unmortgageCost or 0, tone = "Alert" }
-		)
-	else
-		table.insert(
-			cells,
-			{ caption = "city.price.rent", amount = property.rent or 0, tone = rentTone(property.level or 0) }
-		)
-		table.insert(
-			cells,
-			{ caption = "city.price.mortgage", amount = property.mortgageValue or 0, tone = "Mortgage" }
-		)
+	if property.ownerId == nil then
+		return { caption = "city.price.buy", amount = property.price, tone = "Buy" }
 	end
-	return cells
+	if property.mortgaged == true then
+		return { caption = "city.price.unmortgage", amount = property.unmortgageCost or 0, tone = "Alert" }
+	end
+	if hot == true then
+		return { caption = "city.price.rentHot", amount = property.rent or 0, tone = "Hot" }
+	end
+	return { caption = "city.price.rent", amount = property.rent or 0, tone = rentTone(property.level or 0) }
 end
 
 return WorldRules

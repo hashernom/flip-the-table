@@ -133,6 +133,19 @@ local function zoneOf(index: number): string?
 	return if slot ~= nil then slot.zoneId else nil
 end
 
+-- La cifra de cada casilla cambia también sin cambio de dueño (Zona Caliente, Inflación, zona completa):
+-- se repinta con cada vista y al mover la Zona Caliente. `setPrice` solo toca los textos que cambiaron.
+local function repaintPrices()
+	local handles = city
+	if handles == nil or lastProperties == nil then
+		return
+	end
+	for index, property in lastProperties do
+		local hot = hotZoneId ~= nil and zoneOf(index) == hotZoneId
+		handles.setPrice(index, WorldRules.priceCell(property, hot))
+	end
+end
+
 -- Contorno cálido que pulsa en los edificios de la Zona Caliente. Sin relleno: la arquitectura se ve
 -- tal cual y el pulso lo distingue de una selección estática.
 local function ensureGlow(index: number)
@@ -223,6 +236,7 @@ function BuildingView.setHotZone(zoneId: string?)
 	for index in buildings do
 		ensureGlow(index)
 	end
+	repaintPrices()
 end
 
 -- Pone un solar en un nivel. Las escenas la llaman también para enseñar una obra antes de la vista.
@@ -436,11 +450,7 @@ function BuildingView.sync(
 		refreshTag(change.index)
 	end
 	lastProperties = properties
-	-- Las cifras cambian también sin cambio de dueño (Zona Caliente, Inflación, zona completa): se repintan
-	-- en cada vista, y `setPrices` solo toca los textos que cambiaron.
-	for index, property in properties do
-		handles.setPrices(index, WorldRules.priceCells(property))
-	end
+	repaintPrices()
 end
 
 return BuildingView

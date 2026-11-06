@@ -41,8 +41,9 @@ export type CityHandles = {
 	-- Pinta el solar con el color del dueño. La baldosa conserva el de su zona; `nil` libera el solar.
 	-- `mortgaged` apaga la placa y planta el cartel de hipotecada (R-P53).
 	setOwner: (index: number, color: Color3?, mortgaged: boolean?) -> (),
-	-- Repinta las cifras de una casilla de propiedad (`WorldRules.priceCells`). Solo toca lo que cambió.
-	setPrices: (index: number, cells: { WorldRules.PriceCell }) -> (),
+	-- Repinta la cifra de una casilla de propiedad (`WorldRules.priceCell`); nil la borra. Solo toca lo
+	-- que cambió.
+	setPrice: (index: number, cell: WorldRules.PriceCell?) -> (),
 	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
 	setHotZone: (zoneId: string?) -> (),
 	-- Marca gruesa de la Zona Caliente para la vista general: desde lo alto la raya y los contornos no se ven.
@@ -74,14 +75,13 @@ local ROAD_PAINT_DIM = 0.5
 local NAME_PIXELS_PER_STUD = 16
 local NAME_TEXT_SIZE = 70
 local NAME_PAINT = Color3.fromRGB(222, 216, 200)
--- Franja de cifras de una propiedad: en el carril libre, más allá del nombre, con tres columnas.
+-- Cifra de una propiedad: en el carril libre, más allá del nombre. Una sola, con su etiqueta encima.
 local PRICE_PAINT = "PricePaint"
 local PRICE_DEPTH = 5
 local PRICE_GAP = 0.5
-local PRICE_CELLS = 3
-local PRICE_CAPTION_SHARE = 0.32
+local PRICE_CAPTION_SHARE = 0.3
 local PRICE_CAPTION_SIZE = 22
-local PRICE_VALUE_SIZE = 46
+local PRICE_VALUE_SIZE = 56
 local OWNER_PLATE = "OwnerPlate"
 -- Solar comprado: la placa del dueño no es un bloque liso. Lleva un canto claro y un halo que se apaga en
 -- unos studs alrededor, dibujado con anillos translúcidos (sin imágenes), y una luz que tiñe la base del
@@ -618,8 +618,8 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 	text.Text = Strings.squareLabel(toSquare(slot), slot.ordinal)
 	text.Parent = surface
 
-	-- Las propiedades llevan sus cifras pintadas junto al nombre: compra, renta y hipoteca. Llegan vacías y
-	-- `setPrices` las rellena con la vista.
+	-- Las propiedades llevan pintada junto al nombre la cifra que importa ahora (`WorldRules.priceCell`).
+	-- Llega vacía y `setPrice` la rellena con la vista.
 	if slot.kind == "Property" then
 		local pricePosition = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
 			+ towardFree * (FRAMED_NAME_SIDE + NAME_DEPTH / 2 + PRICE_GAP + PRICE_DEPTH / 2)
@@ -637,39 +637,27 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 		prices.CanvasSize = Vector2.new(nameLength, PRICE_DEPTH) * NAME_PIXELS_PER_STUD
 		prices.LightInfluence = 1
 		prices.Parent = strip
-		local row = Instance.new("UIListLayout")
-		row.FillDirection = Enum.FillDirection.Horizontal
-		row.SortOrder = Enum.SortOrder.LayoutOrder
-		row.Parent = prices
-		for order = 1, PRICE_CELLS do
-			local cell = Instance.new("Frame")
-			cell.Name = `Cell{order}`
-			cell.LayoutOrder = order
-			cell.BackgroundTransparency = 1
-			cell.Size = UDim2.fromScale(1 / PRICE_CELLS, 1)
-			cell.Parent = prices
-			local caption = Instance.new("TextLabel")
-			caption.Name = "Caption"
-			caption.BackgroundTransparency = 1
-			caption.Size = UDim2.fromScale(1, PRICE_CAPTION_SHARE)
-			caption.Font = Enum.Font.GothamBold
-			caption.TextSize = PRICE_CAPTION_SIZE
-			caption.TextColor3 = NAME_PAINT
-			caption.Text = ""
-			caption.Parent = cell
-			local value = Instance.new("TextLabel")
-			value.Name = "Value"
-			value.BackgroundTransparency = 1
-			value.Position = UDim2.fromScale(0, PRICE_CAPTION_SHARE)
-			value.Size = UDim2.fromScale(1, 1 - PRICE_CAPTION_SHARE)
-			value.Font = Enum.Font.GothamBlack
-			value.TextScaled = true
-			value.Text = ""
-			value.Parent = cell
-			local valueLimit = Instance.new("UITextSizeConstraint")
-			valueLimit.MaxTextSize = PRICE_VALUE_SIZE
-			valueLimit.Parent = value
-		end
+		local caption = Instance.new("TextLabel")
+		caption.Name = "Caption"
+		caption.BackgroundTransparency = 1
+		caption.Size = UDim2.fromScale(1, PRICE_CAPTION_SHARE)
+		caption.Font = Enum.Font.GothamBold
+		caption.TextSize = PRICE_CAPTION_SIZE
+		caption.TextColor3 = NAME_PAINT
+		caption.Text = ""
+		caption.Parent = prices
+		local value = Instance.new("TextLabel")
+		value.Name = "Value"
+		value.BackgroundTransparency = 1
+		value.Position = UDim2.fromScale(0, PRICE_CAPTION_SHARE)
+		value.Size = UDim2.fromScale(1, 1 - PRICE_CAPTION_SHARE)
+		value.Font = Enum.Font.GothamBlack
+		value.TextScaled = true
+		value.Text = ""
+		value.Parent = prices
+		local valueLimit = Instance.new("UITextSizeConstraint")
+		valueLimit.MaxTextSize = PRICE_VALUE_SIZE
+		valueLimit.Parent = value
 	end
 
 	return tile
@@ -883,37 +871,25 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		refreshBackdrops = function()
 			makeBackdrops(model, sizeId)
 		end,
-		setPrices = function(index: number, cells: { WorldRules.PriceCell })
+		setPrice = function(index: number, cell: WorldRules.PriceCell?)
 			local tile: BasePart? = squares[index]
 			local strip = if tile ~= nil then tile:FindFirstChild(PRICE_PAINT) else nil
 			local prices = if strip ~= nil then strip:FindFirstChild("Prices") else nil
 			if prices == nil then
 				return
 			end
-			local config = Ui.squarePrices
-			for order = 1, PRICE_CELLS do
-				local cell = prices:FindFirstChild(`Cell{order}`)
-				if cell == nil then
-					continue
-				end
-				local data = cells[order]
-				local caption = cell:FindFirstChild("Caption") :: TextLabel
-				local value = cell:FindFirstChild("Value") :: TextLabel
-				local captionText = if data ~= nil then Strings.upper(Strings.get(data.caption)) else ""
-				local valueText = if data ~= nil then HudRules.formatMoney(data.amount) else ""
-				if caption.Text ~= captionText then
-					caption.Text = captionText
-				end
-				if value.Text ~= valueText then
-					value.Text = valueText
-				end
-				if data ~= nil then
-					local tint = Color3.fromHex(config.tones[data.tone])
-					value.TextColor3 = tint
-					local muted = data.tone == "Muted"
-					value.TextTransparency = if muted then config.mutedTransparency else 0
-					caption.TextTransparency = if muted then config.mutedTransparency else 0
-				end
+			local caption = prices:FindFirstChild("Caption") :: TextLabel
+			local value = prices:FindFirstChild("Value") :: TextLabel
+			local captionText = if cell ~= nil then Strings.upper(Strings.get(cell.caption)) else ""
+			local valueText = if cell ~= nil then HudRules.formatMoney(cell.amount) else ""
+			if caption.Text ~= captionText then
+				caption.Text = captionText
+			end
+			if value.Text ~= valueText then
+				value.Text = valueText
+			end
+			if cell ~= nil then
+				value.TextColor3 = Color3.fromHex(Ui.squarePrices.tones[cell.tone])
 			end
 		end,
 		setOwner = function(index: number, color: Color3?, mortgaged: boolean?)

@@ -330,7 +330,7 @@ Harness.describe("WorldRules.ownerTag", function()
 	end)
 end)
 
-describe("WorldRules.priceCells", function()
+describe("WorldRules.priceCell", function()
 	local function property(fields: { [string]: any }): any
 		local base = { level = 0, price = 200, rent = 20, mortgageValue = 100, unmortgageCost = 110 }
 		for key, value in fields do
@@ -339,51 +339,58 @@ describe("WorldRules.priceCells", function()
 		return base
 	end
 
-	it("una casilla libre enseña compra, renta y hipoteca", function()
-		local cells = WorldRules.priceCells(property({}))
-		expect(#cells).toBe(3)
-		expect(cells[1].caption).toBe("city.price.buy")
-		expect(cells[1].amount).toBe(200)
-		expect(cells[1].tone).toBe("Buy")
-		expect(cells[2].caption).toBe("city.price.rent")
-		expect(cells[2].amount).toBe(20)
-		expect(cells[2].tone).toBe("Rent0")
-		expect(cells[3].caption).toBe("city.price.mortgage")
-		expect(cells[3].amount).toBe(100)
+	it("libre: solo lo que cuesta comprarla", function()
+		local cell = WorldRules.priceCell(property({})) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.buy")
+		expect(cell.amount).toBe(200)
+		expect(cell.tone).toBe("Buy")
 	end)
 
-	it("con dueño, el precio de compra se apaga", function()
-		expect(WorldRules.priceCells(property({ ownerId = "P1" }))[1].tone).toBe("Muted")
-	end)
-
-	it("la renta sube de tono con las mejoras", function()
-		expect(WorldRules.priceCells(property({ ownerId = "P1", level = 2, rent = 300 }))[2].tone).toBe(
-			"Rent1"
-		)
-		expect(WorldRules.priceCells(property({ ownerId = "P1", level = 4, rent = 900 }))[2].tone).toBe(
-			"Rent2"
+	it("libre en la Zona Caliente sigue enseñando el precio", function()
+		expect((WorldRules.priceCell(property({}), true) :: WorldRules.PriceCell).caption).toBe(
+			"city.price.buy"
 		)
 	end)
 
-	it("hipotecada: renta 0 y lo que cuesta levantarla", function()
-		local cells = WorldRules.priceCells(property({ ownerId = "P1", mortgaged = true }))
-		expect(cells[2].amount).toBe(0)
-		expect(cells[2].tone).toBe("Muted")
-		expect(cells[3].caption).toBe("city.price.unmortgage")
-		expect(cells[3].amount).toBe(110)
-		expect(cells[3].tone).toBe("Alert")
+	it("con dueño: lo que cobra, con el tono de su nivel", function()
+		local cell = WorldRules.priceCell(property({ ownerId = "P1" })) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.rent")
+		expect(cell.amount).toBe(20)
+		expect(cell.tone).toBe("Rent0")
+		local built =
+			WorldRules.priceCell(property({ ownerId = "P1", level = 2, rent = 300 })) :: WorldRules.PriceCell
+		expect(built.tone).toBe("Rent1")
+		local tall =
+			WorldRules.priceCell(property({ ownerId = "P1", level = 4, rent = 900 })) :: WorldRules.PriceCell
+		expect(tall.tone).toBe("Rent2")
+	end)
+
+	it("con dueño en la Zona Caliente: la renta caliente con su etiqueta", function()
+		local cell =
+			WorldRules.priceCell(property({ ownerId = "P1", rent = 40 }), true) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.rentHot")
+		expect(cell.amount).toBe(40)
+		expect(cell.tone).toBe("Hot")
+	end)
+
+	it("hipotecada: lo que cuesta deshipotecarla, aunque esté en la Zona Caliente", function()
+		local cell =
+			WorldRules.priceCell(property({ ownerId = "P1", mortgaged = true }), true) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.unmortgage")
+		expect(cell.amount).toBe(110)
+		expect(cell.tone).toBe("Alert")
 	end)
 
 	it("sin cifras en la vista no pinta nada", function()
-		expect(#WorldRules.priceCells({ level = 0 })).toBe(0)
-		expect(#WorldRules.priceCells(nil)).toBe(0)
+		expect(WorldRules.priceCell({ level = 0 })).toBe(nil)
+		expect(WorldRules.priceCell(nil)).toBe(nil)
 	end)
 
-	it("cada casilla de la vista real trae sus tres cifras", function()
+	it("cada casilla de la vista real trae su cifra", function()
 		local state = Fixtures.game({ players = 2 })
 		local view = View.forPlayer(state, "P1")
 		for _, seen in view.properties do
-			expect(#WorldRules.priceCells(seen)).toBe(3)
+			expect(WorldRules.priceCell(seen) ~= nil).toBe(true)
 		end
 	end)
 end)
