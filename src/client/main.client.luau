@@ -82,6 +82,7 @@ local function boot()
 	local PortalJump = require("./scenes/PortalJump")
 	local DeedThiefScene = require("./scenes/cards/DeedThief")
 	local DiceScene = require("./scenes/game/Dice")
+	local CommonCardsScene = require("./scenes/cards/CommonCards")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -266,6 +267,33 @@ local function boot()
 		log = legendaryOptions.log,
 	})
 	legendaries.DiceRolled = dice
+
+	-- Las nueve comunes y el Escudo (CardBlocked): cada una con su objeto y su cartel de quién y a quién.
+	local commons = CommonCardsScene.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = function(id: string): string
+			local view = StateStore.view(queue.state)
+			return if view ~= nil then ViewText.playerName(view, names, id) else id
+		end,
+		rivalsOf = function(id: string): { string }
+			local view = StateStore.view(queue.state)
+			local list: { string } = {}
+			if view ~= nil then
+				for _, seated in view.players do
+					if seated.id ~= id and seated.status == "Active" then
+						table.insert(list, seated.id)
+					end
+				end
+			end
+			return list
+		end,
+		log = legendaryOptions.log,
+	})
+	for cardId, scene in commons.scenes do
+		legendaries[cardId] = { scene = scene, cancelAll = commons.cancelAll }
+	end
 
 	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
 	local function cancelScenes()

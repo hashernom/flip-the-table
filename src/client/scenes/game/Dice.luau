@@ -47,7 +47,7 @@ type Die = {
 local Dice = {}
 
 -- Un dado: cubo de caliza con los puntos en azul marino y el 1 en rojo, como un dado de mesa.
-local function makeDie(parent: Instance, index: number): Model
+function Dice.makeDie(parent: Instance, index: number): Model
 	local model = Instance.new("Model")
 	model.Name = `Die{index}`
 	local size = STAGING.size
@@ -150,7 +150,7 @@ function Dice.new(options: Options): Dice
 				DiceRules.jitter(seed, i + 30) - 0.5,
 				DiceRules.jitter(seed, i + 40) - 0.5
 			)
-			local model = makeDie(current.props, i)
+			local model = Dice.makeDie(current.props, i)
 			local glow = Instance.new("Highlight")
 			glow.FillColor = seat
 			glow.OutlineColor = seat

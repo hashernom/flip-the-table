@@ -278,6 +278,16 @@ local TEXTS: { [string]: string } = {
 	["city.mortgaged"] = "Hipotecada",
 	-- Sello de la escena del Ladrón de Escrituras, sobre la propiedad robada.
 	["scene.deedThief.stamp"] = "Robada por {name}",
+	-- Carteles de las cartas comunes: quién juega y contra quién.
+	["scene.common.shield"] = "{actor} bloquea {card}",
+	["scene.common.extraDie"] = "{actor}: dado extra",
+	["scene.common.reverse"] = "{actor}: marcha atrás",
+	["scene.common.forcedTip"] = "Propina para {actor}",
+	["scene.common.discount"] = "{actor}: descuento",
+	["scene.common.shove"] = "{actor} empuja a {target}",
+	["scene.common.fine"] = "Multa a {target}",
+	["scene.common.bribe"] = "{actor} soborna al Tribunal",
+	["scene.common.spy"] = "{actor} espía a {target}",
 	-- Suma de la escena de los dados: «4 + 3 = 7».
 	["scene.dice.total"] = "{dice} = {total}",
 	["scene.strike.sign"] = "Cerrado por huelga",

@@ -84,4 +84,20 @@ CardStaging.bounceRent = {
 	springStuds = 3,
 }
 
+-- Las nueve comunes (scenes/cards/CommonCards): cartel con quién juega y contra quién, y el objeto de cada
+-- carta. Sus tiempos van dentro de cada escena, como fracciones de sus 2,5 s.
+CardStaging.common = {
+	headerLift = 16,
+	headerWidth = 300,
+	headerHeight = 58,
+	coinSize = 2.2,
+	coinColor = "#F2C14E",
+	shieldSize = 15,
+	shieldColor = "#5AB8E8",
+	arrowColor = "#E07A3C",
+	caseColor = "#6B4A2E",
+	bribeBills = 8,
+	beamColor = "#FFF2C4",
+}
+
 return CardStaging
