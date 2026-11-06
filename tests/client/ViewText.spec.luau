@@ -16,6 +16,7 @@ local Strings = require("../../src/shared/config/Strings")
 local Turn = require("../../src/shared/rules/Turn")
 local Types = require("../../src/shared/rules/Types")
 local View = require("../../src/shared/rules/View")
+local Ui = require("../../src/shared/config/Ui")
 local ViewText = require("../../src/client/ui/ViewText")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
@@ -523,5 +524,27 @@ describe("ViewText.cardTarget", function()
 		expect(tint).toBe(Strings.zone(zoneId).color)
 		local none = ViewText.cardTarget(view, nil, { type = "PlayCard", cardId = "x" })
 		expect(none).toBe(nil)
+	end)
+
+	it("una propiedad objetivo lleva el color de su zona", function()
+		local view = { players = {}, sizeId = "S" }
+		local board = ViewText.board("S")
+		local index: number? = nil
+		for at, square in board.squares do
+			if square.kind == "Property" then
+				index = at
+				break
+			end
+		end
+		local found = index :: number
+		local _, tint =
+			ViewText.cardTarget(view, nil, { type = "PlayCard", cardId = "DeedThief", index = found })
+		expect(tint).toBe(Strings.zone(board.squares[found].zoneId :: string).color)
+	end)
+
+	it("un jugador objetivo lleva el color de su asiento", function()
+		local view = { players = { { id = "a" }, { id = "b" } }, sizeId = "S" }
+		local _, tint = ViewText.cardTarget(view, nil, { type = "PlayCard", cardId = "Fine", targetId = "b" })
+		expect(tint).toBe(Ui.seatColors[2])
 	end)
 end)

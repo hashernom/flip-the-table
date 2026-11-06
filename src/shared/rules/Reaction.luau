@@ -261,6 +261,16 @@ function Reaction.respond(state: GameState, playerId: PlayerId, action: Action):
 				cardId = reaction.trigger.cardId,
 				byPlayerId = playerId,
 			})
+		elseif reaction and action.cardId == "BounceRent" and reaction.trigger.kind == "Rent" then
+			-- La reacción es pública: el grupo ve quién rebota la renta, a quién y de qué casilla. El cobro
+			-- al tercero lo hace Engine justo después (RentPaid).
+			table.insert(events, {
+				type = "CardPlayed",
+				playerId = playerId,
+				cardId = "BounceRent",
+				targetId = action.targetId,
+				index = reaction.trigger.index,
+			})
 		end
 	end
 	Reaction.close(state)

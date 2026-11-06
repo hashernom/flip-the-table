@@ -191,7 +191,75 @@ return {
 	-- Arte de las cartas: con la ilustración, la vista grande crece hacia arriba lo que pide su
 	-- proporción 312 x 450 y el texto va debajo, en una franja de este alto. El nombre en la carta de
 	-- la mano se escribe sobre la banda de caliza del PNG, a este cuerpo de letra.
-	cardArt = { textHeight = 108, nameSize = 15, nameMinSize = 12 },
+	-- Carta con arte. Mano: nombre sobre la banda. Vista grande: nombre, filete y descripción dentro de
+	-- la banda, y sello de rareza estampado en la esquina de la ventana.
+	cardArt = {
+		nameSize = 15,
+		nameMinSize = 12,
+		previewNameSize = 22,
+		detailSize = 15,
+		detailMinSize = 11,
+		bandPad = 8,
+		ruleWidth = 0.4,
+		sealSize = 14,
+		sealInset = 14,
+	},
+	-- Cifras pintadas en las casillas de propiedad: color de cada tono (`WorldRules.PriceTone`) sobre el
+	-- asfalto, y transparencia de la cifra apagada.
+	squarePrices = {
+		tones = {
+			Buy = "#EDE5D3",
+			Rent0 = "#F5C518",
+			Rent1 = "#E07A3C",
+			Rent2 = "#E5483A",
+			Hot = "#FFA830",
+			Alert = "#E5483A",
+		},
+	},
+	-- Cartelera: vueltas del marco antes de pararse, curva de frenada, parte de la escena que dura el suspense,
+	-- crecimiento al encenderse y golpe de la salida ganadora. Meneo de burla cuando no sale nada.
+	-- Dados 3D de DiceRolled (scenes/game/Dice): tamaño en studs, dónde caen respecto a la ficha y el ritmo de
+	-- la caída como fracciones de la escena. `restAt` es cuándo se paran; el resto, la suma a la vista.
+	dice = {
+		size = 3.4,
+		gap = 5,
+		reach = 13,
+		throwHeight = 9,
+		skyHeight = 34,
+		bounceHeight = 7,
+		turns = 2.5,
+		stagger = 0.06,
+		restAt = 0.6,
+		signLift = 7,
+		signWidth = 190,
+		signHeight = 56,
+	},
+	billboard = {
+		laps = 3,
+		easePower = 3,
+		settleShare = 0.55,
+		maxSettleSec = 1.6,
+		tickSec = 0.09,
+		powerScale = 0.9,
+		powerSec = 0.32,
+		landPop = 1.14,
+		landPopSec = 0.18,
+		dimTransparency = 0.7,
+		mockDegrees = 4,
+		mockSwings = 3,
+		mockSec = 0.08,
+	},
+	-- Carta robada en grande en el centro (Hud.revealCard): altura en pantalla, giro y escala de entrada,
+	-- escala a la vista y al llegar a la mano, y tiempos de entrada y de salida.
+	cardReveal = {
+		top = 0.42,
+		tilt = -14,
+		scaleFrom = 0.3,
+		scale = 1.35,
+		scaleTo = 0.45,
+		inSec = 0.32,
+		outSec = 0.35,
+	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,

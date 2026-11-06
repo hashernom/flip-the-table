@@ -26,7 +26,15 @@ local UPGRADE_GLOW = "UpgradeGlow"
 local UPGRADE_FILL = Color3.fromRGB(255, 236, 170)
 local UPGRADE_OUTLINE = Color3.fromRGB(255, 250, 225)
 
+-- Atributos de cada pieza: qué es (Base, Addon o Marker) y su nivel. Las escenas se llevan añadidos y
+-- marcadores sin tocar el cuerpo del edificio (art/vision-visual.md).
+local ROLE = "Role"
+local TIER = "Tier"
+
 local BuildingView = {}
+
+BuildingView.ROLE = ROLE
+BuildingView.TIER = TIER
 
 local city: CityBuilder.CityHandles? = nil
 local buildings: { [number]: Model } = {}
@@ -38,7 +46,7 @@ local pending: { [number]: boolean } = {}
 local tagsVisible = false
 local hotZoneId: string? = nil
 
-local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance)
+local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Color3, parent: Instance): Part
 	local piece = Instance.new("Part")
 	piece.Name = name
 	piece.Anchored = true
@@ -50,6 +58,7 @@ local function makePiece(name: string, size: Vector3, cframe: CFrame, color: Col
 	piece.Size = size
 	piece.CFrame = cframe
 	piece.Parent = parent
+	return piece
 end
 
 -- Comprueba que la malla ya está en la carpeta de la que copia `placeMesh`.
@@ -69,6 +78,31 @@ local function placeMesh(piece: ArtAssets.Piece, origin: CFrame, parent: Instanc
 	local mesh = source:Clone()
 	-- La pieza llega con el origen en el centro de la base, así que su posición ya es relativa a él.
 	mesh.CFrame = origin * source.CFrame
+	mesh.Parent = parent
+	return mesh
+end
+
+-- Como `placeMesh`, pero reduce la malla a `height` studs de alto: las piezas de la isla se subieron a otra
+-- escala. El origen sigue en el centro de la base.
+local function placeIslandMesh(
+	piece: ArtAssets.Piece,
+	origin: CFrame,
+	height: number,
+	parent: Instance
+): BasePart?
+	local folder = ReplicatedStorage:FindFirstChild(ArtAssets.FOLDER)
+	local source = if folder ~= nil then folder:FindFirstChild(piece.key) else nil
+	if source == nil or not source:IsA("BasePart") or source.Size.Y <= 0 then
+		return nil
+	end
+	local scale = height / source.Size.Y
+	local mesh = source:Clone()
+	mesh.Size = source.Size * scale
+	mesh.CFrame = origin * CFrame.new(source.CFrame.Position * scale) * source.CFrame.Rotation
+	mesh.Color = Color3.fromRGB(piece.color[1], piece.color[2], piece.color[3])
+	mesh.CanCollide = false
+	mesh.CanQuery = false
+	mesh.CanTouch = false
 	mesh.Parent = parent
 	return mesh
 end
@@ -122,6 +156,19 @@ local function zoneOf(index: number): string?
 	end
 	local slot = CityLayout.routeFor(handles.sizeId)[index]
 	return if slot ~= nil then slot.zoneId else nil
+end
+
+-- La cifra de cada casilla cambia también sin cambio de dueño (Zona Caliente, Inflación, zona completa):
+-- se repinta con cada vista y al mover la Zona Caliente. `setPrice` solo toca los textos que cambiaron.
+local function repaintPrices()
+	local handles = city
+	if handles == nil or lastProperties == nil then
+		return
+	end
+	for index, property in lastProperties do
+		local hot = hotZoneId ~= nil and zoneOf(index) == hotZoneId
+		handles.setPrice(index, WorldRules.priceCell(property, hot))
+	end
 end
 
 -- Contorno cálido que pulsa en los edificios de la Zona Caliente. Sin relleno: la arquitectura se ve
@@ -214,6 +261,7 @@ function BuildingView.setHotZone(zoneId: string?)
 	for index in buildings do
 		ensureGlow(index)
 	end
+	repaintPrices()
 end
 
 -- Pone un solar en un nivel. Las escenas la llaman también para enseñar una obra antes de la vista.
@@ -240,25 +288,33 @@ function BuildingView.setLevel(index: number, level: number)
 	local placedReal = real ~= nil
 	if real ~= nil then
 		local origin = lot * CFrame.new(0, 0, ArtAssets.FRONT_OFFSET)
+		local roles = BuildingView.rolesFor(handles.labelOf(index), level)
 		for order, piece in real do
 			local mesh = placeMesh(piece, origin, model)
 			if mesh == nil then
 				placedReal = false
-			elseif order == 1 then
-				mesh.Name = "Base"
+			else
+				if order == 1 then
+					mesh.Name = "Base"
+				end
+				local role = roles[order]
+				mesh:SetAttribute(ROLE, role.role)
+				mesh:SetAttribute(TIER, role.tier)
 			end
 		end
 	end
 	if not placedReal then
 		model:ClearAllChildren()
 		for order, block in CityLayout.buildingBlocks(level) do
-			makePiece(
+			local piece = makePiece(
 				if order == 1 then "Base" else `Addon{order - 1}`,
 				Vector3.new(block.width, block.height, block.depth),
 				lot * CFrame.new(block.along, block.y + block.height / 2, block.front),
 				if order == 1 then BLOCK_COLOR else ADDON_COLOR,
 				model
 			)
+			piece:SetAttribute(ROLE, if order == 1 then "Base" else "Addon")
+			piece:SetAttribute(TIER, order - 1)
 		end
 	end
 	-- Pendiente solo si había piezas reales que no pudieron colocarse: el modelo real se pone al llegar.
@@ -271,6 +327,12 @@ function BuildingView.setLevel(index: number, level: number)
 		local origin = lot * CFrame.new(marker.along, 0, marker.front)
 		local stone = placeMesh(ArtAssets.mojon.stone, origin, model)
 		local ring = placeMesh(ArtAssets.mojon.ring, origin, model)
+		for _, mesh in { stone, ring } do
+			if mesh ~= nil then
+				mesh:SetAttribute(ROLE, "Marker")
+				mesh:SetAttribute(TIER, order)
+			end
+		end
 		if ring ~= nil then
 			local slot = CityLayout.routeFor(handles.sizeId)[index]
 			if slot ~= nil and slot.zoneId ~= nil then
@@ -278,13 +340,41 @@ function BuildingView.setLevel(index: number, level: number)
 			end
 		end
 		if stone == nil then
-			makePiece(
+			local block = makePiece(
 				`Marker{order}`,
 				Vector3.new(marker.width, marker.height, marker.depth),
 				lot * CFrame.new(marker.along, marker.height / 2, marker.front),
 				MARKER_COLOR,
 				model
 			)
+			block:SetAttribute(ROLE, "Marker")
+			block:SetAttribute(TIER, order)
+		end
+	end
+	-- Casas, hotel o rascacielos sobre la isla pintada de la casilla, mirando a la calle.
+	local slot = CityLayout.routeFor(handles.sizeId)[index]
+	if slot ~= nil and slot.kind == "Property" then
+		local center, toward = CityLayout.islandCenter(slot)
+		local forward = Vector3.new(math.sin(slot.facing), 0, math.cos(slot.facing))
+		local towardBuilding = Vector3.new(toward.x, 0, toward.z)
+		for order, marker in CityLayout.islandMarkers(level) do
+			local at = Vector3.new(center.x, 0, center.z) + forward * marker.along
+			local origin = CFrame.lookAt(at, at - towardBuilding)
+			local mesh = placeIslandMesh(ArtAssets.islandMarkers[marker.kind], origin, marker.height, model)
+			if mesh == nil then
+				-- Sin la malla aún: un bloque del mismo tamaño, para que el nivel se lea igual.
+				local width = marker.height * 0.7
+				mesh = makePiece(
+					`Island{order}`,
+					Vector3.new(width, marker.height, width),
+					origin * CFrame.new(0, marker.height / 2, 0),
+					MARKER_COLOR,
+					model
+				)
+			end
+			local placed = mesh :: BasePart
+			placed:SetAttribute(ROLE, "Marker")
+			placed:SetAttribute(TIER, order)
 		end
 	end
 	model.Parent = handles.model
@@ -294,6 +384,45 @@ function BuildingView.setLevel(index: number, level: number)
 	if before ~= nil and level > before then
 		flashUpgrade(model)
 	end
+end
+
+-- Destello del edificio de una casilla, el mismo de una mejora. Lo usan las escenas que cambian algo del
+-- edificio sin subir de nivel (un robo, un cambio de dueño).
+function BuildingView.flash(index: number)
+	local model: Model? = buildings[index]
+	if model ~= nil then
+		flashUpgrade(model)
+	end
+end
+
+-- Papel de cada pieza real de un edificio, en el orden de `ArtAssets.piecesFor`: el cuerpo (tier 0) y
+-- los añadidos de cada nivel (tier = nivel). Las escenas lo leen con el atributo `Role` para llevarse
+-- los añadidos y marcadores sin tocar el cuerpo.
+function BuildingView.rolesFor(name: string, level: number): { { role: string, tier: number } }
+	local roles: { { role: string, tier: number } } = {}
+	local property = ArtAssets.properties[name]
+	if property == nil then
+		return roles
+	end
+	for _ in property.base do
+		table.insert(roles, { role = "Base", tier = 0 })
+	end
+	for order = 1, math.min(level, #property.addons) do
+		for _ in property.addons[order] do
+			table.insert(roles, { role = "Addon", tier = order })
+		end
+	end
+	return roles
+end
+
+-- Modelo del edificio de una casilla, o nil si no hay ciudad o no es propiedad.
+function BuildingView.modelOf(index: number): Model?
+	return buildings[index]
+end
+
+-- Nivel que la ciudad muestra ahora en esa casilla (puede ir por detrás de la vista durante una escena).
+function BuildingView.levelOf(index: number): number
+	return levels[index] or 0
 end
 
 -- Vuelve a levantar lo que está en la ciudad cuando terminan de cargar los modelos reales.
@@ -381,6 +510,7 @@ function BuildingView.sync(
 		refreshTag(change.index)
 	end
 	lastProperties = properties
+	repaintPrices()
 end
 
 return BuildingView

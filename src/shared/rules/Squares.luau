@@ -746,8 +746,14 @@ local function spin(state: GameState, playerId: PlayerId): { Event }
 	return Deck.draw(state, playerId)
 end
 
+-- R-P57: el Impuesto se anuncia con TaxPaid antes del cobro, para que el grupo vea su escena. El evento no
+-- decide nada: el cobro (y la venta o bancarrota, si toca) sigue siendo Bankruptcy.charge.
 local function tax(state: GameState, playerId: PlayerId): { Event }
-	return Bankruptcy.charge(state, playerId, SquaresConfig.tax, nil)
+	local events: { Event } = { { type = "TaxPaid", playerId = playerId, amount = SquaresConfig.tax } }
+	for _, event in Bankruptcy.charge(state, playerId, SquaresConfig.tax, nil) do
+		table.insert(events, event)
+	end
+	return events
 end
 
 -- ---------------------------------------------------------------------- Casillas

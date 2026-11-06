@@ -109,8 +109,13 @@ describe("Scenes", function()
 	it("las escenas comunes duran entre 2 y 4 segundos", function()
 		for _, eventType in ARCHITECTURE_EVENTS do
 			-- Excepciones: la detención lleva la llegada, los policías y la vuelta al mapa (15 s), y el
-			-- Portal cruza la ciudad con la cámara (2026-11-05, más lento a petición del responsable).
-			if eventType ~= "PlayerArrested" and eventType ~= "PortalUsed" then
+			-- Portal cruza la ciudad con la cámara (2026-11-05, más lento a petición del responsable). La
+			-- compra y la subasta ganada aplican el resultado al empezar y duran menos de 2 s: su espera era
+			-- tiempo muerto en cada turno (2026-11-06, responsable).
+			local quick = eventType == "PropertyBought" or eventType == "AuctionWon"
+			if quick then
+				expect(baseDuration(eventType) > 0 and baseDuration(eventType) < 2).toBeTruthy()
+			elseif eventType ~= "PlayerArrested" and eventType ~= "PortalUsed" then
 				local duration = baseDuration(eventType)
 				expect(duration >= 2 and duration <= 4).toBeTruthy()
 			end

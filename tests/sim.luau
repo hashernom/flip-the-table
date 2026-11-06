@@ -10,6 +10,7 @@ local Bot = require("../src/shared/rules/Bot")
 local Economy = require("../src/shared/config/Economy")
 local Engine = require("../src/shared/rules/Engine")
 local Pact = require("../src/shared/rules/Pact")
+local Scenes = require("../src/shared/config/Scenes")
 local Score = require("../src/shared/rules/Score")
 local State = require("../src/shared/rules/State")
 local Types = require("../src/shared/rules/Types")
@@ -53,6 +54,9 @@ export type SimResult = {
 	-- Rentas que un pacto eximió de cobrar. El motor no emite ningún evento cuando la exención
 	-- aplica, así que se cuentan al resolver la tirada que deja al jugador en la casilla del socio.
 	rentsExempted: number,
+	-- Segundos de escena de la partida, con las duraciones de `config/Scenes` (las repetidas, más cortas).
+	-- No cuenta las decisiones: los bots juegan al instante. Lo usa el informe del ritmo (plan 08, Tarea 7).
+	sceneSeconds: number,
 }
 
 -- Tope de seguridad: solo detecta una partida que no termina. Las partidas Sin Fin legítimas
@@ -155,6 +159,7 @@ function Sim.play(opts: PlayOptions): SimResult
 	local context = `jugadores={table.concat(playerIds, ",")}, semilla={opts.seed}, modo={mode}`
 	local maxActions = opts.maxActions or MAX_ACTIONS
 	local counts: { [string]: number } = {}
+	local sceneSeconds = 0
 	local cardsPlayed: { [string]: number } = {}
 	local perksDrafted: { [string]: number } = {}
 	local perkUses: { [string]: number } = {}
@@ -206,11 +211,14 @@ function Sim.play(opts: PlayOptions): SimResult
 			perkUses = perkUses,
 			duelsWon = duelsWon,
 			rentsExempted = rentsExempted,
+			sceneSeconds = sceneSeconds,
 		}
 	end
 
 	local function record(events: { Event })
 		for _, event in events do
+			-- El cliente acorta una escena según las veces que ya vio ese tipo de evento.
+			sceneSeconds += Scenes.durationFor(event, counts[event.type] or 0)
 			counts[event.type] = (counts[event.type] or 0) + 1
 			if event.type == "RoundStarted" then
 				local round: number = event.round
@@ -468,6 +476,7 @@ function Sim.play(opts: PlayOptions): SimResult
 		perkUses = perkUses,
 		duelsWon = duelsWon,
 		rentsExempted = rentsExempted,
+		sceneSeconds = sceneSeconds,
 	}
 end
 

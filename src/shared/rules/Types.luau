@@ -58,6 +58,16 @@ export type PropertyState = {
 	mortgaged: boolean?,
 }
 
+-- Propiedad tal como la ve un jugador: el estado y sus cifras ya calculadas por el servidor, para que la
+-- ciudad pinte en cada casilla lo que cuesta, lo que cobra ahora y lo que da la hipoteca (precios de casilla).
+export type ViewProperty = PropertyState & {
+	price: number,
+	-- Renta que cobraría ahora mismo, con edificios, zona completa y efectos; 0 si está hipotecada.
+	rent: number,
+	mortgageValue: number,
+	unmortgageCost: number,
+}
+
 export type Player = {
 	id: PlayerId,
 	isBot: boolean,
@@ -101,6 +111,15 @@ export type GameState = {
 	players: { Player },
 	turnIndex: number,
 	endMode: EndMode,
+	-- Configuración elegida al crear la partida (config/MatchSettings). nil = la de por defecto.
+	settings: {
+		startingCash: number,
+		startBonus: number,
+		length: string,
+		auctions: boolean,
+		perks: boolean,
+		hotZone: boolean,
+	}?,
 	round: number,
 	maxRounds: number?,
 	phase: Phase,
@@ -153,7 +172,7 @@ export type PlayerView = {
 	phase: Phase,
 	turnIndex: number,
 	players: { ViewPlayer },
-	properties: { [number]: PropertyState },
+	properties: { [number]: ViewProperty },
 	pacts: { Pact },
 	modifiers: { Modifier },
 	hotZoneId: string?,

@@ -9,9 +9,12 @@
 -- gasta presupuesto de partes replicadas.
 local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
+local CityInterior = require("../../shared/config/CityInterior")
 local CityLayout = require("../../shared/config/CityLayout")
 local Economy = require("../../shared/config/Economy")
 local Strings = require("../../shared/config/Strings")
+local Ui = require("../../shared/config/Ui")
+local HudRules = require("../ui/HudRules")
 local UiIcons = require("../../shared/config/UiIcons")
 local Types = require("../../shared/rules/Types")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -38,6 +41,9 @@ export type CityHandles = {
 	-- Pinta el solar con el color del dueño. La baldosa conserva el de su zona; `nil` libera el solar.
 	-- `mortgaged` apaga la placa y planta el cartel de hipotecada (R-P53).
 	setOwner: (index: number, color: Color3?, mortgaged: boolean?) -> (),
+	-- Repinta la cifra de una casilla de propiedad (`WorldRules.priceCell`); nil la borra. Solo toca lo
+	-- que cambió.
+	setPrice: (index: number, cell: WorldRules.PriceCell?) -> (),
 	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
 	setHotZone: (zoneId: string?) -> (),
 	-- Marca gruesa de la Zona Caliente para la vista general: desde lo alto la raya y los contornos no se ven.
@@ -54,7 +60,11 @@ local PAINT_HEIGHT = 0.05
 local WATER = Color3.fromRGB(38, 84, 120)
 local TILE_HEIGHT = 0.4
 -- Suelo libre fuera del anillo (2026-11-06): 60 studs por lado, para los barrios. Lo comparten suelo y agua.
-local GROUND_MARGIN = 100
+-- Margen del suelo alrededor del anillo: caben los fondos de barrio (a 72 de la calle) y las arboledas.
+local GROUND_MARGIN = 190
+-- Suelo de la ciudad: césped, no asfalto gris. Lo construido va encima.
+local GROUND_GRASS = Color3.fromRGB(94, 138, 74)
+local INTERIOR_FOLDER = "Interior"
 local NAME_DEPTH = 6
 -- Rótulo de una casilla enmarcada: centrado en la mitad libre de la calle, sin tocar el marco.
 local FRAMED_NAME_SIDE = 7.5
@@ -65,6 +75,13 @@ local ROAD_PAINT_DIM = 0.5
 local NAME_PIXELS_PER_STUD = 16
 local NAME_TEXT_SIZE = 70
 local NAME_PAINT = Color3.fromRGB(222, 216, 200)
+-- Cifra de una propiedad: en el carril libre, más allá del nombre. Una sola, con su etiqueta encima.
+local PRICE_PAINT = "PricePaint"
+local PRICE_DEPTH = 5
+local PRICE_GAP = 0.5
+local PRICE_CAPTION_SHARE = 0.3
+local PRICE_CAPTION_SIZE = 22
+local PRICE_VALUE_SIZE = 56
 local OWNER_PLATE = "OwnerPlate"
 -- Solar comprado: la placa del dueño no es un bloque liso. Lleva un canto claro y un halo que se apaga en
 -- unos studs alrededor, dibujado con anillos translúcidos (sin imágenes), y una luz que tiñe la base del
@@ -292,7 +309,8 @@ local function makeGround(model: Model, sizeId: SizeId)
 		Name = "Ground",
 		Size = Vector3.new(span + 2 * GROUND_MARGIN, 2, span + 2 * GROUND_MARGIN),
 		CFrame = CFrame.new(center.x, -TILE_HEIGHT - 1, center.z),
-		Color = DARK_GREY,
+		Color = GROUND_GRASS,
+		Material = Enum.Material.Grass,
 		CanCollide = true,
 	})
 	slab.Parent = model
@@ -372,6 +390,75 @@ local function makeBackdrops(model: Model, sizeId: SizeId)
 				end
 			end
 		end
+	end
+	folder.Parent = model
+end
+
+-- Ciudad procedural: el interior del anillo y el borde exterior (`CityInterior`). Cada pieza es un `Part`
+-- anclado y sin colisión; las finas no dan sombra.
+local MATERIALS: { [string]: Enum.Material } = {
+	SmoothPlastic = Enum.Material.SmoothPlastic,
+	Concrete = Enum.Material.Concrete,
+	Grass = Enum.Material.Grass,
+	Glass = Enum.Material.Glass,
+	Brick = Enum.Material.Brick,
+	Wood = Enum.Material.Wood,
+	Slate = Enum.Material.Slate,
+	Ground = Enum.Material.Ground,
+	Metal = Enum.Material.Metal,
+	-- El agua de un `Part` se pinta como cristal: refleja el cielo, que es lo que la hace leerse como agua.
+	Water = Enum.Material.Glass,
+	Asphalt = Enum.Material.Asphalt,
+	Pavement = Enum.Material.Pavement,
+	Fabric = Enum.Material.Fabric,
+}
+local WATER_TRANSPARENCY = 0.15
+
+local function makeInteriorPart(item: CityInterior.Item, parent: Instance)
+	local part: BasePart
+	local rotation = CFrame.Angles(0, item.yaw, 0)
+	if item.shape == "Wedge" then
+		part = Instance.new("WedgePart")
+		part.Size = Vector3.new(item.sx, item.sy, item.sz)
+	elseif item.shape == "Disk" then
+		local cylinder = Instance.new("Part")
+		cylinder.Shape = Enum.PartType.Cylinder
+		-- El cilindro de Roblox tiene el eje en X: se tumba para que quede de pie, como un disco.
+		cylinder.Size = Vector3.new(item.sy, item.sx, item.sx)
+		rotation *= CFrame.Angles(0, 0, math.pi / 2)
+		part = cylinder
+	elseif item.shape == "Ball" then
+		local ball = Instance.new("Part")
+		ball.Shape = Enum.PartType.Ball
+		ball.Size = Vector3.new(item.sx, item.sy, item.sz)
+		part = ball
+	else
+		part = Instance.new("Part")
+		part.Size = Vector3.new(item.sx, item.sy, item.sz)
+	end
+	part.Name = item.name
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanQuery = false
+	part.CanTouch = false
+	part.TopSurface = Enum.SurfaceType.Smooth
+	part.BottomSurface = Enum.SurfaceType.Smooth
+	part.CastShadow = item.flat ~= true
+	part.Color = Color3.fromHex(item.color)
+	part.Material = MATERIALS[item.material] or Enum.Material.SmoothPlastic
+	part.Transparency = item.transparency or (if item.material == "Water" then WATER_TRANSPARENCY else 0)
+	part.CFrame = CFrame.new(item.x, item.y, item.z) * rotation
+	part.Parent = parent
+end
+
+local function makeInterior(model: Model, sizeId: SizeId)
+	local folder = Instance.new("Folder")
+	folder.Name = INTERIOR_FOLDER
+	for _, item in CityInterior.itemsFor(sizeId) do
+		makeInteriorPart(item, folder)
+	end
+	for _, item in CityInterior.exteriorFor(sizeId) do
+		makeInteriorPart(item, folder)
 	end
 	folder.Parent = model
 end
@@ -531,6 +618,48 @@ local function makeSquare(model: Model, slot: CityLayout.Slot, corner: boolean):
 	text.Text = Strings.squareLabel(toSquare(slot), slot.ordinal)
 	text.Parent = surface
 
+	-- Las propiedades llevan pintada junto al nombre la cifra que importa ahora (`WorldRules.priceCell`).
+	-- Llega vacía y `setPrice` la rellena con la vista.
+	if slot.kind == "Property" then
+		local pricePosition = Vector3.new(slot.position.x, PAINT_HEIGHT / 2, slot.position.z)
+			+ towardFree * (FRAMED_NAME_SIDE + NAME_DEPTH / 2 + PRICE_GAP + PRICE_DEPTH / 2)
+		local strip = makePart({
+			Name = PRICE_PAINT,
+			Size = Vector3.new(PRICE_DEPTH, PAINT_HEIGHT, nameLength),
+			CFrame = CFrame.lookAt(pricePosition, pricePosition + forward * CityLayout.LOT_SIDE),
+			Transparency = 1,
+		})
+		strip.Parent = tile
+		local prices = Instance.new("SurfaceGui")
+		prices.Name = "Prices"
+		prices.Face = Enum.NormalId.Top
+		prices.SizingMode = Enum.SurfaceGuiSizingMode.FixedSize
+		prices.CanvasSize = Vector2.new(nameLength, PRICE_DEPTH) * NAME_PIXELS_PER_STUD
+		prices.LightInfluence = 1
+		prices.Parent = strip
+		local caption = Instance.new("TextLabel")
+		caption.Name = "Caption"
+		caption.BackgroundTransparency = 1
+		caption.Size = UDim2.fromScale(1, PRICE_CAPTION_SHARE)
+		caption.Font = Enum.Font.GothamBold
+		caption.TextSize = PRICE_CAPTION_SIZE
+		caption.TextColor3 = NAME_PAINT
+		caption.Text = ""
+		caption.Parent = prices
+		local value = Instance.new("TextLabel")
+		value.Name = "Value"
+		value.BackgroundTransparency = 1
+		value.Position = UDim2.fromScale(0, PRICE_CAPTION_SHARE)
+		value.Size = UDim2.fromScale(1, 1 - PRICE_CAPTION_SHARE)
+		value.Font = Enum.Font.GothamBlack
+		value.TextScaled = true
+		value.Text = ""
+		value.Parent = prices
+		local valueLimit = Instance.new("UITextSizeConstraint")
+		valueLimit.MaxTextSize = PRICE_VALUE_SIZE
+		valueLimit.Parent = value
+	end
+
 	return tile
 end
 
@@ -548,6 +677,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	makeStreet(model, sizeId)
 	makeBridges(model, sizeId)
 	makeBackdrops(model, sizeId)
+	makeInterior(model, sizeId)
 
 	local squares: { [number]: BasePart } = {}
 	for order, slot in route do
@@ -740,6 +870,27 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		setHotZoneOverview = setHotZoneOverview,
 		refreshBackdrops = function()
 			makeBackdrops(model, sizeId)
+		end,
+		setPrice = function(index: number, cell: WorldRules.PriceCell?)
+			local tile: BasePart? = squares[index]
+			local strip = if tile ~= nil then tile:FindFirstChild(PRICE_PAINT) else nil
+			local prices = if strip ~= nil then strip:FindFirstChild("Prices") else nil
+			if prices == nil then
+				return
+			end
+			local caption = prices:FindFirstChild("Caption") :: TextLabel
+			local value = prices:FindFirstChild("Value") :: TextLabel
+			local captionText = if cell ~= nil then Strings.upper(Strings.get(cell.caption)) else ""
+			local valueText = if cell ~= nil then HudRules.formatMoney(cell.amount) else ""
+			if caption.Text ~= captionText then
+				caption.Text = captionText
+			end
+			if value.Text ~= valueText then
+				value.Text = valueText
+			end
+			if cell ~= nil then
+				value.TextColor3 = Color3.fromHex(Ui.squarePrices.tones[cell.tone])
+			end
 		end,
 		setOwner = function(index: number, color: Color3?, mortgaged: boolean?)
 			local tile: BasePart? = squares[index]

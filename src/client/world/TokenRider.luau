@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local CameraRules = require("../camera/CameraRules")
 local CityLayout = require("../../shared/config/CityLayout")
 local TokenAnim = require("../../shared/config/TokenAnim")
+local WorldRules = require("./WorldRules")
 
 type SizeId = CityLayout.SizeId
 
@@ -37,7 +38,7 @@ local TokenRider = {}
 -- anterior, al ver que ya no es la suya, se marcha sin tocar nada: una celebración nueva cancela la de antes
 -- y una ficha destruida no deja ningún bucle vivo. El modo se guarda solo para saber qué está haciendo.
 -- Las amplitudes y los tiempos viven en `TokenAnim`, con el resto de valores ajustables del juego.
-type AnimMode = "idle" | "ride" | "celebrate"
+type AnimMode = "idle" | "ride" | "celebrate" | "scene"
 
 local ANIM_GENERATION = "AnimGeneration"
 local ANIM_MODE = "AnimMode"
@@ -376,6 +377,32 @@ function TokenRider.place(token: Model, index: number, offset: CityLayout.TokenO
 	idleIfMounted(token)
 end
 
+-- Una escena toma la ficha: para el reposo o la celebración y devuelve su cuerpo y su pose de reposo, para
+-- moverla a mano. Lo que venga después (`place`, `restore`, un recorrido) vuelve a mandar.
+function TokenRider.takeOver(token: Model): (BasePart, CFrame)
+	local body = bodyOf(token)
+	beginAnim(token, "scene")
+	return body, restOf(token) or body.CFrame
+end
+
+-- Devuelve la ficha a la casilla y al sitio donde estaba colocada, sin animación. Si nunca se colocó, la
+-- deja en su pose de reposo.
+function TokenRider.restore(token: Model)
+	local index = token:GetAttribute("Index")
+	if type(index) == "number" then
+		local side = token:GetAttribute("Side")
+		local along = token:GetAttribute("Along")
+		local offset: CityLayout.TokenOffset? = if type(side) == "number" and type(along) == "number"
+			then { side = side, along = along }
+			else nil
+		TokenRider.place(token, index, offset)
+		return
+	end
+	local body = bodyOf(token)
+	bumpGeneration(token)
+	body.CFrame = restOf(token) or body.CFrame
+end
+
 -- ¿La ficha ya está en esa casilla y en ese sitio de la casilla?
 function TokenRider.isAt(token: Model, index: number, offset: CityLayout.TokenOffset): boolean
 	return token:GetAttribute("Index") == index
@@ -615,34 +642,46 @@ function TokenRider.ride(
 		body.CFrame = restOf(token) or body.CFrame
 	end
 
-	local step = seconds / #targets
-	local clock = 0
+	-- La ruta entera como una sola curva: la pose de cada casilla y la distancia acumulada hasta ella. La
+	-- ficha recorre esa distancia con un solo arranque y una sola frenada, sin pararse en cada casilla.
+	local poses: { CFrame } = { body.CFrame }
+	local cumulative: { number } = {}
+	local travelled = 0
 	for order, index in targets do
 		local offset = if order == #targets then arrival else nil
-		local from = body.CFrame
-		local to = cframeAt(route[index] :: CityLayout.Slot, offset)
-		local elapsed = 0
-		while elapsed < step do
-			local dt = task.wait(TokenAnim.ride.step)
-			-- Otra animación tomó el mando (`place`, `dismount`): el recorrido se para aquí sin escribir
-			-- nada ni tocar la pose de reposo, porque la ficha buena ya la puso quien canceló. Devuelve lo
-			-- que había avanzado, que es la duración real.
-			if not isCurrent(token, generation) then
-				return clock
-			end
-			elapsed += dt
-			clock += dt
-			local alpha = math.min(1, elapsed / step)
-			-- Suavizado para que el arranque y la frenada no den tirones.
-			local eased = alpha * alpha * (3 - 2 * alpha)
-			-- El bote va encima del avance: no cambia ni la duración ni el destino del tramo.
-			body.CFrame = from:Lerp(to, eased) * rideOffset(clock, rideFade(clock, seconds))
-		end
-		-- Solo se llega aquí siendo aún la animación actual: el tramo acaba exacto en su casilla, sin bote.
-		body.CFrame = to
-		setRest(token, to)
-		remember(token, index, offset)
+		local pose = cframeAt(route[index] :: CityLayout.Slot, offset)
+		travelled += (pose.Position - poses[#poses].Position).Magnitude
+		table.insert(poses, pose)
+		table.insert(cumulative, travelled)
 	end
+	local reached = 0
+	local clock = 0
+	while clock < seconds do
+		-- Un paso por fotograma: a ritmo fijo la ficha y la cámara que la sigue daban tirones.
+		local dt = task.wait()
+		-- Otra animación tomó el mando (`place`, `dismount`): el recorrido se para aquí sin escribir
+		-- nada ni tocar la pose de reposo, porque la ficha buena ya la puso quien canceló. Devuelve lo
+		-- que había avanzado, que es la duración real.
+		if not isCurrent(token, generation) then
+			return clock
+		end
+		clock = math.min(seconds, clock + dt)
+		local distance = WorldRules.rideProgress(clock, seconds, TokenAnim.ride.rampShare) * travelled
+		local segment, fraction = WorldRules.segmentAt(cumulative, distance)
+		-- Las casillas que ya dejó atrás quedan apuntadas, por si un corte la recoloca.
+		while reached < segment - 1 do
+			reached += 1
+			remember(token, targets[reached], nil)
+		end
+		-- El bote va encima del avance: no cambia ni la duración ni el destino.
+		body.CFrame = poses[segment]:Lerp(poses[segment + 1], fraction)
+			* rideOffset(clock, rideFade(clock, seconds))
+	end
+	-- Solo se llega aquí siendo aún la animación actual: acaba exacto en su casilla, sin bote.
+	local final = poses[#poses]
+	body.CFrame = final
+	setRest(token, final)
+	remember(token, targets[#targets], arrival)
 	-- El recorrido siguió siendo el dueño de la ficha: suelta el turno y, con jinete, vuelve al reposo.
 	endAnim(token, generation)
 	idleIfMounted(token)

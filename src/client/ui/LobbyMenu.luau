@@ -1,12 +1,14 @@
 --!strict
 -- Lobby sobre el tablón de obra: crear una party y enseñar su código, unirse con un código y entrar en
--- la cola pública. El anfitrión elige Rondas o Sin Fin, con la frase de cómo termina cada uno, y empieza.
+-- la cola pública. El anfitrión elige Rondas o Sin Fin, con la frase de cómo termina cada uno, ajusta la
+-- configuración de la partida (`config/MatchSettings`: dinero inicial, subastas, perks…) y empieza.
 -- Es la única pantalla antes de que exista una partida, así que también enseña los avisos del servidor:
 -- un error sale en rojo, con sello. El estado (sin party, anfitrión, invitado, en cola) sale de lo que
 -- el jugador pidió y del aviso con que responde el servidor.
 local Board = require("./Board")
 local Components = require("./Components")
 local Lobby = require("../../shared/config/Lobby")
+local MatchSettings = require("../../shared/config/MatchSettings")
 local NoticeRules = require("./NoticeRules")
 local Protocol = require("../../shared/net/Protocol")
 local Strings = require("../../shared/config/Strings")
@@ -31,6 +33,8 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 	local lastRequest: Request? = nil
 	local code: string? = nil
 	local endMode: "Rounds" | "Endless" = "Rounds"
+	-- Configuración que elige el anfitrión; se conserva mientras siga en el lobby.
+	local settings = MatchSettings.defaults()
 	local noticeText = Strings.get("lobby.idleNotice")
 	local noticeIsError = false
 
@@ -162,13 +166,70 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 		end)
 	end
 
+	-- Opciones de la partida: cada una con su nombre, sus valores en pestañas y una línea de ayuda. Las que
+	-- solo valen en Rondas se esconden en Sin Fin.
+	local function buildSettings(row: Frame)
+		local poster = column(row, "Settings", 3, 0.4)
+		title(poster, "lobby.settings", 1)
+		local order = 2
+		for _, option in MatchSettings.OPTIONS do
+			if option.roundsOnly == true and endMode ~= "Rounds" then
+				continue
+			end
+			local caption = Board.caption(poster.content, `{option.id}Label`, option.label, order)
+			caption.FontFace = Theme.font.roadBold
+			caption.TextSize = 16
+			caption.TextColor3 = Theme.color.asphalt
+			order += 1
+			local tabs: { Board.Tab } = {}
+			local current = (settings :: any)[option.id]
+			local selected: string
+			if option.kind == "toggle" then
+				tabs = {
+					{ id = "on", label = Strings.get("lobby.settings.on") },
+					{ id = "off", label = Strings.get("lobby.settings.off") },
+				}
+				selected = if current == true then "on" else "off"
+			else
+				for _, choice in MatchSettings.choicesOf(option) do
+					table.insert(tabs, { id = tostring(choice.value), label = choice.label })
+				end
+				selected = tostring(current)
+			end
+			Board.Tabs(poster.content, order, tabs, selected, function(id: string)
+				if option.kind == "toggle" then
+					(settings :: any)[option.id] = id == "on"
+				else
+					for _, choice in MatchSettings.choicesOf(option) do
+						if tostring(choice.value) == id then
+							(settings :: any)[option.id] = choice.value
+						end
+					end
+				end
+				rebuild()
+			end)
+			order += 1
+			local help = Board.text(poster.content, `{option.id}Help`, option.help, order, 13)
+			help.TextColor3 = Theme.color.asphalt
+			order += 1
+		end
+		local reset = Components.SecondaryButton(poster.content, "Reset", Strings.get("lobby.settings.reset"))
+		reset.root.Size = UDim2.new(1, 0, 0, 36)
+		reset.root.LayoutOrder = order
+		reset.root.Visible = not MatchSettings.isDefault(settings)
+		reset.onActivated(function()
+			settings = MatchSettings.defaults()
+			rebuild()
+		end)
+	end
+
 	local function buildHost(row: Frame)
-		local party = column(row, "Party", 1, 0.45)
+		local party = column(row, "Party", 1, 0.25)
 		title(party, "lobby.yourParty", 1)
 		codePlate(party.content, 2, code or "")
 		Board.text(party.content, "Share", Strings.get("lobby.shareCode"), 3, 16)
 
-		local mode = column(row, "Mode", 2, 0.55)
+		local mode = column(row, "Mode", 2, 0.35)
 		title(mode, "lobby.mode", 1)
 		local tabs: { Board.Tab } = {
 			{ id = "Rounds", label = Strings.get("lobby.mode.Rounds") },
@@ -184,8 +245,9 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 		start.root.Size = UDim2.new(1, 0, 0, 72)
 		start.root.LayoutOrder = 5
 		start.onActivated(function()
-			request("Start", { type = "PartyStart", endMode = endMode })
+			request("Start", { type = "PartyStart", endMode = endMode, settings = table.clone(settings) })
 		end)
+		buildSettings(row)
 	end
 
 	local function buildWaiting(row: Frame, key: string)

@@ -1,6 +1,7 @@
 --!strict
 -- Punto de entrada del motor: valida la acción, la aplica y devuelve los eventos.
 local Auction = require("./Auction")
+local MatchSettings = require("../config/MatchSettings")
 local Board = require("./Board")
 local Building = require("./Building")
 local Cards = require("./Cards")
@@ -308,6 +309,12 @@ local function declineBuy(state: GameState, _playerId: PlayerId, _action: Action
 	local pending = state.pending
 	if not pending or not pending.index then
 		error("Engine.declineBuy: la fase AwaitBuy no tiene pending.index", 2)
+	end
+	-- Sin subastas (configuración de la partida), la propiedad se queda libre y el turno sigue.
+	if not MatchSettings.of(state).auctions then
+		pending.index = nil
+		state.phase = "AwaitEnd"
+		return {}
 	end
 	return Auction.start(state, pending.index)
 end

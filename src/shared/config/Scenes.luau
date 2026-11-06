@@ -14,7 +14,8 @@ local Scenes = {}
 -- Los 33 eventos de la arquitectura («Eventos»). Las escenas comunes duran entre 2 y 4 segundos;
 -- CardPlayed usa además la rareza de la carta jugada, que se decide más abajo. PlayerArrested dura 15 s:
 -- la llegada de las patrullas, los policías, la vuelta entera al mapa y la entrada en la cárcel. La partida
--- sigue al acabar.
+-- sigue al acabar. Es la única escena que pasa del tope de 10 s: excepción decidida por el responsable el
+-- 2026-11-06 (plan 08).
 local BASE_DURATION: { [string]: number } = {
 	RoundStarted = 2.5,
 	FinalRoundsStarted = 3,
@@ -22,10 +23,12 @@ local BASE_DURATION: { [string]: number } = {
 	DiceRolled = 2,
 	TokenMoved = 2,
 	PassedStart = 2,
-	PropertyBought = 2.5,
+	-- La compra y la subasta ganada se ven al instante (la escena aplica el resultado al empezar): una
+	-- espera larga aquí era tiempo muerto en cada turno (responsable, 2026-11-06).
+	PropertyBought = 1.2,
 	RentPaid = 2.5,
 	AuctionStarted = 3,
-	AuctionWon = 3,
+	AuctionWon = 1.8,
 	AuctionNoSale = 2.5,
 	BuildingChanged = 2,
 	PropertyMortgaged = 2,
@@ -36,15 +39,16 @@ local BASE_DURATION: { [string]: number } = {
 	BankruptcyDeclared = 4,
 	GhostActed = 2.5,
 	GhostResurrected = 4,
-	CardDrawn = 2,
+	CardDrawn = 2.8,
 	CardDiscarded = 2,
 	CardPlayed = 3,
 	CardBlocked = 2.5,
 	HotZoneMoved = 3,
-	BillboardResult = 3,
+	BillboardResult = 4,
 	DuelResolved = 4,
 	PortalUsed = 4.8,
 	MarketBought = 2.5,
+	TaxPaid = 2.5,
 	PactFormed = 3,
 	PactEnded = 2.5,
 	PactBroken = 3,
@@ -60,11 +64,19 @@ local MIN_DURATION = 0.5
 -- Duración de un evento que no está en la tabla. durationFor nunca devuelve 0, pero la prueba de
 -- cobertura exige que baseDuration lo conozca: un evento nuevo sin escena rompe la puerta.
 local UNKNOWN_DURATION = 2
+-- Suelo propio de las escenas que se repiten en cada turno y que, más cortas, no se entienden: los dados
+-- tienen que verse rodar y pararse en su cara.
+local MIN_BY_EVENT: { [string]: number } = {
+	DiceRolled = 1.4,
+	-- El robo: la carta sale del mazo y su dueño la ve en grande antes de que vuele a la mano.
+	CardDrawn = 2,
+}
 
--- Cartas por rareza: comunes 2–4 s, raras hasta 6 s y legendarias hasta 10 s.
+-- Cartas por rareza: comunes y raras de 2 a 4 s, legendarias hasta 10 s (ficha, «Las escenas no
+-- pueden frenar la partida»).
 local CARD_DURATION: { [string]: number } = {
 	Common = 2.5,
-	Rare = 4.5,
+	Rare = 4,
 	Legendary = 8,
 }
 
@@ -128,7 +140,74 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 		return base
 	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
-	return math.max(MIN_DURATION, base * REPEAT_FACTOR ^ seen)
+	return math.max(MIN_BY_EVENT[event.type] or MIN_DURATION, base * REPEAT_FACTOR ^ seen)
+end
+
+-- Una escena que empieza tarde arranca en su punto; si le queda menos que esto, se omite: no da tiempo a
+-- entenderla y solo retrasaría al cliente que va atrasado.
+Scenes.skipBelowSec = 0.5
+
+-- Todos los ids que pueden tener escena, ordenados: cada evento con duración y cada carta. La prueba de
+-- `config/Scenes` exige que `client/scenes/SceneRegistry` tenga exactamente estos.
+function Scenes.allIds(): { string }
+	local ids: { string } = {}
+	for eventType in BASE_DURATION do
+		table.insert(ids, eventType)
+	end
+	for _, card in Cards.all do
+		if BASE_DURATION[card.id] == nil then
+			table.insert(ids, card.id)
+		end
+	end
+	table.sort(ids)
+	return ids
+end
+
+-- Cuántas variaciones tiene la escena de cada id. Lo que no está aquí tiene una sola. Las escenas
+-- frecuentes ganan variaciones en la Tarea 7.
+Scenes.variationCount = {
+	-- Dados: lanzados desde la ficha o caídos del cielo.
+	DiceRolled = 2,
+	-- Renta: monedas o un billete gigante. Construir: con grúa o caído del cielo. Compra: dos carteles.
+	RentPaid = 2,
+	BuildingChanged = 2,
+	PropertyBought = 2,
+} :: { [string]: number }
+
+-- Huella de un valor del evento: solo cuentan los datos simples, para que dos clientes con el mismo
+-- evento lleguen al mismo número sin depender del orden de las tablas.
+local function fingerprint(event: Event): string
+	local keys: { string } = {}
+	for key, value in event :: any do
+		local kind = type(value)
+		if type(key) == "string" and (kind == "string" or kind == "number" or kind == "boolean") then
+			table.insert(keys, key)
+		end
+	end
+	table.sort(keys)
+	local parts: { string } = {}
+	for _, key in keys do
+		table.insert(parts, `{key}={tostring((event :: any)[key])}`)
+	end
+	return table.concat(parts, ";")
+end
+
+-- Variación de la escena de un evento, de 1 al número de variaciones de su id. Sale solo de los datos
+-- del evento, sin azar ni reloj: así todo el grupo ve la misma.
+function Scenes.variationFor(event: Event): number
+	local id = if event.type == "CardPlayed" and type(event.cardId) == "string"
+		then event.cardId
+		else event.type
+	local count = Scenes.variationCount[id] or 1
+	if count <= 1 then
+		return 1
+	end
+	local hash = 5381
+	local text = fingerprint(event)
+	for i = 1, #text do
+		hash = (hash * 33 + string.byte(text, i)) % 2147483647
+	end
+	return hash % count + 1
 end
 
 -- Escena del Portal (`client/scenes/PortalJump`). Las fases son fracciones de la duración: se enciende
@@ -144,6 +223,18 @@ Scenes.portal = {
 	ringSec = 0.9,
 	sparkRate = 40,
 	sparkBurst = 30,
+}
+
+-- Escena del Ladrón de Escrituras: en qué parte de la escena cambia el dueño, y el sello que cae sobre el
+-- edificio (altura sobre el solar, tamaño en píxeles, giro y caída).
+Scenes.deedThief = {
+	swapAt = 0.35,
+	stampLift = 26,
+	stampWidth = 260,
+	stampHeight = 64,
+	stampTilt = -6,
+	stampFrom = 1.8,
+	stampSec = 0.28,
 }
 
 -- Tiempo de decisión de una fase (R-P20). GameOver no tiene temporizador y el resto de fases usa

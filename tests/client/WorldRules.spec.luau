@@ -329,3 +329,117 @@ Harness.describe("WorldRules.ownerTag", function()
 		Harness.expect(WorldRules.ownerTag("Ana", 3)).toBe("Ana · Nivel 3")
 	end)
 end)
+
+describe("WorldRules.priceCell", function()
+	local function property(fields: { [string]: any }): any
+		local base = { level = 0, price = 200, rent = 20, mortgageValue = 100, unmortgageCost = 110 }
+		for key, value in fields do
+			base[key] = value
+		end
+		return base
+	end
+
+	it("libre: solo lo que cuesta comprarla", function()
+		local cell = WorldRules.priceCell(property({})) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.buy")
+		expect(cell.amount).toBe(200)
+		expect(cell.tone).toBe("Buy")
+	end)
+
+	it("libre en la Zona Caliente sigue enseñando el precio", function()
+		expect((WorldRules.priceCell(property({}), true) :: WorldRules.PriceCell).caption).toBe(
+			"city.price.buy"
+		)
+	end)
+
+	it("con dueño: lo que cobra, con el tono de su nivel", function()
+		local cell = WorldRules.priceCell(property({ ownerId = "P1" })) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.rent")
+		expect(cell.amount).toBe(20)
+		expect(cell.tone).toBe("Rent0")
+		local built =
+			WorldRules.priceCell(property({ ownerId = "P1", level = 2, rent = 300 })) :: WorldRules.PriceCell
+		expect(built.tone).toBe("Rent1")
+		local tall =
+			WorldRules.priceCell(property({ ownerId = "P1", level = 4, rent = 900 })) :: WorldRules.PriceCell
+		expect(tall.tone).toBe("Rent2")
+	end)
+
+	it("con dueño en la Zona Caliente: la renta caliente con su etiqueta", function()
+		local cell =
+			WorldRules.priceCell(property({ ownerId = "P1", rent = 40 }), true) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.rentHot")
+		expect(cell.amount).toBe(40)
+		expect(cell.tone).toBe("Hot")
+	end)
+
+	it("hipotecada: lo que cuesta deshipotecarla, aunque esté en la Zona Caliente", function()
+		local cell =
+			WorldRules.priceCell(property({ ownerId = "P1", mortgaged = true }), true) :: WorldRules.PriceCell
+		expect(cell.caption).toBe("city.price.unmortgage")
+		expect(cell.amount).toBe(110)
+		expect(cell.tone).toBe("Alert")
+	end)
+
+	it("sin cifras en la vista no pinta nada", function()
+		expect(WorldRules.priceCell({ level = 0 })).toBe(nil)
+		expect(WorldRules.priceCell(nil)).toBe(nil)
+	end)
+
+	it("cada casilla de la vista real trae su cifra", function()
+		local state = Fixtures.game({ players = 2 })
+		local view = View.forPlayer(state, "P1")
+		for _, seen in view.properties do
+			expect(WorldRules.priceCell(seen) ~= nil).toBe(true)
+		end
+	end)
+end)
+
+describe("WorldRules.rideProgress", function()
+	it("empieza en 0, acaba en 1 y nunca retrocede", function()
+		local last = -1
+		for step = 0, 100 do
+			local p = WorldRules.rideProgress(step / 100 * 3, 3, 0.2)
+			expect(p >= last - 1e-9).toBe(true)
+			last = p
+		end
+		expect(WorldRules.rideProgress(0, 3, 0.2)).toBe(0)
+		expect(math.abs(WorldRules.rideProgress(3, 3, 0.2) - 1) < 1e-9).toBe(true)
+	end)
+
+	it("en medio va a velocidad constante: no frena en cada casilla", function()
+		local a = WorldRules.rideProgress(1.0, 3, 0.2)
+		local b = WorldRules.rideProgress(1.5, 3, 0.2)
+		local c = WorldRules.rideProgress(2.0, 3, 0.2)
+		expect(math.abs((b - a) - (c - b)) < 1e-9).toBe(true)
+	end)
+
+	it("arranca y frena suave: el primer y el último instante avanzan poco", function()
+		local start = WorldRules.rideProgress(0.05, 3, 0.2)
+		local finish = 1 - WorldRules.rideProgress(2.95, 3, 0.2)
+		local middle = WorldRules.rideProgress(1.55, 3, 0.2) - WorldRules.rideProgress(1.5, 3, 0.2)
+		expect(start < middle and finish < middle).toBe(true)
+	end)
+
+	it("sin duración llega de golpe", function()
+		expect(WorldRules.rideProgress(0, 0, 0.2)).toBe(1)
+	end)
+end)
+
+describe("WorldRules.segmentAt", function()
+	it("encuentra el tramo y lo que lleva recorrido", function()
+		local cumulative = { 10, 20, 40 }
+		local index, fraction = WorldRules.segmentAt(cumulative, 5)
+		expect(index).toBe(1)
+		expect(fraction).toBe(0.5)
+		index, fraction = WorldRules.segmentAt(cumulative, 30)
+		expect(index).toBe(3)
+		expect(fraction).toBe(0.5)
+	end)
+
+	it("pasada la ruta se queda al final del último tramo", function()
+		local index, fraction = WorldRules.segmentAt({ 10, 20 }, 99)
+		expect(index).toBe(2)
+		expect(fraction).toBe(1)
+	end)
+end)

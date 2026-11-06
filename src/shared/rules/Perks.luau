@@ -4,6 +4,7 @@
 -- reparto. El draft se abre al empezar la partida (State.create, R-P31) y al entrar en las rondas
 -- de la tabla (Turn.next).
 local Economy = require("../config/Economy")
+local MatchSettings = require("../config/MatchSettings")
 local PerksConfig = require("../config/Perks")
 local Rng = require("./Rng")
 local Types = require("./Types")
@@ -189,7 +190,7 @@ end
 -- (ronda 1, R-P31) y Turn.next al entrar en una ronda de la tabla. No abre dos veces la misma
 -- ronda ni pisa un borrador ya abierto; devuelve true si lo abrió.
 function Perks.begin(state: GameState): boolean
-	if state.phase == "GameOver" then
+	if state.phase == "GameOver" or not MatchSettings.of(state).perks then
 		return false
 	end
 	local pending = pendingOf(state)

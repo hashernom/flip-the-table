@@ -1385,6 +1385,15 @@ ArtAssets.mojon = {
 	ring = piece("marker_mojon_ring", "72497880426898", { 201, 123, 58 }, "Metal"),
 }
 
+-- Piezas de mejora sobre la isla de la casilla (`CityLayout.islandMarkers`): casa de caliza, hotel de acero
+-- y rascacielos dorado. Nunca casas verdes ni hotel rojo (vision-visual). Mallas ya subidas, que
+-- `BuildingView` reduce a su altura de isla.
+ArtAssets.islandMarkers = {
+	House = piece("marker_house", "109373087404235", { 237, 229, 211 }, "Limestone"),
+	Hotel = piece("marker_hotel", "135810274975392", { 168, 174, 180 }, "Metal"),
+	Tower = piece("marker_tower", "94509577031463", { 201, 162, 39 }, "Metal"),
+} :: { [string]: Piece }
+
 -- Fichas. `seat` ya viene en coordenadas de Roblox (x, alto, fondo).
 export type TokenArt = {
 	seat: { number },
@@ -2027,6 +2036,9 @@ function ArtAssets.all(): { Piece }
 	end
 	table.insert(pieces, ArtAssets.mojon.stone)
 	table.insert(pieces, ArtAssets.mojon.ring)
+	for _, kind in { "House", "Hotel", "Tower" } do
+		table.insert(pieces, ArtAssets.islandMarkers[kind])
+	end
 	table.move(ArtAssets.patrol, 1, #ArtAssets.patrol, #pieces + 1, pieces)
 	table.move(ArtAssets.officerCap, 1, #ArtAssets.officerCap, #pieces + 1, pieces)
 	table.move(ArtAssets.jail, 1, #ArtAssets.jail, #pieces + 1, pieces)
@@ -2047,6 +2059,9 @@ function ArtAssets.loadOrder(): { Piece }
 
 	add(ArtAssets.mojon.stone)
 	add(ArtAssets.mojon.ring)
+	for _, kind in { "House", "Hotel", "Tower" } do
+		add(ArtAssets.islandMarkers[kind])
+	end
 	for _, token in ArtAssets.tokens do
 		for _, part in token.pieces do
 			add(part)

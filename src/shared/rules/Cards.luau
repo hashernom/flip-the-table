@@ -436,6 +436,11 @@ local function backstab(state: GameState, player: Player, _target: Player?, even
 	local ownDeposit = if pact.a == player.id then pact.depositA else pact.depositB
 	local partnerDeposit = if pact.a == player.id then pact.depositB else pact.depositA
 	local partnerId = if pact.a == player.id then pact.b else pact.a
+	-- El pacto era público: la escena enseña a quién traiciona, antes del PactBroken.
+	local played = events[1]
+	if played ~= nil and played.type == "CardPlayed" then
+		played.targetId = partnerId
+	end
 	table.remove(state.pacts, index)
 	Pact.creditIfActive(state, player.id, ownDeposit)
 	Pact.creditIfActive(state, partnerId, partnerDeposit)
@@ -694,6 +699,14 @@ function Cards.play(state: GameState, playerId: PlayerId, cardId: string, args: 
 	local events: { Event } = { { type = "CardPlayed", playerId = playerId, cardId = cardId } }
 	if target then
 		events[1].targetId = target.id
+	end
+	-- La zona o la casilla elegidas son públicas y la escena las necesita antes que los eventos que causan
+	-- (Terremoto, Huelga, Ladrón de Escrituras, Demolición).
+	if type(args.zoneId) == "string" then
+		events[1].zoneId = args.zoneId
+	end
+	if type(args.index) == "number" then
+		events[1].index = args.index
 	end
 
 	-- La carta se gasta aunque su efecto cierre la partida (por ejemplo, una Multa que arruina

@@ -16,6 +16,7 @@ export type Ride = {
 	pitch: number, -- radianes de cabeceo
 	bobPeriod: number, -- segundos de un bote completo
 	fadeSec: number, -- segundos que tarda el bote en aparecer al arrancar y en apagarse al frenar
+	rampShare: number, -- parte del recorrido para arrancar (y otra igual para frenar)
 }
 
 export type Celebrate = {
@@ -30,7 +31,16 @@ return {
 	-- Reposo: tan leve y lento que no se nota en la cámara.
 	idle = { step = 1 / 30, period = 3.2, lift = 0.05, pitch = math.rad(0.5) } :: Idle,
 	-- Marcha: bote y cabeceo encima del avance de la ficha, apagados en los extremos del recorrido.
-	ride = { step = 1 / 30, bob = 0.08, pitch = math.rad(1), bobPeriod = 0.5, fadeSec = 0.35 } :: Ride,
+	-- `rampShare`: parte del recorrido que se usa en arrancar y otra igual en frenar; en medio, velocidad
+	-- constante. El recorrido se mueve en cada fotograma, no a `step`.
+	ride = {
+		step = 1 / 30,
+		bob = 0.08,
+		pitch = math.rad(1),
+		bobPeriod = 0.5,
+		fadeSec = 0.35,
+		rampShare = 0.18,
+	} :: Ride,
 	-- Celebración: un salto corto y un giro completo sobre sí misma.
 	celebrate = { step = 1 / 30, seconds = 1.1, minSeconds = 0.3, maxSeconds = 3, lift = 2.2 } :: Celebrate,
 }

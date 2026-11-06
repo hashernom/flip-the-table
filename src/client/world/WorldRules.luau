@@ -6,8 +6,15 @@ local CityLayout = require("../../shared/config/CityLayout")
 
 export type PropertyChange = { index: number, ownerId: string?, level: number, mortgaged: boolean? }
 
+-- Tono de una cifra pintada en la casilla. El color sale de `Ui.squarePrices.tones`; la etiqueta de
+-- encima dice qué es cada cifra, así que el color repite la información y nunca la lleva solo.
+export type PriceTone = "Buy" | "Rent0" | "Rent1" | "Rent2" | "Hot" | "Alert"
+export type PriceCell = { caption: string, amount: number, tone: PriceTone }
+
 local PAINT_DESATURATE = 0.3
 local PAINT_DIM = 0.75
+-- Nivel desde el que la renta se pinta en rojo: hotel y rascacielos.
+local RENT_HOT_LEVEL = 3
 
 local WorldRules = {}
 
@@ -106,6 +113,80 @@ function WorldRules.tokenOffsets(players: { any }): { [string]: CityLayout.Token
 		end
 	end
 	return offsets
+end
+
+-- Tono de la renta según el nivel: amarilla sin mejoras, naranja con casas y roja con hotel o más. Cuanto
+-- más cálida, más duele caer ahí.
+local function rentTone(level: number): PriceTone
+	if level >= RENT_HOT_LEVEL then
+		return "Rent2"
+	elseif level >= 1 then
+		return "Rent1"
+	end
+	return "Rent0"
+end
+
+-- La cifra que importa ahora en una casilla de propiedad, una sola: libre, lo que cuesta; con dueño, lo
+-- que cobra (en la Zona Caliente, con su etiqueta propia); hipotecada, lo que cuesta deshipotecarla. Las
+-- cifras vienen calculadas en la vista. `nil` si la vista no trae cifras.
+function WorldRules.priceCell(property: any, hot: boolean?): PriceCell?
+	if type(property) ~= "table" or type(property.price) ~= "number" then
+		return nil
+	end
+	if property.ownerId == nil then
+		return { caption = "city.price.buy", amount = property.price, tone = "Buy" }
+	end
+	if property.mortgaged == true then
+		return { caption = "city.price.unmortgage", amount = property.unmortgageCost or 0, tone = "Alert" }
+	end
+	if hot == true then
+		return { caption = "city.price.rentHot", amount = property.rent or 0, tone = "Hot" }
+	end
+	return { caption = "city.price.rent", amount = property.rent or 0, tone = rentTone(property.level or 0) }
+end
+
+-- Avance de un recorrido de ficha, de 0 a 1, en el instante `elapsed` de `seconds`. Acelera al arrancar y
+-- frena al llegar, pero va a velocidad constante en medio: la ficha no se para en cada casilla.
+function WorldRules.rideProgress(elapsed: number, seconds: number, rampShare: number): number
+	if seconds <= 0 then
+		return 1
+	end
+	local t = math.clamp(elapsed / seconds, 0, 1)
+	local ramp = math.clamp(rampShare, 0, 0.5)
+	if ramp <= 0 then
+		return t
+	end
+	-- Perfil de velocidad trapezoidal: sube en `ramp`, se mantiene y baja en el último `ramp`.
+	local peak = 1 / (1 - ramp)
+	if t < ramp then
+		return peak * t * t / (2 * ramp)
+	elseif t > 1 - ramp then
+		local left = 1 - t
+		return 1 - peak * left * left / (2 * ramp)
+	end
+	return peak * (t - ramp / 2)
+end
+
+-- Tramo de una ruta en el que cae `distance`: `cumulative[k]` es la distancia acumulada al final del tramo
+-- k. Devuelve el tramo (1-based) y cuánto de él lleva recorrido, de 0 a 1.
+function WorldRules.segmentAt(cumulative: { number }, distance: number): (number, number)
+	local count = #cumulative
+	if count == 0 then
+		return 0, 1
+	end
+	local before = 0
+	for index = 1, count do
+		local finish = cumulative[index]
+		if distance <= finish or index == count then
+			local span = finish - before
+			if span <= 0 then
+				return index, 1
+			end
+			return index, math.clamp((distance - before) / span, 0, 1)
+		end
+		before = finish
+	end
+	return count, 1
 end
 
 return WorldRules

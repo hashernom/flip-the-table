@@ -40,6 +40,7 @@ local function boot()
 	end
 
 	local CameraDirector = require("./camera/CameraDirector")
+	local CameraRules = require("./camera/CameraRules")
 	local ArtAssets = require("../shared/config/ArtAssets")
 	local StreetDressing = require("./world/StreetDressing")
 	local BuildingView = require("./world/BuildingView")
@@ -51,6 +52,16 @@ local function boot()
 	local SquareView = require("./world/SquareView")
 	local Tokens = require("../shared/config/Tokens")
 	local Arrest = require("./scenes/Arrest")
+	local CrownStrike = require("./scenes/legendary/CrownStrike")
+	local Earthquake = require("./scenes/legendary/Earthquake")
+	local Hurricane = require("./scenes/legendary/Hurricane")
+	local Revolution = require("./scenes/legendary/Revolution")
+	local WorldFlip = require("./scenes/legendary/WorldFlip")
+	local BackstabScene = require("./scenes/cards/Backstab")
+	local BounceRentScene = require("./scenes/cards/BounceRent")
+	local DemolitionScene = require("./scenes/cards/Demolition")
+	local InflationScene = require("./scenes/cards/Inflation")
+	local StrikeScene = require("./scenes/cards/Strike")
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
@@ -69,6 +80,14 @@ local function boot()
 	local Overview = require("./ui/Overview")
 	local ModelCity = require("./world/ModelCity")
 	local PortalJump = require("./scenes/PortalJump")
+	local DeedThiefScene = require("./scenes/cards/DeedThief")
+	local DiceScene = require("./scenes/game/Dice")
+	local CommonCardsScene = require("./scenes/cards/CommonCards")
+	local SquareScenes = require("./scenes/squares/SquareScenes")
+	local GameScenes = require("./scenes/game/GameScenes")
+	local TokenMarks = require("./world/TokenMarks")
+	local LegendaryKit = require("./scenes/legendary/LegendaryKit")
+	local TweenService = game:GetService("TweenService")
 	local PropertyManager = require("./ui/PropertyManager")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
@@ -212,6 +231,150 @@ local function boot()
 		end,
 	})
 
+	-- Las cinco legendarias, cada una con su cinemática (plan 08, Tarea 3), y las raras con escena por
+	-- fotogramas (Tarea 4). Comparten lo que necesitan del
+	-- cliente: la cámara, la ciudad y las fichas.
+	local legendaryOptions = {
+		director = director,
+		city = function()
+			return city
+		end,
+		token = function(id: string): Model?
+			return tokens[id]
+		end,
+		log = function(message: string)
+			warn(message)
+		end,
+	}
+	local legendaries: { [string]: { scene: any, cancelAll: () -> () } } = {
+		Hurricane = Hurricane.new(legendaryOptions),
+		WorldFlip = WorldFlip.new(legendaryOptions),
+		Revolution = Revolution.new(legendaryOptions),
+		Earthquake = Earthquake.new(legendaryOptions),
+		CrownStrike = CrownStrike.new(legendaryOptions),
+		Demolition = DemolitionScene.new(legendaryOptions),
+		Strike = StrikeScene.new(legendaryOptions),
+		Inflation = InflationScene.new(legendaryOptions),
+		Backstab = BackstabScene.new(legendaryOptions),
+		BounceRent = BounceRentScene.new(legendaryOptions),
+	}
+
+	-- Dados 3D: caen con los valores que mandó el servidor, con el color del asiento de quien tira.
+	local dice = DiceScene.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		colorOf = function(id: string): Color3
+			local view = StateStore.view(queue.state)
+			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
+			return seatColor(seat or 1)
+		end,
+		log = legendaryOptions.log,
+	})
+	legendaries.DiceRolled = dice
+
+	-- Las nueve comunes y el Escudo (CardBlocked): cada una con su objeto y su cartel de quién y a quién.
+	local function commonNameOf(id: string): string
+		local view = StateStore.view(queue.state)
+		return if view ~= nil then ViewText.playerName(view, names, id) else id
+	end
+	local commons = CommonCardsScene.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = commonNameOf,
+		rivalsOf = function(id: string): { string }
+			local view = StateStore.view(queue.state)
+			local list: { string } = {}
+			if view ~= nil then
+				for _, seated in view.players do
+					if seated.id ~= id and seated.status == "Active" then
+						table.insert(list, seated.id)
+					end
+				end
+			end
+			return list
+		end,
+		log = legendaryOptions.log,
+	})
+	for cardId, scene in commons.scenes do
+		legendaries[cardId] = { scene = scene, cancelAll = commons.cancelAll }
+	end
+
+	-- Casillas (Tarea 5): Duelo, Mercado Negro, Giro e Impuesto. El Duelo acaba con la cámara en el perdedor,
+	-- que retrocede en la escena siguiente.
+	local squareScenes = SquareScenes.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = commonNameOf,
+		rivalsOf = function(_id: string): { string }
+			return {}
+		end,
+		log = legendaryOptions.log,
+		revealCard = function(cardId: string, seconds: number)
+			hud.revealCard(cardId, seconds)
+		end,
+		follow = function(id: string)
+			local token: Model? = tokens[id]
+			if token ~= nil then
+				director.follow(token)
+			end
+		end,
+	})
+	for eventType, scene in squareScenes.scenes do
+		legendaries[eventType] = { scene = scene, cancelAll = squareScenes.cancelAll }
+	end
+
+	-- Últimos pactos vistos: un pacto vencido ya no está en la vista del lote que lo cierra.
+	local knownPacts: { [string]: { a: string, b: string } } = {}
+
+	-- Partida (Tarea 6): renta, construcción, bancarrota, pactos, corona, espectros, Última Ronda y podio.
+	local gameScenes = GameScenes.new({
+		director = director,
+		city = legendaryOptions.city,
+		token = legendaryOptions.token,
+		nameOf = commonNameOf,
+		rivalsOf = function(_id: string): { string }
+			return {}
+		end,
+		log = legendaryOptions.log,
+		-- `scenes.world` se rellena más abajo, con `syncTokens`; se llama ya en plena partida.
+		reconcile = function(view: any)
+			if view ~= nil and scenes.world ~= nil then
+				scenes.world.reconcile(view)
+			end
+		end,
+		colorOf = function(id: string): Color3
+			local view = StateStore.view(queue.state)
+			local seat = if view ~= nil then WorldRules.seatOf(view.players, id) else nil
+			return seatColor(seat or 1)
+		end,
+		pactOf = function(pactId: string): (string?, string?)
+			local pact = knownPacts[pactId]
+			if pact == nil then
+				return nil, nil
+			end
+			return pact.a, pact.b
+		end,
+		showBillboard = function(event: any, seconds: number)
+			local view = StateStore.view(queue.state)
+			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
+			billboard.play(event.result :: string, event.amount :: number, playerName, seconds)
+		end,
+	})
+	for eventType, scene in gameScenes.scenes do
+		legendaries[eventType] = { scene = scene, cancelAll = gameScenes.cancelAll }
+	end
+
+	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
+	local function cancelScenes()
+		arrest.cancelAll()
+		for _, legendary in legendaries do
+			legendary.cancelAll()
+		end
+	end
+
 	-- La ciudad se construye con el tamaño que anuncia el servidor. Si la partida es de 5 a 8
 	-- jugadores el tablero es de 48 o 56 casillas, y una ciudad de 40 no sirve: se tira la vieja y se
 	-- levanta la nueva con sus fichas.
@@ -220,7 +383,7 @@ local function boot()
 			return
 		end
 		-- Una ciudad nueva deja sin sitio a las patrullas y a las fichas: cualquier detención en curso acaba aquí.
-		arrest.cancelAll()
+		cancelScenes()
 		local previous = city
 		city = nil
 		tokens = {}
@@ -309,6 +472,15 @@ local function boot()
 				TokenRider.mount(other, token)
 			end
 		end
+		-- Corona del líder y marca de traidor, siempre como dice la vista.
+		TokenMarks.sync(view, tokens)
+		if type(view.pacts) == "table" then
+			for _, pact in view.pacts do
+				if type(pact.id) == "string" then
+					knownPacts[pact.id] = { a = pact.a, b = pact.b }
+				end
+			end
+		end
 		BuildingView.sync(view.properties or {}, function(ownerId: string): Color3?
 			local seat = WorldRules.seatOf(view.players, ownerId)
 			return if seat ~= nil then seatColor(seat) else nil
@@ -346,6 +518,27 @@ local function boot()
 		end
 	end
 
+	-- Lo que las escenas pueden tocar. Al acabar cada lote el director pone el mundo como la vista, aunque
+	-- una escena falle o se omita; `syncTokens` deja en paz al detenido hasta que acabe su escena.
+	scenes.world = {
+		reconcile = function(view: any)
+			syncTokens(view)
+		end,
+	}
+	scenes.camera = {
+		follow = function(target: any)
+			director.follow(target)
+		end,
+	}
+	scenes.audio = {
+		play = function(id: string)
+			AudioDirector.play(id)
+		end,
+	}
+	scenes.now = function()
+		return Workspace:GetServerTimeNow()
+	end
+
 	-- El recorrido de una ficha es una escena: el grupo entero ve cómo se mueve. `ride` corre por su
 	-- cuenta y devuelve lo que tardó, que el director descuenta del hueco de la escena.
 	SceneDirector.register(scenes, "TokenMoved", {
@@ -373,8 +566,10 @@ local function boot()
 			-- La vista del lote ya lleva el resultado, así que se sabe a qué sitio de la casilla llega.
 			local view = StateStore.view(queue.state)
 			local arrival = if view ~= nil then WorldRules.tokenOffsets(view.players)[id] else nil
-			-- Todo el grupo sigue a esa ficha de cerca mientras recorre la calle (R-P51).
-			director.follow(token)
+			-- Todo el grupo sigue a esa ficha de cerca mientras recorre la calle (R-P51). Si retrocede, la
+			-- cámara se pone delante para ver la ficha y no la calle que deja.
+			local backward = type(event.from) == "number" and CameraRules.isBackward(event.from, path)
+			director.follow(token, backward)
 			riding = true
 			local used = TokenRider.ride(token, path, ctx.duration, arrival)
 			riding = false
@@ -418,21 +613,89 @@ local function boot()
 		end,
 	})
 
-	-- Cartelera: el motor tira el cartel y el cliente lo enseña. No hay decisión que esperar: el panel
-	-- pasa por las cinco salidas y deja el resultado hasta que acaba la escena.
-	SceneDirector.register(scenes, "BillboardResult", {
-		run = function(ctx, event)
-			ctx.show("")
-			local view = StateStore.view(queue.state)
-			local playerName = if view ~= nil then ViewText.playerName(view, nil, event.playerId) else nil
-			billboard.play(event.result :: string, event.amount :: number, playerName, ctx.duration)
-			ctx.wait(ctx.duration)
-		end,
-	})
-
 	-- Detención: el detenido se baja de su ficha, llegan dos patrullas y los policías lo meten en una. Dan la vuelta
 	-- al mapa y entran en la cárcel; al acabar la escena reaparece la ficha y sigue la partida.
 	SceneDirector.register(scenes, "PlayerArrested", arrest.scene)
+
+	-- Compra y subasta ganada: el resultado se ve al instante (halo del dueño y dinero de la barra), sin
+	-- esperar a que acabe el lote. La escena es corta: un tiempo muerto aquí se nota en cada turno.
+	-- Cartel de la compra sobre el edificio, con dos variaciones (plan 08, Tarea 7): «Comprada» en amarillo
+	-- taxi o «¡Es de …!» con el color del asiento. Se borra solo al acabar la escena.
+	local function buySign(ctx: SceneDirector.Context, event: any): Instance?
+		local handles = city
+		if handles == nil or type(event.index) ~= "number" or type(event.playerId) ~= "string" then
+			return nil
+		end
+		local folder = Instance.new("Folder")
+		folder.Name = "BuySign"
+		folder.Parent = handles.model
+		local lot = handles.lotOf(event.index)
+		local view = ctx.view
+		local name = if view ~= nil then ViewText.playerName(view, names, event.playerId) else ""
+		local seat = if view ~= nil then WorldRules.seatOf(view.players, event.playerId) else nil
+		local text = if ctx.variation == 2
+			then Strings.get("scene.buy.mine", { name = name })
+			else Strings.get("scene.buy.sold")
+		local color = if ctx.variation == 2 then seatColor(seat or 1):ToHex() else "F5C518"
+		local plate =
+			LegendaryKit.sign(folder, lot.Position + Vector3.new(0, 24, 0), text, 220, 56, `#{color}`, -5)
+		local scale = Instance.new("UIScale")
+		scale.Scale = 0.4
+		scale.Parent = plate
+		TweenService
+			:Create(
+				scale,
+				TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+				{ Scale = 1 }
+			)
+			:Play()
+		return folder
+	end
+	local function settleNow(ctx: SceneDirector.Context, title: string, event: any?)
+		ctx.show(title)
+		ctx.world.reconcile(ctx.view)
+		if ctx.view ~= nil then
+			hud.setView(ctx.view, names)
+		end
+		local sign = if event ~= nil then buySign(ctx, event) else nil
+		ctx.wait(ctx.duration)
+		if sign ~= nil then
+			sign:Destroy()
+		end
+	end
+	SceneDirector.register(scenes, "PropertyBought", {
+		run = function(ctx, event)
+			-- Un robo (Ladrón de Escrituras) llega como compra a precio 0: su escena ya lo enseñó.
+			if event.price == 0 then
+				settleNow(ctx, "")
+			else
+				settleNow(ctx, "PropertyBought", event)
+			end
+		end,
+	})
+	SceneDirector.register(
+		scenes,
+		"DeedThief",
+		DeedThiefScene.new({
+			director = director,
+			city = function()
+				return city
+			end,
+			nameOf = function(view: any, id: string): string
+				return ViewText.playerName(view, names, id)
+			end,
+		})
+	)
+	SceneDirector.register(scenes, "AuctionWon", {
+		run = function(ctx)
+			settleNow(ctx, "AuctionWon")
+		end,
+	})
+
+	-- Cada legendaria se registra con el id de su carta: `SceneDirector.sceneIdFor` lo elige así.
+	for cardId, legendary in legendaries do
+		SceneDirector.register(scenes, cardId, legendary.scene)
+	end
 
 	-- La cámara sigue a la ficha del turno, sea de quien sea: es lo que hace que el resto del grupo vea
 	-- la jugada del activo, como pide la tabla «Qué ve cada jugador».
@@ -830,7 +1093,7 @@ local function boot()
 		-- En una revancha, este lote es también la señal de partida nueva: la cola, las escenas vistas y
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
-			arrest.cancelAll()
+			cancelScenes()
 			EventQueue.resync(queue, batch.view, 0)
 			rematchMenu.setResult(nil)
 			SceneDirector.reset(scenes)
@@ -855,7 +1118,7 @@ local function boot()
 	-- Pone la interfaz, las fichas y la cámara al día con la vista de un resync.
 	local function applyResync(batch: any)
 		-- Una vista nueva manda sobre las escenas en curso: las detenciones acaban y las fichas vuelven.
-		arrest.cancelAll()
+		cancelScenes()
 		syncTokens(batch.view)
 		applyView(batch.view)
 		followActive(batch.view)
@@ -966,7 +1229,7 @@ local function boot()
 		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
 		for _, event in events or {} do
 			if event.type == "GameEnded" then
-				arrest.cancelAll()
+				cancelScenes()
 				rematchMenu.setResult(ViewText.podium(event, due.view, names))
 				-- Celebración: cada ficha que se ve da un salto al acabar la partida.
 				for _, token in tokens do
@@ -976,6 +1239,8 @@ local function boot()
 				end
 			end
 		end
+		-- El director ya concilió con la vista del lote; esto cubre el lote sin vista y lo que cambió
+		-- después, como el detenido que se libera al acabar la partida. Si no hay nada nuevo, no mueve nada.
 		local view = StateStore.view(queue.state)
 		syncTokens(view)
 		followActive(view)

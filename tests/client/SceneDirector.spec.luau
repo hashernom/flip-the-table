@@ -18,6 +18,7 @@ type Recorder = {
 	waits: { number },
 	labels: { string },
 	messages: { string },
+	reconciled: { any },
 }
 
 local function recorder(): Recorder
@@ -25,6 +26,7 @@ local function recorder(): Recorder
 		waits = {},
 		labels = {},
 		messages = {},
+		reconciled = {},
 		director = nil :: any,
 	}
 	record.director = SceneDirector.new({
@@ -36,6 +38,14 @@ local function recorder(): Recorder
 		end,
 		log = function(message: string)
 			table.insert(record.messages, message)
+		end,
+		world = {
+			reconcile = function(view: any)
+				table.insert(record.reconciled, view)
+			end,
+		},
+		now = function()
+			return 42
 		end,
 	})
 	return record
@@ -128,13 +138,14 @@ end)
 describe("SceneDirector.reset", function()
 	it("una partida nueva vuelve a ver sus escenas enteras", function()
 		local record = recorder()
+		-- Los dados tienen su propio suelo (1,4 s): la segunda tirada no baja de ahí.
 		local dice = { seq = 1, events = { { type = "DiceRolled" } } }
 		SceneDirector.play(record.director, dice)
 		SceneDirector.play(record.director, dice)
-		expect(record.waits).toEqual({ 2, 1 })
+		expect(record.waits).toEqual({ 2, 1.4 })
 		SceneDirector.reset(record.director)
 		SceneDirector.play(record.director, dice)
-		expect(record.waits).toEqual({ 2, 1, 2 })
+		expect(record.waits).toEqual({ 2, 1.4, 2 })
 	end)
 end)
 
@@ -226,10 +237,51 @@ describe("SceneDirector: cliente atrasado", function()
 		expect(record.waits[1]).toBe(full - 1.5)
 	end)
 
-	it("un lote muy atrasado deja una escena mínima, nunca cero", function()
+	it("una escena a la que le quedan menos de 500 ms se omite", function()
 		local record = recorder()
-		SceneDirector.play(record.director, batch({ { type = "DiceRolled" } }), 99)
-		expect(record.waits[1]).toBe(SceneDirector.MIN_LATE_SEC)
+		local ran = false
+		SceneDirector.register(record.director, "DiceRolled", {
+			run = function()
+				ran = true
+			end,
+		})
+		local full = Scenes.durationFor({ type = "DiceRolled" }, 0)
+		SceneDirector.play(record.director, batch({ { type = "DiceRolled" } }), full - 0.4)
+		expect(ran).toBe(false)
+		expect(#record.waits).toBe(0)
+	end)
+
+	it("un lote muy atrasado no reproduce nada, pero deja el mundo como la vista", function()
+		local record = recorder()
+		local view = { round = 7 }
+		SceneDirector.play(
+			record.director,
+			{ seq = 3, events = { { type = "DiceRolled" } }, view = view },
+			99
+		)
+		expect(#record.waits).toBe(0)
+		expect(#record.labels).toBe(0)
+		expect(record.reconciled).toEqual({ view })
+	end)
+
+	it("con medio segundo o más empieza en su punto, con lo que le queda", function()
+		local record = recorder()
+		local full = Scenes.durationFor({ type = "DiceRolled" }, 0)
+		SceneDirector.play(record.director, batch({ { type = "DiceRolled" } }), full - Scenes.skipBelowSec)
+		expect(record.waits).toEqual({ Scenes.skipBelowSec })
+	end)
+
+	it("el atraso se descuenta una vez: las escenas siguientes del lote van a su hora", function()
+		local record = recorder()
+		local dice = Scenes.durationFor({ type = "DiceRolled" }, 0)
+		local rent = Scenes.durationFor({ type = "RentPaid" }, 0)
+		-- Llega tarde lo justo para perderse los dados y medio segundo del alquiler.
+		SceneDirector.play(
+			record.director,
+			batch({ { type = "DiceRolled" }, { type = "RentPaid" } }),
+			dice + 0.5
+		)
+		expect(record.waits).toEqual({ rent - 0.5 })
 	end)
 
 	it("sin atraso la escena dura lo que toca", function()
@@ -251,5 +303,110 @@ describe("Scenes: Portal", function()
 		local p = Scenes.portal
 		expect(0 < p.vanishAt and p.vanishAt < p.goneAt and p.goneAt < p.appearAt).toBe(true)
 		expect(p.appearAt < p.shownAt and p.shownAt < 1).toBe(true)
+	end)
+end)
+
+describe("SceneDirector: conciliación con la vista", function()
+	it("al acabar el lote, el mundo se pone como la vista", function()
+		local record = recorder()
+		local view = { round = 1 }
+		SceneDirector.play(record.director, { seq = 1, events = { { type = "DiceRolled" } }, view = view })
+		expect(record.reconciled).toEqual({ view })
+	end)
+
+	it("aunque la escena falle, el mundo acaba como la vista", function()
+		local record = recorder()
+		SceneDirector.register(record.director, "BuildingChanged", {
+			run = function()
+				error("grúa rota a propósito")
+			end,
+		})
+		local view = { buildings = { [5] = 2 } }
+		SceneDirector.play(
+			record.director,
+			{ seq = 1, events = { { type = "BuildingChanged" } }, view = view }
+		)
+		expect(record.reconciled).toEqual({ view })
+	end)
+
+	it("dos escenas seguidas sobre el mismo edificio terminan en el nivel de la vista", function()
+		-- La escena de cada evento deja el edificio a su manera; la última palabra es de la vista.
+		local record = recorder()
+		local level = 0
+		SceneDirector.register(record.director, "BuildingChanged", {
+			run = function(_ctx, event)
+				level = event.level
+			end,
+		})
+		record.director.world = {
+			reconcile = function(view: any)
+				level = view.level
+			end,
+		}
+		local view = { level = 2 }
+		SceneDirector.play(record.director, {
+			seq = 1,
+			events = {
+				{ type = "BuildingChanged", square = 5, level = 3 },
+				{ type = "BuildingChanged", square = 5, level = 1 },
+			},
+			view = view,
+		})
+		expect(level).toBe(2)
+	end)
+
+	it("un fallo al conciliar se registra y no rompe el director", function()
+		local record = recorder()
+		record.director.world = {
+			reconcile = function()
+				error("mundo roto a propósito")
+			end,
+		}
+		SceneDirector.play(record.director, { seq = 1, events = { { type = "DiceRolled" } }, view = {} })
+		expect(#record.messages).toBe(1)
+	end)
+
+	it("un lote sin vista no concilia", function()
+		local record = recorder()
+		SceneDirector.play(record.director, batch({ { type = "DiceRolled" } }))
+		expect(#record.reconciled).toBe(0)
+	end)
+end)
+
+describe("SceneDirector: contexto de la escena", function()
+	it("la escena recibe evento, vista, inicio, variación y si está acortada", function()
+		local record = recorder()
+		local contexts: { any } = {}
+		SceneDirector.register(record.director, "RentPaid", {
+			run = function(ctx)
+				table.insert(contexts, ctx)
+			end,
+		})
+		local view = { round = 2 }
+		local event = { type = "RentPaid", payerId = "a", amount = 40 }
+		SceneDirector.play(record.director, { seq = 1, events = { event, event }, view = view })
+		local first, second = contexts[1], contexts[2]
+		expect(first.event).toBe(event)
+		expect(first.view).toBe(view)
+		expect(first.startedAt).toBe(42)
+		expect(first.variation).toBe(Scenes.variationFor(event))
+		expect(first.shortened).toBe(false)
+		expect(second.shortened).toBe(true)
+		expect(first.world ~= nil and first.camera ~= nil and first.audio ~= nil).toBe(true)
+	end)
+
+	it("sin APIs inyectadas la escena recibe unas que no hacen nada", function()
+		local director = SceneDirector.new({ wait = function() end })
+		local got: any = nil
+		SceneDirector.register(director, "DiceRolled", {
+			run = function(ctx)
+				got = ctx
+				ctx.camera.follow(nil)
+				ctx.audio.play("x")
+				ctx.world.reconcile({})
+			end,
+		})
+		SceneDirector.play(director, batch({ { type = "DiceRolled" } }))
+		expect(got ~= nil).toBe(true)
 	end)
 end)

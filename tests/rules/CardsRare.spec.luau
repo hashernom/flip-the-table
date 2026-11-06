@@ -149,7 +149,9 @@ describe("Huelga", function()
 		Fixtures.hand(s, a.id, "Strike")
 
 		local events = playCard(s, a.id, "Strike", { zoneId = zoneIdOf(s, 1) })
-		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Strike" } })
+		expect(events).toEqual({
+			{ type = "CardPlayed", playerId = a.id, cardId = "Strike", zoneId = zoneIdOf(s, 1) },
+		})
 		expect(s.modifiers).toEqual({
 			{
 				kind = "Strike",
@@ -200,7 +202,7 @@ describe("Ladrón de Escrituras", function()
 		local events = playCard(s, thief.id, "DeedThief", { index = idx })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = thief.id, cardId = "DeedThief" },
+			{ type = "CardPlayed", playerId = thief.id, cardId = "DeedThief", index = idx },
 			{ type = "PropertyBought", playerId = thief.id, index = idx, price = 0 },
 		}
 		expect(events).toEqual(expected)
@@ -336,7 +338,7 @@ describe("Puñalada", function()
 		local events = playCard(s, caster.id, "Backstab", { pactId = "P1" })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = caster.id, cardId = "Backstab" },
+			{ type = "CardPlayed", playerId = caster.id, cardId = "Backstab", targetId = partner.id },
 			{ type = "PactBroken", pactId = "P1", playerId = caster.id },
 		}
 		expect(events).toEqual(expected)
@@ -406,7 +408,7 @@ describe("Demolición", function()
 		local events = playCard(s, caster.id, "Demolition", { index = idx })
 		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = caster.id, cardId = "Demolition" },
+			{ type = "CardPlayed", playerId = caster.id, cardId = "Demolition", index = idx },
 			{ type = "BuildingChanged", index = idx, from = 2, to = 1 },
 		}
 		expect(events).toEqual(expected)

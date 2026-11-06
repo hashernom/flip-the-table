@@ -263,9 +263,18 @@ describe("Renta Rebotada", function()
 		expect(Engine.legalActions(s, owner.id)).toEqual({})
 
 		local events = react(s, payer.id, "BounceRent", third.id)
-		expect(events).toEqual({
+		-- La anotación evita que Luau unifique los dos eventos en una sola forma.
+		local expected: { Types.Event } = {
+			{
+				type = "CardPlayed",
+				playerId = payer.id,
+				cardId = "BounceRent",
+				targetId = third.id,
+				index = index,
+			},
 			{ type = "RentPaid", index = index, from = third.id, to = owner.id, amount = amount },
-		})
+		}
+		expect(events).toEqual(expected)
 		expect(payer.cash).toBe(Economy.startingCash)
 		expect(third.cash).toBe(Economy.startingCash - amount)
 		expect(owner.cash).toBe(Economy.startingCash + amount)

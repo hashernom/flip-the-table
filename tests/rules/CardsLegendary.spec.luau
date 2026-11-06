@@ -354,7 +354,7 @@ describe("Terremoto", function()
 		local events = playCard(s, a.id, "Earthquake", { zoneId = zoneIdOf(s, 2) })
 
 		local expected: { Types.Event } = {
-			{ type = "CardPlayed", playerId = a.id, cardId = "Earthquake" },
+			{ type = "CardPlayed", playerId = a.id, cardId = "Earthquake", zoneId = zoneIdOf(s, 2) },
 			{ type = "BuildingChanged", index = zone[1], from = 2, to = 1 },
 			{ type = "BuildingChanged", index = zone[2], from = 1, to = 0 },
 		}
@@ -376,7 +376,10 @@ describe("Terremoto", function()
 
 		local events = playCard(s, a.id, "Earthquake", { zoneId = zoneIdOf(s, 1) })
 
-		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Earthquake" } })
+		-- La zona va en el CardPlayed: la escena la necesita aunque no caiga ningún edificio.
+		expect(events).toEqual({
+			{ type = "CardPlayed", playerId = a.id, cardId = "Earthquake", zoneId = zoneIdOf(s, 1) },
+		})
 	end)
 
 	it("rechaza una zona ausente o inexistente sin tocar el estado", function()
