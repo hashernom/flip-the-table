@@ -355,12 +355,21 @@ def contact_sheet(entries, path, title, labels=None, footer=None):
     corner_label_y = last + 512
     corner_y = corner_label_y + 18
     panel_top = corner_y + CORNER_CROP * CORNER_SCALE + 28
-    panel_h = 236
+    #: Dos grupos de mano: separadas 10 px y pegadas. Si el segundo no cabe al lado del primero,
+    #: baja a su propia fila y el panel crece: con 8 cartas, la fila unica se salia de la hoja.
+    separated_width = len(items) * HAND[0] + (len(items) - 1) * 10
+    glued_width = len(items) * HAND[0]
+    glued_x = 60 + separated_width + 48
+    glued_row = 0
+    if glued_x + glued_width > SHEET_W - 60:
+        glued_x = 60
+        glued_row = 1
+    panel_h = 236 + glued_row * 196
     #: Tira de silueta, al pie y encima de la linea de cierre.
     strip_title_y = panel_top + panel_h + 26
     strip_y = strip_title_y + 22
     strip_caption_y = strip_y + SILHOUETTE + 4
-    caption_y = strip_caption_y + 20 + 26
+    caption_y = strip_caption_y + 34 + 26
     height = max(SHEET_H, caption_y + 38)
 
     sheet = Image.new("RGBA", (SHEET_W, height), ASFALTO)
@@ -408,9 +417,9 @@ def contact_sheet(entries, path, title, labels=None, footer=None):
     hand_top = panel_top + 28
     _hand_group(sheet, draw, items, 60, hand_top, gap=10)
     draw.text((60, hand_top + 158), "Separadas 10 px", font=_font(13), fill=ASFALTO)
-    glued_x = 60 + len(items) * HAND[0] + (len(items) - 1) * 10 + 48
-    _hand_group(sheet, draw, items, glued_x, hand_top, gap=0)
-    draw.text((glued_x, hand_top + 158), "Pegadas \u00b7 sin separaci\u00f3n",
+    glued_top = hand_top + glued_row * 196
+    _hand_group(sheet, draw, items, glued_x, glued_top, gap=0)
+    draw.text((glued_x, glued_top + 158), "Pegadas \u00b7 sin separaci\u00f3n",
               font=_font(13), fill=ASFALTO)
 
     # Tira de silueta: la prueba de que el sujeto se lee sin color ni detalle.
@@ -420,8 +429,12 @@ def contact_sheet(entries, path, title, labels=None, footer=None):
         x = 60 + index * (SILHOUETTE + SILHOUETTE_GAP)
         sheet.alpha_composite(_silhouette_thumb(item["png"], item["rarity"]),
                               (x, strip_y))
-        draw.text((x, strip_caption_y), item["label"],
-                  font=_font(13), fill=CALIZA_APAGADA)
+        # El rotulo va en dos lineas como mucho: con nombres largos, una sola se pisa con el vecino.
+        caption_font = _font(11)
+        lines = _wrap(draw, item["label"], caption_font, SILHOUETTE + SILHOUETTE_GAP - 6)[:2]
+        for row_index, line in enumerate(lines):
+            draw.text((x, strip_caption_y + row_index * 12), line,
+                      font=caption_font, fill=CALIZA_APAGADA)
 
     draw.text((60, caption_y), footer or RARITY_RULE, font=_font(17), fill=CALIZA_APAGADA)
     draw.text(

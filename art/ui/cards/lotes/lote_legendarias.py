@@ -9,9 +9,10 @@ misma exigencia: tienen que leerse a 95 x 95 px.
 Regla de lenguaje: cosas y senales, nunca personas. Nada de figuras, cabezas ni manos.
 
 Todo se mide en fracciones del ancho (`w`) y del alto (`h`) de la ventana, en pixeles
-de 4x. El trazo es unico para las cuatro: 40 px de 4x, que son 10 px a tamano final.
-La esquina superior derecha de la ventana (0,72-1,00 del ancho x 0-0,28 del alto) se
-deja libre para el sello de rareza.
+de 4x. El trazo es unico para las cuatro: 24 px de 4x, que son 6 px a tamano final, el
+mismo `TRAZO` de `cardlib.py` que llevan las tres aprobadas. La esquina superior derecha
+de la ventana (0,72-1,00 del ancho x 0-0,28 del alto) se deja libre para el sello de
+rareza.
 """
 import math
 
@@ -58,8 +59,8 @@ LABELS = {
     "CrownStrike": "Golpe a la Corona",
 }
 
-#: Grosor unico del lote, en pixeles de 4x: 10 px a tamano final.
-STROKE = 40
+#: Grosor unico del lote, en pixeles de 4x: 6 px a tamano final (el `TRAZO` de cardlib).
+STROKE = 24
 
 
 # --------------------------------------------------------------------------- utiles
@@ -86,12 +87,21 @@ def _rotate(points, cx, cy, degrees):
     ]
 
 
-def _polygon(draw, points, fill, outline=ASFALTO, width=STROKE):
-    """Poligono plano con filete centrado en su borde."""
+def _polygon(draw, points, fill, outline=ASFALTO, width=STROKE, inner=None, inner_fill=None):
+    """Poligono plano con filete centrado en su borde.
+
+    `inner` es una lista de puntos que se rellena de `inner_fill` encima del relleno y
+    debajo del filete: sirve para dar color a una parte de la forma sin abrirle un
+    filete interior, que dejaria costura.
+    """
     pts = [_p(point) for point in points]
     if len(pts) < 3:
         return
     draw.polygon(pts, fill=fill)
+    if inner is not None and inner_fill is not None:
+        inside = [_p(point) for point in inner]
+        if len(inside) >= 3:
+            draw.polygon(inside, fill=inner_fill)
     if outline is not None and width:
         draw.line(
             pts + [pts[0], pts[1]],
@@ -195,40 +205,60 @@ def paint_world_flip(draw, box):
 
 # ------------------------------------------------------------------------ Revolucion
 
-#: El bucle: dos flechas de naranja obra que se persiguen, cada una con su cabeza de
-#: caliza y un corte entre la punta de una y la cola de la siguiente. Angulos en grados.
-_REV_TAIL = 14.0
-_REV_BODY = 96.0
-_REV_HEAD_LEN = 42.0
-_REV_TAIL_SKEW = 12.0
+#: El bucle: dos flechas de naranja obra que se persiguen. Cada flecha es un solo
+#: poligono -cuerpo y punta juntos- con un solo filete por fuera; la punta va en caliza
+#: rellena dentro del mismo poligono, sin filete interior. Angulos en grados.
+_REV_CENTRE = (0.500, 0.500)
+_REV_RADIUS = 0.400
+_REV_THICK = 0.146
+_REV_TAIL = 2.0
+_REV_BODY = 106.0
+_REV_HEAD = 46.0
+_REV_BARB = 0.460
+_REV_SKEW = 12.0
+_REV_STEPS = 96
 
 
-def _arrow_body(cx, cy, r_out, thickness, start):
-    """Galon de naranja: el cuerpo de la flecha, cortado en diagonal por la cola."""
+def _arrow(cx, cy, r_out, thickness, start):
+    """Una flecha entera: el galon del cuerpo y la punta, en un solo poligono.
+
+    El cuerpo recorre el anillo desde `start` a `start + _REV_BODY`. La punta sigue en
+    el mismo borde -no hay corte ni segundo poligono-, sobresale `_REV_BARB` del grosor
+    por cada lado para que se lean las barbas y acaba en aguja `_REV_HEAD` grados mas
+    alla. La cola interior se adelanta `_REV_SKEW` grados, que corta el galon en
+    diagonal.
+    """
     r_in = r_out - thickness
-    tail, head = start, start + _REV_BODY
-    steps = 72
+    head = start + _REV_BODY
+    mid = r_out - thickness / 2.0
+    outer = r_out + _REV_BARB * thickness
+    inner = r_in - _REV_BARB * thickness
     points = [
-        _polar(cx, cy, r_out, tail + (head - tail) * i / steps) for i in range(steps + 1)
+        _polar(cx, cy, r_out, start + _REV_BODY * i / _REV_STEPS)
+        for i in range(_REV_STEPS + 1)
     ]
+    points.append(_polar(cx, cy, outer, head))
+    points.append(_polar(cx, cy, mid, head + _REV_HEAD))
+    points.append(_polar(cx, cy, inner, head))
     points += [
-        _polar(cx, cy, r_in, head + (tail - _REV_TAIL_SKEW - head) * i / steps)
-        for i in range(steps + 1)
+        _polar(cx, cy, r_in, head + (start - _REV_SKEW - head) * i / _REV_STEPS)
+        for i in range(_REV_STEPS + 1)
     ]
     return points
 
 
-def _arrow_head(cx, cy, r_out, thickness, head):
-    """Galon de caliza: la punta de la flecha, mas ancha que el cuerpo."""
-    r_in = r_out - thickness
-    barb = 0.35 * thickness
+def _arrow_tip(cx, cy, r_out, thickness, start):
+    """La punta de caliza: el triangulo de la cabeza, relleno dentro del poligono.
+
+    No lleva filete propio: el del poligono la envuelve entera. Su base cae dentro del
+    cuerpo, asi que del triangulo solo asoma la cara.
+    """
+    head = start + _REV_BODY
     mid = r_out - thickness / 2.0
     return [
-        _polar(cx, cy, r_out, head),
-        _polar(cx, cy, r_out + barb, head),
-        _polar(cx, cy, mid, head + _REV_HEAD_LEN),
-        _polar(cx, cy, r_in - barb, head),
-        _polar(cx, cy, r_in, head),
+        _polar(cx, cy, r_out + _REV_BARB * thickness, head),
+        _polar(cx, cy, mid, head + _REV_HEAD),
+        _polar(cx, cy, r_out - thickness - _REV_BARB * thickness, head),
     ]
 
 
@@ -236,8 +266,8 @@ def paint_revolution(draw, box):
     """Revolucion: los galones en bucle cerrado.
 
     Dos flechas gruesas se persiguen por un anillo con un corte entre la punta y la cola
-    de cada una: el cuerpo va en naranja obra y la cabeza en caliza, para que la vuelta
-    se lea de un golpe.
+    de cada una: el cuerpo va en naranja obra y la punta en caliza, rellena dentro del
+    mismo poligono. Un solo filete por flecha, el de su contorno.
     """
     x0, y0, w, h = _frame(box)
     draw.rectangle(
@@ -245,17 +275,18 @@ def paint_revolution(draw, box):
         fill=ASFALTO_PROFUNDO,
     )
 
-    cx, cy = x0 + 0.500 * w, y0 + 0.512 * h
-    r_out = 0.372 * w
-    thickness = 0.148 * w
+    cx, cy = x0 + _REV_CENTRE[0] * w, y0 + _REV_CENTRE[1] * h
+    r_out = _REV_RADIUS * w
+    thickness = _REV_THICK * w
 
     for half in (0.0, 180.0):
         start = _REV_TAIL + half
-        _polygon(draw, _arrow_body(cx, cy, r_out, thickness, start), NARANJA_OBRA)
         _polygon(
             draw,
-            _arrow_head(cx, cy, r_out, thickness, start + _REV_BODY),
-            CALIZA,
+            _arrow(cx, cy, r_out, thickness, start),
+            NARANJA_OBRA,
+            inner=_arrow_tip(cx, cy, r_out, thickness, start),
+            inner_fill=CALIZA,
         )
 
 
@@ -264,29 +295,36 @@ def paint_revolution(draw, box):
 #: Eje de la grieta, de arriba abajo, en fracciones del ancho y del alto de la ventana.
 #: Cae en diagonal, con dientes largos: asi las dos mitades no son dos rectangulos.
 _QUAKE_CRACK = (
-    (0.600, 0.150),
-    (0.542, 0.250),
-    (0.568, 0.340),
-    (0.488, 0.445),
-    (0.514, 0.535),
-    (0.444, 0.640),
-    (0.468, 0.735),
-    (0.396, 0.850),
+    (0.600, 0.245),
+    (0.520, 0.350),
+    (0.570, 0.430),
+    (0.470, 0.545),
+    (0.520, 0.620),
+    (0.420, 0.740),
+    (0.450, 0.850),
 )
-#: Bordes del bloque y desplazamiento vertical de cada mitad.
+#: Bordes del bloque y desplazamiento vertical de cada mitad: la derecha cae el doble de
+#: lo que sube la izquierda, y de ahi sale el escalon. Con el desplazamiento, el borde de
+#: arriba de la mitad derecha cae en 0,325 del alto: la banda de 0,72-1,00 x 0-0,28, que
+#: es la del sello, queda limpia.
 _QUAKE_LEFT, _QUAKE_RIGHT = 0.090, 0.910
-_QUAKE_TOP, _QUAKE_BOTTOM = 0.150, 0.850
-_QUAKE_SHIFT = 0.045
+_QUAKE_TOP, _QUAKE_BOTTOM = 0.245, 0.850
+_QUAKE_SHIFT = 0.080
 #: Media anchura de la grieta: separa los dos bordes que dibuja el asfalto.
 _QUAKE_GAP = 0.024
 
+#: Hileras de ventanas, en fracciones del alto del bloque desde su borde de arriba.
+_QUAKE_ROWS = (0.150, 0.500)
+#: Columnas de ventanas de la mitad izquierda y de la derecha, en fracciones del ancho.
+_QUAKE_COLUMNS = ((0.190, 0.315), (0.660, 0.785))
+
 #: Cascotes de acero: (centro x, centro y, radio, lados, giro) en fracciones de w/h.
 _QUAKE_RUBBLE = (
-    (0.150, 0.882, 0.068, 3, 12.0),
-    (0.308, 0.908, 0.050, 4, -24.0),
-    (0.648, 0.896, 0.056, 3, 40.0),
-    (0.828, 0.884, 0.046, 4, -14.0),
-    (0.372, 0.780, 0.040, 3, 26.0),
+    (0.150, 0.895, 0.066, 3, 12.0),
+    (0.300, 0.920, 0.048, 4, -24.0),
+    (0.640, 0.912, 0.054, 3, 40.0),
+    (0.828, 0.896, 0.044, 4, -14.0),
+    (0.372, 0.790, 0.038, 3, 26.0),
 )
 
 
@@ -347,11 +385,13 @@ def paint_earthquake(draw, box):
     # 3. Ventanas: el bloque es un bloque de ciudad, y al desplazarse las dos mitades
     #    las hileras dejan de coincidir, que es lo que cuenta el dibujo.
     window_w, window_h = 0.050 * w, 0.062 * h
-    for origin_y in (0.255, 0.560):
-        for left_x in (0.190, 0.315):
+    block_h = _QUAKE_BOTTOM - _QUAKE_TOP
+    for row in _QUAKE_ROWS:
+        origin_y = _QUAKE_TOP + row * block_h
+        for left_x in _QUAKE_COLUMNS[0]:
             _fill(draw, fx(left_x), fy(origin_y) - shift, window_w, window_h,
                   ASFALTO_PROFUNDO)
-        for right_x in (0.660, 0.785):
+        for right_x in _QUAKE_COLUMNS[1]:
             _fill(draw, fx(right_x), fy(origin_y) + shift, window_w, window_h,
                   ASFALTO_PROFUNDO)
 
@@ -384,17 +424,19 @@ _CROWN_OUTLINE = (
 )
 #: Giro de la corona, volcada hacia la derecha, y su centro en la ventana.
 _CROWN_ANGLE = 30.0
-_CROWN_CENTRE = (0.527, 0.540)
-_CROWN_WIDTH = 0.620
+_CROWN_CENTRE = (0.545, 0.545)
+_CROWN_WIDTH = 0.680
 #: Proporcion de la corona: mas ancha que alta, como una corona de verdad.
 _CROWN_RATIO = 0.860
 #: Linea de la banda, en coordenadas locales de la corona.
 _CROWN_BAND = (-0.360, 0.320, 0.360, 0.320)
 
-#: Estallido de impacto: centro, radio exterior, radio interior y numero de puntas.
-_BURST_CENTRE = (0.352, 0.420)
-_BURST_OUTER = 0.300
-_BURST_INNER = 0.186
+#: Estallido de impacto: centro, radio exterior, radio interior y numero de puntas. Va
+#: encima del brazo izquierdo de la corona y por detras de el, sin meterse entre sus
+#: puntas: a 95 px las dos formas comparten tono y, si se solapan, la corona se pierde.
+_BURST_CENTRE = (0.315, 0.345)
+_BURST_OUTER = 0.265
+_BURST_INNER = 0.165
 _BURST_SPIKES = 10
 _BURST_PHASE = 6.0
 
@@ -412,9 +454,9 @@ def _burst(cx, cy, outer, inner, spikes, phase):
 def paint_crown_strike(draw, box):
     """Golpe a la Corona: la corona de oro, volcada, sobre el estallido del impacto.
 
-    El estallido de rojo senal queda detras y a la izquierda; la corona cae hacia la
-    derecha con una punta astillada, para que el golpe se lea en la direccion en la que
-    se ha ido.
+    El estallido de rojo senal queda detras del brazo izquierdo de la corona; la corona
+    cae hacia la derecha con una punta astillada, para que el golpe se lea en la
+    direccion en la que se ha ido.
     """
     x0, y0, w, h = _frame(box)
     draw.rectangle(

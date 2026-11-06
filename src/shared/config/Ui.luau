@@ -62,6 +62,8 @@ return {
 	decisionCard = {
 		inset = 6,
 		band = 22,
+		-- Icono del perk en la franja del tipo, cuando la decisión es elegir uno.
+		iconSize = 22,
 		hoverScale = 1.03,
 		dealScale = 0.88,
 		dealTilt = 4,
@@ -166,6 +168,10 @@ return {
 	-- Carta de la mano vista en grande al pasar el ratón, y cómo llega una carta robada: cae desde
 	-- `drawRise` píxeles por encima de la mano, girada `drawTilt` grados y `drawScale` veces más grande.
 	cardPreview = { width = 250, height = 350, gap = 14, scaleFrom = 0.85 },
+	-- Arte de las cartas: con la ilustración, la vista grande crece hacia arriba lo que pide su
+	-- proporción 312 x 450 y el texto va debajo, en una franja de este alto. El nombre en la carta de
+	-- la mano se escribe sobre la banda de caliza del PNG, a este cuerpo de letra.
+	cardArt = { textHeight = 108, nameSize = 15, nameMinSize = 12 },
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,

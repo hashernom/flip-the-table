@@ -6,6 +6,7 @@ local RunService = game:GetService("RunService")
 local TextService = game:GetService("TextService")
 local TweenService = game:GetService("TweenService")
 
+local CardArt = require("../../shared/config/CardArt")
 local Strings = require("../../shared/config/Strings")
 local HudRules = require("./HudRules")
 local Theme = require("./Theme")
@@ -1335,13 +1336,51 @@ function Components.Deed(parent: Instance, name: string, data: DeedData): Frame
 end
 
 -- Naipe de la mano: papel caliza, nombre y sello. El abanico lo compone quien lo usa.
+--
+-- Con arte, la ilustración ES la carta: el PNG ya trae el marco y el sello de la rareza, y el nombre se
+-- escribe sobre su banda de caliza. Sin arte se queda el naipe de papel de siempre, para que la mano se
+-- lea igual mientras las imágenes no estén subidas.
 function Components.Card(
 	parent: Instance,
 	name: string,
 	title: string,
 	rarity: StampKind,
-	rarityText: string
+	rarityText: string,
+	cardId: string?
 ): Frame
+	local asset = CardArt.image(if cardId ~= nil then CardArt.card(cardId) else nil)
+	if asset ~= "" then
+		local art = frame(parent, name)
+		art.Size = UDim2.fromOffset(104, 150)
+		local picture = Instance.new("ImageLabel")
+		picture.Name = "Picture"
+		picture.BackgroundTransparency = 1
+		picture.BorderSizePixel = 0
+		picture.Image = asset
+		picture.ScaleType = Enum.ScaleType.Fit
+		picture.Size = UDim2.fromScale(1, 1)
+		picture.Parent = art
+		local band = CardArt.band
+		local nameLabel = label(art, "Name", title, {
+			face = font.roadBold,
+			size = Ui.cardArt.nameSize,
+			tint = color.asphalt,
+			wrap = true,
+			align = Enum.TextXAlignment.Center,
+		})
+		nameLabel.Position = UDim2.fromScale(band.left, band.top)
+		nameLabel.Size = UDim2.fromScale(band.width, band.height)
+		nameLabel.TextYAlignment = Enum.TextYAlignment.Center
+		-- Un nombre largo como «Ladrón de Escrituras» no cabe a 15 px en 100 de ancho: se encoge solo
+		-- hasta el mínimo legible, en vez de salirse de la banda.
+		nameLabel.TextScaled = true
+		local limit = Instance.new("UITextSizeConstraint")
+		limit.MinTextSize = Ui.cardArt.nameMinSize
+		limit.MaxTextSize = Ui.cardArt.nameSize
+		limit.Parent = nameLabel
+		return art
+	end
+
 	local root = frame(parent, name, color.limestone)
 	root.Size = UDim2.fromOffset(104, 150)
 	corner(root, Ui.radius.card - 3)

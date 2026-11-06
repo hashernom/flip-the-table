@@ -303,14 +303,14 @@ def perk_smuggler():
 def perk_quick_fingers():
     """Dado dentro de una flecha circular que lo rodea. Silueta llena."""
     image, draw = new_canvas()
-    cx, cy, outer, inner = 128, 128, 96, 74
+    cx, cy, outer, inner = 128, 128, 100, 66
     # El anillo, abierto en el cuadrante superior derecho, con su punta hacia la boca.
     draw.arc(box(cx - outer, cy - outer, cx + outer, cy + outer), 344, 300, fill=255, width=(outer - inner) * SS)
-    radial_head(draw, cx, cy, (outer + inner) / 2, 300, 46)
+    radial_head(draw, cx, cy, (outer + inner) / 2, 300, 58)
     # El dado, con su hueco alrededor para que no se pegue al anillo.
-    rrect(draw, cx - 42, cy - 42, cx + 42, cy + 42, 14)
-    for dot in ((-22, -22), (22, 22), (0, 0)):
-        disc(draw, cx + dot[0], cy + dot[1], 10, 0)
+    rrect(draw, cx - 46, cy - 46, cx + 46, cy + 46, 13)
+    for dot in ((-24, -24), (24, 24), (0, 0)):
+        disc(draw, cx + dot[0], cy + dot[1], 11, 0)
     return image
 
 
@@ -331,9 +331,9 @@ def perk_lawyer():
 def perk_negotiator():
     """Dos eslabones de cadena enlazados en diagonal. Silueta llena."""
     image, _ = new_canvas()
-    band = 22
-    half_len, half_wid = 70, 30
-    first, second = (86, 174), (166, 94)
+    band = 28
+    half_len, half_wid = 66, 34
+    first, second = (88, 172), (168, 92)
 
     def link(center, grow):
         layer = Image.new("L", image.size, 0)
@@ -389,18 +389,18 @@ def perk_hunter():
     """Mira de puntos con una flecha dentro. Silueta llena."""
     image, draw = new_canvas()
     cx, cy = 128, 128
-    ring(draw, cx, cy, 78, 62)
+    ring(draw, cx, cy, 80, 56)
     for angle in (0, 90, 180, 270):
         rad = math.radians(angle)
         stroke(
             draw,
             [
-                (cx + math.cos(rad) * 72, cy + math.sin(rad) * 72),
-                (cx + math.cos(rad) * 92, cy + math.sin(rad) * 92),
+                (cx + math.cos(rad) * 70, cy + math.sin(rad) * 70),
+                (cx + math.cos(rad) * 94, cy + math.sin(rad) * 94),
             ],
-            width=16,
+            width=24,
         )
-    arrow(draw, (100, 156), (158, 98), width=17, head=42)
+    arrow(draw, (94, 162), (164, 92), width=24, head=52)
     return image
 
 

@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local ArtAssets = require("../../shared/config/ArtAssets")
+local CardArt = require("../../shared/config/CardArt")
 local Components = require("./Components")
 local HudRules = require("./HudRules")
 local SocialRules = require("./SocialRules")
@@ -913,6 +914,27 @@ function Board.DecisionCard(
 		kind.Size = UDim2.new(1, -20, 1, 0)
 		kind.TextYAlignment = Enum.TextYAlignment.Center
 
+		-- El perk lleva su icono en la franja: es lo que lo distingue de un voto o de una jugada antes de
+		-- leer nada. Va en blanco, teñido de caliza, como los iconos de `UiIcons`.
+		local perkAsset = if data.kind == "Perk" and data.perkId ~= nil
+			then CardArt.image(CardArt.perk(tostring(data.perkId)))
+			else ""
+		if perkAsset ~= "" then
+			local perkIcon = Instance.new("ImageLabel")
+			perkIcon.Name = "PerkIcon"
+			perkIcon.BackgroundTransparency = 1
+			perkIcon.BorderSizePixel = 0
+			perkIcon.Image = perkAsset
+			perkIcon.ImageColor3 = color.limestone
+			perkIcon.ScaleType = Enum.ScaleType.Fit
+			perkIcon.Size = UDim2.fromOffset(config.iconSize, config.iconSize)
+			perkIcon.Position = UDim2.fromOffset(10, (config.band - config.iconSize) / 2)
+			perkIcon.ZIndex = 3
+			perkIcon.Parent = band
+			kind.Position = UDim2.fromOffset(10 + config.iconSize + 6, 0)
+			kind.Size = UDim2.new(1, -(config.iconSize + 26), 1, 0)
+		end
+
 		local body = frame(face, "Body")
 		body.Size = UDim2.fromScale(1, 0)
 		body.AutomaticSize = Enum.AutomaticSize.Y
@@ -1055,6 +1077,34 @@ function Board.CardFace(parent: Instance, cardId: string, rarity: string): Canva
 	face.Parent = parent
 	corner(face, Ui.radius.card)
 	stroke(face, color.asphalt, 4)
+
+	-- Con arte, la carta es la ilustración: la imagen arriba a su proporción 312 x 450 y la descripción
+	-- debajo. Sin arte se queda la carta de papel de siempre.
+	local asset = CardArt.image(CardArt.card(cardId))
+	if asset ~= "" then
+		local artHeight = math.floor(config.width / CardArt.ASPECT)
+		face.Size = UDim2.fromOffset(config.width, artHeight + Ui.cardArt.textHeight)
+		local picture = Instance.new("ImageLabel")
+		picture.Name = "Picture"
+		picture.BackgroundTransparency = 1
+		picture.BorderSizePixel = 0
+		picture.Image = asset
+		picture.ScaleType = Enum.ScaleType.Fit
+		picture.Size = UDim2.fromOffset(config.width, artHeight)
+		picture.Parent = face
+
+		local body = frame(face, "Body")
+		body.Position = UDim2.fromOffset(0, artHeight)
+		body.Size = UDim2.new(1, 0, 1, -artHeight)
+		pad(body, 12)
+		list(body, Enum.FillDirection.Vertical, Theme.space.s)
+		local rule = frame(body, "Rule", color.asphalt)
+		rule.Size = UDim2.new(1, 0, 0, 2)
+		rule.LayoutOrder = 1
+		local detail = Board.text(body, "Detail", Strings.get(`card.{cardId}.description`), 2, 15)
+		detail.LayoutOrder = 2
+		return face
+	end
 
 	local band = frame(face, "Band", color.asphalt)
 	band.Size = UDim2.new(1, 0, 0, 30)

@@ -68,8 +68,9 @@ LABELS = {
     "Spy": "Esp\u00eda",
 }
 
-#: Grosor unico del lote, en pixeles de 4x: 10 px a tamano final.
-STROKE = 40
+#: Grosor unico del lote, en pixeles de 4x: 6 px a tamano final, el mismo que `cardlib.TRAZO`
+#: y que las cartas aprobadas. El lote dibujaba a 10 px y se veia mas pesado que Multa y Huelga.
+STROKE = 24
 
 
 # --------------------------------------------------------------------------- utiles
@@ -293,11 +294,16 @@ def paint_shield(draw, box):
     outline = side + [(2.0 * cx - x, y) for x, y in reversed(side)][1:-1]
     _polygon(draw, outline, CALIZA)
 
-    # Banda central: baja del techo hasta donde el escudo se estrecha por debajo de ella.
+    # Banda central: baja del techo y se cierra en la punta, sin dejar cuna de caliza.
     band = _SHIELD_BAND * w
-    inside = [y for x, y in side if (x - cx) >= band * 1.55 and y > top + 1.0]
-    if inside:
-        _fill(draw, cx - band, top, 2.0 * band, max(inside) - top, ASFALTO)
+    straight = top + _SHIELD_STRAIGHT * (tip - top)
+    _fill(draw, cx - band, top, 2.0 * band, straight - top, ASFALTO)
+    _polygon(
+        draw,
+        [(cx - band, straight), (cx + band, straight), (cx, tip - 0.008 * h)],
+        ASFALTO,
+        outline=None,
+    )
 
 
 # --------------------------------------------------------------------------- Dado Extra
@@ -404,11 +410,12 @@ def paint_extra_die(draw, box):
 def paint_reverse(draw, box):
     """Marcha Atras: la senal de cambio de sentido, de frente.
 
-    Campo de asfalto, placa de caliza con las esquinas redondeadas, un filete naranja
-    de obra por dentro y la flecha en U del mismo asfalto del contorno.
+    Campo de acero, placa de caliza con las esquinas redondeadas, un filete naranja
+    de obra por dentro y la flecha en U del mismo asfalto del contorno. El campo es
+    acero y no asfalto para que la placa del sello comun no desaparezca en el fondo.
     """
     x0, y0, w, h = _frame(box)
-    _field(draw, x0, y0, w, h, ASFALTO)
+    _field(draw, x0, y0, w, h, ACERO)
 
     left, right = x0 + 0.070 * w, x0 + 0.858 * w
     top, bottom = y0 + 0.298 * h, y0 + 0.952 * h
@@ -467,12 +474,8 @@ def paint_forced_tip(draw, box):
     foot = 0.300 * w
     bottom = y0 + 0.940 * h
 
-    # --- moneda que cae: se dibuja antes que el tarro, que le tapa la punta de abajo.
-    _polygon(
-        draw,
-        _ellipse(x0 + 0.186 * w, y0 + 0.276 * h, 0.032 * w, 0.090 * w, 10.0),
-        ORO,
-    )
+    # --- moneda que cae: entera, sobre la boca del tarro, para que se lea a 104 px.
+    _token(draw, (cx, y0 + 0.238 * h), 0.080 * w, ORO)
 
     # --- tarro: boca ancha y cuerpo que se estrecha hacia el fondo.
     _polygon(
@@ -552,7 +555,7 @@ def paint_discount(draw, box):
         ],
         cx,
         cy,
-        _TAG_ANGLE - 74.0,
+        _TAG_ANGLE - 38.0,
     )
     _polygon(draw, _clip_convex(band, tag), ROJO_SENAL, outline=None)
     _stroke(draw, tag + [tag[0], tag[1]], ASFALTO)
@@ -619,11 +622,12 @@ def paint_shove(draw, box):
 def paint_bribe(draw, box):
     """Soborno: sobre abierto, solapa caida, una moneda asomando y un sello.
 
-    Asfalto en el campo y en los filetes, caliza en el sobre y oro en la moneda y en
-    el sello de cera que cierra la punta de la solapa.
+    Asfalto en los filetes, acero en el campo, caliza en el sobre y oro en la moneda y
+    en el sello de cera que cierra la punta de la solapa. El campo es acero y no
+    asfalto para que la placa del sello comun no desaparezca en el fondo.
     """
     x0, y0, w, h = _frame(box)
-    _field(draw, x0, y0, w, h, ASFALTO)
+    _field(draw, x0, y0, w, h, ACERO)
 
     left, right = x0 + 0.096 * w, x0 + 0.904 * w
     top, bottom = y0 + 0.396 * h, y0 + 0.918 * h

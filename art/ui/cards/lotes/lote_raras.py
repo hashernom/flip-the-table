@@ -62,7 +62,7 @@ LABELS = {
 }
 
 #: Grosor unico del lote, en pixeles de 4x: 10 px a tamano final.
-STROKE = 40
+STROKE = 24
 #: Media punta: lo que un filete se come fuera de la forma que rodea.
 HALF = STROKE // 2
 
@@ -378,13 +378,13 @@ def paint_bounce_rent(draw, box):
 def paint_deed_thief(draw, box):
     """Ladron de Escrituras: la escritura saliendo del cuadro, tirada por un garfio.
 
-    Marino en el campo, caliza en el papel, asfalto en el garfio y en la letra, y rojo
+    Acero en el campo, caliza en el papel, asfalto en el garfio y en la letra, y rojo
     senal en las tres lineas de movimiento. La hoja sale por el canto derecho sin
     filete en ese lado: el papel sigue fuera del cuadro. El garfio entra por la derecha
-    por debajo del sello y clava la punta en la hoja.
+    por debajo del sello y engancha la hoja, sin puna ni forma de mano.
     """
     x0, y0, w, h = _frame(box)
-    _field(draw, x0, y0, w, h, AZUL_MARINO)
+    _field(draw, x0, y0, w, h, ACERO)
 
     right = x0 + w - 1
 
@@ -430,8 +430,9 @@ def paint_deed_thief(draw, box):
             caps=False,
         )
 
-    # 4. El sello de la escritura, en rojo senal, sobre el papel.
-    _disc(draw, (x0 + 0.815 * w, y0 + 0.630 * h), 0.088 * w, ROJO_SENAL)
+    # 4. El sello de la escritura, en rojo senal, en el cuadrante de abajo a la izquierda:
+    #    el de abajo a la derecha lo ocupa la esquina del sello de rareza.
+    _disc(draw, (x0 + 0.255 * w, y0 + 0.735 * h), 0.080 * w, ROJO_SENAL)
 
     # 5. Las tres lineas de movimiento, detras y por encima de la hoja.
     for index, (fx, fy, length) in enumerate(
@@ -441,23 +442,20 @@ def paint_deed_thief(draw, box):
         end = (start[0] + length * w, start[1] - length * w * 0.140)
         _stroke(draw, [start, end], ROJO_SENAL, width=STROKE)
 
-    # 6. El garfio: barra de asfalto que entra por la derecha y se dobla en la hoja.
-    shaft_end = (x0 + 0.800 * w, y0 + 0.395 * h)
-    hook_tip = (x0 + 0.700 * w, y0 + 0.560 * h)
+    # 6. El garfio: un anzuelo limpio en «J» que entra por la derecha y engancha la hoja.
+    #    Sin puna ni muneca: una puna triangular se leia como un pulgar.
     _stroke(
         draw,
-        [(right - 6, y0 + 0.285 * h), shaft_end]
-        + _quad(shaft_end, (x0 + 0.742 * w, y0 + 0.560 * h), hook_tip, 40)[1:],
+        [(right - 6, y0 + 0.300 * h), (x0 + 0.820 * w, y0 + 0.300 * h)]
+        + _quad(
+            (x0 + 0.820 * w, y0 + 0.300 * h),
+            (x0 + 0.735 * w, y0 + 0.430 * h),
+            (x0 + 0.792 * w, y0 + 0.520 * h),
+            44,
+        )[1:],
         ASFALTO,
-        width=0.062 * w,
+        width=0.050 * w,
     )
-    barb = _rotate(
-        [(hook_tip[0] - 0.030 * w, hook_tip[1] - 0.070 * h),
-         (hook_tip[0] + 0.030 * w, hook_tip[1] - 0.062 * h),
-         (hook_tip[0] + 0.008 * w, hook_tip[1] + 0.030 * h)],
-        0.0, 0.0, 0.0,
-    )
-    _polygon(draw, barb, ASFALTO, outline=None)
 
 
 # ------------------------------------------------------------------------- Punalada
@@ -466,11 +464,12 @@ def paint_deed_thief(draw, box):
 _BACKSTAB_HALF_W = 0.340
 _BACKSTAB_HALF_H = 0.235
 _BACKSTAB_ANGLE = -5.0
-#: El tajo: angulo sobre la horizontal y medio hueco entre las dos mitades.
-_BACKSTAB_CUT = 58.0
-_BACKSTAB_SHIFT = 0.030
+#: El tajo: casi vertical, para que la silueta no se parezca a la escritura robada, y el
+#: medio hueco entre las dos mitades.
+_BACKSTAB_CUT = 88.0
+_BACKSTAB_SHIFT = 0.045
 #: Ancho del tajo de rojo senal.
-_BACKSTAB_BLADE = 0.075
+_BACKSTAB_BLADE = 0.100
 
 
 def paint_backstab(draw, box):
