@@ -24,6 +24,17 @@ return {
 	arrest = { back = 4, inward = 20, up = 8, ahead = 0, focusUp = 3, fixedSide = true } :: Shot,
 	-- Seguimiento de la patrulla en su vuelta al mapa: detrás y cerca, mirando hacia donde va.
 	arrestChase = { back = 20, inward = 0, up = 8, ahead = 16, focusUp = 2, fixedSide = true } :: Shot,
+	-- Legendarias (plan 08, Tarea 3). Huracán: desde fuera de la calle y en alto, siguiendo al embudo.
+	hurricane = { back = 75, inward = 40, up = 58, ahead = 0, focusUp = 22, fixedSide = true } :: Shot,
+	-- Terremoto: la zona entera, desde el centro del anillo, a media altura para ver temblar las fachadas.
+	quake = { back = 52, inward = 44, up = 36, ahead = 0, focusUp = 8 } :: Shot,
+	-- Revolución: a pie de calle, de lado, para ver la multitud y los blindados.
+	revolution = { back = 34, inward = 36, up = 22, ahead = 6, focusUp = 4 } :: Shot,
+	-- Golpe a la Corona: cerca del líder y algo por debajo de la corona, que cae hacia la cámara.
+	crown = { back = 20, inward = 16, up = 12, ahead = 0, focusUp = 9 } :: Shot,
+	-- Plano de toda la ciudad para Huracán y Mundo al Revés: retroceso y altura como fracción del lado de la
+	-- ciudad, para que quepa en cualquier tamaño.
+	legendWide = { backPerSpan = 0.62, upPerSpan = 0.62, focusUp = 10 },
 	-- Ladrón de Escrituras: desde la calle, de frente a la fachada de la propiedad robada.
 	deed = { back = 44, inward = 0, up = 24, ahead = 0, focusUp = 10, fixedSide = true } :: Shot,
 	-- Vista general: altura y retroceso como fracción del lado de la ciudad, y giro por píxel arrastrado.

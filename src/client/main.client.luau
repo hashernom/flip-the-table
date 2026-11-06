@@ -52,6 +52,11 @@ local function boot()
 	local SquareView = require("./world/SquareView")
 	local Tokens = require("../shared/config/Tokens")
 	local Arrest = require("./scenes/Arrest")
+	local CrownStrike = require("./scenes/legendary/CrownStrike")
+	local Earthquake = require("./scenes/legendary/Earthquake")
+	local Hurricane = require("./scenes/legendary/Hurricane")
+	local Revolution = require("./scenes/legendary/Revolution")
+	local WorldFlip = require("./scenes/legendary/WorldFlip")
 	local WorldRules = require("./world/WorldRules")
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
@@ -214,6 +219,36 @@ local function boot()
 		end,
 	})
 
+	-- Las cinco legendarias, cada una con su cinemática (plan 08, Tarea 3). Comparten lo que necesitan del
+	-- cliente: la cámara, la ciudad y las fichas.
+	local legendaryOptions = {
+		director = director,
+		city = function()
+			return city
+		end,
+		token = function(id: string): Model?
+			return tokens[id]
+		end,
+		log = function(message: string)
+			warn(message)
+		end,
+	}
+	local legendaries: { [string]: { scene: any, cancelAll: () -> () } } = {
+		Hurricane = Hurricane.new(legendaryOptions),
+		WorldFlip = WorldFlip.new(legendaryOptions),
+		Revolution = Revolution.new(legendaryOptions),
+		Earthquake = Earthquake.new(legendaryOptions),
+		CrownStrike = CrownStrike.new(legendaryOptions),
+	}
+
+	-- Corta las escenas largas en marcha (detención y legendarias): ciudad nueva, resync o fin de partida.
+	local function cancelScenes()
+		arrest.cancelAll()
+		for _, legendary in legendaries do
+			legendary.cancelAll()
+		end
+	end
+
 	-- La ciudad se construye con el tamaño que anuncia el servidor. Si la partida es de 5 a 8
 	-- jugadores el tablero es de 48 o 56 casillas, y una ciudad de 40 no sirve: se tira la vieja y se
 	-- levanta la nueva con sus fichas.
@@ -222,7 +257,7 @@ local function boot()
 			return
 		end
 		-- Una ciudad nueva deja sin sitio a las patrullas y a las fichas: cualquier detención en curso acaba aquí.
-		arrest.cancelAll()
+		cancelScenes()
 		local previous = city
 		city = nil
 		tokens = {}
@@ -506,6 +541,11 @@ local function boot()
 			settleNow(ctx, "AuctionWon")
 		end,
 	})
+
+	-- Cada legendaria se registra con el id de su carta: `SceneDirector.sceneIdFor` lo elige así.
+	for cardId, legendary in legendaries do
+		SceneDirector.register(scenes, cardId, legendary.scene)
+	end
 
 	-- La cámara sigue a la ficha del turno, sea de quien sea: es lo que hace que el resto del grupo vea
 	-- la jugada del activo, como pide la tabla «Qué ve cada jugador».
@@ -903,7 +943,7 @@ local function boot()
 		-- En una revancha, este lote es también la señal de partida nueva: la cola, las escenas vistas y
 		-- las fichas vuelven a empezar, y si el tablero cambió de tamaño la ficha propia es otra.
 		if batch.seq == 0 then
-			arrest.cancelAll()
+			cancelScenes()
 			EventQueue.resync(queue, batch.view, 0)
 			rematchMenu.setResult(nil)
 			SceneDirector.reset(scenes)
@@ -928,7 +968,7 @@ local function boot()
 	-- Pone la interfaz, las fichas y la cámara al día con la vista de un resync.
 	local function applyResync(batch: any)
 		-- Una vista nueva manda sobre las escenas en curso: las detenciones acaban y las fichas vuelven.
-		arrest.cancelAll()
+		cancelScenes()
 		syncTokens(batch.view)
 		applyView(batch.view)
 		followActive(batch.view)
@@ -1039,7 +1079,7 @@ local function boot()
 		-- El final de la partida trae el podio y los premios (R-P45): se enseñan en el panel de revancha.
 		for _, event in events or {} do
 			if event.type == "GameEnded" then
-				arrest.cancelAll()
+				cancelScenes()
 				rematchMenu.setResult(ViewText.podium(event, due.view, names))
 				-- Celebración: cada ficha que se ve da un salto al acabar la partida.
 				for _, token in tokens do

@@ -38,7 +38,7 @@ local TokenRider = {}
 -- anterior, al ver que ya no es la suya, se marcha sin tocar nada: una celebración nueva cancela la de antes
 -- y una ficha destruida no deja ningún bucle vivo. El modo se guarda solo para saber qué está haciendo.
 -- Las amplitudes y los tiempos viven en `TokenAnim`, con el resto de valores ajustables del juego.
-type AnimMode = "idle" | "ride" | "celebrate"
+type AnimMode = "idle" | "ride" | "celebrate" | "scene"
 
 local ANIM_GENERATION = "AnimGeneration"
 local ANIM_MODE = "AnimMode"
@@ -375,6 +375,32 @@ function TokenRider.place(token: Model, index: number, offset: CityLayout.TokenO
 	setRest(token, pose)
 	remember(token, index, offset)
 	idleIfMounted(token)
+end
+
+-- Una escena toma la ficha: para el reposo o la celebración y devuelve su cuerpo y su pose de reposo, para
+-- moverla a mano. Lo que venga después (`place`, `restore`, un recorrido) vuelve a mandar.
+function TokenRider.takeOver(token: Model): (BasePart, CFrame)
+	local body = bodyOf(token)
+	beginAnim(token, "scene")
+	return body, restOf(token) or body.CFrame
+end
+
+-- Devuelve la ficha a la casilla y al sitio donde estaba colocada, sin animación. Si nunca se colocó, la
+-- deja en su pose de reposo.
+function TokenRider.restore(token: Model)
+	local index = token:GetAttribute("Index")
+	if type(index) == "number" then
+		local side = token:GetAttribute("Side")
+		local along = token:GetAttribute("Along")
+		local offset: CityLayout.TokenOffset? = if type(side) == "number" and type(along) == "number"
+			then { side = side, along = along }
+			else nil
+		TokenRider.place(token, index, offset)
+		return
+	end
+	local body = bodyOf(token)
+	bumpGeneration(token)
+	body.CFrame = restOf(token) or body.CFrame
 end
 
 -- ¿La ficha ya está en esa casilla y en ese sitio de la casilla?

@@ -125,10 +125,12 @@ end)
 - [ ] Es el momento de mayor calidad del juego: el responsable aprueba cada una por separado.
 
 - [ ] **Paso 1:** Producir Huracán y obtener su aprobación antes de seguir con las demás.
-- [ ] **Paso 2:** Producir las otras 4.
+- [x] **Paso 2:** Producir las otras 4.
 - [ ] **Paso 3:** Forzar cada carta en los 3 tamaños de ciudad; comprobar coincidencia con `view`.
 - [ ] **Paso 4:** Obtener la aprobación del responsable.
-- [ ] **Paso 5:** Hacer commit: `feat: añadir cinemáticas legendarias`.
+- [x] **Paso 5:** Hacer commit: `feat: añadir cinemáticas legendarias`.
+
+**Estado (2026-11-06):** las cinco escenas están escritas en `src/client/scenes/legendary/`, con sus reglas puras en `LegendaryRules` (22 pruebas) y su puesta en escena en `config/LegendaryStaging`. No se han visto en Studio: los criterios de arriba quedan sin marcar hasta que el responsable las pruebe en los 3 tamaños y las apruebe una a una.
 
 ### Task 4: Cartas raras y comunes
 
