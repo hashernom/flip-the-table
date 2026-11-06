@@ -216,6 +216,23 @@ return {
 			Alert = "#E5483A",
 		},
 	},
+	-- Cartelera: vueltas del marco antes de pararse, curva de frenada, parte de la escena que dura el suspense,
+	-- crecimiento al encenderse y golpe de la salida ganadora. Meneo de burla cuando no sale nada.
+	billboard = {
+		laps = 3,
+		easePower = 3,
+		settleShare = 0.55,
+		maxSettleSec = 1.6,
+		tickSec = 0.09,
+		powerScale = 0.9,
+		powerSec = 0.32,
+		landPop = 1.14,
+		landPopSec = 0.18,
+		dimTransparency = 0.7,
+		mockDegrees = 4,
+		mockSwings = 3,
+		mockSec = 0.08,
+	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,
