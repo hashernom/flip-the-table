@@ -5,6 +5,7 @@ local CityLayout = require("../../shared/config/CityLayout")
 local Economy = require("../../shared/config/Economy")
 local Property = require("../../shared/rules/Property")
 local Strings = require("../../shared/config/Strings")
+local Ui = require("../../shared/config/Ui")
 local ViewText = require("./ViewText")
 
 export type Cell = {
@@ -14,6 +15,8 @@ export type Cell = {
 	v: number,
 	color: string,
 	isProperty: boolean,
+	-- Tipo de casilla: las especiales pintan su símbolo (el mismo de la calle) sobre el gris.
+	kind: string,
 	ownerSeat: number?,
 	level: number,
 	-- Asientos de las fichas que hay en la casilla.
@@ -45,13 +48,16 @@ function MiniMapRules.cells(view: any): { Cell }
 			index = slot.index,
 			u = slot.position.x / span,
 			v = slot.position.z / span,
-			color = Strings.colorFor({
-				index = slot.index,
-				kind = slot.kind,
-				zoneId = slot.zoneId,
-				barrioId = slot.barrioId,
-			} :: any),
+			color = if slot.kind == "Property"
+				then Strings.colorFor({
+					index = slot.index,
+					kind = slot.kind,
+					zoneId = slot.zoneId,
+					barrioId = slot.barrioId,
+				} :: any)
+				else Ui.miniMap.specialColor,
 			isProperty = slot.kind == "Property",
+			kind = slot.kind :: string,
 			ownerSeat = if property ~= nil and property.ownerId ~= nil then seats[property.ownerId] else nil,
 			level = if property ~= nil then property.level else 0,
 			tokens = tokens,

@@ -165,7 +165,17 @@ return {
 
 	-- Carta de la mano vista en grande al pasar el ratón, y cómo llega una carta robada: cae desde
 	-- `drawRise` píxeles por encima de la mano, girada `drawTilt` grados y `drawScale` veces más grande.
-	cardPreview = { width = 250, height = 350, gap = 14, scaleFrom = 0.85 },
+	-- Vista grande de una carta de la mano. Fijada con un clic, suma abajo la franja de jugar: botones de
+	-- `actionHeight` px separados `actionGap`, con `actionPad` de margen.
+	cardPreview = {
+		width = 250,
+		height = 350,
+		gap = 14,
+		scaleFrom = 0.85,
+		actionHeight = 44,
+		actionGap = 8,
+		actionPad = 12,
+	},
 	cardDraw = { seconds = 0.55, rise = 380, shift = 220, tilt = -16, scale = 1.8 },
 	-- Calzada del plazo, al pie de la pantalla, y hueco que deja la mano sobre ella.
 	roadHeight = 36,
@@ -184,5 +194,27 @@ return {
 		turnSwayPeriod = 3.2,
 		turnSwayDegrees = 1,
 		plateShift = 0.25,
+	},
+
+	-- Minimapa: las casillas especiales van en gris con su símbolo, para no confundirse con una zona.
+	miniMap = {
+		specialColor = "#5B6169",
+	},
+
+	-- Letra de la interfaz: cuánto sube cada tamaño pedido y el mínimo legible, en píxeles.
+	text = {
+		boost = 2,
+		min = 14,
+		-- Lo más pequeño que se encoge el nombre de una escritura para caber en su franja.
+		deedTitleMin = 16,
+		miniDeedTitleMin = 11,
+	},
+
+	-- Brillo del contorno de un edificio que sube de nivel: destella `pulses` veces en `pulseSec` cada
+	-- una y luego se apaga en `fadeSec`. Lo enciende `BuildingView` solo al mejorar, nunca al bajar.
+	upgradeGlow = {
+		pulses = 2,
+		pulseSec = 0.35,
+		fadeSec = 0.9,
 	},
 }

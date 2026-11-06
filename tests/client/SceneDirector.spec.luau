@@ -239,3 +239,17 @@ describe("SceneDirector: cliente atrasado", function()
 		expect(record.waits[1]).toBe(full)
 	end)
 end)
+
+describe("Scenes: Portal", function()
+	it("el salto del Portal dura más que antes y no se acorta al repetirse", function()
+		local first = Scenes.durationFor({ type = "PortalUsed" }, 0)
+		expect(first >= 4).toBe(true)
+		expect(Scenes.durationFor({ type = "PortalUsed" }, 3)).toBe(first)
+	end)
+
+	it("las fases del salto van en orden dentro de la escena", function()
+		local p = Scenes.portal
+		expect(0 < p.vanishAt and p.vanishAt < p.goneAt and p.goneAt < p.appearAt).toBe(true)
+		expect(p.appearAt < p.shownAt and p.shownAt < 1).toBe(true)
+	end)
+end)

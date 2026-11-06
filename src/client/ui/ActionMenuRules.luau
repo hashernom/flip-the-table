@@ -324,6 +324,27 @@ end
 
 -- Acciones que no tienen vuelta atrás: necesitan una segunda pulsación. Romper un pacto, renunciar a
 -- comprar, responder un trato y rechazar un pacto son irreversibles; aceptar un pacto no lo es.
+-- Separa las jugadas de carta del resto: las cartas se juegan desde la mano (clic en la carta y confirmar
+-- dentro de su vista grande), no desde el panel. Devuelve lo que queda para el panel y las jugadas de
+-- cada carta, una por objetivo posible. Las reacciones se quedan en el panel: son una decisión con plazo.
+function ActionMenuRules.splitHandActions(legal: { Action }): ({ Action }, { [string]: { Action } })
+	local rest: { Action } = {}
+	local byCard: { [string]: { Action } } = {}
+	for _, action in legal do
+		if action.type == "PlayCard" and type(action.cardId) == "string" then
+			local list = byCard[action.cardId]
+			if list == nil then
+				list = {}
+				byCard[action.cardId] = list
+			end
+			table.insert(list, action)
+		else
+			table.insert(rest, action)
+		end
+	end
+	return rest, byCard
+end
+
 function ActionMenuRules.needsConfirm(action: Action): boolean
 	local actionType = action.type
 	if actionType == "BreakPact" or actionType == "DeclineBuy" or actionType == "RespondTrade" then

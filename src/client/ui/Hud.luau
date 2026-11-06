@@ -41,6 +41,10 @@ export type Handles = {
 	-- El jugador pulsó «Retomar»: un bot jugaba su asiento y quiere volver a mandar él.
 	onReclaim: (callback: () -> ()) -> (),
 	onEmote: (callback: (emote: string) -> ()) -> (),
+	-- Jugadas de carta legales ahora, por carta, cada una con su texto («Jugar Empujón contra Ana»).
+	setPlayable: (byCard: { [string]: { { action: any, label: string } } }) -> (),
+	-- El jugador confirmó una jugada desde la vista grande de una carta de su mano.
+	onPlayCard: (callback: (action: any) -> ()) -> (),
 	destroy: (() -> ())?,
 }
 
@@ -151,6 +155,12 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	-- Carta en grande sobre la mano: se abre al pasar el ratón por una carta y se cierra al salir.
 	local preview: CanvasGroup? = nil
 	local previewToken = 0
+	local hoveredCard: number? = nil
+	-- Carta fijada con un clic: su vista grande se queda abierta, con los botones para jugarla dentro.
+	local pinnedCard: number? = nil
+	local pinnedShow: (() -> ())? = nil
+	local playable: { [string]: { { action: any, label: string } } } = {}
+	local playListeners: { (action: any) -> () } = {}
 	local function hidePreview()
 		previewToken += 1
 		local mine = previewToken
@@ -168,7 +178,70 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			end
 		end)
 	end
-	local function showPreview(cardId: string, rarity: string, slotX: number)
+	local function unpin()
+		pinnedCard = nil
+		pinnedShow = nil
+		hidePreview()
+	end
+
+	-- Botones de jugar dentro de la carta fijada. Un objetivo: «Confirmar». Varios: uno por objetivo.
+	-- Sin jugada legal ahora, una línea que lo dice. La carta crece hacia arriba lo que ocupan.
+	local function addPlayArea(face: CanvasGroup, cardId: string)
+		local config = Ui.cardPreview
+		local options: { { action: any, label: string } } = playable[cardId] or {}
+		local rows = math.max(#options, 1)
+		local areaHeight = config.actionPad * 2 + rows * config.actionHeight + (rows - 1) * config.actionGap
+		face.Size = UDim2.fromOffset(config.width, config.height + areaHeight)
+		local body = face:FindFirstChild("Body") :: Frame?
+		if body ~= nil then
+			body.Size = UDim2.new(1, 0, 1, -30 - areaHeight)
+		end
+		local area = Instance.new("Frame")
+		area.Name = "Play"
+		area.BackgroundColor3 = color.asphalt
+		area.BorderSizePixel = 0
+		area.AnchorPoint = Vector2.new(0, 1)
+		area.Position = UDim2.fromScale(0, 1)
+		area.Size = UDim2.new(1, 0, 0, areaHeight)
+		area.Parent = face
+		local inset = Instance.new("UIPadding")
+		inset.PaddingTop = UDim.new(0, config.actionPad)
+		inset.PaddingBottom = UDim.new(0, config.actionPad)
+		inset.PaddingLeft = UDim.new(0, config.actionPad)
+		inset.PaddingRight = UDim.new(0, config.actionPad)
+		inset.Parent = area
+		local layout = Instance.new("UIListLayout")
+		layout.Padding = UDim.new(0, config.actionGap)
+		layout.SortOrder = Enum.SortOrder.LayoutOrder
+		layout.Parent = area
+		if #options == 0 then
+			local note = Components.label(area, "NotNow", Strings.get("hand.notNow"), {
+				face = font.textBold,
+				size = 15,
+				tint = color.limestoneDim,
+				align = Enum.TextXAlignment.Center,
+				wrap = true,
+			})
+			note.Size = UDim2.new(1, 0, 0, config.actionHeight)
+			note.TextYAlignment = Enum.TextYAlignment.Center
+			return
+		end
+		for order, option in options do
+			local text = if #options == 1 then Strings.get("hand.confirm") else option.label
+			local button = Components.SecondaryButton(area, `Play{order}`, text)
+			button.root.Size = UDim2.new(1, 0, 0, config.actionHeight)
+			button.root.LayoutOrder = order
+			local action = option.action
+			button.onActivated(function()
+				unpin()
+				for _, listener in playListeners do
+					listener(action)
+				end
+			end)
+		end
+	end
+
+	local function showPreview(cardId: string, rarity: string, slotX: number, pinned: boolean?)
 		previewToken += 1
 		local current = preview
 		if current ~= nil then
@@ -176,6 +249,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end
 		local config = Ui.cardPreview
 		local face = Board.CardFace(gui, cardId, rarity)
+		if pinned then
+			addPlayArea(face, cardId)
+		end
 		face.AnchorPoint = Vector2.new(0, 1)
 		face.Position =
 			UDim2.new(0, Ui.handLeft + slotX, 1, -(Ui.handVisibleHeight + Ui.roadHeight + config.gap))
@@ -318,6 +394,10 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	table.insert(
 		connections,
 		UserInputService.InputBegan:Connect(function(input: InputObject, processed: boolean)
+			if input.KeyCode == Enum.KeyCode.Escape and pinnedCard ~= nil then
+				unpin()
+				return
+			end
 			if not processed and input.KeyCode == Enum.KeyCode.M then
 				for _, listener in overviewListeners do
 					listener()
@@ -339,6 +419,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 			return
 		end
 		handKey = key
+		hoveredCard = nil
+		pinnedCard = nil
+		pinnedShow = nil
 		hidePreview()
 		for _, child in hand:GetChildren() do
 			child:Destroy()
@@ -373,10 +456,42 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				local angle = offset * Ui.handFanDegrees
 				card.Position = place
 				card.Rotation = angle
+				-- Al cruzar de una carta a la de al lado, Roblox puede avisar de la entrada en la nueva antes
+				-- que de la salida de la vieja: solo cierra la vista la salida de la carta que se enseña.
+				-- Con una carta fijada, pasar por las demás no cambia nada: la fijada manda hasta soltarla.
 				card.MouseEnter:Connect(function()
-					showPreview(cardId, def.rarity, slotX)
+					hoveredCard = index
+					if pinnedCard == nil then
+						showPreview(cardId, def.rarity, slotX)
+					end
 				end)
-				card.MouseLeave:Connect(hidePreview)
+				card.MouseLeave:Connect(function()
+					if hoveredCard == index then
+						hoveredCard = nil
+						if pinnedCard == nil then
+							hidePreview()
+						end
+					end
+				end)
+				-- Clic: fija la carta y abre dentro los botones para jugarla. Otro clic en ella la suelta.
+				local hit = Instance.new("TextButton")
+				hit.Name = "Hit"
+				hit.BackgroundTransparency = 1
+				hit.Text = ""
+				hit.Size = UDim2.fromScale(1, 1)
+				hit.ZIndex = 10
+				hit.Parent = card
+				hit.Activated:Connect(function()
+					if pinnedCard == index then
+						unpin()
+						return
+					end
+					pinnedCard = index
+					pinnedShow = function()
+						showPreview(cardId, def.rarity, slotX, true)
+					end
+					showPreview(cardId, def.rarity, slotX, true)
+				end)
 				-- Una carta robada cae girada y grande desde arriba hasta su sitio en el abanico.
 				if fresh and not isFirst then
 					local draw = Ui.cardDraw
@@ -393,8 +508,39 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		end
 	end
 
+	local function playableKey(options: { { action: any, label: string } }?): string
+		local labels = {}
+		local list: { { action: any, label: string } } = options or {}
+		for _, option in list do
+			table.insert(labels, option.label)
+		end
+		return table.concat(labels, "|")
+	end
+
 	local handles: Handles = {
 		gui = gui,
+		setPlayable = function(byCard: { [string]: { { action: any, label: string } } })
+			local changed = false
+			for cardId, options in byCard do
+				if playableKey(playable[cardId]) ~= playableKey(options) then
+					changed = true
+				end
+			end
+			for cardId in playable do
+				if byCard[cardId] == nil then
+					changed = true
+				end
+			end
+			playable = byCard
+			-- La carta fijada se rehace solo si sus jugadas cambiaron (otro turno, otro objetivo).
+			local show = pinnedShow
+			if changed and show ~= nil then
+				show()
+			end
+		end,
+		onPlayCard = function(callback: (action: any) -> ())
+			table.insert(playListeners, callback)
+		end,
 		setView = function(view: any, names: ViewText.Names?)
 			if view == nil then
 				return

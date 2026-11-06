@@ -68,7 +68,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `Movement` | Mover fichas y pagar la Salida | 02 |
 | `Property` | Compra, renta y multiplicadores | 02 |
 | `Auction` | Subastas | 02 |
-| `Building` | Niveles de edificio | 02 |
+| `Building` | Niveles de edificio, venta de un nivel e hipotecas (R-P53) | 02 |
 | `Trade` | Intercambios | 02 |
 | `Bankruptcy` | Arruinarse y pasar a espectro | 02 |
 | `Score` | Patrimonio, clasificación y Corona | 02 |
@@ -129,6 +129,7 @@ tools/        Scripts Lune de verificación (`check`, `manifest`)
 | `client/camera/CameraRules` | Qué modo de cámara toca y cuánto dura un recorrido | 05 |
 | `client/camera/CameraDirector` | Aplica el modo elegido a la cámara del jugador | 05 |
 | `client/ui/MiniMap` | Minimapa siempre visible y detalle de cada casilla | 06 |
+| `client/ui/PropertyManager` | Gestionar propiedades: recorre las propias con la cámara y deja construir, vender e hipotecar (R-P53) | 09 |
 | `client/world/CityBuilder` | Coloca casillas y barrios según el tamaño | 05 |
 | `client/world/TokenRider` | Sube el avatar a la ficha, recorre la ruta y anima reposo, marcha y celebración | 05 y 07 |
 | `client/world/SquareView` | Lugar propio de cada casilla especial y brillo de la Zona Caliente | 07 |
@@ -258,11 +259,11 @@ export type Summary = {
 
 ### Acciones
 
-`DraftPerk`, `Roll`, `RerollDie`, `Buy`, `DeclineBuy`, `Bid`, `PlayCard`, `React`, `PassReaction`, `Build`, `ProposeTrade`, `RespondTrade`, `ProposePact`, `RespondPact`, `BreakPact`, `TribunalVote`, `DuelChoice`, `MarketBuy`, `MarketSkip`, `GhostAct`, `EndTurn`.
+`DraftPerk`, `Roll`, `RerollDie`, `Buy`, `DeclineBuy`, `Bid`, `PlayCard`, `React`, `PassReaction`, `Build`, `SellBuilding`, `Mortgage`, `Unmortgage`, `ProposeTrade`, `RespondTrade`, `ProposePact`, `RespondPact`, `BreakPact`, `TribunalVote`, `DuelChoice`, `MarketBuy`, `MarketSkip`, `GhostAct`, `EndTurn`.
 
 ### Eventos
 
-`RoundStarted`, `FinalRoundsStarted`, `PerkDrafted`, `DiceRolled`, `TokenMoved`, `PassedStart`, `PropertyBought`, `RentPaid`, `AuctionStarted`, `AuctionWon`, `AuctionNoSale`, `BuildingChanged`, `TradeCompleted`, `PlayerArrested`, `TribunalVerdict`, `BankruptcyDeclared`, `GhostActed`, `GhostResurrected`, `CardDrawn`, `CardDiscarded`, `CardPlayed`, `CardBlocked`, `HotZoneMoved`, `BillboardResult`, `DuelResolved`, `PortalUsed`, `MarketBought`, `PactFormed`, `PactEnded`, `PactBroken`, `CrownMoved`, `FuryFilled`, `GameEnded`.
+`RoundStarted`, `FinalRoundsStarted`, `PerkDrafted`, `DiceRolled`, `TokenMoved`, `PassedStart`, `PropertyBought`, `RentPaid`, `AuctionStarted`, `AuctionWon`, `AuctionNoSale`, `BuildingChanged`, `PropertyMortgaged`, `PropertyUnmortgaged`, `TradeCompleted`, `PlayerArrested`, `TribunalVerdict`, `BankruptcyDeclared`, `GhostActed`, `GhostResurrected`, `CardDrawn`, `CardDiscarded`, `CardPlayed`, `CardBlocked`, `HotZoneMoved`, `BillboardResult`, `DuelResolved`, `PortalUsed`, `MarketBought`, `PactFormed`, `PactEnded`, `PactBroken`, `CrownMoved`, `FuryFilled`, `GameEnded`.
 
 Cada carta legendaria y rara se expresa como `CardPlayed` más los eventos concretos que causa. `Scenes` asigna escena y duración por evento y por carta.
 
@@ -322,6 +323,7 @@ Ajustes de la [segunda auditoría](../../auditoria/auditoria-2026-11-04-segunda-
 - **R-P49 (ciudad):** dueños y edificios se dibujan comparando vistas (`WorldRules.propertyChanges`), no escuchando eventos, porque las ventas por bancarrota y por Huracán no los emiten. Toda vista pasa por `ViewWire.normalize` al entrar en el cliente: `properties` tiene huecos y la documentación de Roblox no aclara qué hace un remoto con esas claves numéricas. El color de una ficha sale de su asiento y su sitio en la casilla, de `CityLayout.tokenOffset`.
 - **R-P50 (propiedades):** la ciudad sigue [la visión visual](../../art/vision-visual.md). La ruta es una calle de asfalto continua, con cada casilla pintada en el carril junto a su edificio; los valores viven en `config/CityLayout`. Cada propiedad es un edificio fijo que existe desde el inicio de la partida. El nivel solo añade marcadores junto al edificio y añadidos sobre él, y el aspecto sale siempre del nivel de la vista. Los daños de una escena duran lo que la escena: no hay estados permanentes de daño.
 - **R-P51 (cámara y mapa):** no hay primera persona. Todo el grupo ve el mismo plano (`CameraRules.modeFor`, `config/CameraShots`): el del turno, alejado y por el interior del anillo, desde donde se ven las fachadas de frente; el del recorrido, cercano; y el de la escena, que manda sobre todo. La información no depende de la cámara: `ui/MiniMap` enseña siempre todo el tablero, y la vista general sigue a un botón.
+- **R-P53 (gestionar propiedades, 2026-11-05):** `PropertyState` suma `mortgaged: boolean?`. En su turno (`AwaitRoll` y `AwaitEnd`) el dueño puede: `SellBuilding {index}`, que baja un nivel y le devuelve la mitad del coste del nivel (la misma cifra que la venta forzosa de `Bankruptcy`), con `BuildingChanged` y `refund`; `Mortgage {index}`, si ninguna propiedad de la zona tiene edificios, que le da `Economy.mortgage.rate` del precio y emite `PropertyMortgaged`; y `Unmortgage {index}`, que cuesta `Economy.mortgage.repayRate` del precio y emite `PropertyUnmortgaged`. Una hipotecada no cobra renta, sigue contando para la zona completa y, si hay una en la zona, no se construye. En el patrimonio vale el precio menos lo que dio la hipoteca. La liquidación de `Bankruptcy` no saca nada de una hipotecada, y vender o devolver una propiedad al banco borra la hipoteca. Un trato o una carta que cambie el dueño la pasa hipotecada. La interfaz es `client/ui/PropertyManager`: recorre con la cámara las propiedades propias, una a una, con flechas.
 - **R-P52 (interfaz):** sustituye en esto a R-P37. La interfaz usa `ScreenInsets.DeviceSafeInsets`: toda la ventana, también la franja de la barra de Roblox. El móvil revisará la muesca cuando le toque.
 - **R-P42:** un lote con `seq = 0` marca una partida nueva, también en una revancha: el cliente reinicia su cola, las escenas vistas y las fichas, y vuelve a subir el avatar. La votación la pinta `client/ui/RematchMenu`, que además enseña los avisos de `LobbyNotice`. Un fallo al aplicar una vista o un lote se registra y no detiene el bucle del cliente.
 

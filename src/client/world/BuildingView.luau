@@ -8,6 +8,7 @@ local CityLayout = require("../../shared/config/CityLayout")
 local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
 local Strings = require("../../shared/config/Strings")
+local Ui = require("../../shared/config/Ui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TweenService = game:GetService("TweenService")
 
@@ -20,6 +21,10 @@ local MARKER_COLOR = Color3.fromRGB(210, 201, 180)
 local HOT_ZONE_GLOW = "HotZoneGlow"
 local HOT_ZONE_FILL = Color3.fromRGB(255, 168, 48)
 local HOT_ZONE_OUTLINE = Color3.fromRGB(255, 214, 120)
+-- Mejora: contorno blanco cálido, más claro que el de la Zona Caliente, con un velo leve que se apaga.
+local UPGRADE_GLOW = "UpgradeGlow"
+local UPGRADE_FILL = Color3.fromRGB(255, 236, 170)
+local UPGRADE_OUTLINE = Color3.fromRGB(255, 250, 225)
 
 local BuildingView = {}
 
@@ -149,6 +154,56 @@ local function ensureGlow(index: number)
 	end
 end
 
+-- Destello del contorno cuando un edificio sube de nivel. Mientras dura, apaga el contorno de la Zona
+-- Caliente del mismo edificio (dos `Highlight` sobre un modelo se pisan) y lo devuelve al terminar. Si el
+-- edificio se rehace a mitad, el destello se va con el modelo viejo.
+local function flashUpgrade(model: Model)
+	local config = Ui.upgradeGlow
+	local hot = model:FindFirstChild(HOT_ZONE_GLOW) :: Highlight?
+	if hot ~= nil then
+		hot.Enabled = false
+	end
+	local glow = Instance.new("Highlight")
+	glow.Name = UPGRADE_GLOW
+	glow.Adornee = model
+	glow.FillColor = UPGRADE_FILL
+	glow.FillTransparency = 0.7
+	glow.OutlineColor = UPGRADE_OUTLINE
+	glow.OutlineTransparency = 0
+	glow.DepthMode = Enum.HighlightDepthMode.Occluded
+	glow.Parent = model
+	local pulse = TweenService:Create(
+		glow,
+		TweenInfo.new(
+			config.pulseSec,
+			Enum.EasingStyle.Sine,
+			Enum.EasingDirection.InOut,
+			math.max(config.pulses * 2 - 1, 0),
+			true
+		),
+		{ OutlineTransparency = 0.55, FillTransparency = 0.95 }
+	)
+	pulse.Completed:Connect(function()
+		if glow.Parent == nil then
+			return
+		end
+		local fade = TweenService:Create(
+			glow,
+			TweenInfo.new(config.fadeSec, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ OutlineTransparency = 1, FillTransparency = 1 }
+		)
+		fade.Completed:Connect(function()
+			glow:Destroy()
+			local current = model:FindFirstChild(HOT_ZONE_GLOW) :: Highlight?
+			if current ~= nil then
+				current.Enabled = true
+			end
+		end)
+		fade:Play()
+	end)
+	pulse:Play()
+end
+
 -- Enciende o apaga el contorno de la Zona Caliente. Se puede llamar en cada lote: si la zona no
 -- cambió, no hace nada.
 function BuildingView.setHotZone(zoneId: string?)
@@ -167,6 +222,8 @@ function BuildingView.setLevel(index: number, level: number)
 	if handles == nil or levels[index] == level then
 		return
 	end
+	-- Nivel anterior conocido: nil al levantar la ciudad o al rehacer el arte, que no son mejoras.
+	local before = levels[index]
 	local previous: Model? = buildings[index]
 	if previous ~= nil then
 		previous:Destroy()
@@ -234,6 +291,9 @@ function BuildingView.setLevel(index: number, level: number)
 	buildings[index] = model
 	refreshTag(index)
 	ensureGlow(index)
+	if before ~= nil and level > before then
+		flashUpgrade(model)
+	end
 end
 
 -- Vuelve a levantar lo que está en la ciudad cuando terminan de cargar los modelos reales.

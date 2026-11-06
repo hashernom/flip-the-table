@@ -2,6 +2,7 @@
 -- Minimapa siempre en pantalla: una chapa en la esquina con todas las casillas, su color, dueño y nivel, y
 -- dónde está cada ficha. Pulsar una casilla enseña su detalle en el centro, sin mover la cámara de nadie.
 -- Qué se enseña lo decide `MiniMapRules`.
+local ArtAssets = require("../../shared/config/ArtAssets")
 local CityLayout = require("../../shared/config/CityLayout")
 local Components = require("./Components")
 local MiniMapRules = require("./MiniMapRules")
@@ -17,8 +18,8 @@ export type Handles = {
 local CELL_FILL = 0.84
 local OWNER_STROKE = 2
 local TURN_STROKE = 3
--- Las especiales se apagan y las libres quedan a media luz, para que resalte lo que ya tiene dueño.
-local SPECIAL_FADE = 0.7
+-- Las libres quedan a media luz, para que resalte lo que ya tiene dueño. Las especiales van en gris
+-- con su símbolo (`Ui.miniMap`).
 local FREE_FADE = 0.45
 local MAP_PADDING = 10
 
@@ -59,7 +60,7 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 	detail.Position = UDim2.fromScale(0.5, 0.5)
 	detail.Size = UDim2.fromScale(0.72, 0.72)
 
-	local cells: { [number]: TextButton } = {}
+	local cells: { [number]: ImageButton } = {}
 	local builtFor: string? = nil
 	local selected: number? = nil
 	local lastView: any = nil
@@ -83,9 +84,8 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 		selected = nil
 		local side = CityLayout.sideFor(sizeId :: any)
 		for _, slot in CityLayout.routeFor(sizeId :: any) do
-			local cell = Instance.new("TextButton")
+			local cell = Instance.new("ImageButton")
 			cell.Name = `Cell{slot.index}`
-			cell.Text = ""
 			cell.AutoButtonColor = false
 			cell.BorderSizePixel = 0
 			cell.Size = UDim2.fromScale(CELL_FILL / side, CELL_FILL / side)
@@ -119,16 +119,22 @@ function MiniMap.create(playerGui: Instance, seatColor: (seat: number) -> Color3
 			end
 			local side = CityLayout.sideFor(view.sizeId)
 			for _, info in MiniMapRules.cells(view) do
-				local cell: TextButton? = cells[info.index]
+				local cell: ImageButton? = cells[info.index]
 				if cell ~= nil then
 					local room = 1 - 1 / side
 					local inset = (1 - CELL_FILL) / 2 / side
 					cell.Position = UDim2.fromScale(info.u * room + inset, info.v * room + inset)
 					cell.BackgroundColor3 = Color3.fromHex(info.color)
 					cell.BackgroundTransparency = if not info.isProperty
-						then SPECIAL_FADE
+						then 0
 						elseif info.ownerSeat == nil then FREE_FADE
 						else 0
+					-- Símbolo de la casilla especial: el mismo icono blanco que lleva pintado en la calle. Va como
+					-- imagen de la propia celda, no como hijo: la celda reparte sus hijos (los puntos) en rejilla.
+					local iconId = if info.isProperty then nil else ArtAssets.roadIcons[info.kind]
+					cell.Image = iconId or ""
+					cell.ImageColor3 = Theme.color.limestone
+					cell.ScaleType = Enum.ScaleType.Fit
 					for _, child in cell:GetChildren() do
 						if child:IsA("Frame") or child:IsA("UIStroke") then
 							child:Destroy()

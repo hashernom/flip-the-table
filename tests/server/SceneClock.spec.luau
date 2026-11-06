@@ -106,8 +106,9 @@ describe("Scenes", function()
 
 	it("las escenas comunes duran entre 2 y 4 segundos", function()
 		for _, eventType in ARCHITECTURE_EVENTS do
-			-- La detención es la excepción: lleva la llegada, los policías y la vuelta al mapa (15 s).
-			if eventType ~= "PlayerArrested" then
+			-- Excepciones: la detención lleva la llegada, los policías y la vuelta al mapa (15 s), y el
+			-- Portal cruza la ciudad con la cámara (2026-11-05, más lento a petición del responsable).
+			if eventType ~= "PlayerArrested" and eventType ~= "PortalUsed" then
 				local duration = baseDuration(eventType)
 				expect(duration >= 2 and duration <= 4).toBeTruthy()
 			end
@@ -133,9 +134,9 @@ describe("Scenes", function()
 		).toBeTruthy()
 	end)
 
-	it("acorta las escenas repetidas, salvo la detención", function()
+	it("acorta las escenas repetidas, salvo la detención y el Portal", function()
 		for _, eventType in ARCHITECTURE_EVENTS do
-			if eventType ~= "PlayerArrested" then
+			if eventType ~= "PlayerArrested" and eventType ~= "PortalUsed" then
 				local fresh = Scenes.durationFor({ type = eventType }, 0)
 				expect(Scenes.durationFor({ type = eventType }, 1) < fresh).toBeTruthy()
 				expect(Scenes.durationFor({ type = eventType }, 3) < fresh).toBeTruthy()

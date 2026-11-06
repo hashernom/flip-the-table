@@ -321,3 +321,28 @@ describe("ActionMenuRules.needsConfirm", function()
 		expect(ActionMenuRules.needsConfirm({ type = "ProposePact", toId = "p2" } :: any)).toBe(false)
 	end)
 end)
+
+describe("ActionMenuRules.splitHandActions", function()
+	it("las jugadas de carta van a la mano, agrupadas por carta, y el resto se queda en el panel", function()
+		local legal = {
+			{ type = "EndTurn" },
+			{ type = "PlayCard", cardId = "push", targetId = "p2" },
+			{ type = "PlayCard", cardId = "push", targetId = "p3" },
+			{ type = "PlayCard", cardId = "discount" },
+			{ type = "React", cardId = "shield" },
+		}
+		local rest, byCard = ActionMenuRules.splitHandActions(legal)
+		expect(#rest).toBe(2)
+		expect(rest[1].type).toBe("EndTurn")
+		expect(rest[2].type).toBe("React")
+		expect(#byCard.push).toBe(2)
+		expect(#byCard.discount).toBe(1)
+		expect(byCard.shield).toBe(nil)
+	end)
+
+	it("sin jugadas de carta, el panel recibe todo y la mano nada", function()
+		local rest, byCard = ActionMenuRules.splitHandActions({ { type = "EndTurn" } })
+		expect(#rest).toBe(1)
+		expect((next(byCard))).toBe(nil)
+	end)
+end)

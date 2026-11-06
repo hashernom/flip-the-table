@@ -51,3 +51,45 @@ describe("AudioRules.musicFor", function()
 		expect(AudioRules.musicFor("Podium")).toBe("music.podium")
 	end)
 end)
+
+describe("AudioRules.soundForEvent", function()
+	it("una obra que sube suena a obra y una que baja, a derribo", function()
+		expect(AudioRules.soundForEvent({ type = "BuildingChanged", from = 1, to = 2 })).toBe("sfx.build")
+		expect(AudioRules.soundForEvent({ type = "BuildingChanged", from = 2, to = 1 })).toBe("sfx.demolish")
+	end)
+
+	it("los dados suenan a dados y un evento sin sonido no devuelve nada", function()
+		expect(AudioRules.soundForEvent({ type = "DiceRolled" })).toBe("sfx.dice")
+		expect(AudioRules.soundForEvent({ type = "TokenMoved" })).toBe(nil)
+		expect(AudioRules.soundForEvent(nil)).toBe(nil)
+	end)
+end)
+
+describe("AudioRules.pitchFor", function()
+	it("sin variación el tono es siempre 1", function()
+		expect(AudioRules.pitchFor(0, 0)).toBe(1)
+		expect(AudioRules.pitchFor(0, 1)).toBe(1)
+	end)
+
+	it("el tono queda dentro de ±jitter y el centro no cambia", function()
+		expect(AudioRules.pitchFor(0.1, 0.5)).toBe(1)
+		for roll = 0, 1, 0.1 do
+			local pitch = AudioRules.pitchFor(0.1, roll)
+			expect(pitch >= 0.9 - 1e-9 and pitch <= 1.1 + 1e-9).toBe(true)
+		end
+	end)
+end)
+
+describe("Audio: efectos procedurales", function()
+	it("cada efecto con archivo existe como pieza y cada sonido de evento es una pieza", function()
+		local Audio = require("../../src/shared/config/Audio")
+		for id in Audio.sfxFiles do
+			expect(Audio.pieces[id] ~= nil).toBe(true)
+		end
+		for _, id in Audio.eventSounds do
+			expect(Audio.pieces[id] ~= nil).toBe(true)
+		end
+		expect(Audio.pieces[Audio.buildUpSound] ~= nil).toBe(true)
+		expect(Audio.pieces[Audio.buildDownSound] ~= nil).toBe(true)
+	end)
+end)

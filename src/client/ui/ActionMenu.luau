@@ -115,6 +115,8 @@ function ActionMenu.create(playerGui: Instance): Handles
 	-- La lista de opciones se ajusta al tamaño del panel; el panel vive siempre, así que esta conexión
 	-- se corta en cada reconstrucción o se acumularía una por cada panel con opciones.
 	local fitConnection: RBXScriptConnection? = nil
+	-- La bandeja de opciones plegada o abierta: se recuerda entre turnos.
+	local optionsCollapsed = false
 
 	local function clear()
 		if fitConnection ~= nil then
@@ -293,29 +295,78 @@ function ActionMenu.create(playerGui: Instance): Handles
 		end
 
 		if #view.options > 0 then
-			-- La lista usa lo que quede de columna y hace scroll: con muchas cartas nada se sale.
-			local list = Instance.new("ScrollingFrame")
-			list.Name = "Options"
+			-- Bandeja plegable: una cabecera con cuántas opciones hay y, debajo, las tarjetas una tras otra,
+			-- sin scroll. Si no caben enteras, pasan a compactas (solo título; la descripción sale al pasar
+			-- el ratón). La cabecera pliega y despliega la bandeja, y el estado se recuerda entre turnos.
+			local tray = Instance.new("Frame")
+			tray.Name = "Options"
+			tray.BackgroundColor3 = Theme.color.asphaltDeep
+			tray.BackgroundTransparency = 0.15
+			tray.BorderSizePixel = 0
+			tray.Size = UDim2.fromScale(1, 0)
+			tray.AutomaticSize = Enum.AutomaticSize.Y
+			tray.LayoutOrder = nextOrder()
+			tray.Parent = panel
+			local trayCorner = Instance.new("UICorner")
+			trayCorner.CornerRadius = UDim.new(0, 12)
+			trayCorner.Parent = tray
+			local trayStroke = Instance.new("UIStroke")
+			trayStroke.Color = Theme.color.limestone
+			trayStroke.Transparency = 0.6
+			trayStroke.Thickness = 1.5
+			trayStroke.Parent = tray
+			local trayLayout = Instance.new("UIListLayout")
+			trayLayout.SortOrder = Enum.SortOrder.LayoutOrder
+			trayLayout.Parent = tray
+
+			local header = Instance.new("TextButton")
+			header.Name = "Header"
+			header.AutoButtonColor = false
+			header.BackgroundTransparency = 1
+			header.Text = ""
+			header.Size = UDim2.new(1, 0, 0, 44)
+			header.LayoutOrder = 1
+			header.Parent = tray
+			local headerText = Components.label(header, "Text", "", { face = Theme.font.roadBold, size = 14 })
+			headerText.Position = UDim2.fromOffset(14, 0)
+			headerText.Size = UDim2.new(1, -50, 1, 0)
+			headerText.TextYAlignment = Enum.TextYAlignment.Center
+			local mark = Board.chevron(header, Theme.color.limestone)
+			mark.AnchorPoint = Vector2.new(1, 0.5)
+			mark.Position = UDim2.new(1, -16, 0.5, 0)
+
+			local list = Instance.new("Frame")
+			list.Name = "List"
 			list.BackgroundTransparency = 1
-			list.BorderSizePixel = 0
-			list.AutomaticCanvasSize = Enum.AutomaticSize.Y
-			list.CanvasSize = UDim2.fromScale(0, 0)
-			list.ScrollingDirection = Enum.ScrollingDirection.Y
-			list.ScrollBarThickness = 5
-			list.ScrollBarImageColor3 = Theme.color.limestone
-			list.LayoutOrder = nextOrder()
-			list.Parent = panel
+			list.Size = UDim2.fromScale(1, 0)
+			list.AutomaticSize = Enum.AutomaticSize.Y
+			list.LayoutOrder = 2
+			list.Parent = tray
 			local listLayout = Instance.new("UIListLayout")
 			listLayout.Padding = UDim.new(0, Ui.decisionCard.gap)
 			listLayout.SortOrder = Enum.SortOrder.LayoutOrder
 			listLayout.Parent = list
 			local listPad = Instance.new("UIPadding")
-			-- Margen para que las tarjetas giradas y su sello no se recorten contra el borde de la lista.
-			listPad.PaddingTop = UDim.new(0, 8)
-			listPad.PaddingBottom = UDim.new(0, 8)
-			listPad.PaddingLeft = UDim.new(0, 6)
-			listPad.PaddingRight = UDim.new(0, 9)
+			-- Margen para que el sello de rareza, que asoma por la esquina, no se recorte.
+			listPad.PaddingTop = UDim.new(0, 4)
+			listPad.PaddingBottom = UDim.new(0, 12)
+			listPad.PaddingLeft = UDim.new(0, 10)
+			listPad.PaddingRight = UDim.new(0, 12)
 			listPad.Parent = list
+
+			local cards: { Board.DecisionCard } = {}
+			local function paintHeader()
+				local key = if optionsCollapsed then "option.trayShow" else "option.trayHide"
+				headerText.Text = Strings.upper(Strings.get(key, { count = #view.options }))
+				list.Visible = not optionsCollapsed
+				mark.Rotation = if optionsCollapsed then 0 else 180
+			end
+			header.Activated:Connect(function()
+				optionsCollapsed = not optionsCollapsed
+				paintHeader()
+			end)
+			paintHeader()
+
 			local context = lastContext
 			for index, option in view.options do
 				local action = option.action
@@ -335,6 +386,7 @@ function ActionMenu.create(playerGui: Instance): Handles
 					if def ~= nil then def.rarity else nil
 				)
 				card.root.LayoutOrder = index
+				table.insert(cards, card)
 				card.playIn((index - 1) * Ui.decisionCard.dealStep)
 				if action == nil then
 					card.setEnabled(false)
@@ -345,17 +397,26 @@ function ActionMenu.create(playerGui: Instance): Handles
 					end)
 				end
 			end
+			-- Compactas solo si enteras no caben en lo que queda de columna.
 			local function fit()
 				local used = 0
 				for _, child in panel:GetChildren() do
-					if child:IsA("GuiObject") and child ~= list then
+					if child:IsA("GuiObject") and child ~= tray then
 						used += child.AbsoluteSize.Y + Ui.panelGap
 					end
 				end
-				local room = math.max(120, panel.AbsoluteSize.Y - used)
-				list.Size = UDim2.new(1, 0, 0, math.min(listLayout.AbsoluteContentSize.Y + 6, room))
+				local room = panel.AbsoluteSize.Y - used - 44
+				local compact = false
+				for _, card in cards do
+					card.setCompact(false)
+				end
+				if listLayout.AbsoluteContentSize.Y + 16 > room then
+					compact = true
+				end
+				for _, card in cards do
+					card.setCompact(compact)
+				end
 			end
-			listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(fit)
 			fitConnection = panel:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 			task.defer(fit)
 		end

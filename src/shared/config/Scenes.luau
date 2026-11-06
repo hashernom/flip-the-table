@@ -41,7 +41,7 @@ local BASE_DURATION: { [string]: number } = {
 	HotZoneMoved = 3,
 	BillboardResult = 3,
 	DuelResolved = 4,
-	PortalUsed = 3,
+	PortalUsed = 4.8,
 	MarketBought = 2.5,
 	PactFormed = 3,
 	PactEnded = 2.5,
@@ -120,13 +120,29 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 	local base = if event.type == "CardPlayed"
 		then cardDuration(event.cardId)
 		else BASE_DURATION[event.type] or UNKNOWN_DURATION
-	-- La detención tampoco se acorta: es un momento grande de la partida y se ve entera cada vez.
-	if event.type == "PlayerArrested" then
+	-- La detención tampoco se acorta: es un momento grande de la partida y se ve entera cada vez. El
+	-- Portal tampoco: la ficha cruza la ciudad y, más rápido, el salto no se entiende.
+	if event.type == "PlayerArrested" or event.type == "PortalUsed" then
 		return base
 	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
 	return math.max(MIN_DURATION, base * REPEAT_FACTOR ^ seen)
 end
+
+-- Escena del Portal (`client/scenes/PortalJump`). Las fases son fracciones de la duración: se enciende
+-- hasta `vanishAt`, se disuelve hasta `goneAt`, la cámara viaja hasta `appearAt`, reaparece hasta
+-- `shownAt` y el brillo se apaga hasta el final. Color del Portal, anillo de luz y chispas.
+Scenes.portal = {
+	color = "#06B6D4",
+	vanishAt = 0.22,
+	goneAt = 0.36,
+	appearAt = 0.62,
+	shownAt = 0.76,
+	ringStuds = 16,
+	ringSec = 0.9,
+	sparkRate = 40,
+	sparkBurst = 30,
+}
 
 -- Tiempo de decisión de una fase (R-P20). GameOver no tiene temporizador y el resto de fases usa
 -- el valor común de Economy. Excepto subasta, Tribunal y reacción, que tienen el suyo.

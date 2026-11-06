@@ -26,11 +26,19 @@ Theme.color = {
 -- Las tres voces de la guía, §3. `shout` es solo para verbos, desde 28 px y en mayúsculas.
 Theme.font = {
 	shout = Font.fromEnum(Enum.Font.LuckiestGuy),
-	road = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Regular),
-	roadBold = Font.new("rbxasset://fonts/families/Oswald.json", Enum.FontWeight.Bold),
+	-- Titular de vía: Builder Sans gruesa. Sustituye a Oswald (2026-11-05, petición del responsable): la
+	-- condensada fina costaba de leer en las etiquetas pequeñas del HUD y los menús.
+	road = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Bold),
+	roadBold = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.ExtraBold),
 	text = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular),
 	textBold = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Bold),
 }
+
+-- Tamaño real de un texto pedido a `size` px: los pequeños suben `Ui.text.boost` y nunca bajan de
+-- `Ui.text.min`, para que ninguna etiqueta quede ilegible.
+function Theme.textSize(size: number): number
+	return math.max(size + Ui.text.boost, Ui.text.min)
+end
 
 -- Escala de espaciado, en píxeles a tamaño de referencia.
 Theme.space = { xs = 4, s = 8, m = 12, l = 16, xl = 24 }
@@ -129,7 +137,7 @@ function Theme.panel(parent: Instance, name: string, title: string?): Frame
 		label.BackgroundTransparency = 1
 		label.Size = UDim2.new(1, 0, 0, 26)
 		label.FontFace = Theme.font.road
-		label.TextSize = 20
+		label.TextSize = Theme.textSize(20)
 		label.TextXAlignment = Enum.TextXAlignment.Left
 		label.TextColor3 = Theme.text
 		label.Text = title
@@ -201,7 +209,7 @@ function Theme.header(parent: Instance, text: string, order: number): TextLabel
 	label.Size = UDim2.fromScale(1, 0)
 	label.AutomaticSize = Enum.AutomaticSize.Y
 	label.FontFace = Theme.font.road
-	label.TextSize = 16
+	label.TextSize = Theme.textSize(16)
 	label.TextWrapped = true
 	label.TextXAlignment = Enum.TextXAlignment.Left
 	label.TextColor3 = Theme.muted
@@ -220,7 +228,7 @@ function Theme.button(parent: Instance, text: string, order: number, onClick: ()
 	button.BorderSizePixel = 0
 	button.Size = UDim2.new(1, 0, 0, math.max(Theme.MIN_TOUCH, 48))
 	button.FontFace = Theme.font.road
-	button.TextSize = 18
+	button.TextSize = Theme.textSize(18)
 	button.TextColor3 = Theme.text
 	button.Text = text
 	-- Un texto largo, como la descripción de un perk, crece hacia abajo en vez de cortarse por los lados.
@@ -257,7 +265,7 @@ function Theme.row(parent: Instance, order: number): (TextLabel, TextLabel)
 	key.BackgroundTransparency = 1
 	key.Size = UDim2.fromScale(0.6, 1)
 	key.FontFace = Theme.font.text
-	key.TextSize = 16
+	key.TextSize = Theme.textSize(16)
 	key.TextXAlignment = Enum.TextXAlignment.Left
 	key.TextColor3 = Theme.muted
 	key.Parent = row
@@ -268,7 +276,7 @@ function Theme.row(parent: Instance, order: number): (TextLabel, TextLabel)
 	value.Position = UDim2.fromScale(1, 0)
 	value.Size = UDim2.fromScale(0.4, 1)
 	value.FontFace = Theme.font.road
-	value.TextSize = 16
+	value.TextSize = Theme.textSize(16)
 	value.TextXAlignment = Enum.TextXAlignment.Right
 	value.TextColor3 = Theme.text
 	value.Parent = row

@@ -87,7 +87,8 @@ El mismo estándar aplica a lo que no es 3D: interfaz, iconos, ilustraciones de 
 | Movimiento | Dos dados | Igual |
 | Propiedades | Compra, renta y grupos de color | Igual |
 | Subastas | Si nadie compra | Rápidas, de 15 segundos |
-| Edificios | Cuatro casas y un hotel | Tres casas, hotel y rascacielos: cinco pasos |
+| Edificios | Cuatro casas y un hotel | Tres casas, hotel y rascacielos: cinco pasos. En tu turno puedes vender un nivel por la mitad de su coste |
+| Hipotecas | Mitad del precio y sin renta | Igual: cobras el 50 % del precio, no cobra renta y recuperarla cuesta el 55 %. Solo sin edificios en la zona, y en tu turno |
 | Intercambios | Libres entre jugadores | Igual, y además pactos con reglas que el juego hace cumplir |
 | Final | Queda un solo jugador | Rondas: límite de rondas y gana el mayor patrimonio, o antes si todos los rivales están en bancarrota. Sin Fin: queda un solo jugador activo, como en el clásico |
 | Bancarrota | Eliminación | Vuelves como espectro y sigues jugando |
@@ -235,8 +236,8 @@ En ambos modos, quien se arruina sigue jugando como espectro y puede resucitar, 
 | Área | Qué incluye |
 | --- | --- |
 | Mapa | Metrópolis, con 3 tamaños: 40, 48 y 56 casillas |
-| Vistas | Cámara compartida de turno, minimapa siempre visible y vista general en maqueta |
-| Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), intercambios y bancarrota |
+| Vistas | Cámara compartida de turno, minimapa siempre visible y vista general de la ciudad desde lo alto (la maqueta se retiró el 2026-11-05) |
+| Reglas base | Dados, compra, renta, subasta, grupos, cinco pasos de construcción (tres casas, hotel y rascacielos), venta de edificios, hipotecas, intercambios y bancarrota |
 | Modos y final | Rondas, con últimas dos rondas de renta doble; Sin Fin en partidas privadas; podio en ambos |
 | Cartas | Las 20 de esta ficha, cada una con su escena; 5 legendarias con cinemática completa |
 | Perks | Los 12 de esta ficha, elegidos en 3 momentos de la partida |
@@ -332,6 +333,7 @@ Cada mapa tiene su tema, sus reglas y sus propias escenas. Son ideas iniciales.
 | Tablero base de 40 casillas con 22 propiedades y 8 zonas de 2 y 3 propiedades | Tuya |
 | Cinco pasos de construcción: tres casas, hotel y rascacielos | Tuya |
 | Cada propiedad es un edificio real y fijo; las mejoras añaden marcadores y pequeños cambios de fachada y altura (2026-11-04) | Tuya |
+| Hipotecas y venta de edificios en tu turno, desde «Gestionar propiedades», que recorre tus propiedades con la cámara (2026-11-05) | Tuya |
 | Nombres, colores y tramas propios para 12 zonas y 34 propiedades | Propuesta mía, aprobada por ti |
 | Sin monetización en el MVP | Propuesta mía |
 | Zonas y barrios, foco en 4 a 8 jugadores, pactos por menú, pruebas previas y orden de recortes | Propuesta mía |

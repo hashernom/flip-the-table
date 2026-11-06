@@ -67,11 +67,13 @@ local function boot()
 	local GuidedMatch = require("./ui/GuidedMatch")
 	local Overview = require("./ui/Overview")
 	local ModelCity = require("./world/ModelCity")
+	local PortalJump = require("./scenes/PortalJump")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local SettingsMenu = require("./ui/SettingsMenu")
 	local TradeMenu = require("./ui/TradeMenu")
 	local NoticeRules = require("./ui/NoticeRules")
+	local ActionMenuRules = require("./ui/ActionMenuRules")
 	local SocialRules = require("./ui/SocialRules")
 	local ViewText = require("./ui/ViewText")
 	local Strings = require("../shared/config/Strings")
@@ -103,6 +105,8 @@ local function boot()
 	end)
 	-- Sin partida todavía suena la música del lobby.
 	AudioDirector.setMusicState("Lobby")
+	-- Clic y roce de todos los botones, también de los menús que se crean más abajo.
+	AudioDirector.bindUi(playerGui)
 	local tradeMenu = TradeMenu.create(playerGui, function(action: any)
 		sendAction(action)
 	end)
@@ -126,7 +130,7 @@ local function boot()
 		end,
 		-- El sonido de cada evento suena cuando empieza su escena, no todo el lote de golpe.
 		onEvent = function(event: any)
-			AudioDirector.playEvent(event.type)
+			AudioDirector.playEvent(event)
 		end,
 		log = function(message: string)
 			warn(message)
@@ -170,9 +174,10 @@ local function boot()
 	local mountLocal: () -> () = function() end
 	local sceneRunning = false
 	local riding = false
+	-- Salto sin ruta pendiente de su escena (Portal): quién salta y adónde.
+	local pendingJump: { playerId: string, to: any }? = nil
 	local city: CityBuilder.CityHandles? = nil
 	local size: string? = nil
-	local maquetaOpen = false
 
 	-- La escena de la detención aparta la ficha del detenido mientras dura. El color del asiento viste al
 	-- relleno de un bot detenido.
@@ -209,7 +214,6 @@ local function boot()
 		myToken = nil
 		ModelCity.destroy()
 		director.setOverviewFocus(nil, nil)
-		maquetaOpen = false
 		if previous ~= nil then
 			previous.destroy()
 		end
@@ -342,6 +346,13 @@ local function boot()
 			end
 			local path = event.path
 			local token = if type(id) == "string" then tokens[id] else nil
+			-- Un salto sin ruta se guarda: si lo sigue un PortalUsed, su escena lo enseña entero. Si no,
+			-- la ficha se recoloca al acabar el lote, como antes.
+			if type(path) == "table" and #path == 0 and type(id) == "string" then
+				pendingJump = { playerId = id, to = event.to }
+				ctx.spent(ctx.duration)
+				return
+			end
 			if token == nil or type(path) ~= "table" or #path == 0 then
 				ctx.wait(ctx.duration)
 				return
@@ -355,6 +366,42 @@ local function boot()
 			local used = TokenRider.ride(token, path, ctx.duration, arrival)
 			riding = false
 			ctx.spent(used)
+		end,
+	})
+
+	-- Portal: la ficha se enciende, se disuelve, la cámara cruza la ciudad y reaparece en el otro Portal.
+	SceneDirector.register(scenes, "PortalUsed", {
+		run = function(ctx, event)
+			ctx.show("PortalUsed")
+			local jump = pendingJump
+			pendingJump = nil
+			local token = if jump ~= nil then tokens[jump.playerId] else nil
+			if jump == nil or token == nil or jump.to ~= event.to then
+				ctx.wait(ctx.duration)
+				return
+			end
+			local id = jump.playerId
+			local view = StateStore.view(queue.state)
+			local arrival = if view ~= nil then WorldRules.tokenOffsets(view.players)[id] else nil
+			local destination = if view ~= nil then ViewText.squareName(view, event.to) else ""
+			riding = true
+			local ok: boolean, err: any = (pcall :: any)(PortalJump.run, {
+				token = token,
+				playerId = id,
+				placeAtDestination = function()
+					TokenRider.place(token, event.to, arrival)
+				end,
+				follow = function(target: Model)
+					director.follow(target)
+				end,
+				callout = Strings.get("portal.callout", { square = destination }),
+				duration = ctx.duration,
+				wait = ctx.wait,
+			})
+			riding = false
+			if not ok then
+				warn(`Cliente: la escena del Portal falló: {err}`)
+			end
 		end,
 	})
 
@@ -415,19 +462,13 @@ local function boot()
 		while true do
 			local open = overviewWanted and director.mode() == "Overview"
 			overview.setOpen(open)
+			-- La vista general es la ciudad real desde lo alto, con las etiquetas de dueño encima. La maqueta
+			-- en miniatura ya no se enseña (decisión del responsable, 2026-11-05): se veía como una copia
+			-- dentro de la ciudad. `ModelCity` sigue en el código por si se recupera.
 			BuildingView.setTagsVisible(open)
 			local handles = city
-			local view = StateStore.view(queue.state)
-			if open and handles ~= nil and view ~= nil then
-				ModelCity.show(handles, view, names)
-				if not maquetaOpen then
-					director.setOverviewFocus(ModelCity.focus(), ModelCity.radius())
-					maquetaOpen = true
-				end
-			elseif maquetaOpen then
-				ModelCity.hide()
-				director.setOverviewFocus(nil, nil)
-				maquetaOpen = false
+			if handles ~= nil then
+				handles.setHotZoneOverview(open)
 			end
 			task.wait(0.1)
 		end
@@ -581,6 +622,10 @@ local function boot()
 	end
 
 	-- Los botones sociales abren su ventana; el resto se manda al servidor tal cual.
+	-- Jugar una carta desde la mano: el botón de confirmar dentro de su vista grande ya es la confirmación.
+	hud.onPlayCard(function(action: any)
+		sendAction(action)
+	end)
 	actionMenu.onAction(function(action: any)
 		if action.type == "__OpenTrade" then
 			tradeMenu.setOpen(true)
@@ -639,16 +684,27 @@ local function boot()
 				for _, seated in view.players do
 					if seated.id == view.playerId and seated.isBot == true then
 						actionMenu.setLegal({}, nil)
+						hud.setPlayable({})
 						return
 					end
 				end
+				-- Las cartas se juegan desde la mano; el panel de la derecha no las repite.
+				local rest, byCard = ActionMenuRules.splitHandActions(view.legalActions or {})
+				local playable: { [string]: { { action: any, label: string } } } = {}
+				for cardId, actions in byCard do
+					local options = {}
+					for _, action in actions do
+						table.insert(
+							options,
+							{ action = action, label = ViewText.actionLabel(view, names, action) }
+						)
+					end
+					playable[cardId] = options
+				end
+				hud.setPlayable(playable)
 				-- Tratos y Pactos no son acciones del motor: se añaden según la vista (con el número de
 				-- ofertas por responder) y desaparecen al acabar la partida.
-				actionMenu.setLegal(
-					view.legalActions or {},
-					SocialRules.buttonsFor(view),
-					{ view = view, names = names }
-				)
+				actionMenu.setLegal(rest, SocialRules.buttonsFor(view), { view = view, names = names })
 			end,
 			HotZone = function()
 				local handles = city
@@ -698,6 +754,7 @@ local function boot()
 	-- con la vista del lote, al terminar la escena.
 	local function hideMenus()
 		actionMenu.setLegal({}, nil)
+		hud.setPlayable({})
 		hud.setDeadline(nil)
 		-- Ninguna hoja tapa una escena: tratos, pactos y la vista general se cierran al empezar.
 		tradeMenu.setOpen(false)
@@ -785,6 +842,7 @@ local function boot()
 			local route = NoticeRules.route(notice)
 			if route == "Toast" then
 				hud.setToast(notice.message)
+				AudioDirector.play("ui.deny")
 			elseif route == "Panel" then
 				-- Antes de que haya partida, el aviso es del lobby y se queda en su tablón.
 				if lobbyMenu.isVisible() and StateStore.view(queue.state) == nil then

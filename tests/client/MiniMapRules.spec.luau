@@ -123,3 +123,19 @@ describe("MiniMapRules.detailLines", function()
 		expect(#MiniMapRules.detailLines(View.forPlayer(state, "P1"), nil, 999)).toBe(0)
 	end)
 end)
+
+describe("MiniMapRules: casillas especiales", function()
+	it("una casilla especial va en gris y lleva su tipo para pintar su símbolo", function()
+		local Ui = require("../../src/shared/config/Ui")
+		local view = View.forPlayer(Fixtures.game({ players = 4 }), "P1")
+		local found = false
+		for _, cell in MiniMapRules.cells(view) do
+			expect(type(cell.kind)).toBe("string")
+			if not cell.isProperty then
+				found = true
+				expect(cell.color).toBe(Ui.miniMap.specialColor)
+			end
+		end
+		expect(found).toBe(true)
+	end)
+end)

@@ -99,7 +99,7 @@ Tres voces, las tres integradas en Roblox: no se sube ni se licencia ningún arc
 | Voz | Fuente | `Enum.Font` | Tamaño | Uso |
 | --- | --- | --- | --- | --- |
 | Grito | Luckiest Guy | `Enum.Font.LuckiestGuy` (32) | 28–72 px | Verbos y botones: TIRAR, COMPRAR, PAGAR, ROBAR. Momentos de jugador. |
-| Titular de vía | Oswald | `Enum.Font.Oswald` (36) | 12–40 px | Nombres de casilla y barrio, cifras, etiquetas de HUD. Caps con tracking +0,10 em. |
+| Titular de vía | Builder Sans Bold (antes Oswald; cambio pedido por el responsable el 2026-11-05) | `rbxasset://fonts/families/BuilderSans.json` | 14–40 px | Nombres de casilla y barrio, cifras, etiquetas de HUD. Caps con tracking +0,10 em. |
 | Texto | Source Sans | `Enum.Font.SourceSans` (3) | 14–18 px | Cuerpos, descripciones, tooltips. Cifras tabulares, interlineado 1,5. |
 
 Reglas duras:

@@ -22,6 +22,9 @@ local musicId: string? = nil
 local active: { Sound } = {}
 local loops: { [string]: Sound? } = {}
 local musicTween: Tween? = nil
+local random = Random.new()
+local lastHover = 0
+local boundGuis: { [Instance]: boolean } = {}
 
 local function container(): Folder
 	local current = folder
@@ -60,6 +63,7 @@ function AudioDirector.play(id: string, opts: { volume: number? }?)
 	sound.Name = id
 	sound.SoundId = spec.id
 	sound.Looped = spec.looped
+	sound.PlaybackSpeed = AudioRules.pitchFor(spec.jitter, random:NextNumber())
 	local base = spec.volume * (if opts ~= nil and opts.volume ~= nil then opts.volume else 1)
 	sound.Volume = AudioRules.volumeFor(base, effectsVolume, AudioRules.gainFor(#active + 1))
 	sound.Parent = container()
@@ -83,12 +87,48 @@ function AudioDirector.stop(id: string)
 	end
 end
 
--- Sonido de un evento de la mesa, si tiene uno.
-function AudioDirector.playEvent(eventType: string)
-	local id = Audio.eventSounds[eventType]
+-- Sonido de un evento de la mesa, si tiene uno. Recibe el evento entero: una obra suena distinto si
+-- sube o si baja.
+function AudioDirector.playEvent(event: any)
+	local id = AudioRules.soundForEvent(event)
 	if id ~= nil then
 		AudioDirector.play(id)
 	end
+end
+
+local function bindButton(button: GuiButton)
+	if boundGuis[button] then
+		return
+	end
+	boundGuis[button] = true
+	button.Activated:Connect(function()
+		AudioDirector.play("ui.press")
+	end)
+	button.MouseEnter:Connect(function()
+		local now = os.clock()
+		if now - lastHover >= Audio.hoverCooldownSec and button.Active then
+			lastHover = now
+			AudioDirector.play("ui.hover")
+		end
+	end)
+	button.Destroying:Connect(function()
+		boundGuis[button] = nil
+	end)
+end
+
+-- Da a cada botón de la interfaz su clic y su roce al pasar el ratón, también a los que se creen
+-- después. Una sola llamada con el `PlayerGui`: ningún menú tiene que acordarse de sonar.
+function AudioDirector.bindUi(root: Instance)
+	for _, child in root:GetDescendants() do
+		if child:IsA("GuiButton") then
+			bindButton(child)
+		end
+	end
+	root.DescendantAdded:Connect(function(child: Instance)
+		if child:IsA("GuiButton") then
+			bindButton(child)
+		end
+	end)
 end
 
 local function fade(sound: Sound, volume: number, after: (() -> ())?)

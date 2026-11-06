@@ -8,6 +8,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 
 local ArtAssets = require("../../shared/config/ArtAssets")
+local AudioDirector = require("../audio/AudioDirector")
 local Components = require("./Components")
 local HudRules = require("./HudRules")
 local SocialRules = require("./SocialRules")
@@ -184,6 +185,7 @@ function Board.Window(
 		open = value
 		token += 1
 		local mine = token
+		AudioDirector.play(if value then "ui.open" else "ui.close")
 		if value then
 			veil.Visible = true
 			root.Visible = true
@@ -318,12 +320,12 @@ export type HeaderOptions = {
 }
 
 -- Galón de «Cómo funciona»: dos trazos en V, dibujados, no un glifo de fuente.
-local function chevron(parent: Instance): Frame
+local function chevron(parent: Instance, tint: Color3?): Frame
 	local holder = frame(parent, "Chevron")
 	holder.Size = UDim2.fromOffset(12, 12)
 	holder.LayoutOrder = 1
 	for _, side in { -1, 1 } do
-		local bar = frame(holder, "Bar", color.asphalt)
+		local bar = frame(holder, "Bar", tint or color.asphalt)
 		bar.AnchorPoint = Vector2.new(0.5, 0.5)
 		bar.Position = UDim2.new(0.5, side * 3, 0.5, 0)
 		bar.Size = UDim2.fromOffset(8, 2)
@@ -331,6 +333,8 @@ local function chevron(parent: Instance): Frame
 	end
 	return holder
 end
+
+Board.chevron = chevron
 
 -- Cartel de título: nombre de la ventana, botón de cerrar, la frase que la explica y los pasos plegados.
 function Board.Header(parent: Instance, order: number, options: HeaderOptions): Poster
@@ -583,6 +587,12 @@ function Board.MiniDeed(
 	)
 	title.Position = UDim2.fromOffset(0, 14)
 	title.Size = UDim2.new(1, 0, 1, -16)
+	-- Un nombre largo se encoge hasta caber en vez de salirse de la franja.
+	title.TextScaled = true
+	local fit = Instance.new("UITextSizeConstraint")
+	fit.MaxTextSize = Theme.textSize(14)
+	fit.MinTextSize = Ui.text.miniDeedTitleMin
+	fit.Parent = title
 	title.TextYAlignment = Enum.TextYAlignment.Top
 
 	local price = frame(card, "Price", color.asphalt)
@@ -839,8 +849,10 @@ export type DecisionCard = {
 	setEnabled: (enabled: boolean) -> (),
 	onActivated: (callback: () -> ()) -> (),
 	destroy: () -> (),
-	-- Entra repartida: crece, se endereza y aparece, tras `delay` segundos.
+	-- Entra repartida: crece y se endereza, tras `delay` segundos.
 	playIn: (delay: number) -> (),
+	-- Solo título; la descripción sale al pasar el ratón.
+	setCompact: (compact: boolean) -> (),
 }
 
 local RARITY_STAMP: { [string]: Components.StampKind } = {
@@ -870,13 +882,15 @@ function Board.DecisionCard(
 	root.AutomaticSize = Enum.AutomaticSize.Y
 	root.Parent = parent
 
-	local face = Instance.new("CanvasGroup")
+	-- Un `Frame`, no un `CanvasGroup`: el grupo se pinta como textura y, girado o escalado, se remuestrea
+	-- y se ve borroso hasta que el ratón lo endereza. Por lo mismo la tarjeta descansa recta; el giro
+	-- de naipe repartido queda solo en la entrada.
+	local face = Instance.new("Frame")
 	face.Name = "Face"
 	face.BorderSizePixel = 0
 	face.BackgroundColor3 = if pass then color.asphalt else color.limestone
 	face.Size = UDim2.fromScale(1, 0)
 	face.AutomaticSize = Enum.AutomaticSize.Y
-	face.Rotation = if pass then 0 else tilt
 	face.Parent = root
 	corner(face, if pass then Ui.radius.pill else 10)
 	local rim = stroke(face, if pass then color.limestone else color.asphalt, 2)
@@ -885,6 +899,7 @@ function Board.DecisionCard(
 	list(face, Enum.FillDirection.Vertical, 0)
 
 	local title: TextLabel
+	local detailLabel: TextLabel? = nil
 	if pass then
 		local inset = Instance.new("UIPadding")
 		inset.PaddingTop = UDim.new(0, 11)
@@ -905,6 +920,12 @@ function Board.DecisionCard(
 		local band = frame(face, "Band", color.asphalt)
 		band.Size = UDim2.new(1, 0, 0, config.band)
 		band.LayoutOrder = 1
+		-- Sin el recorte del grupo, la franja lleva sus propias esquinas arriba y un relleno recto abajo.
+		corner(band, 10)
+		local squareFoot = frame(band, "Square", color.asphalt)
+		squareFoot.AnchorPoint = Vector2.new(0, 1)
+		squareFoot.Position = UDim2.fromScale(0, 1)
+		squareFoot.Size = UDim2.fromScale(1, 0.5)
 		local kind = label(band, "Kind", Strings.upper(Strings.get(`option.kind.{data.kind}`)), {
 			face = font.road,
 			size = 12,
@@ -912,6 +933,7 @@ function Board.DecisionCard(
 		kind.Position = UDim2.fromOffset(10, 0)
 		kind.Size = UDim2.new(1, -20, 1, 0)
 		kind.TextYAlignment = Enum.TextYAlignment.Center
+		kind.ZIndex = 2
 
 		local body = frame(face, "Body")
 		body.Size = UDim2.fromScale(1, 0)
@@ -936,6 +958,7 @@ function Board.DecisionCard(
 		if data.detail ~= nil and data.detail ~= data.title then
 			local detail = Board.text(body, "Detail", data.detail, 2, 14)
 			detail.TextColor3 = PAPER_MUTED
+			detailLabel = detail
 		end
 		if data.note ~= nil then
 			local note = label(
@@ -963,15 +986,27 @@ function Board.DecisionCard(
 	chosen.ZIndex = 3
 	chosen.Visible = false
 
+	-- Velo de desactivada: sustituye al `GroupTransparency` del grupo.
+	local veil = frame(root, "Veil", color.limestone)
+	veil.BackgroundTransparency = 1
+	veil.Size = UDim2.fromScale(1, 1)
+	veil.ZIndex = 4
+	veil.Visible = false
+	corner(veil, if pass then Ui.radius.pill else 10)
+
 	local enabled = true
+	local compact = false
 	local listeners: { () -> () } = {}
-	local rest = if pass then 0 else tilt
+	local rest = 0
 	-- Todo se mueve con escala y giro, nunca con la posición: la tarjeta mide lo que su texto pide y una
 	-- posición animada haría crecer y saltar la columna entera.
 	local hovered = false
 	root.MouseEnter:Connect(function()
 		if enabled then
 			hovered = true
+			if compact and detailLabel ~= nil then
+				detailLabel.Visible = true
+			end
 			tween(face, Ui.motion.press, { Rotation = 0 })
 			tween(scale, Ui.motion.press, { Scale = config.hoverScale })
 			rim.Thickness = 3
@@ -979,6 +1014,9 @@ function Board.DecisionCard(
 	end)
 	root.MouseLeave:Connect(function()
 		hovered = false
+		if compact and detailLabel ~= nil then
+			detailLabel.Visible = false
+		end
 		tween(face, Ui.motion.press, { Rotation = rest })
 		tween(scale, Ui.motion.press, { Scale = 1 })
 		rim.Thickness = 2
@@ -1008,7 +1046,15 @@ function Board.DecisionCard(
 		setEnabled = function(value: boolean)
 			enabled = value
 			root.Active = value
-			face.GroupTransparency = if value then 0 else 0.35
+			veil.Visible = not value
+			veil.BackgroundTransparency = if value then 1 else 0.35
+		end,
+		-- Compacta: solo título; la descripción sale al pasar el ratón. Así caben todas sin scroll.
+		setCompact = function(value: boolean)
+			compact = value
+			if detailLabel ~= nil then
+				detailLabel.Visible = not value
+			end
 		end,
 		onActivated = function(callback: () -> ())
 			table.insert(listeners, function()
@@ -1022,18 +1068,16 @@ function Board.DecisionCard(
 		destroy = function()
 			root:Destroy()
 		end,
+		-- Entra repartida: girada y pequeña, se endereza a su sitio. Al terminar queda recta y a escala 1,
+		-- que es como el texto se pinta nítido. `tilt` decide hacia qué lado viene.
 		playIn = function(delay: number)
-			face.GroupTransparency = 1
-			face.Rotation = rest + config.dealTilt
+			face.Rotation = rest + (if tilt < 0 then -config.dealTilt else config.dealTilt)
 			scale.Scale = config.dealScale
 			task.delay(delay, function()
 				if root.Parent == nil then
 					return
 				end
-				tween(face, Ui.motion.open, {
-					GroupTransparency = if enabled then 0 else 0.35,
-					Rotation = rest,
-				})
+				tween(face, Ui.motion.open, { Rotation = rest })
 				tween(scale, Ui.motion.open, { Scale = 1 })
 			end)
 		end,

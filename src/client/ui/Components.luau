@@ -73,7 +73,7 @@ local function label(parent: Instance, name: string, text: string, options: Labe
 	item.Name = name
 	item.BackgroundTransparency = 1
 	item.FontFace = options.face
-	item.TextSize = options.size
+	item.TextSize = Theme.textSize(options.size)
 	item.TextColor3 = options.tint or color.limestone
 	item.TextXAlignment = options.align or Enum.TextXAlignment.Left
 	item.TextWrapped = options.wrap == true
@@ -1229,7 +1229,13 @@ function Components.Deed(parent: Instance, name: string, data: DeedData): Frame
 	title.Size = UDim2.new(1, -24, 1, -48)
 	title.TextYAlignment = Enum.TextYAlignment.Top
 	title.LineHeight = 0.95
-	title.TextScaled = false
+	-- Un nombre largo baja de tamaño hasta caber en dos líneas dentro de la franja, en vez de perder la
+	-- segunda línea por debajo del borde.
+	title.TextScaled = true
+	local fit = Instance.new("UITextSizeConstraint")
+	fit.MaxTextSize = Theme.textSize(33)
+	fit.MinTextSize = Ui.text.deedTitleMin
+	fit.Parent = title
 
 	if data.symbol ~= nil then
 		local glyph = icon(zone, "Symbol", data.symbol, ink)

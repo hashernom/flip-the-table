@@ -10,7 +10,9 @@
 local WorldRules = require("./WorldRules")
 local ArtAssets = require("../../shared/config/ArtAssets")
 local CityLayout = require("../../shared/config/CityLayout")
+local Economy = require("../../shared/config/Economy")
 local Strings = require("../../shared/config/Strings")
+local UiIcons = require("../../shared/config/UiIcons")
 local Types = require("../../shared/rules/Types")
 local TweenService = game:GetService("TweenService")
 
@@ -34,6 +36,8 @@ export type CityHandles = {
 	setOwner: (index: number, color: Color3?) -> (),
 	-- Enciende la tira de la Zona Caliente en las casillas de una zona; `nil` la apaga.
 	setHotZone: (zoneId: string?) -> (),
+	-- Marca gruesa de la Zona Caliente para la vista general: desde lo alto la raya y los contornos no se ven.
+	setHotZoneOverview: (visible: boolean) -> (),
 	destroy: () -> (),
 }
 
@@ -54,6 +58,19 @@ local NAME_PIXELS_PER_STUD = 16
 local NAME_TEXT_SIZE = 70
 local NAME_PAINT = Color3.fromRGB(222, 216, 200)
 local OWNER_PLATE = "OwnerPlate"
+-- Solar comprado: la placa del dueño no es un bloque liso. Lleva un canto claro y un halo que se apaga en
+-- unos studs alrededor, dibujado con anillos translúcidos (sin imágenes), y una luz que tiñe la base del
+-- edificio. La placa toma el color del dueño algo apagado; el canto y el halo lo llevan puro.
+local OWNER_HALO = "OwnerHalo"
+local OWNER_HALO_STUDS = 3
+local OWNER_HALO_RINGS = 12
+local OWNER_HALO_RING_TRANSPARENCY = 0.95
+local OWNER_HALO_BRIGHTNESS = 1.1
+local OWNER_PLATE_DIM = 0.22
+local OWNER_EDGE_STUDS = 0.45
+local OWNER_GUI_PIXELS_PER_STUD = 20
+local OWNER_LIGHT_RANGE = 6
+local OWNER_LIGHT_BRIGHTNESS = 0.35
 -- Icono de una casilla especial: va sobre la pintura, un poco hacia la calle para no pisar el nombre.
 local ICON_SIZE = 14
 local ICON_OFFSET = -3
@@ -67,6 +84,10 @@ local HOT_ZONE_LENGTH = 28
 local HOT_ZONE_EDGE = CityLayout.PAINT_ACROSS_STUDS / 2 - 0.9
 local HOT_ZONE_HEIGHT = 0.08
 local HOT_ZONE_Y = PAINT_HEIGHT + 0.02
+-- Vista general: relleno naranja translúcido sobre cada casilla de la zona y un rótulo flotante en medio.
+local HOT_ZONE_FILL_TRANSPARENCY = 0.45
+local HOT_ZONE_TAG_SIZE = UDim2.fromOffset(240, 44)
+local HOT_ZONE_TAG_LIFT = 14
 
 local CityBuilder = {}
 
@@ -94,6 +115,86 @@ local function makePart(properties: { [string]: any }): Part
 		(part :: any)[key] = value
 	end
 	return part
+end
+
+local function ownerSurface(parent: BasePart, name: string, light: number): SurfaceGui
+	local gui = Instance.new("SurfaceGui")
+	gui.Name = name
+	gui.Face = Enum.NormalId.Top
+	gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud
+	gui.PixelsPerStud = OWNER_GUI_PIXELS_PER_STUD
+	gui.LightInfluence = 0
+	gui.Brightness = light
+	gui.Parent = parent
+	return gui
+end
+
+-- Placa del dueño de un solar, con su canto y su halo. Se rehace entera al cambiar de dueño.
+local function makeOwnerPlate(lot: CFrame, color: Color3): Part
+	local width, depth = CityLayout.LOT_WIDTH_STUDS, CityLayout.LOT_DEPTH_STUDS
+	local plate = makePart({
+		Name = OWNER_PLATE,
+		Size = Vector3.new(width, TILE_HEIGHT, depth),
+		CFrame = lot,
+		Color = color:Lerp(DARK_GREY, OWNER_PLATE_DIM),
+	})
+
+	-- Canto: un marco claro por dentro del borde de la placa.
+	local edgeGui = ownerSurface(plate, "Edge", 1.2)
+	local edge = Instance.new("Frame")
+	edge.Name = "Edge"
+	edge.BackgroundTransparency = 1
+	edge.Size = UDim2.fromScale(1, 1)
+	edge.Parent = edgeGui
+	local stroke = Instance.new("UIStroke")
+	stroke.Color = color
+	stroke.Thickness = OWNER_EDGE_STUDS * OWNER_GUI_PIXELS_PER_STUD
+	stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	stroke.Parent = edge
+	local corner = Instance.new("UICorner")
+	corner.CornerRadius = UDim.new(0, OWNER_GUI_PIXELS_PER_STUD // 2)
+	corner.Parent = edge
+
+	-- Halo: una lámina invisible algo mayor que la placa, justo bajo su cara de arriba (la placa tapa el
+	-- centro y el halo solo asoma alrededor), con anillos que se apilan.
+	-- Cada anillo es más pequeño que el anterior, así que el color se acumula hacia la placa y se apaga
+	-- hacia fuera; las esquinas redondas evitan el corte en cruz.
+	local reach = OWNER_HALO_STUDS * 2
+	local halo = makePart({
+		Name = OWNER_HALO,
+		Size = Vector3.new(width + reach, 0.05, depth + reach),
+		CFrame = lot * CFrame.new(0, TILE_HEIGHT / 2 - 0.03, 0),
+		Transparency = 1,
+	})
+	halo.Parent = plate
+	local haloGui = ownerSurface(halo, "Glow", OWNER_HALO_BRIGHTNESS)
+	local step = OWNER_HALO_STUDS * OWNER_GUI_PIXELS_PER_STUD / OWNER_HALO_RINGS
+	for ring = 0, OWNER_HALO_RINGS - 1 do
+		local inset = math.floor(ring * step)
+		local band = Instance.new("Frame")
+		band.Name = `Ring{ring}`
+		band.AnchorPoint = Vector2.new(0.5, 0.5)
+		band.Position = UDim2.fromScale(0.5, 0.5)
+		band.Size = UDim2.new(1, -2 * inset, 1, -2 * inset)
+		band.BackgroundColor3 = color
+		band.BackgroundTransparency = OWNER_HALO_RING_TRANSPARENCY
+		band.BorderSizePixel = 0
+		band.Parent = haloGui
+		local round = Instance.new("UICorner")
+		round.CornerRadius = UDim.new(0, math.floor(OWNER_HALO_STUDS * OWNER_GUI_PIXELS_PER_STUD - inset))
+		round.Parent = band
+	end
+
+	-- Luz hacia arriba: tiñe la base del edificio con el color del dueño.
+	local light = Instance.new("SurfaceLight")
+	light.Face = Enum.NormalId.Top
+	light.Color = color
+	light.Range = OWNER_LIGHT_RANGE
+	light.Brightness = OWNER_LIGHT_BRIGHTNESS
+	light.Angle = 120
+	light.Shadows = false
+	light.Parent = plate
+	return plate
 end
 
 -- Rótulo que se lee desde la calle: mira siempre a la cámara y se apaga a lo lejos para no gastar.
@@ -331,6 +432,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 	hotZone.Parent = model
 	local hotZoneId: string? = nil
 
+	local overviewMarks = false
 	local function setHotZone(zoneId: string?)
 		if hotZoneId == zoneId then
 			return
@@ -358,6 +460,24 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 				Transparency = 0.3,
 			})
 			strip.Parent = hotZone
+			-- Relleno de la vista general: tapa la casilla entera y solo se ve con la vista general abierta.
+			local fill = makePart({
+				Name = `HotZoneFill{slot.index}`,
+				Size = Vector3.new(
+					CityLayout.PAINT_ACROSS_STUDS,
+					HOT_ZONE_HEIGHT,
+					CityLayout.PAINT_ALONG_STUDS
+				),
+				CFrame = CFrame.lookAt(
+					Vector3.new(slot.position.x, HOT_ZONE_Y + 0.01, slot.position.z),
+					Vector3.new(slot.position.x, HOT_ZONE_Y + 0.01, slot.position.z) + forward
+				),
+				Color = HOT_ZONE_COLOR,
+				Material = Enum.Material.Neon,
+				Transparency = if overviewMarks then HOT_ZONE_FILL_TRANSPARENCY else 1,
+			})
+			fill:SetAttribute("OverviewFill", true)
+			fill.Parent = hotZone
 			-- El pulso lento lo separa de una raya pintada y se lee en blanco y negro.
 			local tween = TweenService:Create(
 				strip,
@@ -365,6 +485,67 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 				{ Transparency = 0.65 }
 			)
 			tween:Play()
+		end
+		-- Rótulo en la casilla central de la zona, con el icono de llama: dice qué es y qué hace.
+		local members: { CityLayout.Slot } = {}
+		for _, slot in route do
+			if slot.zoneId == zoneId then
+				table.insert(members, slot)
+			end
+		end
+		local middle = members[math.max(1, math.ceil(#members / 2))]
+		if middle ~= nil then
+			local anchor = makePart({
+				Name = "HotZoneTagAnchor",
+				Size = Vector3.new(1, 1, 1),
+				CFrame = CFrame.new(middle.position.x, HOT_ZONE_TAG_LIFT, middle.position.z),
+				Transparency = 1,
+			})
+			anchor.Parent = hotZone
+			local tag = Instance.new("BillboardGui")
+			tag.Name = "HotZoneTag"
+			tag.Size = HOT_ZONE_TAG_SIZE
+			tag.AlwaysOnTop = true
+			tag.Enabled = overviewMarks
+			tag.Parent = anchor
+			local plate = Instance.new("Frame")
+			plate.Size = UDim2.fromScale(1, 1)
+			plate.BackgroundColor3 = HOT_ZONE_COLOR
+			plate.BorderSizePixel = 0
+			plate.Parent = tag
+			local round = Instance.new("UICorner")
+			round.CornerRadius = UDim.new(0.5, 0)
+			round.Parent = plate
+			local flame = Instance.new("ImageLabel")
+			flame.BackgroundTransparency = 1
+			flame.Image = UiIcons.flame
+			flame.ImageColor3 = Color3.fromRGB(40, 30, 20)
+			flame.Position = UDim2.fromOffset(12, 8)
+			flame.Size = UDim2.fromOffset(28, 28)
+			flame.Parent = plate
+			local text = Instance.new("TextLabel")
+			text.BackgroundTransparency = 1
+			text.Position = UDim2.fromOffset(46, 0)
+			text.Size = UDim2.new(1, -56, 1, 0)
+			text.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.ExtraBold)
+			text.TextScaled = true
+			text.TextColor3 = Color3.fromRGB(40, 30, 20)
+			text.Text = Strings.upper(Strings.get("hotZone.tag", { mult = Economy.hotZoneRentMultiplier }))
+			text.Parent = plate
+		end
+	end
+
+	local function setHotZoneOverview(visible: boolean)
+		if overviewMarks == visible then
+			return
+		end
+		overviewMarks = visible
+		for _, piece in hotZone:GetDescendants() do
+			if piece:IsA("BasePart") and piece:GetAttribute("OverviewFill") then
+				piece.Transparency = if visible then HOT_ZONE_FILL_TRANSPARENCY else 1
+			elseif piece:IsA("BillboardGui") then
+				piece.Enabled = visible
+			end
 		end
 	end
 
@@ -413,6 +594,7 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 		end,
 		lotOf = lotOf,
 		setHotZone = setHotZone,
+		setHotZoneOverview = setHotZoneOverview,
 		setOwner = function(index: number, color: Color3?)
 			local tile: BasePart? = squares[index]
 			if tile == nil then
@@ -425,17 +607,10 @@ function CityBuilder.build(sizeId: SizeId, parent: Instance): CityHandles
 				end
 				return
 			end
-			if current ~= nil and current:IsA("BasePart") then
-				current.Color = color
-				return
+			if current ~= nil then
+				current:Destroy()
 			end
-			local plate = makePart({
-				Name = OWNER_PLATE,
-				Size = Vector3.new(CityLayout.LOT_WIDTH_STUDS, TILE_HEIGHT, CityLayout.LOT_DEPTH_STUDS),
-				CFrame = lotOf(index),
-				Color = color,
-			})
-			plate.Parent = tile
+			makeOwnerPlate(lotOf(index), color).Parent = tile
 		end,
 		destroy = function()
 			model:Destroy()

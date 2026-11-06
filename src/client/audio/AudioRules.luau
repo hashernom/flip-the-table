@@ -34,4 +34,28 @@ function AudioRules.musicFor(state: MusicState): string
 	return MUSIC[state]
 end
 
+-- Efecto de un evento de la mesa, o nil. Una obra suena distinto según suba o baje de nivel.
+function AudioRules.soundForEvent(event: any): string?
+	if type(event) ~= "table" then
+		return nil
+	end
+	if event.type == "BuildingChanged" then
+		local from = tonumber(event.from) or 0
+		local to = tonumber(event.to) or 0
+		if to > from then
+			return Audio.buildUpSound
+		elseif to < from then
+			return Audio.buildDownSound
+		end
+		return nil
+	end
+	return Audio.eventSounds[event.type]
+end
+
+-- Tono de una reproducción: `roll` va de 0 a 1 (un aleatorio) y lo lleva a 1 ± `jitter`. Así un clic
+-- repetido nunca suena idéntico dos veces, sin salirse de su carácter.
+function AudioRules.pitchFor(jitter: number, roll: number): number
+	return 1 + (math.clamp(roll, 0, 1) * 2 - 1) * math.max(jitter, 0)
+end
+
 return AudioRules

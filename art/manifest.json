@@ -2355,6 +2355,146 @@
       ],
       "generatedWith": "Python y Pillow, art/ui/icons/build_icons.py",
       "assetId": "rbxassetid://76952528758720"
+    },
+    {
+      "id": "sound-ui-press",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-press.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://129073769594246"
+    },
+    {
+      "id": "sound-ui-hover",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-hover.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://98067518849423"
+    },
+    {
+      "id": "sound-ui-open",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-open.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://76759140751793"
+    },
+    {
+      "id": "sound-ui-close",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-close.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://72036430391388"
+    },
+    {
+      "id": "sound-ui-confirm",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-confirm.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://126500973425436"
+    },
+    {
+      "id": "sound-ui-deny",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-deny.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://104352905708593"
+    },
+    {
+      "id": "sound-ui-money",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-money.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://70780900394300"
+    },
+    {
+      "id": "sound-ui-card",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-card.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://91229175349866"
+    },
+    {
+      "id": "sound-ui-tick",
+      "category": "Sound",
+      "source": "art/audio/sfx/ui-tick.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://138817054554732"
+    },
+    {
+      "id": "sound-sfx-dice",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-dice.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://100346351288250"
+    },
+    {
+      "id": "sound-sfx-build",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-build.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://115356124495239"
+    },
+    {
+      "id": "sound-sfx-demolish",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-demolish.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://83634681025357"
+    },
+    {
+      "id": "sound-sfx-pact-break",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-pact-break.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://83259273157737"
+    },
+    {
+      "id": "sound-sfx-chime",
+      "category": "Sound",
+      "source": "art/audio/sfx/sfx-chime.wav",
+      "triangles": 0,
+      "status": "InGame",
+      "screenshots": [],
+      "generatedWith": "Síntesis procedural propia con Python, numpy y scipy, art/audio/build_sfx.py. Sin muestras de terceros.",
+      "assetId": "rbxassetid://123837626897918"
     }
   ]
 }
