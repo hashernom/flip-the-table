@@ -9,7 +9,7 @@ local CardStaging = {}
 -- tiembla y su último marcador y su último añadido caen a la calle.
 CardStaging.demolition = {
 	steps = { "arrive", "windup", "strike", "fall", "settle" },
-	fractions = { arrive = 0.2, windup = 0.2, strike = 0.1, fall = 0.35, settle = 0.15 },
+	fractions = { arrive = 0.15, windup = 0.2, strike = 0.15, fall = 0.35, settle = 0.15 },
 	-- Dónde para la grúa: studs desde la fachada hacia la calle y de lado.
 	craneStreetStuds = 14,
 	craneSideStuds = 6,

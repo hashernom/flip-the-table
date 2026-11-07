@@ -424,7 +424,7 @@ Se aplican a todas las fases y tareas.
 - **Pactos sin chat:** todo lo social debe poder hacerse desde menús, sin chat ni voz.
 - **Sin movimiento libre:** el jugador nunca camina por la ciudad.
 - **Escena compartida:** los eventos se ven a la vez y en el mismo orden. Un cliente lento nunca detiene la partida.
-- **Duración de escenas:** comunes de 2 a 4 s; legendarias, hasta 10 s (la Revolución, 13: ver R-P62).
+- **Duración de escenas:** comunes de 2 a 4 s; legendarias, hasta 10 s (la Revolución, 13: ver R-P62). Repetir la misma escena la acorta a la mitad cada vez, con suelos: 2,5 s una legendaria y 1,2 s una rara, para que no acabe siendo un parpadeo; y la repetición se cuenta por escena (el id de la carta), no por `CardPlayed`.
 - **Autoridad del servidor:** el cliente solo envía intenciones; dinero, dados y cartas se deciden en el servidor.
 - **Información oculta:** la mano de cada jugador solo se envía a su dueño.
 - **Assets:** cada uno cumple el estándar de la ficha y se aprueba por una persona. El límite por malla de Roblox es de [20 000 triángulos](https://create.roblox.com/docs/art/modeling/specifications); los presupuestos del juego son menores (subfase 06).

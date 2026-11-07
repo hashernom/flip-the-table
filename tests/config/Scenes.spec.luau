@@ -23,6 +23,13 @@ describe("Scenes: cartas", function()
 		end
 	end)
 
+	it("una rara repetida tampoco baja de 1,2 s", function()
+		for _, cardId in { "Demolition", "Strike", "Inflation", "Backstab", "BounceRent" } do
+			local repeated = Scenes.durationFor({ type = "CardPlayed", cardId = cardId }, 9)
+			expect(repeated >= 1.2).toBeTruthy()
+		end
+	end)
+
 	it("respeta los límites de duración", function()
 		for _, card in CardsConfig.all do
 			local d = Scenes.durationFor({ type = "CardPlayed", cardId = card.id }, 0)
