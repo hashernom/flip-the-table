@@ -1,6 +1,6 @@
 # Incidencia: el cliente no reconoce como propias las propiedades compradas
 
-**Fecha:** 2026-11-07. **Estado:** causa identificada y corregida en la rama `fix-propiedades-cable`; pendiente de confirmar en una partida publicada. **Rama de diagnóstico:** `diag-propiedades` (`96dfdfb`), sobre `main` (`c29eaef`).
+**Fecha:** 2026-11-07. **Estado:** cerrada. Corregida en la rama `fix-propiedades-cable` y confirmada en una partida publicada (2026-11-07). **Rama de diagnóstico:** `diag-propiedades` (`96dfdfb`), sobre `main` (`c29eaef`).
 
 Este documento es autocontenido: resumen, evidencias, qué se descartó y cómo, hipótesis abiertas y la instrumentación ya preparada.
 
@@ -150,4 +150,4 @@ Resultado esperado tal como se ejecutó: **ninguna divergencia** en 12 semillas.
 - `tests/net/ViewWire.spec.luau`: para los tableros de 2 a 8 jugadores, con todas las propiedades con dueño, comprueba que solo hay claves de texto, que `rawlen` da 0 y que la ida y vuelta conserva el dueño y el nivel de cada casilla. También comprueba que `resync` envía la vista codificada; sin el arreglo, esa prueba falla (`rawlen` 16).
 - **H4** corregida: en `applyView`, `manager.setData` y `book.setData` se ejecutan antes del chequeo de `isBot`.
 
-**Pendiente:** publicar y comprobar en una partida real. La línea `[DIAG]` de esta rama debería dar `total=28` y `mias` igual a las compradas. Las 32 líneas de `print` de diagnóstico se quitan antes de fusionar con `main`.
+**Confirmación (2026-11-07):** partida publicada en el tablero M con el responsable y 5 bots. Todas las líneas `[DIAG]` dan `total=28`, y `mias` sube de 0 a 5 con las compras, incluidas casillas de los dos tramos que antes se perdían (10, 26, 28, 38 y 42). El responsable confirma el gestor, el halo y el panel de trato. Los `print` de diagnóstico ya están quitados.
