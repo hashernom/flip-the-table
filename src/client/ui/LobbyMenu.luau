@@ -24,7 +24,7 @@ export type Handles = {
 }
 
 type State = "Idle" | "Host" | "Guest" | "Queue"
-type Request = "Create" | "Join" | "Queue" | "Start"
+type Request = "Create" | "Join" | "Queue" | "Start" | "Solo"
 
 local LobbyMenu = {}
 
@@ -36,6 +36,10 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 	local endMode: "Rounds" | "Endless" = "Rounds"
 	-- Configuración que elige el anfitrión; se conserva mientras siga en el lobby.
 	local settings = MatchSettings.defaults()
+	-- Modo solo contra bots: su propia mesa, con sus bots y su dinero.
+	local soloBots = 3
+	local soloMode: "Rounds" | "Endless" = "Rounds"
+	local soloSettings = MatchSettings.defaults()
 	local noticeText = Strings.get("lobby.idleNotice")
 	local noticeIsError = false
 
@@ -91,6 +95,153 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 		grow.Scale = 1.25
 		grow.Parent = plate
 		Components.tween(grow, Ui.motion.open, { Scale = 1 })
+	end
+
+	-- Rótulo corto dentro de una fila horizontal: los `Board.caption` ocupan todo el ancho.
+	local function inline(
+		parent: Instance,
+		name: string,
+		text: string,
+		order: number,
+		width: number
+	): TextLabel
+		local item = Components.label(parent, name, Strings.upper(text), {
+			face = Theme.font.road,
+			size = 13,
+			tint = Board.muted,
+		})
+		item.Size = UDim2.fromOffset(width, 26)
+		item.TextYAlignment = Enum.TextYAlignment.Center
+		item.LayoutOrder = order
+		return item
+	end
+
+	-- Dinero escrito a mano: solo dígitos mientras se teclea y, al salir del campo, el valor se
+	-- recorta al rango válido. El número vive en la configuración; el texto solo lo enseña.
+	local function cashInput(
+		parent: Instance,
+		order: number,
+		initial: number,
+		onChange: (number) -> ()
+	): TextBox
+		local box = Instance.new("TextBox")
+		box.Name = "Cash"
+		box.BackgroundColor3 = Theme.color.asphaltDeep
+		box.BorderSizePixel = 0
+		box.ClearTextOnFocus = false
+		box.FontFace = Theme.font.roadBold
+		box.TextSize = 24
+		box.TextColor3 = Theme.color.limestone
+		box.PlaceholderText = tostring(MatchSettings.DEFAULTS.startingCash)
+		box.PlaceholderColor3 = Theme.color.steel
+		box.Text = tostring(initial)
+		box.Size = UDim2.fromOffset(150, 40)
+		box.LayoutOrder = order
+		box.Parent = parent
+		local shape = Instance.new("UICorner")
+		shape.CornerRadius = UDim.new(0, Ui.radius.small)
+		shape.Parent = box
+		local ring = Instance.new("UIStroke")
+		ring.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+		ring.Color = Theme.color.limestoneDim
+		ring.Thickness = 2
+		ring.Parent = box
+		box.Focused:Connect(function()
+			ring.Color = Theme.color.navy
+			ring.Thickness = 3
+		end)
+		box.FocusLost:Connect(function()
+			ring.Color = Theme.color.limestoneDim
+			ring.Thickness = 2
+			local typed = tonumber(box.Text) or MatchSettings.DEFAULTS.startingCash
+			local value = MatchSettings.clampCash(typed) or MatchSettings.DEFAULTS.startingCash
+			box.Text = tostring(value)
+			onChange(value)
+		end)
+		box:GetPropertyChangedSignal("Text"):Connect(function()
+			local digits = string.gsub(box.Text, "%D", "")
+			if digits ~= box.Text then
+				box.Text = digits
+			end
+			local value = tonumber(digits)
+			if value ~= nil then
+				onChange(MatchSettings.clampCash(value) or MatchSettings.DEFAULTS.startingCash)
+			end
+		end)
+		return box
+	end
+
+	-- Modo solo: un jugador y sus bots, en su propio servidor. No hace falta nadie más ni código.
+	local function buildSolo(order: number)
+		local poster = Board.Poster(window.stack, "Solo", order, false)
+		poster.root.Size = UDim2.new(1, 0, 0, 124)
+		local heading = Board.caption(poster.content, "Title", Strings.get("lobby.solo.title"), 1)
+		heading.FontFace = Theme.font.roadBold
+		heading.TextSize = 20
+		heading.TextColor3 = Theme.color.asphalt
+
+		local line = Instance.new("Frame")
+		line.Name = "Controls"
+		line.BackgroundTransparency = 1
+		line.Size = UDim2.new(1, 0, 0, 56)
+		line.LayoutOrder = 2
+		line.Parent = poster.content
+		local layout = Board.list(line, Enum.FillDirection.Horizontal, Theme.space.m)
+		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+
+		inline(line, "BotsLabel", Strings.get("lobby.solo.bots"), 1, 52)
+		local minus = Components.SecondaryButton(line, "BotsMinus", "-")
+		minus.root.Size = UDim2.fromOffset(40, 40)
+		minus.root.LayoutOrder = 2
+		minus.onActivated(function()
+			if soloBots > 1 then
+				soloBots -= 1
+				rebuild()
+			end
+		end)
+		local count = Components.label(line, "BotsCount", tostring(soloBots), {
+			face = Theme.font.roadBold,
+			size = 22,
+			tint = Theme.color.asphalt,
+			align = Enum.TextXAlignment.Center,
+		})
+		count.Size = UDim2.fromOffset(30, 40)
+		count.TextYAlignment = Enum.TextYAlignment.Center
+		count.LayoutOrder = 3
+		local plus = Components.SecondaryButton(line, "BotsPlus", "+")
+		plus.root.Size = UDim2.fromOffset(40, 40)
+		plus.root.LayoutOrder = 4
+		plus.onActivated(function()
+			if soloBots < Protocol.MAX_BOTS then
+				soloBots += 1
+				rebuild()
+			end
+		end)
+
+		inline(line, "CashLabel", Strings.get("lobby.solo.money"), 5, 110)
+		cashInput(line, 6, soloSettings.startingCash, function(value: number)
+			soloSettings.startingCash = value
+		end)
+
+		local mode = Components.SecondaryButton(line, "SoloMode", Strings.get(`lobby.mode.{soloMode}`))
+		mode.root.Size = UDim2.fromOffset(140, 40)
+		mode.root.LayoutOrder = 7
+		mode.onActivated(function()
+			soloMode = if soloMode == "Rounds" then "Endless" else "Rounds"
+			rebuild()
+		end)
+
+		local start = Components.PrimaryButton(line, "SoloStart", Strings.get("lobby.solo.start"))
+		start.root.Size = UDim2.fromOffset(250, 56)
+		start.root.LayoutOrder = 8
+		start.onActivated(function()
+			request("Solo", {
+				type = "SoloStart",
+				bots = soloBots,
+				endMode = soloMode,
+				settings = table.clone(soloSettings),
+			})
+		end)
 	end
 
 	local function buildIdle(row: Frame)
@@ -172,12 +323,32 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 	local function buildSettings(row: Frame)
 		local poster = column(row, "Settings", 3, 0.4)
 		title(poster, "lobby.settings", 1)
-		local order = 2
+		-- Con el dinero escrito a mano la lista ya no cabe en pantallas bajas: se desplaza dentro del
+		-- cartel en vez de salirse por abajo.
+		local scroll = Instance.new("ScrollingFrame")
+		scroll.Name = "Options"
+		scroll.BackgroundTransparency = 1
+		scroll.BorderSizePixel = 0
+		scroll.ScrollBarThickness = 6
+		scroll.ScrollBarImageColor3 = Theme.color.asphalt
+		scroll.ScrollingDirection = Enum.ScrollingDirection.Y
+		scroll.Size = UDim2.fromScale(1, 0)
+		scroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+		scroll.AutomaticCanvasSize = Enum.AutomaticSize.Y
+		scroll.LayoutOrder = 2
+		scroll.Parent = poster.content
+		Board.fill(scroll)
+		local options = Instance.new("UIListLayout")
+		options.FillDirection = Enum.FillDirection.Vertical
+		options.Padding = UDim.new(0, Theme.space.m)
+		options.SortOrder = Enum.SortOrder.LayoutOrder
+		options.Parent = scroll
+		local order = 1
 		for _, option in MatchSettings.OPTIONS do
 			if option.roundsOnly == true and endMode ~= "Rounds" then
 				continue
 			end
-			local caption = Board.caption(poster.content, `{option.id}Label`, option.label, order)
+			local caption = Board.caption(scroll, `{option.id}Label`, option.label, order)
 			caption.FontFace = Theme.font.roadBold
 			caption.TextSize = 16
 			caption.TextColor3 = Theme.color.asphalt
@@ -197,7 +368,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 				end
 				selected = tostring(current)
 			end
-			Board.Tabs(poster.content, order, tabs, selected, function(id: string)
+			Board.Tabs(scroll, order, tabs, selected, function(id: string)
 				if option.kind == "toggle" then
 					(settings :: any)[option.id] = id == "on"
 				else
@@ -210,12 +381,20 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 				rebuild()
 			end)
 			order += 1
-			local help = Board.text(poster.content, `{option.id}Help`, option.help, order, 13)
+			-- El dinero inicial además se escribe a mano: las pestañas son atajos, no una lista cerrada.
+			if option.id == "startingCash" then
+				local box = cashInput(scroll, order, settings.startingCash, function(value: number)
+					settings.startingCash = value
+				end)
+				box.Size = UDim2.new(1, -8, 0, 40)
+				order += 1
+			end
+			local help = Board.text(scroll, `{option.id}Help`, option.help, order, 13)
 			help.TextColor3 = Theme.color.asphalt
 			order += 1
 		end
-		local reset = Components.SecondaryButton(poster.content, "Reset", Strings.get("lobby.settings.reset"))
-		reset.root.Size = UDim2.new(1, 0, 0, 36)
+		local reset = Components.SecondaryButton(scroll, "Reset", Strings.get("lobby.settings.reset"))
+		reset.root.Size = UDim2.new(1, -8, 0, 36)
 		reset.root.LayoutOrder = order
 		reset.root.Visible = not MatchSettings.isDefault(settings)
 		reset.onActivated(function()
@@ -291,6 +470,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 			buildWaiting(row, "lobby.queueWait")
 		else
 			buildIdle(row)
+			buildSolo(3)
 		end
 
 		-- Pie: el último aviso del servidor. Un error lleva sello rojo, no solo color.
@@ -298,7 +478,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), close
 		foot.Name = "Footer"
 		foot.BackgroundTransparency = 1
 		foot.Size = UDim2.new(1, 0, 0, Ui.lobby.noticeHeight)
-		foot.LayoutOrder = 3
+		foot.LayoutOrder = if state == "Idle" then 4 else 3
 		foot.Parent = window.stack
 		local layout = Board.list(foot, Enum.FillDirection.Horizontal, Theme.space.m)
 		layout.VerticalAlignment = Enum.VerticalAlignment.Center

@@ -44,6 +44,10 @@ MatchSettings.DEFAULTS = {
 -- Multiplicador de las rondas de `Economy.rounds` según la duración elegida.
 MatchSettings.LENGTH_FACTOR = { Short = 0.6, Normal = 1, Long = 1.5 } :: { [string]: number }
 
+-- El dinero inicial también se puede escribir a mano en el lobby. El rango evita partidas que
+-- empiezan con calderilla o con un millón: lo que caiga fuera se recorta al extremo más cercano.
+MatchSettings.CASH_RANGE = { min = 500, max = 100000 } :: { min: number, max: number }
+
 -- Orden en que aparecen en el lobby.
 MatchSettings.OPTIONS = {
 	{
@@ -124,6 +128,15 @@ function MatchSettings.defaults(): Settings
 	return table.clone(MatchSettings.DEFAULTS)
 end
 
+-- Dinero inicial válido a partir de lo que se escriba o llegue de fuera: un entero dentro del
+-- rango, recortado al extremo más cercano. `nil` si no es un número entero.
+function MatchSettings.clampCash(value: any): number?
+	if type(value) ~= "number" or value % 1 ~= 0 then
+		return nil
+	end
+	return math.clamp(value, MatchSettings.CASH_RANGE.min, MatchSettings.CASH_RANGE.max)
+end
+
 -- Configuración válida a partir de lo que llegue de fuera (cliente, teleport o un dato viejo): cada valor
 -- desconocido o de otro tipo vuelve al de por defecto. Nunca falla.
 function MatchSettings.normalize(raw: any): Settings
@@ -131,7 +144,15 @@ function MatchSettings.normalize(raw: any): Settings
 	if type(raw) ~= "table" then
 		return settings
 	end
+	-- El dinero inicial es libre dentro del rango, no una lista cerrada: se acepta cualquier entero.
+	local cash = MatchSettings.clampCash(raw.startingCash)
+	if cash ~= nil then
+		(settings :: any).startingCash = cash
+	end
 	for _, option in MatchSettings.OPTIONS do
+		if option.id == "startingCash" then
+			continue
+		end
 		local value = raw[option.id]
 		if option.kind == "toggle" then
 			if type(value) == "boolean" then

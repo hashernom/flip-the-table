@@ -26,6 +26,8 @@ Protocol.REMOTES = {
 	PartyJoin = "PartyJoinRequest",
 	PartyStart = "PartyStartRequest",
 	QueueJoin = "QueueJoinRequest",
+	-- Modo solo: un jugador contra bots, con su propio modo y configuración.
+	SoloStart = "SoloStartRequest",
 	Notice = "LobbyNotice",
 	-- Emotes del cliente (plan 05): no son una acción del motor, así que no pasan por la puerta de
 	-- acciones. El servidor los reenvía a todo el grupo y el cliente los enseña sobre la ficha.
@@ -253,6 +255,13 @@ end
 
 local END_MODES = { "Rounds", "Endless" }
 
+-- Modo solo: el jugador más sus bots. Ocho asientos como mucho, así que de 1 a 7 bots.
+Protocol.MAX_BOTS = 7
+
+local function isBotCount(value: any): boolean
+	return type(value) == "number" and value % 1 == 0 and value >= 1 and value <= Protocol.MAX_BOTS
+end
+
 -- Configuración de la partida privada: aquí solo la forma (pocas claves de texto con valores simples). Qué
 -- valores valen lo decide `MatchSettings.normalize` en el servidor.
 local MAX_SETTINGS_KEYS = 16
@@ -286,6 +295,10 @@ local LOBBY_SPECS: { [string]: ActionSpec } = {
 	PartyJoin = { required = { "code" }, fields = { code = isPartyCode } },
 	PartyStart = { required = { "endMode" }, fields = { endMode = oneOf(END_MODES), settings = isSettings } },
 	QueueJoin = { required = {}, fields = {} },
+	SoloStart = {
+		required = { "bots", "endMode" },
+		fields = { bots = isBotCount, endMode = oneOf(END_MODES), settings = isSettings },
+	},
 }
 
 -- Reglas de forma que cruzan dos campos: no son legalidad de fase, solo aseguran que la acción

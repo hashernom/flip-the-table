@@ -7,6 +7,12 @@
   ],
   "tree": {
     "$className": "DataModel",
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "LightingStyle": "Realistic"
+      }
+    },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
       "Shared": {

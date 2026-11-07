@@ -34,6 +34,8 @@ type JoinData = {
 	code: string?,
 	size: number?,
 	settings: any?,
+	-- Modo solo: bots que se sientan además del jugador que llega (0 en party y cola).
+	bots: number?,
 }
 
 -- Rango del estado de Rng (31 bits): la semilla del motor no puede salir de ahí.
@@ -68,6 +70,10 @@ local function readJoinData(player: Player): JoinData?
 		return nil
 	end
 	local code = teleportData.code
+	local bots = teleportData.bots
+	if type(bots) ~= "number" or bots % 1 ~= 0 or bots < 0 or bots > Protocol.MAX_BOTS then
+		bots = 0
+	end
 	local size = teleportData.size
 	if
 		type(size) ~= "number"
@@ -87,6 +93,7 @@ local function readJoinData(player: Player): JoinData?
 		size = size :: number?,
 		-- MatchService la normaliza: un dato roto vuelve a la configuración por defecto.
 		settings = teleportData.settings,
+		bots = bots :: number,
 	}
 end
 
@@ -116,19 +123,23 @@ local function tryStart()
 		return
 	end
 	local now = os.clock()
+	local data = joinData
+	local bots = if data ~= nil then (data.bots or 0) else 0
+	-- Con bots, el único humano que llega ya es una mesa completa: no hay grupo al que esperar.
+	local needed = if bots > 0 then 1 else Lobby.minPlayers
 	if firstSeenAt == nil then
 		firstSeenAt = now
 	end
-	if #players >= Lobby.minPlayers and minimumAt == nil then
+	if #players >= needed and minimumAt == nil then
 		minimumAt = now
 	end
-	local data = joinData
 	local since = minimumAt
 	local decision = JoinRules.decide({
 		present = #players,
 		expected = if data ~= nil then data.size else nil,
 		sinceFirst = now - (firstSeenAt :: number),
 		sinceMinimum = if since ~= nil then now - since else nil,
+		bots = bots,
 	})
 	if decision == "Wait" then
 		return
@@ -143,7 +154,7 @@ local function tryStart()
 	for index = 1, math.min(#players, Lobby.maxPlayers) do
 		group[index] = players[index]
 	end
-	if #group < Lobby.minPlayers then
+	if #group < needed then
 		return
 	end
 
@@ -152,16 +163,19 @@ local function tryStart()
 	-- `starting` cubre el hueco entre el aviso de PlayerAdded y el bucle de espera: MatchService
 	-- no debe arrancar dos veces la misma partida.
 	starting = true
-	local settings = if data ~= nil then data.settings else nil
-	local ok, err = pcall(MatchService.start, group, seed, endMode, settings)
+	local startSettings = if data ~= nil then data.settings else nil
+	local ok, err = pcall(MatchService.start, group, seed, endMode, startSettings, bots)
 	starting = false
 	if not ok then
 		warn(`Lugar de partida: no se pudo empezar la partida: {err}`)
 		return
 	end
 	started = true
-	local label = if data ~= nil and data.code ~= nil then `party {data.code}` else "cola pública o Studio"
-	print(`Lugar de partida: {#group} jugadores, semilla {seed}, modo {endMode}, {label}`)
+	local label = if bots > 0
+		then `solo con {bots} bots`
+		elseif data ~= nil and data.code ~= nil then `party {data.code}`
+		else "cola pública o Studio"
+	print(`Lugar de partida: {#group} jugadores, {bots} bots, semilla {seed}, modo {endMode}, {label}`)
 end
 
 -- La puerta valida, limita y filtra; el servicio aplica la acción al motor. Se conecta una sola vez

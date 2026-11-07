@@ -38,6 +38,18 @@ describe("MatchSettings.normalize", function()
 		expect((settings :: any).extra).toBe(nil)
 	end)
 
+	it("el dinero inicial se escribe a mano dentro del rango", function()
+		expect(MatchSettings.normalize({ startingCash = 1750 }).startingCash).toBe(1750)
+		expect(MatchSettings.normalize({ startingCash = 1 }).startingCash).toBe(MatchSettings.CASH_RANGE.min)
+		expect(MatchSettings.normalize({ startingCash = 10 ^ 9 }).startingCash).toBe(
+			MatchSettings.CASH_RANGE.max
+		)
+		expect(MatchSettings.normalize({ startingCash = 12.5 }).startingCash).toBe(Economy.startingCash)
+		expect(MatchSettings.normalize({ startingCash = "2000" }).startingCash).toBe(Economy.startingCash)
+		expect(MatchSettings.clampCash(2400)).toBe(2400)
+		expect(MatchSettings.clampCash("2400")).toBe(nil)
+	end)
+
 	it("cada opción por defecto está entre sus valores posibles", function()
 		for _, option in MatchSettings.OPTIONS do
 			local value = (MatchSettings.DEFAULTS :: any)[option.id]

@@ -15,18 +15,22 @@ export type Situation = {
 	sinceFirst: number,
 	-- Segundos desde que hay jugadores suficientes, o nil si aún no los hay.
 	sinceMinimum: number?,
+	-- Bots que se sientan con el grupo (modo solo). Con bots, un solo humano ya es la mesa entera.
+	bots: number?,
 }
 
 local JoinRules = {}
 
 function JoinRules.decide(situation: Situation): Decision
-	local enough = situation.present >= Lobby.minPlayers
+	local bots = situation.bots or 0
+	local minimum = if bots > 0 then 1 else Lobby.minPlayers
+	local enough = situation.present >= minimum
 	local expected = situation.expected
 	if expected == nil then
 		local since = situation.sinceMinimum
 		return if enough and since ~= nil and since >= Scenes.joinSec then "Start" else "Wait"
 	end
-	if enough and situation.present >= expected then
+	if enough and situation.present + bots >= expected then
 		return "Start"
 	end
 	if situation.sinceFirst < Scenes.joinTimeoutSec then
