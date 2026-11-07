@@ -66,7 +66,7 @@ local function boot()
 	local EventQueue = require("./state/EventQueue")
 	local StateStore = require("./state/StateStore")
 	local ResyncGate = require("./state/ResyncGate")
-	local ViewWire = require("./state/ViewWire")
+	local ViewWire = require("../shared/net/ViewWire")
 	local SceneDirector = require("./scenes/SceneDirector")
 	local Protocol = require("../shared/net/Protocol")
 	local ActionMenu = require("./ui/ActionMenu")
@@ -1006,6 +1006,11 @@ local function boot()
 				lobbyMenu.setVisible(false)
 			end,
 			ActionMenu = function()
+				-- El gestor y el libro se refrescan siempre: con un bot al mando sigue comprando por el
+				-- jugador, y saltárselos dejaba sus propiedades congeladas en la última vista.
+				local afterManage, byIndex = ActionMenuRules.splitManageActions(view.legalActions or {})
+				manager.setData(view, byIndex)
+				book.setData(view)
 				-- Con un bot al mando del asiento propio, el panel se aparta: el botón amarillo es Retomar.
 				for _, seated in view.players do
 					if seated.id == view.playerId and seated.isBot == true then
@@ -1015,9 +1020,6 @@ local function boot()
 					end
 				end
 				-- Las cartas se juegan desde la mano; el panel de la derecha no las repite.
-				local afterManage, byIndex = ActionMenuRules.splitManageActions(view.legalActions or {})
-				manager.setData(view, byIndex)
-				book.setData(view)
 				local rest, byCard = ActionMenuRules.splitHandActions(afterManage)
 				local playable: { [string]: { { action: any, label: string, target: string?, tint: string? } } } =
 					{}

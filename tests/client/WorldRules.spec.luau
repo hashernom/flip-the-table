@@ -7,7 +7,7 @@ local CityLayout = require("../../src/shared/config/CityLayout")
 local Economy = require("../../src/shared/config/Economy")
 local Fixtures = require("../fixtures")
 local View = require("../../src/shared/rules/View")
-local ViewWire = require("../../src/client/state/ViewWire")
+local ViewWire = require("../../src/shared/net/ViewWire")
 local WorldRules = require("../../src/client/world/WorldRules")
 
 local describe, it, expect = Harness.describe, Harness.it, Harness.expect
