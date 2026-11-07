@@ -9,6 +9,7 @@ local Scenes = require("../../shared/config/Scenes")
 local Score = require("../../shared/rules/Score")
 local Types = require("../../shared/rules/Types")
 local View = require("../../shared/rules/View")
+local ViewWire = require("../../shared/net/ViewWire")
 local SceneClock = require("./SceneClock")
 
 type Event = Types.Event
@@ -212,7 +213,8 @@ function MatchState.batch(state: GameState, step: Step, playerId: PlayerId): Bat
 		startsAt = step.startsAt,
 		decisionDeadline = step.decisionDeadline,
 		events = View.filterEvents(state, playerId, step.events),
-		view = View.forPlayer(state, playerId),
+		-- Las claves de `properties` viajan como texto (ViewWire): con números se pierden entradas.
+		view = ViewWire.encode(View.forPlayer(state, playerId)),
 	}
 end
 
@@ -225,7 +227,8 @@ function MatchState.resync(match: MatchState, state: GameState, playerId: Player
 		startsAt = now,
 		decisionDeadline = match.decisionDeadline,
 		events = {},
-		view = View.forPlayer(state, playerId),
+		-- Las claves de `properties` viajan como texto (ViewWire): con números se pierden entradas.
+		view = ViewWire.encode(View.forPlayer(state, playerId)),
 	}
 end
 

@@ -1,6 +1,6 @@
 # Incidencia: el cliente no reconoce como propias las propiedades compradas
 
-**Fecha:** 2026-11-07. **Estado:** abierta, causa sin confirmar. **Rama de diagnóstico:** `diag-propiedades` (`96dfdfb`), sobre `main` (`c29eaef`).
+**Fecha:** 2026-11-07. **Estado:** causa identificada y corregida en la rama `fix-propiedades-cable`; pendiente de confirmar en una partida publicada. **Rama de diagnóstico:** `diag-propiedades` (`96dfdfb`), sobre `main` (`c29eaef`).
 
 Este documento es autocontenido: resumen, evidencias, qué se descartó y cómo, hipótesis abiertas y la instrumentación ya preparada.
 
@@ -59,7 +59,7 @@ Partida publicada, 5 humanos (4 reales + el responsable), sin bots, **sin subast
 
 1. **La vista del servidor.** 12 partidas completas de 5 jugadores con bots, comparando `View.forPlayer(state, id).properties[i].ownerId` contra `state.properties[i].ownerId` cada 40 acciones: **0 divergencias**. El script está en el apéndice A.
 2. **Compra y subasta.** `Property.buy` cobra y asigna `ownerId` en la misma operación; `Auction.close` (`src/shared/rules/Auction.luau:101`) también. En esta partida no hubo subastas.
-3. **El transporte (conversión de claves).** `properties` es una tabla con huecos: Roblox la manda como diccionario con claves de texto y `ViewWire.normalize` las devuelve a número. Simulado en Lune con 5 propiedades compradas: `owned` = 5 antes y después del «cable».
+3. ~~**El transporte (conversión de claves).**~~ **Descarte erróneo: era la causa (ver §11).** La simulación pasaba *todas* las claves a texto, que es el caso del diccionario puro y sí funciona; nunca reprodujo la forma real de la tabla.
 4. **Mutaciones del cliente.** Ningún código de `src/client` escribe `ownerId`.
 5. **El merge como origen directo.** `View.luau`, `MatchState.luau`, `src/client/state/*` y `BuildingView`/`CityBuilder` **no cambiaron** entre `27fb1a9` (main anterior) y `c29eaef`.
 6. **El gestor como único culpable.** El panel de trato usa otra función (`SocialRules.tradeableSquares`) y falla igual.
@@ -138,3 +138,16 @@ end
 ```
 
 Resultado esperado tal como se ejecutó: **ninguna divergencia** en 12 semillas.
+
+## 11. Causa y arreglo
+
+**Causa.** `View.viewProperties` devuelve `properties` indexada por casilla con huecos. En el tablero M las claves son `2,3,5,6,7,9,10,11,14,15,16,20,21,22,26,27,28,32,33,34,38,39,41,42,43,45,46,47`. Luau guarda esa tabla **mezclada**: un tramo de array con `nil` dentro (de la 2 a la 34, y la 1 vacía) y el resto en el hash. En Lune, `rawlen(view.properties)` da 16, y `next` recorre en orden de la 2 a la 34 y luego desordenado de la 38 a la 47. La documentación de los `RemoteEvent` pide no pasar tablas con `nil` en sus índices: Roblox no la transmite entera, y al cliente le llegan menos entradas. Las compras que caen en las que se pierden no se ven en ninguna superficie. Eso explica los cuatro síntomas a la vez, y que el servidor siga cobrando bien.
+
+**Arreglo** (rama `fix-propiedades-cable`):
+
+- `ViewWire` pasa de `src/client/state` a `src/shared/net` y gana `ViewWire.encode`, que copia la vista con las claves de `properties` en texto (un diccionario puro, sin tramo de array).
+- `MatchState.batch` y `MatchState.resync` envían `ViewWire.encode(View.forPlayer(...))`. En el cliente, `ViewWire.normalize` ya devolvía las claves a número.
+- `tests/net/ViewWire.spec.luau`: para los tableros de 2 a 8 jugadores, con todas las propiedades con dueño, comprueba que solo hay claves de texto, que `rawlen` da 0 y que la ida y vuelta conserva el dueño y el nivel de cada casilla. También comprueba que `resync` envía la vista codificada; sin el arreglo, esa prueba falla (`rawlen` 16).
+- **H4** corregida: en `applyView`, `manager.setData` y `book.setData` se ejecutan antes del chequeo de `isBot`.
+
+**Pendiente:** publicar y comprobar en una partida real. La línea `[DIAG]` de esta rama debería dar `total=28` y `mias` igual a las compradas. Las 32 líneas de `print` de diagnóstico se quitan antes de fusionar con `main`.
