@@ -71,6 +71,9 @@ local MIN_BY_EVENT: { [string]: number } = {
 	-- El robo: la carta sale del mazo y su dueño la ve en grande antes de que vuele a la mano.
 	CardDrawn = 2,
 }
+-- Una legendaria repetida sigue siendo el número de la partida: por debajo de este suelo ya solo es un
+-- parpadeo (la quinta vez que sale una de 13 s tocaría a 0,8 s), así que se queda en un plano corto.
+local LEGENDARY_MIN_DURATION = 2.5
 
 -- Cartas por rareza: comunes y raras de 2 a 4 s, legendarias hasta 10 s (ficha, «Las escenas no
 -- pueden frenar la partida»).
@@ -152,7 +155,15 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 		return base
 	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
-	return math.max(MIN_BY_EVENT[event.type] or MIN_DURATION, base * REPEAT_FACTOR ^ seen)
+	local floor = MIN_BY_EVENT[event.type] or MIN_DURATION
+	if
+		event.type == "CardPlayed"
+		and type(event.cardId) == "string"
+		and LEGENDARY_DURATION[event.cardId] ~= nil
+	then
+		floor = math.max(floor, LEGENDARY_MIN_DURATION)
+	end
+	return math.max(floor, base * REPEAT_FACTOR ^ seen)
 end
 
 -- Una escena que empieza tarde arranca en su punto; si le queda menos que esto, se omite: no da tiempo a
