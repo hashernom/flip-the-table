@@ -17,8 +17,9 @@ export type World = { tables: { [string]: TableHandles }, spawn: SpawnLocation }
 
 local LobbyWorld = {}
 
-local GRASS = Color3.fromRGB(96, 140, 74)
-local LAWN = Color3.fromRGB(108, 156, 82)
+-- Césped apagado a propósito: con la luz de mediodía, un verde puro se ve de neón y se come el parque.
+local GRASS = Color3.fromRGB(104, 130, 90)
+local LAWN = Color3.fromRGB(114, 146, 98)
 local PATH = Color3.fromRGB(205, 196, 176)
 local CURB = Color3.fromRGB(180, 172, 156)
 local ASPHALT = Color3.fromHex(Ui.palette.asphalt)

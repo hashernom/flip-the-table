@@ -19,6 +19,7 @@ export type Handles = {
 	setNotice: (text: string, kind: string?) -> (),
 	setVisible: (visible: boolean) -> (),
 	isVisible: () -> boolean,
+	onClosed: (callback: () -> ()) -> (),
 	destroy: () -> (),
 }
 
@@ -27,7 +28,7 @@ type Request = "Create" | "Join" | "Queue" | "Start"
 
 local LobbyMenu = {}
 
-function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Handles
+function LobbyMenu.create(playerGui: Instance, send: (request: any) -> (), closeLabel: string?): Handles
 	local window = Board.Window(playerGui, "LobbyMenu", 9, false)
 	local state: State = "Idle"
 	local lastRequest: Request? = nil
@@ -301,6 +302,13 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 		foot.Parent = window.stack
 		local layout = Board.list(foot, Enum.FillDirection.Horizontal, Theme.space.m)
 		layout.VerticalAlignment = Enum.VerticalAlignment.Center
+		-- Salida siempre a la vista: el tablón no se cierra tocando fuera, así que lleva su propio botón.
+		local back = Components.SecondaryButton(foot, "Close", closeLabel or Strings.get("lobby.leaveView"))
+		back.root.Size = UDim2.fromOffset(190, 36)
+		back.root.LayoutOrder = 0
+		back.onActivated(function()
+			window.setOpen(false)
+		end)
 		if noticeIsError then
 			local stamp = Components.Stamp(foot, Strings.get("lobby.error"), "Loss", 14)
 			stamp.LayoutOrder = 1
@@ -343,6 +351,7 @@ function LobbyMenu.create(playerGui: Instance, send: (request: any) -> ()): Hand
 			window.setOpen(visible)
 		end,
 		isVisible = window.isOpen,
+		onClosed = window.onClosed,
 		destroy = function()
 			window.gui:Destroy()
 		end,

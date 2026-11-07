@@ -260,6 +260,7 @@ local TEXTS: { [string]: string } = {
 	["lobby.guestWait"] = "Estás dentro. El anfitrión elige el modo y empieza la partida.",
 	["lobby.queueWait"] = "Buscando mesa en la cola pública…",
 	["lobby.leaveView"] = "Volver",
+	["lobby.backToPark"] = "Volver al parque",
 	["lobby.error"] = "Error",
 	["lobby.idleNotice"] = "Crea una party o escribe un código para unirte.",
 	["guide.title"] = "Primera partida",

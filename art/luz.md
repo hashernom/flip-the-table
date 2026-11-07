@@ -132,6 +132,29 @@ ocho materiales en cualquier place. `art/lookdev/look.json` es una foto del mism
 comparar. Antes de esto, la luz y los `MaterialVariant` solo existían dentro del `.rbxl` del banco de
 pruebas, que no se versiona.
 
+## El preset del lobby (2026-11-06)
+
+El parque del lobby no es una calle: es un descampado abierto a mediodía, con superficies grandes y
+planas (césped, calzada, mesas de colores) y sin fachadas que hagan sombra. El preset de la partida
+lo dejaba saturado y blanco, como de neón. Tiene el suyo, `Look.applyLobby()` en
+`src/client/world/Look.luau`, con la misma hora y el mismo cielo:
+
+| Ajuste | Valor |
+| --- | --- |
+| `Brightness` | 2,2 |
+| `Ambient` | 52 / 56 / 66 |
+| `OutdoorAmbient` | 100 / 104 / 116 |
+| `ExposureCompensation` | −0,1 |
+| `EnvironmentDiffuseScale` | 0,5 |
+| `Atmosphere` | densidad 0,34 · bruma 1,6 |
+| `Bloom` | intensidad 0,22 · umbral 1,6 |
+| `ColorCorrection` | contraste 0,08 · saturación 0,80 · tinte 252/244/232 |
+
+La mitad del efecto está en la luz y la otra mitad en el material: el césped de `LobbyWorld` pasó de
+`96/140/74` a `104/130/90` y el segundo tono de `108/156/82` a `114/146/98`. Un verde puro con el sol
+alto se lee como plástico, y era lo que más saturaba la escena. Si con las mesas llenas de jugadores
+se ve apagado, se sube la saturación antes que el `Brightness`: el brillo es lo que quema.
+
 
 ## Con assets: hasta dónde llega
 
