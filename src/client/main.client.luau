@@ -989,6 +989,9 @@ local function boot()
 		warn("Cliente: falta el remoto de emotes; se juega sin emotes")
 	end
 
+	-- DIAGNÓSTICO TEMPORAL (rama diag-propiedades).
+	local diagMine = -1
+
 	-- Aplica una vista a la barra, los asientos y los menús. Es el único sitio que lo hace: así la
 	-- interfaz nunca enseña dos verdades distintas.
 	-- Cada pieza va protegida: un menú con un fallo pierde su función, no se lleva por delante el bucle
@@ -996,6 +999,35 @@ local function boot()
 	local function applyView(view: any)
 		if view == nil then
 			return
+		end
+		-- DIAGNÓSTICO TEMPORAL (rama diag-propiedades): qué propiedades llegan con dueño al cliente
+		-- y con qué tipo de clave. Se quita en cuanto se lea el F9.
+		if type(view.properties) == "table" then
+			local total, mine = 0, 0
+			local detail = {}
+			local seats = {}
+			for index, property in view.properties do
+				total += 1
+				local owner = property.ownerId
+				if owner ~= nil then
+					if owner == view.playerId then
+						mine += 1
+					end
+					table.insert(detail, `{tostring(index)}({type(index)})={tostring(owner)}({type(owner)})`)
+				end
+			end
+			for _, seated in view.players or {} do
+				table.insert(seats, tostring(seated.id))
+			end
+			if mine ~= diagMine then
+				diagMine = mine
+				print(
+					`[DIAG] tablero={tostring(view.sizeId)} yo={tostring(view.playerId)}({type(view.playerId)}) mias={mine} total={total} asientos={table.concat(
+						seats,
+						","
+					)} duenos={table.concat(detail, " ")}`
+				)
+			end
 		end
 		ViewText.rememberNames(names, view, lookupName)
 		local steps: { [string]: () -> () } = {
