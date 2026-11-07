@@ -89,6 +89,7 @@ local function boot()
 	local LegendaryKit = require("./scenes/legendary/LegendaryKit")
 	local TweenService = game:GetService("TweenService")
 	local PropertyManager = require("./ui/PropertyManager")
+	local DeedBook = require("./ui/DeedBook")
 	local PactMenu = require("./ui/PactMenu")
 	local RematchMenu = require("./ui/RematchMenu")
 	local SettingsMenu = require("./ui/SettingsMenu")
@@ -126,6 +127,8 @@ local function boot()
 	end)
 	-- Gestionar propiedades (R-P53): la cámara enseña de cerca la propiedad elegida.
 	local manager = PropertyManager.create(playerGui)
+	-- Libro de escrituras (R-P61): todas las del jugador, plegadas; desde una se va al gestor.
+	local book = DeedBook.create(playerGui)
 	-- Cartelera: la tirada del cartel cuando alguien cae en su casilla.
 	local billboard = Billboard.create(playerGui)
 	-- Sin partida todavía suena la música del lobby.
@@ -743,22 +746,31 @@ local function boot()
 		end
 	end)
 
-	local function toggleManager()
-		if manager.isOpen() then
+	-- Gestionar abre las dos cosas: el gestor de abajo y el cajón de escrituras de la izquierda.
+	local function toggleManage()
+		if manager.isOpen() or book.isOpen() then
 			manager.setOpen(false)
-		elseif not manager.setOpen(true) then
+			book.setOpen(false)
+		elseif manager.setOpen(true) then
+			book.setOpen(true)
+		else
 			hud.setToast(Strings.get("manage.none"))
 		end
 	end
-	hud.onManage(toggleManager)
+	-- El cajón manda la casilla al gestor: es el único sitio que construye, vende o hipoteca.
+	book.onManage(function(index: number)
+		manager.focus(index)
+	end)
+	hud.onManage(toggleManage)
 	game:GetService("UserInputService").InputBegan:Connect(function(input: InputObject, processed: boolean)
 		if not processed and input.KeyCode == Enum.KeyCode.G then
-			toggleManager()
+			toggleManage()
 		end
 	end)
 	manager.onFocus(function(index: number?)
 		local handles = city
 		director.setManageFocus(if index ~= nil and handles ~= nil then handles.lotOf(index) else nil)
+		book.markFocused(index)
 	end)
 	manager.onAction(function(action: any)
 		sendAction(action)
@@ -827,6 +839,8 @@ local function boot()
 			tradeMenu.setOpen(false)
 			pactMenu.setOpen(false)
 			settings.setOpen(false)
+			book.setOpen(false)
+			manager.setOpen(false)
 			if overviewWanted then
 				overviewWanted = false
 				director.requestOverview(false)
@@ -1003,6 +1017,7 @@ local function boot()
 				-- Las cartas se juegan desde la mano; el panel de la derecha no las repite.
 				local afterManage, byIndex = ActionMenuRules.splitManageActions(view.legalActions or {})
 				manager.setData(view, byIndex)
+				book.setData(view)
 				local rest, byCard = ActionMenuRules.splitHandActions(afterManage)
 				local playable: { [string]: { { action: any, label: string, target: string?, tint: string? } } } =
 					{}
@@ -1078,6 +1093,7 @@ local function boot()
 		tradeMenu.setOpen(false)
 		pactMenu.setOpen(false)
 		manager.setOpen(false)
+		book.setOpen(false)
 		if overviewWanted then
 			overviewWanted = false
 			director.requestOverview(false)
@@ -1181,7 +1197,7 @@ local function boot()
 		local events = due.events
 		-- Con «Propiedades» abierto, un lote que solo trae obras e hipotecas no cierra el gestor ni mueve la
 		-- cámara: el jugador sigue gestionando de corrido y los demás ven el mismo primer plano.
-		local manageOnly = manager.isOpen() and events ~= nil and #events > 0
+		local manageOnly = (manager.isOpen() or book.isOpen()) and events ~= nil and #events > 0
 		for _, event in events or {} do
 			if not MANAGE_EVENTS[event.type] then
 				manageOnly = false

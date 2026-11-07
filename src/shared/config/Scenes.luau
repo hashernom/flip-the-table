@@ -81,11 +81,12 @@ local CARD_DURATION: { [string]: number } = {
 }
 
 -- Escena propia de cada legendaria: las cinco se anuncian con su id, así que cada una tiene su
--- momento. Ninguna pasa de 10 s.
+-- momento. La Revolución es la única que pasa de 10 s: la multitud y el blindado llegan de lejos y con
+-- menos tiempo no se veía llegar ninguno de los dos.
 local LEGENDARY_DURATION: { [string]: number } = {
 	Hurricane = 10,
 	WorldFlip = 9,
-	Revolution = 8,
+	Revolution = 13,
 	Earthquake = 7,
 	CrownStrike = 6,
 }

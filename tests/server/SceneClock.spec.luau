@@ -190,9 +190,10 @@ describe("Scenes", function()
 		expect(Scenes.botDelayFor("AwaitRoll")).toBe(Scenes.botDelaySec)
 	end)
 
-	it("ninguna legendaria supera 10 s", function()
+	it("ninguna legendaria supera 10 s (la Revolución llega a 13)", function()
 		for _, cardId in { "Hurricane", "WorldFlip", "Revolution", "Earthquake", "CrownStrike" } do
-			expect(Scenes.durationFor(cardEvent(cardId), 0) <= 10).toBeTruthy()
+			local limit = if cardId == "Revolution" then 13 else 10
+			expect(Scenes.durationFor(cardEvent(cardId), 0) <= limit).toBeTruthy()
 		end
 	end)
 
@@ -201,7 +202,8 @@ describe("Scenes", function()
 			local duration = Scenes.durationFor(cardEvent(card.id), 0)
 			expect(duration > 0).toBeTruthy()
 			if card.rarity == "Legendary" then
-				expect(duration <= 10).toBeTruthy()
+				local limit = if card.id == "Revolution" then 13 else 10
+				expect(duration <= limit).toBeTruthy()
 			elseif card.rarity == "Rare" then
 				expect(duration <= 6).toBeTruthy()
 			else

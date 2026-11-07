@@ -61,7 +61,7 @@ Copia de la ficha aprobada, versión del 2026-11-01. Original editable: [documen
 | Bancarrota | Una grúa se lleva tu ficha y tu avatar se vuelve espectro |
 | Traición | Un foco te sigue y un cartel gigante te señala como Traidor |
 
-**Las escenas no pueden frenar la partida.** Los efectos comunes duran de 2 a 4 segundos; los legendarios, hasta 10. Las escenas repetidas tienen variaciones y se acortan si ya se vieron en esa partida.
+**Las escenas no pueden frenar la partida.** Los efectos comunes duran de 2 a 4 segundos; los legendarios, hasta 10 salvo la Revolución, que llega a 13 para que se vea llegar a la multitud y al blindado. Las escenas repetidas tienen variaciones y se acortan si ya se vieron en esa partida.
 
 ### Estándar de calidad de assets
 
