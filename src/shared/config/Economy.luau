@@ -16,7 +16,12 @@ return {
 	baseRentRate = 0.1,
 	completeZoneRentMultiplier = 2,
 	-- Multiplicador de renta de los niveles 1 a 5: una, dos y tres casas, hotel y rascacielos.
-	buildingRentMultiplier = { 2, 3, 5, 8, 12 },
+	-- Desde el 2026-11-06 la escalera imita la del clásico: los saltos de casa son de ×2 a ×2,4 y
+	-- el hotel cobra cinco veces el precio, no una vez y media (ver docs/02-mvp/resultados/balance-rentas.md).
+	buildingRentMultiplier = { 2, 5, 12, 24, 32 },
+	-- Paso del redondeo de la carta: toda renta impresa o cobrada termina en 0 o en 5, siempre
+	-- hacia arriba, para que la cifra se lea de un vistazo y el dueño nunca cobre menos que la fórmula.
+	rentRounding = 5,
 	buildingCostRate = 0.5,
 	-- R-P53: hipoteca. Se cobra `rate` del precio y recuperarla cuesta `repayRate`. Vender un edificio
 	-- devuelve la mitad del coste del nivel, igual que la venta forzosa de Bankruptcy.

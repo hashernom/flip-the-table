@@ -190,9 +190,10 @@ describe("Scenes", function()
 		expect(Scenes.botDelayFor("AwaitRoll")).toBe(Scenes.botDelaySec)
 	end)
 
-	it("ninguna legendaria supera 10 s", function()
+	it("ninguna legendaria supera 10 s (la Revolución llega a 13)", function()
 		for _, cardId in { "Hurricane", "WorldFlip", "Revolution", "Earthquake", "CrownStrike" } do
-			expect(Scenes.durationFor(cardEvent(cardId), 0) <= 10).toBeTruthy()
+			local limit = if cardId == "Revolution" then 13 else 10
+			expect(Scenes.durationFor(cardEvent(cardId), 0) <= limit).toBeTruthy()
 		end
 	end)
 
@@ -201,7 +202,8 @@ describe("Scenes", function()
 			local duration = Scenes.durationFor(cardEvent(card.id), 0)
 			expect(duration > 0).toBeTruthy()
 			if card.rarity == "Legendary" then
-				expect(duration <= 10).toBeTruthy()
+				local limit = if card.id == "Revolution" then 13 else 10
+				expect(duration <= limit).toBeTruthy()
 			elseif card.rarity == "Rare" then
 				expect(duration <= 6).toBeTruthy()
 			else
@@ -264,6 +266,19 @@ describe("SceneClock", function()
 		local third = SceneClock.schedule(clock, { { type = "DiceRolled" } }, 200) - 200
 		expect(second < first).toBeTruthy()
 		expect(third <= second).toBeTruthy()
+	end)
+
+	it("dos cartas distintas no se acortan entre sí", function()
+		local clock = SceneClock.new()
+		local hurricane = cardEvent("Hurricane")
+		local earthquake = cardEvent("Earthquake")
+		local first = SceneClock.schedule(clock, { hurricane }, 0)
+		local second = SceneClock.schedule(clock, { earthquake }, 100) - 100
+		expect(first).toBe(Scenes.durationFor(hurricane, 0))
+		expect(second).toBe(Scenes.durationFor(earthquake, 0))
+		-- La misma carta repetida sí se acorta.
+		local again = SceneClock.schedule(clock, { hurricane }, 200) - 200
+		expect(again).toBe(Scenes.durationFor(hurricane, 1))
 	end)
 
 	it("un lote que llega durante una escena empieza cuando esta acaba", function()

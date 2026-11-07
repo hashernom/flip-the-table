@@ -21,6 +21,12 @@ describe("CardStaging", function()
 				total += staging.fractions[step]
 			end
 			expect(near(total, 1, 1e-9)).toBe(true)
+			-- Ningún paso puede durar menos de medio segundo a duración completa: sería un parpadeo.
+			local base =
+				Scenes.durationFor({ type = "CardPlayed", cardId = name:gsub("^%l", string.upper) }, 0)
+			for _, step in staging.steps do
+				expect(staging.fractions[step] * base >= 0.5).toBe(true)
+			end
 		end
 	end)
 

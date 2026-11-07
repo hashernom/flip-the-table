@@ -107,7 +107,12 @@ function PactMenu.create(playerGui: Instance, send: (action: any) -> ()): Handle
 			Board.caption(propose.content, "PartnerCaption", Strings.get("pact.partner"), 2)
 			local partners: { Board.Tab } = {}
 			for _, rivalId in rivals do
-				table.insert(partners, { id = rivalId, label = ViewText.playerName(view, names, rivalId) })
+				table.insert(partners, {
+					id = rivalId,
+					label = ViewText.playerName(view, names, rivalId),
+					-- El punto lleva el color del asiento: se reconoce al rival sin leer el nombre.
+					tint = ViewText.seatTint(view, rivalId),
+				})
 			end
 			Board.Tabs(propose.content, 3, partners, state.targetId, function(id: string)
 				state.targetId = id

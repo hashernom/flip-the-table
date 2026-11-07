@@ -9,6 +9,7 @@ Punto de entrada a toda la documentación del proyecto: qué se construye y en q
 3. **Arquitectura:** [01-arquitectura/arquitectura.md](01-arquitectura/arquitectura.md). Stack, módulos y contratos que comparten todos los planes.
 4. **Una carpeta por fase:** cada una tiene su ficha (qué y por qué) y su plan (cómo, tarea por tarea).
 5. **Contenido del tablero:** [zonas, colores y propiedades](02-mvp/contenido-tablero.md). Nombres y precios de las 12 zonas y las 34 propiedades.
+6. **Balance de rentas:** [Monopoly contra nosotros](02-mvp/resultados/balance-rentas.md). Qué cobra el original en cada carta, qué cobramos nosotros y qué costaría acercarse.
 
 Cada tarea de cada plan indica sus módulos, sus interfaces, sus criterios de aceptación y sus pasos.
 

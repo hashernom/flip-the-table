@@ -4,6 +4,7 @@
 -- casilla (`ActionMenuRules.splitManageActions`): un botón solo se activa si su acción es legal.
 local Building = require("../../shared/rules/Building")
 local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Property = require("../../shared/rules/Property")
 local Strings = require("../../shared/config/Strings")
 local ViewText = require("./ViewText")
@@ -17,6 +18,8 @@ export type Info = {
 	level: number,
 	levelText: string,
 	rent: number,
+	-- La misma cifra ya formateada para la interfaz («1.920»), para que el panel no la imprima en crudo.
+	rentText: string,
 	mortgaged: boolean,
 	buttons: { Button },
 }
@@ -90,6 +93,9 @@ function PropertyManagerRules.info(view: any, index: number, actions: { any }?):
 			action = legal[kind],
 		})
 	end
+	-- R-P56: la cifra que importa ahora. La vista trae la renta viva —zona completa, Zona Caliente,
+	-- Inflación—; la tabla impresa es solo el respaldo cuando la vista no la trae.
+	local rent = if mortgaged then 0 else property.rent or rents[level + 1] or 0
 	return {
 		index = index,
 		name = ViewText.squareName(view, index),
@@ -97,7 +103,8 @@ function PropertyManagerRules.info(view: any, index: number, actions: { any }?):
 		zoneColor = if zone ~= nil then zone.color else "#888888",
 		level = level,
 		levelText = Strings.buildingLevel(level),
-		rent = if mortgaged then 0 else rents[level + 1] or 0,
+		rent = rent,
+		rentText = HudRules.formatMoney(rent),
 		mortgaged = mortgaged,
 		buttons = buttons,
 	}

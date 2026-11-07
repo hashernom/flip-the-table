@@ -10,6 +10,7 @@ local Boards = require("../../shared/config/Boards")
 local Building = require("../../shared/rules/Building")
 local Cards = require("../../shared/config/Cards")
 local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Perks = require("../../shared/config/Perks")
 local Property = require("../../shared/rules/Property")
 local Score = require("../../shared/rules/Score")
@@ -79,6 +80,17 @@ function ViewText.playerName(view: any, names: Names?, id: PlayerId): string
 		text = `{text} (tú)`
 	end
 	return text
+end
+
+-- Color del asiento de un jugador —el mismo de su placa, su ficha y su punto en el mini-mapa—, o nil si
+-- no está sentado en la vista.
+function ViewText.seatTint(view: any, id: PlayerId): string?
+	for at, seated in view.players or {} do
+		if seated.id == id then
+			return Ui.seatColors[(at - 1) % #Ui.seatColors + 1]
+		end
+	end
+	return nil
 end
 
 -- Nombre para la placa de la mesa: el bot se ve por su antena y su marca, así que solo se añade «(tú)».
@@ -520,10 +532,12 @@ function ViewText.headline(view: any, names: Names?): string
 			return "Subasta"
 		end
 		local square = ViewText.board(view.sizeId).squares[auction.index]
-		local worth = if square ~= nil and square.price ~= nil then ` (vale {square.price})` else ""
+		local worth = if square ~= nil and square.price ~= nil
+			then ` (vale {HudRules.formatMoney(square.price)})`
+			else ""
 		local head = `Subasta de {ViewText.squareName(view, auction.index)}{worth}`
 		if auction.highBidder ~= nil then
-			return `{head}: puja más alta {auction.high} de {name(auction.highBidder)}`
+			return `{head}: puja más alta {HudRules.formatMoney(auction.high)} de {name(auction.highBidder)}`
 		end
 		return `{head}: sin pujas`
 	elseif phase == "Reaction" then

@@ -49,7 +49,7 @@ local function zoneIdOf(state: Types.GameState, index: number): string
 end
 
 local function baseRentOf(state: Types.GameState, index: number): number
-	return math.floor(priceOf(state, index) * Economy.baseRentRate)
+	return Property.roundRent(priceOf(state, index) * Economy.baseRentRate)
 end
 
 -- Deja al jugador en turno como último de la ronda para que Turn.next cierre la ronda.
@@ -173,7 +173,9 @@ describe("rentas de la Zona Caliente", function()
 		local owner = s.players[1]
 		Fixtures.give(s, owner.id, idx)
 		s.hotZoneId = zoneIdOf(s, idx)
-		expect(Property.rentFor(s, idx)).toBe(baseRentOf(s, idx) * Economy.hotZoneRentMultiplier)
+		expect(Property.rentFor(s, idx)).toBe(
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.hotZoneRentMultiplier)
+		)
 		expect(baseRentOf(s, idx) * Economy.maxRentMultiplier >= Property.rentFor(s, idx)).toBe(true)
 	end)
 
@@ -198,7 +200,7 @@ describe("rentas de la Zona Caliente", function()
 		table.insert(s.modifiers, { kind = "Inflation", untilRound = 99 })
 		expect(Property.rentMultiplier(s, idx)).toBe(Economy.maxRentMultiplier)
 		expect(Property.rentFor(s, idx)).toBe(
-			math.floor(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
 		)
 	end)
 end)

@@ -20,6 +20,8 @@ local font = Theme.font
 
 export type Handles = {
 	setOpen: (open: boolean) -> boolean,
+	-- Abre el gestor directamente en una casilla del jugador (desde el libro de escrituras).
+	focus: (index: number) -> boolean,
 	isOpen: () -> boolean,
 	-- Vista vigente y acciones de gestión legales por casilla.
 	setData: (view: any, byIndex: { [number]: { any } }) -> (),
@@ -247,7 +249,7 @@ function PropertyManager.create(playerGui: Instance): Handles
 		zoneName.Text = Strings.upper(info.zoneName)
 		counter.Text = Strings.get("manage.count", { at = table.find(list, index) or 1, total = #list })
 		name.Text = Strings.upper(info.name)
-		detail.Text = `{info.levelText} · {Strings.get("manage.rent", { amount = info.rent })}`
+		detail.Text = `{info.levelText} · {Strings.get("manage.rentNow", { amount = info.rentText })}`
 		local anyLegal = false
 		for _, button in info.buttons do
 			if button.action ~= nil then
@@ -289,12 +291,19 @@ function PropertyManager.create(playerGui: Instance): Handles
 		paint()
 	end
 
-	-- Devuelve si se abrió: sin propiedades no hay nada que enseñar.
-	local function setOpen(value: boolean): boolean
+	-- Devuelve si se abrió: sin propiedades no hay nada que enseñar. Con `wanted`, empieza por esa
+	-- casilla si es del jugador (lo usa el libro de escrituras al mandar una al gestor).
+	local function setOpen(value: boolean, wanted: number?): boolean
 		if value then
 			local view = lastView
 			if view == nil or #PropertyManagerRules.owned(view, view.playerId) == 0 then
 				return false
+			end
+			if
+				wanted ~= nil
+				and table.find(PropertyManagerRules.owned(view, view.playerId), wanted) ~= nil
+			then
+				current = wanted
 			end
 		end
 		if open == value then
@@ -337,6 +346,9 @@ function PropertyManager.create(playerGui: Instance): Handles
 
 	return {
 		setOpen = setOpen,
+		focus = function(index: number): boolean
+			return setOpen(true, index)
+		end,
 		isOpen = function(): boolean
 			return open
 		end,

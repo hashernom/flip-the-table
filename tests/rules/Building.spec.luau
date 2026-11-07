@@ -199,20 +199,22 @@ describe("Building.lower", function()
 end)
 
 describe("renta por nivel de edificio", function()
-	it("aplica la escalera × 2, × 3, × 5, × 8 y × 12 con la zona completa", function()
+	it("aplica la escalera de niveles con la zona completa", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")
 		giveZone(s, a.id, idx)
 		local base = priceOf(s, idx) * Economy.baseRentRate * Economy.completeZoneRentMultiplier
-		expect(Property.rentFor(s, idx)).toBe(math.floor(base))
+		expect(Property.rentFor(s, idx)).toBe(Property.roundRent(base))
 		for level = 1, Economy.maxBuildingLevel do
 			local result = Building.build(s, a.id, idx)
 			if not result.ok then
 				error(result.error, 2)
 			end
 			expect(levelOf(s, idx)).toBe(level)
-			expect(Property.rentFor(s, idx)).toBe(math.floor(base * Economy.buildingRentMultiplier[level]))
+			expect(Property.rentFor(s, idx)).toBe(
+				Property.roundRent(base * Economy.buildingRentMultiplier[level])
+			)
 		end
 	end)
 end)

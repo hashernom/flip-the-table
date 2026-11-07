@@ -7,6 +7,7 @@
 -- tableros, con su plinto centrado en la plaza interior del anillo. Así la vista general se compone
 -- igual en una partida de 4 jugadores que en una de 8, y la cámara no depende del tamaño de la ciudad.
 local CityLayout = require("../../shared/config/CityLayout")
+local HudRules = require("../ui/HudRules")
 local Strings = require("../../shared/config/Strings")
 local ViewText = require("../ui/ViewText")
 local WorldRules = require("./WorldRules")
@@ -190,7 +191,7 @@ function ModelCityRules.cards(view: any, names: ViewText.Names?): { [number]: Ca
 			name = ViewText.playerName(view, names, ownerId),
 			cash = cash,
 			level = level,
-			detail = `{cash} · {Strings.buildingLevel(level)}`,
+			detail = `{HudRules.formatMoney(cash)} · {Strings.buildingLevel(level)}`,
 			color = if seat ~= nil
 				then ModelCityRules.seatColor(seat)
 				else ModelCityRules.colorForOwner(ownerId),

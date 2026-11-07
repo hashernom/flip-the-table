@@ -16,11 +16,27 @@ describe("Scenes: cartas", function()
 		end
 	end)
 
+	it("una legendaria repetida sigue durando un plano, no un parpadeo", function()
+		for _, cardId in { "Hurricane", "WorldFlip", "Revolution", "Earthquake", "CrownStrike" } do
+			local repeated = Scenes.durationFor({ type = "CardPlayed", cardId = cardId }, 9)
+			expect(repeated >= 2.5).toBeTruthy()
+		end
+	end)
+
+	it("una rara repetida tampoco baja de 1,2 s", function()
+		for _, cardId in { "Demolition", "Strike", "Inflation", "Backstab", "BounceRent" } do
+			local repeated = Scenes.durationFor({ type = "CardPlayed", cardId = cardId }, 9)
+			expect(repeated >= 1.2).toBeTruthy()
+		end
+	end)
+
 	it("respeta los límites de duración", function()
 		for _, card in CardsConfig.all do
 			local d = Scenes.durationFor({ type = "CardPlayed", cardId = card.id }, 0)
 			if card.rarity == "Legendary" then
-				expect(d <= 10).toBeTruthy()
+				-- La Revolución se sale del tope a propósito: la multitud y el blindado llegan de lejos.
+				local limit = if card.id == "Revolution" then 13 else 10
+				expect(d <= limit).toBeTruthy()
 			else
 				expect(d >= 2 and d <= 4).toBeTruthy()
 			end

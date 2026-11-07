@@ -75,18 +75,30 @@ describe("I9: un espectro no cobra Coleccionista", function()
 	end)
 end)
 
-describe("M5: la renta con Casero no pierde una unidad por coma flotante", function()
-	it("100 × nivel 3 (× 5) × Zona Caliente (× 2) × 1,15 son 115", function()
-		local state = Fixtures.game({ players = 5, seed = 45 })
-		local owner = state.players[1]
-		owner.perks = { "Landlord" }
-		local index = state.board.zones.cian[1]
-		Fixtures.give(state, owner.id, index)
-		state.properties[index].level = 3
-		state.hotZoneId = "cian"
-		expect(state.board.squares[index].price).toBe(100)
-		expect(Property.rentFor(state, index)).toBe(115)
-	end)
+describe("M5: la renta con Casero sobre el tope llega al múltiplo correcto", function()
+	it(
+		"210 × nivel 2 (× 5) × zona × tope × 4 × 1,15 son 965,999…, que la carta sube a 970",
+		function()
+			local state = Fixtures.game({ players = 4, seed = 45 })
+			local owner = state.players[1]
+			owner.perks = { "Landlord" }
+			local zone = state.board.zones.naranja
+			for _, member in zone do
+				Fixtures.give(state, owner.id, member)
+			end
+			local index = zone[1]
+			state.properties[index].level = 2
+			state.hotZoneId = "naranja"
+			state.round = state.maxRounds :: number
+			expect(state.board.squares[index].price).toBe(210)
+			-- El producto exacto es 966, pero en coma flotante da 965,999…: la cadena completa
+			-- (zona, tope ×4, Casero y redondeo) tiene que acabar en 970. Los dos bordes de la
+			-- tolerancia, con literales, se prueban en Property.spec («Property.roundRent»).
+			local raw = 210 * 0.1 * 2 * 5 * 4.6
+			expect(raw < 966).toBe(true)
+			expect(Property.rentFor(state, index)).toBe(970)
+		end
+	)
 end)
 
 describe("M6: RentPaid anuncia lo que se cobra de verdad", function()

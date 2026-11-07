@@ -94,13 +94,33 @@ local function addModifier(state: Types.GameState, modifier: Types.Modifier)
 	table.insert(state.modifiers, modifier)
 end
 
+-- La regla del redondeo, con literales: es el ancla que no depende de la propia fórmula. Cubre el
+-- cero, un múltiplo exacto, el escalón hacia arriba, la fracción del Casero y las dos direcciones de
+-- la coma flotante.
+describe("Property.roundRent", function()
+	local CASES = {
+		{ amount = 0, expected = 0 },
+		{ amount = 25, expected = 25 },
+		{ amount = 6, expected = 10 },
+		{ amount = 276, expected = 280 },
+		{ amount = 40.25, expected = 45 },
+		{ amount = 965.9999999999999, expected = 970 },
+		{ amount = 965.0000000001, expected = 965 },
+	}
+	for _, case in CASES do
+		it(`{case.amount} son {case.expected}`, function()
+			expect(Property.roundRent(case.amount)).toBe(case.expected)
+		end)
+	end
+end)
+
 describe("Property.rentFor", function()
 	it("cobra la renta base del 10 % del precio", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")
 		Fixtures.give(s, a.id, idx)
-		expect(Property.rentFor(s, idx)).toBe(math.floor(priceOf(s, idx) * Economy.baseRentRate))
+		expect(Property.rentFor(s, idx)).toBe(Property.roundRent(priceOf(s, idx) * Economy.baseRentRate))
 	end)
 
 	it("duplica la renta con el grupo completo", function()
@@ -108,14 +128,14 @@ describe("Property.rentFor", function()
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")
 		local zone = zoneOf(s, idx)
-		local base = math.floor(priceOf(s, idx) * Economy.baseRentRate)
+		local base = priceOf(s, idx) * Economy.baseRentRate
 		-- La zona tiene 2 o 3 propiedades: se entregan todas menos la última.
 		for position = 1, #zone - 1 do
 			Fixtures.give(s, a.id, zone[position])
 		end
-		expect(Property.rentFor(s, idx)).toBe(base)
+		expect(Property.rentFor(s, idx)).toBe(Property.roundRent(base))
 		Fixtures.give(s, a.id, zone[#zone])
-		expect(Property.rentFor(s, idx)).toBe(base * Economy.completeZoneRentMultiplier)
+		expect(Property.rentFor(s, idx)).toBe(Property.roundRent(base * Economy.completeZoneRentMultiplier))
 	end)
 
 	it("no da zona completa si el grupo está repartido", function()
@@ -127,18 +147,20 @@ describe("Property.rentFor", function()
 			Fixtures.give(s, a.id, zone[position])
 		end
 		Fixtures.give(s, b.id, zone[#zone])
-		expect(Property.rentFor(s, idx)).toBe(math.floor(priceOf(s, idx) * Economy.baseRentRate))
+		expect(Property.rentFor(s, idx)).toBe(Property.roundRent(priceOf(s, idx) * Economy.baseRentRate))
 	end)
 
 	it("aplica el multiplicador de edificios", function()
 		local s = Fixtures.game({ players = 2 })
 		local a = s.players[1]
 		local idx = Fixtures.squareOf(s, "Property")
-		local base = math.floor(priceOf(s, idx) * Economy.baseRentRate)
+		local base = priceOf(s, idx) * Economy.baseRentRate
 		Fixtures.give(s, a.id, idx)
 		for level = 1, Economy.maxBuildingLevel do
 			s.properties[idx].level = level
-			expect(Property.rentFor(s, idx)).toBe(base * Economy.buildingRentMultiplier[level])
+			expect(Property.rentFor(s, idx)).toBe(
+				Property.roundRent(base * Economy.buildingRentMultiplier[level])
+			)
 		end
 	end)
 
@@ -151,17 +173,17 @@ describe("Property.rentFor", function()
 end)
 
 -- Escalera literal de docs/02-mvp/contenido-tablero.md: renta con el precio 60 y 400 en cada
--- nivel, con la zona completa (columna «Renta en 60/400») y sin ella (la mitad, porque la zona
+-- nivel, con la zona completa (columna «Renta en 60/400») y sin ella (sin el × 2, porque la zona
 -- aporta el × 2 de la arquitectura).
 type LadderStep = { level: number, zone: { [number]: number }, bare: { [number]: number } }
 
 local LADDER: { LadderStep } = {
-	{ level = 0, zone = { [60] = 12, [400] = 80 }, bare = { [60] = 6, [400] = 40 } },
-	{ level = 1, zone = { [60] = 24, [400] = 160 }, bare = { [60] = 12, [400] = 80 } },
-	{ level = 2, zone = { [60] = 36, [400] = 240 }, bare = { [60] = 18, [400] = 120 } },
-	{ level = 3, zone = { [60] = 60, [400] = 400 }, bare = { [60] = 30, [400] = 200 } },
-	{ level = 4, zone = { [60] = 96, [400] = 640 }, bare = { [60] = 48, [400] = 320 } },
-	{ level = 5, zone = { [60] = 144, [400] = 960 }, bare = { [60] = 72, [400] = 480 } },
+	{ level = 0, zone = { [60] = 15, [400] = 80 }, bare = { [60] = 10, [400] = 40 } },
+	{ level = 1, zone = { [60] = 25, [400] = 160 }, bare = { [60] = 15, [400] = 80 } },
+	{ level = 2, zone = { [60] = 60, [400] = 400 }, bare = { [60] = 30, [400] = 200 } },
+	{ level = 3, zone = { [60] = 145, [400] = 960 }, bare = { [60] = 75, [400] = 480 } },
+	{ level = 4, zone = { [60] = 290, [400] = 1920 }, bare = { [60] = 145, [400] = 960 } },
+	{ level = 5, zone = { [60] = 385, [400] = 2560 }, bare = { [60] = 195, [400] = 1280 } },
 }
 
 describe("Property.rentFor: escalera de la arquitectura", function()
@@ -172,7 +194,7 @@ describe("Property.rentFor: escalera de la arquitectura", function()
 			for _, price in { 60, 400 } do
 				local idx = propertyOfPrice(s, price)
 				s.properties[idx].level = step.level
-				-- Sin zona completa, la renta es la mitad de la columna de la arquitectura.
+				-- Sin zona completa, la renta es la columna sin el × 2 de la zona (el redondeo puede separarla).
 				expect(Property.rentFor(s, idx)).toBe(step.bare[price])
 				-- Con las 2 o 3 propiedades de la zona, se aplica el × 2.
 				for _, member in zoneOf(s, idx) do
@@ -263,7 +285,7 @@ describe("Property.rentMultiplier", function()
 		s.hotZoneId = zoneIdOf(s, idx)
 		expect(Property.rentMultiplier(s, idx)).toBe(Economy.maxRentMultiplier)
 		expect(Property.rentFor(s, idx)).toBe(
-			math.floor(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
 		)
 	end)
 
@@ -281,7 +303,9 @@ describe("Property.rentMultiplier", function()
 		table.insert(owner.perks, "Landlord")
 		local boosted = Economy.maxRentMultiplier * (1 + Economy.perks.landlordRentRate)
 		expect(Property.rentMultiplier(s, idx)).toBe(boosted)
-		expect(Property.rentFor(s, idx)).toBe(math.floor(priceOf(s, idx) * Economy.baseRentRate * boosted))
+		expect(Property.rentFor(s, idx)).toBe(
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * boosted)
+		)
 	end)
 end)
 
@@ -291,7 +315,7 @@ describe("Property.payRent", function()
 		local a, b = s.players[1].id, s.players[2].id
 		local idx = Fixtures.squareOf(s, "Property")
 		Fixtures.give(s, a, idx)
-		local rent = (s.board.squares[idx].price :: number) * 0.1
+		local rent = Property.roundRent((s.board.squares[idx].price :: number) * 0.1)
 		Property.payRent(s, b, idx)
 		expect(s.players[1].cash).toBe(1500 + rent)
 		expect(s.players[2].cash).toBe(1500 - rent)
@@ -301,7 +325,7 @@ describe("Property.payRent", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
 		local idx = Fixtures.squareOf(s, "Property")
-		local amount = math.floor(priceOf(s, idx) * Economy.baseRentRate)
+		local amount = Property.roundRent(priceOf(s, idx) * Economy.baseRentRate)
 		Fixtures.give(s, a.id, idx)
 		expect(Property.payRent(s, b.id, idx)).toEqual({
 			{ type = "RentPaid", index = idx, from = b.id, to = a.id, amount = amount },
@@ -682,7 +706,7 @@ describe("resolución de la casilla", function()
 		local s = Fixtures.game({ players = 2 })
 		local a, b = s.players[1], s.players[2]
 		local idx = Fixtures.squareOf(s, "Property") + 1
-		local rent = math.floor(priceOf(s, idx) * Economy.baseRentRate)
+		local rent = Property.roundRent(priceOf(s, idx) * Economy.baseRentRate)
 		Fixtures.give(s, a.id, idx)
 		local events = rollFrom(s, b.id, 1, 1, 1)
 		expect(s.phase).toBe("AwaitEnd")

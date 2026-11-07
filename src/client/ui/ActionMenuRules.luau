@@ -7,6 +7,7 @@
 -- acepta dejaría al jugador sin salida, así que una acción desconocida también se muestra, con su
 -- tipo por nombre.
 local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Types = require("../../shared/rules/Types")
 local Property = require("../../shared/rules/Property")
 local Strings = require("../../shared/config/Strings")
@@ -314,7 +315,8 @@ function ActionMenuRules.panelFor(legal: { Action }, context: Context?): Panel
 		elseif kind == "EndTurn" then
 			panel.primaryText = Strings.get("action.endTurn")
 		elseif kind == "Bid" then
-			panel.primaryText = Strings.get("action.bid", { amount = (primary.action :: any).amount })
+			panel.primaryText =
+				Strings.get("action.bid", { amount = HudRules.formatMoney((primary.action :: any).amount) })
 		end
 	end
 	for _, button in buttons do

@@ -83,12 +83,10 @@ function SceneDirector.reset(director: Director)
 end
 
 -- Qué escena le toca a un evento. Una carta jugada se anuncia con su id, que es lo que le da escena
--- propia a cada legendaria; todo lo demás usa el tipo del evento.
+-- propia a cada legendaria; todo lo demás usa el tipo del evento. La regla vive en `config/Scenes`
+-- porque el reloj del servidor tiene que contar las repeticiones con la misma clave.
 function SceneDirector.sceneIdFor(event: Event): string
-	if event.type == "CardPlayed" and type(event.cardId) == "string" then
-		return event.cardId
-	end
-	return event.type
+	return Scenes.sceneIdFor(event)
 end
 
 -- Registra la escena definitiva de un evento o de una carta. Las escenas provisionales de la subfase
@@ -115,8 +113,8 @@ function SceneDirector.play(director: Director, batch: Batch, behindSec: number?
 			scene = director.scenes[event.type]
 		end
 
-		local seen = director.seen[event.type] or 0
-		director.seen[event.type] = seen + 1
+		local seen = director.seen[id] or 0
+		director.seen[id] = seen + 1
 		director.onEvent(event)
 		local full = Scenes.durationFor(event, seen)
 		local duration = full - late

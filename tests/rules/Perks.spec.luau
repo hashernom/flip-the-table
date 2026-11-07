@@ -100,14 +100,14 @@ local function rejected(result: Types.ApplyResult): string
 	return result.error
 end
 
--- Primera propiedad cuya renta sube con el perk Casero: los precios bajos se comen el 15 % en
--- el redondeo hacia abajo y no servirían para comprobar el efecto.
+-- Primera propiedad cuya renta sube con el perk Casero: en los precios bajos el 15 % se lo come el
+-- redondeo al múltiplo de 5 y no serviría para comprobar el efecto.
 local function landlordIndex(state: GameState): number
 	local rate = 1 + Economy.perks.landlordRentRate
 	for _, square in state.board.squares do
 		if square.kind == "Property" and square.price then
-			local base = math.floor(square.price * Economy.baseRentRate)
-			local boosted = math.floor(square.price * Economy.baseRentRate * rate)
+			local base = Property.roundRent(square.price * Economy.baseRentRate)
+			local boosted = Property.roundRent(square.price * Economy.baseRentRate * rate)
 			if boosted > base then
 				return square.index
 			end
@@ -553,11 +553,12 @@ describe("Casero", function()
 		local index = landlordIndex(s)
 		Fixtures.give(s, owner.id, index)
 		local price = s.board.squares[index].price :: number
-		local base = math.floor(price * Economy.baseRentRate)
+		local base = Property.roundRent(price * Economy.baseRentRate)
 		expect(Property.rentFor(s, index)).toBe(base)
 
 		table.insert(owner.perks, "Landlord")
-		local boosted = math.floor(price * Economy.baseRentRate * (1 + Economy.perks.landlordRentRate))
+		local boosted =
+			Property.roundRent(price * Economy.baseRentRate * (1 + Economy.perks.landlordRentRate))
 		expect(boosted > base).toBe(true)
 		expect(Property.rentFor(s, index)).toBe(boosted)
 	end)
@@ -567,7 +568,7 @@ describe("Casero", function()
 		local index = landlordIndex(s)
 		local price = s.board.squares[index].price :: number
 		table.insert(s.players[1].perks, "Landlord")
-		expect(Property.rentFor(s, index)).toBe(math.floor(price * Economy.baseRentRate))
+		expect(Property.rentFor(s, index)).toBe(Property.roundRent(price * Economy.baseRentRate))
 	end)
 end)
 

@@ -24,7 +24,7 @@ end
 
 describe("Property.rentTable", function()
 	it("imprime la renta sin mejoras y la de cada nivel", function()
-		expect(Property.rentTable(260)).toEqual({ 26, 104, 156, 260, 416, 624 })
+		expect(Property.rentTable(260)).toEqual({ 30, 105, 260, 625, 1250, 1665 })
 	end)
 end)
 

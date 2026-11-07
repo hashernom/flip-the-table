@@ -28,6 +28,8 @@ export type MatchData = {
 	size: number,
 	-- Configuración de la partida privada (config/MatchSettings), ya normalizada. La cola pública no la lleva.
 	settings: MatchSettings.Settings?,
+	-- Bots que se sientan al arrancar (modo solo). La party y la cola no llevan.
+	bots: number?,
 }
 
 -- Datos del salto lobby → lobby cuando la fiesta vive en otro servidor: solo el código, para que
@@ -178,6 +180,19 @@ function LobbyRules.partyData(
 		endMode = endMode,
 		code = code,
 		size = size,
+		settings = MatchSettings.normalize(settings),
+	}
+end
+
+-- Datos de una partida en solitario: un humano y sus bots. El tamaño incluye a los bots porque el
+-- lugar de partida los usa para decidir cuántos asientos montar.
+function LobbyRules.soloData(seed: number, endMode: Types.EndMode, bots: number, settings: any?): MatchData
+	return {
+		seed = seed,
+		endMode = endMode,
+		code = nil,
+		size = 1 + bots,
+		bots = bots,
 		settings = MatchSettings.normalize(settings),
 	}
 end

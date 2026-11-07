@@ -59,7 +59,9 @@ LegendaryStaging.worldFlip = {
 -- manos en sacos; la multitud celebra.
 LegendaryStaging.revolution = {
 	steps = { "gather", "march", "trucks", "swap", "cheer" },
-	fractions = { gather = 0.14, march = 0.22, trucks = 0.26, swap = 0.24, cheer = 0.14 },
+	-- La recogida da tiempo a que la cámara llegue antes de que nadie se mueva; la marcha y la llegada del
+	-- blindado se llevan la mitad de la escena.
+	fractions = { gather = 0.12, march = 0.24, trucks = 0.26, swap = 0.2, cheer = 0.18 },
 	-- Multitud: personas por pareja, separación y de dónde salen (studs por detrás en la calle).
 	crowdPerPair = 6,
 	crowdSpacing = 3.2,

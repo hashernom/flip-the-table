@@ -71,6 +71,13 @@ local MIN_BY_EVENT: { [string]: number } = {
 	-- El robo: la carta sale del mazo y su dueño la ve en grande antes de que vuele a la mano.
 	CardDrawn = 2,
 }
+-- Una escena repetida sigue siendo la escena de una carta, no un parpadeo: por debajo de estos suelos ya
+-- no se entiende. La legendaria aguanta un plano corto (la quinta vez que sale una de 13 s tocaría a
+-- 0,8 s) y la rara, lo justo para ver a quién le toca.
+local MIN_BY_RARITY: { [string]: number } = {
+	Legendary = 2.5,
+	Rare = 1.2,
+}
 
 -- Cartas por rareza: comunes y raras de 2 a 4 s, legendarias hasta 10 s (ficha, «Las escenas no
 -- pueden frenar la partida»).
@@ -81,11 +88,12 @@ local CARD_DURATION: { [string]: number } = {
 }
 
 -- Escena propia de cada legendaria: las cinco se anuncian con su id, así que cada una tiene su
--- momento. Ninguna pasa de 10 s.
+-- momento. La Revolución es la única que pasa de 10 s: la multitud y el blindado llegan de lejos y con
+-- menos tiempo no se veía llegar ninguno de los dos.
 local LEGENDARY_DURATION: { [string]: number } = {
 	Hurricane = 10,
 	WorldFlip = 9,
-	Revolution = 8,
+	Revolution = 13,
 	Earthquake = 7,
 	CrownStrike = 6,
 }
@@ -123,10 +131,21 @@ Scenes.maxRideSec = 4
 Scenes.rideSecPerSquare = 0.4
 Scenes.minRideSec = 1.2
 
--- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto ese
--- tipo de evento en la partida: a partir de la segunda, la escena se acorta. El recorrido de una ficha
--- no: se repite en cada turno y es lo que el grupo mira, así que depende solo de la distancia. Un
--- TokenMoved sin ruta es un salto, no un recorrido, y se trata como cualquier otra escena.
+-- Qué escena le toca a un evento, y con qué clave se cuentan sus repeticiones. Una carta jugada se anuncia
+-- con su id —cada legendaria tiene la suya—, así que jugar cinco cartas distintas no acorta la quinta. Todo
+-- lo demás usa el tipo del evento. Servidor (`SceneClock`) y cliente (`SceneDirector`) cuentan con esta
+-- misma clave: si no, el reloj del servidor y las escenas del cliente no durarían lo mismo.
+function Scenes.sceneIdFor(event: Event): string
+	if event.type == "CardPlayed" and type(event.cardId) == "string" then
+		return event.cardId
+	end
+	return event.type
+end
+
+-- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto esa misma escena
+-- en la partida: a partir de la segunda, se acorta. El recorrido de una ficha no: se repite en cada turno y
+-- es lo que el grupo mira, así que depende solo de la distancia. Un TokenMoved sin ruta es un salto, no un
+-- recorrido, y se trata como cualquier otra escena.
 function Scenes.durationFor(event: Event, seenCount: number): number
 	if event.type == "TokenMoved" and type(event.path) == "table" and #event.path > 0 then
 		return math.clamp(#event.path * Scenes.rideSecPerSquare, Scenes.minRideSec, Scenes.maxRideSec)
@@ -140,7 +159,15 @@ function Scenes.durationFor(event: Event, seenCount: number): number
 		return base
 	end
 	local seen = if seenCount > 0 then math.floor(seenCount) else 0
-	return math.max(MIN_BY_EVENT[event.type] or MIN_DURATION, base * REPEAT_FACTOR ^ seen)
+	local floor = MIN_BY_EVENT[event.type] or MIN_DURATION
+	if event.type == "CardPlayed" and type(event.cardId) == "string" then
+		local card = Cards.byId[event.cardId]
+		local rarityFloor = if card ~= nil then MIN_BY_RARITY[card.rarity] else nil
+		if rarityFloor ~= nil then
+			floor = math.max(floor, rarityFloor)
+		end
+	end
+	return math.max(floor, base * REPEAT_FACTOR ^ seen)
 end
 
 -- Una escena que empieza tarde arranca en su punto; si le queda menos que esto, se omite: no da tiempo a

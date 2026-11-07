@@ -176,9 +176,6 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 	sideColumn.Name = "OverviewButtons"
 	sideColumn.BackgroundTransparency = 1
 	sideColumn.AnchorPoint = if Ui.hudMirror == true then Vector2.new(1, 0.5) else Vector2.new(0, 0.5)
-	sideColumn.Position = if Ui.hudMirror == true
-		then UDim2.new(1, -Theme.space.l, 0.5, 0)
-		else UDim2.new(0, Theme.space.l, 0.5, 0)
 	sideColumn.Size = UDim2.fromOffset(Ui.manageButtonWidth + 20, 0)
 	sideColumn.AutomaticSize = Enum.AutomaticSize.Y
 	sideColumn.Visible = false
@@ -191,6 +188,16 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 		then Enum.HorizontalAlignment.Right
 		else Enum.HorizontalAlignment.Left
 	sideLayout.Parent = sideColumn
+	-- En la vista general los botones y las placas de la mesa van al mismo lado: la columna de botones se
+	-- aparta lo que mide la columna de placas para no montarse encima.
+	local plateColumnWidth = Ui.plateMaxWidth
+	local function placeSideColumn()
+		local inset = Ui.plateColumnLeft + plateColumnWidth + Theme.space.s
+		sideColumn.Position = if Ui.hudMirror == true
+			then UDim2.new(1, -inset, 0.5, 0)
+			else UDim2.new(0, inset, 0.5, 0)
+	end
+	placeSideColumn()
 	local overviewActive = false
 
 	for _, button in { overviewButton.root, manageButton.root, emoteButton.root, settingsButton.root } do
@@ -807,6 +814,12 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				table.insert(widths, Components.chipContentWidth(data, count))
 			end
 			local width = HudRules.columnWidth(widths)
+			if width ~= plateColumnWidth then
+				plateColumnWidth = width
+				if overviewActive then
+					placeSideColumn()
+				end
+			end
 
 			local seen: { [string]: boolean } = {}
 			-- Si en esta vista alguien cobra o paga, suena una vez de cada: el ingreso y la pérdida son
@@ -905,6 +918,9 @@ function Hud.create(playerGui: Instance, serverNow: () -> number): Handles
 				return
 			end
 			overviewActive = active
+			if active then
+				placeSideColumn()
+			end
 			local buttons = { overviewButton.root, manageButton.root, emoteButton.root, settingsButton.root }
 			for _, button in buttons do
 				button.Parent = if active then sideColumn else sign.row

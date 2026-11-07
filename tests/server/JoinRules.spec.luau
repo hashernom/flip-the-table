@@ -47,6 +47,33 @@ describe("JoinRules.decide con un grupo anunciado", function()
 	end)
 end)
 
+describe("JoinRules.decide en modo solo", function()
+	it("un humano con bots ya es la mesa entera", function()
+		expect(JoinRules.decide({ present = 1, expected = 4, sinceFirst = 0.1, bots = 3 })).toBe("Start")
+	end)
+
+	it("sin bots, uno solo sigue esperando al grupo", function()
+		expect(JoinRules.decide({ present = 1, expected = 2, sinceFirst = 0.1, bots = 0 })).toBe("Wait")
+	end)
+
+	it("si falta parte del grupo, espera; al agotar la espera arranca con lo que hay", function()
+		expect(JoinRules.decide({
+			present = 1,
+			expected = 5,
+			sinceFirst = 0,
+			sinceMinimum = 0,
+			bots = 3,
+		})).toBe("Wait")
+		expect(JoinRules.decide({
+			present = 1,
+			expected = 5,
+			sinceFirst = Scenes.joinTimeoutSec,
+			sinceMinimum = 1,
+			bots = 3,
+		})).toBe("Start")
+	end)
+end)
+
 describe("JoinRules.decide sin datos de entrada (Studio)", function()
 	it("espera sin límite al segundo jugador", function()
 		expect(JoinRules.decide({ present = 1, expected = nil, sinceFirst = 9999, sinceMinimum = nil })).toBe(

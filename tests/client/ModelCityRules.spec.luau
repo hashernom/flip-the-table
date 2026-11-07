@@ -5,6 +5,7 @@
 local Harness = require("../harness")
 local CityLayout = require("../../src/shared/config/CityLayout")
 local Fixtures = require("../fixtures")
+local HudRules = require("../../src/client/ui/HudRules")
 local ModelCityRules = require("../../src/client/world/ModelCityRules")
 local View = require("../../src/shared/rules/View")
 
@@ -135,7 +136,7 @@ describe("ModelCityRules.cards", function()
 		expect(card.seat).toBe(seat)
 		expect(card.cash).toBe(view.players[seat].cash)
 		expect(card.level).toBe(3)
-		expect(card.detail).toBe(`{view.players[seat].cash} · 3 casas`)
+		expect(card.detail).toBe(`{HudRules.formatMoney(view.players[seat].cash)} · 3 casas`)
 		expect(card.color).toBe(ModelCityRules.seatColor(seat))
 	end)
 

@@ -412,7 +412,7 @@ describe("Pact.exemptsRent y Property.payRent", function()
 		local action: Types.Action = { type = "RespondPact", pactId = offer, accept = true }
 		expect(Engine.apply(s, partner.id, action).ok).toBe(true)
 		expect(Pact.exemptsRent(s, third.id, proposer.id)).toBe(false)
-		local rent = math.floor((s.board.squares[idx].price :: number) * Economy.baseRentRate)
+		local rent = Property.roundRent((s.board.squares[idx].price :: number) * Economy.baseRentRate)
 		Property.payRent(s, third.id, idx)
 		expect(third.cash).toBe(Economy.startingCash - rent)
 	end)

@@ -29,9 +29,12 @@ end
 function SceneClock.schedule(clock: SceneClock, events: { Event }, now: number): number
 	local cursor = math.max(now, clock.endsAt)
 	for _, event in events do
-		local seenCount = clock.seen[event.type] or 0
+		-- La repetición se cuenta por escena, no por tipo de evento: jugar otra carta distinta no acorta
+		-- la siguiente, y el cliente cuenta con la misma clave.
+		local sceneId = Scenes.sceneIdFor(event)
+		local seenCount = clock.seen[sceneId] or 0
 		cursor += Scenes.durationFor(event, seenCount)
-		clock.seen[event.type] = seenCount + 1
+		clock.seen[sceneId] = seenCount + 1
 	end
 	clock.endsAt = cursor
 	return cursor

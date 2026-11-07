@@ -9,6 +9,7 @@ local ActionMenuRules = require("./ActionMenuRules")
 local Board = require("./Board")
 local Cards = require("../../shared/config/Cards")
 local Components = require("./Components")
+local HudRules = require("./HudRules")
 local Strings = require("../../shared/config/Strings")
 local Theme = require("./Theme")
 local Ui = require("../../shared/config/Ui")
@@ -162,11 +163,16 @@ function ActionMenu.create(playerGui: Instance): Handles
 		bid = current
 		local button = primaryButton
 		if button ~= nil then
-			button.setText(Strings.upper(Strings.get("action.bid", { amount = current })))
+			button.setText(
+				Strings.upper(Strings.get("action.bid", { amount = HudRules.formatMoney(current) }))
+			)
 		end
 		local caption = bidCaption
 		if caption ~= nil then
-			caption.Text = Strings.get("panel.bidRange", { min = range.min, max = range.max })
+			caption.Text = Strings.get(
+				"panel.bidRange",
+				{ min = HudRules.formatMoney(range.min), max = HudRules.formatMoney(range.max) }
+			)
 		end
 		primaryAction = { type = "Bid", amount = current }
 	end

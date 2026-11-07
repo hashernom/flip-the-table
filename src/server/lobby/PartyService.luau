@@ -332,4 +332,34 @@ function PartyService.start(host: Player, endMode: Types.EndMode, settings: any?
 	return true, nil
 end
 
+-- Modo solo: un jugador contra sus bots, en su propio servidor reservado. No hay party ni código; la
+-- configuración y el modo viajan en los datos del teletransporte, igual que en la party.
+function PartyService.startSolo(
+	player: Player,
+	endMode: Types.EndMode,
+	settings: any?,
+	bots: number
+): (boolean, string?)
+	local config = current()
+	if Places.matchId == Places.unpublished then
+		local message = "El lugar de partida aún no está publicado."
+		notify(player, message, "Error")
+		return false, message
+	end
+	local data = LobbyRules.soloData(config.seed(), endMode, bots, settings)
+	local ok, failure = LobbyRules.retry(function(): (boolean, string?)
+		return config.teleport.reserve({ player }, data)
+	end, Lobby.teleportAttempts, task.wait)
+	if not ok then
+		local message = if failure ~= nil and failure ~= ""
+			then failure
+			else "No se pudo crear el servidor de tu partida. Sigues en el lobby: inténtalo otra vez."
+		warn(`PartyService: al reservar el servidor del modo solo: {failure}`)
+		notify(player, message, "Error")
+		return false, message
+	end
+	notify(player, `Partida contra {bots} bots. Te llevamos al servidor reservado.`, "Info")
+	return true, nil
+end
+
 return PartyService

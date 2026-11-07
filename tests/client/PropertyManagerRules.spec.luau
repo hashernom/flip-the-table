@@ -3,6 +3,8 @@
 local Harness = require("../harness")
 local Engine = require("../../src/shared/rules/Engine")
 local Fixtures = require("../fixtures")
+local HudRules = require("../../src/client/ui/HudRules")
+local Property = require("../../src/shared/rules/Property")
 local PropertyManagerRules = require("../../src/client/ui/PropertyManagerRules")
 local ActionMenuRules = require("../../src/client/ui/ActionMenuRules")
 local View = require("../../src/shared/rules/View")
@@ -66,5 +68,22 @@ describe("PropertyManagerRules", function()
 		local info = PropertyManagerRules.info(View.forPlayer(s, a.id), idx, nil)
 		expect(info.mortgaged).toBe(true)
 		expect(info.rent).toBe(0)
+	end)
+
+	it("enseña la renta que se cobra ahora, no la de la tabla impresa", function()
+		local s = Fixtures.game({ players = 2 })
+		local a = s.players[s.turnIndex]
+		local idx = properties(s)[1]
+		local square = s.board.squares[idx]
+		local zoneId = square.zoneId :: string
+		for _, member in s.board.zones[zoneId] do
+			Fixtures.give(s, a.id, member)
+		end
+		local info = PropertyManagerRules.info(View.forPlayer(s, a.id), idx, nil)
+		-- Con la zona completa la vista ya trae el ×2; la tabla impresa sigue en la renta sin grupo.
+		local printed = Property.rentTable(square.price :: number)[1] or 0
+		expect(info.rent).toBe(Property.rentFor(s, idx))
+		expect(info.rent > printed).toBe(true)
+		expect(info.rentText).toBe(HudRules.formatMoney(info.rent))
 	end)
 end)

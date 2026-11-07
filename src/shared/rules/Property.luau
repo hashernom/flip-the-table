@@ -15,10 +15,6 @@ type PlayerId = Types.PlayerId
 type Player = Types.Player
 type Event = Types.Event
 
--- 1,15 no existe exacto en coma flotante: 100 × 1,15 da 114,999… y redondear hacia abajo perdería una
--- unidad. El margen es muy inferior a cualquier fracción real de una renta. No es un valor ajustable.
-local ROUNDING_MARGIN = 1e-9
-
 local Property = {}
 
 local function findPlayer(state: GameState, playerId: PlayerId): Player?
@@ -95,7 +91,22 @@ function Property.rentMultiplier(state: GameState, index: number): number
 	return math.min(multiplier, Economy.maxRentMultiplier) * perkMultiplier
 end
 
--- Renta completa de una casilla para su dueño, redondeada hacia abajo.
+-- Redondeo de la carta: la renta sube al múltiplo de Economy.rentRounding inmediatamente superior.
+-- Es la única regla de redondeo de rentas, y la usan el cobro (rentFor) y lo impreso (rentTable): así
+-- la cifra de la carta y la que se cobra coinciden, y ninguna termina en un número raro. Una renta de
+-- 0 (hipotecada, Huelga, Embrujo) sigue siendo 0.
+--
+-- La tolerancia cubre la coma flotante: precio × 10 % × zona × nivel × efectos × 1,15 puede dejar una
+-- cifra a 1e-13 de un múltiplo de 5, y sin ella subiría un escalón de más. No es un valor ajustable.
+function Property.roundRent(amount: number): number
+	if amount <= 0 then
+		return 0
+	end
+	local step = Economy.rentRounding
+	return math.ceil(amount / step - 1e-6) * step
+end
+
+-- Renta completa de una casilla para su dueño.
 function Property.rentFor(state: GameState, index: number): number
 	local square = Board.square(state, index)
 	local price = square.price
@@ -115,13 +126,12 @@ function Property.rentFor(state: GameState, index: number): number
 	if property.level > 0 then
 		buildingMultiplier = Economy.buildingRentMultiplier[property.level]
 	end
-	return math.floor(
+	return Property.roundRent(
 		price
-				* Economy.baseRentRate
-				* zoneMultiplier
-				* buildingMultiplier
-				* Property.rentMultiplier(state, index)
-			+ ROUNDING_MARGIN
+			* Economy.baseRentRate
+			* zoneMultiplier
+			* buildingMultiplier
+			* Property.rentMultiplier(state, index)
 	)
 end
 
@@ -129,12 +139,9 @@ end
 -- así que los niveles ya la incluyen. Sin efectos dinámicos: es lo impreso en la carta.
 function Property.rentTable(price: number): { number }
 	local base = price * Economy.baseRentRate
-	local rents = { math.floor(base + ROUNDING_MARGIN) }
+	local rents = { Property.roundRent(base) }
 	for _, multiplier in Economy.buildingRentMultiplier do
-		table.insert(
-			rents,
-			math.floor(base * Economy.completeZoneRentMultiplier * multiplier + ROUNDING_MARGIN)
-		)
+		table.insert(rents, Property.roundRent(base * Economy.completeZoneRentMultiplier * multiplier))
 	end
 	return rents
 end

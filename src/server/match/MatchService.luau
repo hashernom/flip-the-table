@@ -15,6 +15,7 @@ local Workspace = game:GetService("Workspace")
 
 local Bot = require("../../shared/rules/Bot")
 local Engine = require("../../shared/rules/Engine")
+local Lobby = require("../../shared/config/Lobby")
 local MatchState = require("./MatchState")
 local Protocol = require("../../shared/net/Protocol")
 local RemoteGateway = require("./RemoteGateway")
@@ -98,6 +99,11 @@ MatchService.now = serverNow
 -- RemoteGateway, nunca en el motor ni en el cliente.
 local function playerIdOf(player: Player): PlayerId
 	return tostring(player.UserId)
+end
+
+-- Asiento de bot, sin conexión: el id "bot1" no puede chocar con un userId.
+local function botId(index: number): PlayerId
+	return `bot{index}`
 end
 
 -- ¿La conexión sigue en el juego? Un jugador que se fue conserva su Player como referencia en
@@ -502,8 +508,15 @@ local function notifyStart(match: Match)
 end
 
 -- Empieza una partida con los jugadores dados. Falla con un mensaje claro si ya hay otra en
--- curso; una terminada se puede sustituir (R-P21).
-function MatchService.start(players: { Player }, seed: number, endMode: EndMode, settings: any?): Match
+-- curso; una terminada se puede sustituir (R-P21). `bots` sienta asientos sin conexión al lado del
+-- grupo (modo solo): el motor los juega por el mismo camino que a un jugador que dejó el asiento.
+function MatchService.start(
+	players: { Player },
+	seed: number,
+	endMode: EndMode,
+	settings: any?,
+	bots: number?
+): Match
 	if current and not current.finished then
 		error("MatchService.start: ya hay una partida en curso; termínala o abandónala antes", 2)
 	end
@@ -515,9 +528,16 @@ function MatchService.start(players: { Player }, seed: number, endMode: EndMode,
 		table.insert(playerIds, playerId)
 		byId[playerId] = player
 	end
+	local botCount = math.clamp(bots or 0, 0, math.min(Protocol.MAX_BOTS, Lobby.maxPlayers - #players))
+	for index = 1, botCount do
+		table.insert(playerIds, botId(index))
+	end
 	-- State.create valida de 2 a 8 jugadores, ids repetidos y el modo de partida.
 	local state = State.create({ playerIds = playerIds, seed = seed, endMode = endMode, settings = settings })
 	local match = newMatch(state, byId, seed, now)
+	for index = 1, botCount do
+		MatchState.setBotControlled(match.matchState, match.state, botId(index), true)
+	end
 	-- `current` se publica al final: si el arranque falla (remotos, vista inicial o latido), el
 	-- servidor no queda con una partida actual a medias que bloquee la siguiente.
 	ensureResync()
@@ -527,6 +547,8 @@ function MatchService.start(players: { Player }, seed: number, endMode: EndMode,
 	end)
 	current = match
 	notifyStart(match)
+	-- Los bots no esperan a que alguien actúe: si les toca la primera decisión, se juega ya.
+	kickBots(match)
 	return match
 end
 

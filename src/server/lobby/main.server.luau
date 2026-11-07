@@ -153,3 +153,14 @@ Remotes.remote(Protocol.REMOTES.QueueJoin).OnServerEvent:Connect(function(player
 		PublicQueue.enqueue(player)
 	end)
 end)
+
+-- Modo solo: un jugador contra bots en su propio servidor, sin party ni cola.
+Remotes.remote(Protocol.REMOTES.SoloStart).OnServerEvent:Connect(function(player: Player, packet: any)
+	local accepted = accept(player, packet)
+	if accepted == nil then
+		return
+	end
+	forward("empezar en solo", function()
+		PartyService.startSolo(player, accepted.endMode, accepted.settings, accepted.bots)
+	end)
+end)

@@ -63,7 +63,7 @@ local function priceOf(state: Types.GameState, index: number): number
 end
 
 local function baseRentOf(state: Types.GameState, index: number): number
-	return math.floor(priceOf(state, index) * Economy.baseRentRate)
+	return Property.roundRent(priceOf(state, index) * Economy.baseRentRate)
 end
 
 local function zoneIdOf(state: Types.GameState, index: number): string
@@ -156,9 +156,13 @@ describe("Property.rentFor en las rondas finales", function()
 		s.round = (s.maxRounds :: number) - Economy.finalRoundsCount
 		expect(Property.rentFor(s, idx)).toBe(base)
 		s.round += 1
-		expect(Property.rentFor(s, idx)).toBe(base * Economy.finalRoundsRentMultiplier)
+		expect(Property.rentFor(s, idx)).toBe(
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.finalRoundsRentMultiplier)
+		)
 		s.round += 1
-		expect(Property.rentFor(s, idx)).toBe(base * Economy.finalRoundsRentMultiplier)
+		expect(Property.rentFor(s, idx)).toBe(
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.finalRoundsRentMultiplier)
+		)
 	end)
 end)
 
@@ -171,7 +175,9 @@ describe("Property.rentFor en la presión de Sin Fin", function()
 		s.round = Economy.pressureFromRound - 1
 		expect(Property.rentFor(s, idx)).toBe(base)
 		s.round = Economy.pressureFromRound
-		expect(Property.rentFor(s, idx)).toBe(base * Economy.pressureRentMultiplier)
+		expect(Property.rentFor(s, idx)).toBe(
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.pressureRentMultiplier)
+		)
 	end)
 
 	it("respeta el tope de × 4 al sumar presión e Inflación", function()
@@ -184,7 +190,7 @@ describe("Property.rentFor en la presión de Sin Fin", function()
 		s.hotZoneId = zoneIdOf(s, idx)
 		expect(Property.rentMultiplier(s, idx)).toBe(Economy.maxRentMultiplier)
 		expect(Property.rentFor(s, idx)).toBe(
-			math.floor(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.maxRentMultiplier)
 		)
 	end)
 end)

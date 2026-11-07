@@ -88,6 +88,17 @@ describe("SceneDirector.play", function()
 		expect(record.waits[2] < record.waits[1]).toBe(true)
 	end)
 
+	it("dos cartas distintas no se acortan entre sí: cada escena cuenta la suya", function()
+		local record = recorder()
+		local hurricane = { type = "CardPlayed", cardId = "Hurricane" }
+		local earthquake = { type = "CardPlayed", cardId = "Earthquake" }
+		SceneDirector.play(record.director, batch({ hurricane, earthquake, hurricane }))
+		expect(record.waits[1]).toBe(Scenes.durationFor(hurricane, 0))
+		expect(record.waits[2]).toBe(Scenes.durationFor(earthquake, 0))
+		-- La repetición de la misma carta sí se acorta, y la del volcán no se contagia.
+		expect(record.waits[3]).toBe(Scenes.durationFor(hurricane, 1))
+	end)
+
 	it("un lote vacío no muestra nada ni espera", function()
 		local record = recorder()
 		expect(SceneDirector.play(record.director, batch({}))).toBe(0)

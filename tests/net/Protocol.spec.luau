@@ -24,6 +24,7 @@ describe("Protocol.REMOTES", function()
 			PartyJoin = "PartyJoinRequest",
 			PartyStart = "PartyStartRequest",
 			QueueJoin = "QueueJoinRequest",
+			SoloStart = "SoloStartRequest",
 			Emote = "EmoteRequest",
 			Notice = "LobbyNotice",
 			TokenChoice = "TokenChoiceRequest",
@@ -185,6 +186,8 @@ describe("Protocol.validateLobby", function()
 		{ type = "PartyStart", endMode = "Rounds" },
 		{ type = "PartyStart", endMode = "Endless" },
 		{ type = "QueueJoin" },
+		{ type = "SoloStart", bots = 3, endMode = "Rounds" },
+		{ type = "SoloStart", bots = 1, endMode = "Endless", settings = { startBonus = 300 } },
 	}
 
 	it("acepta las peticiones del lobby con su forma", function()
@@ -209,6 +212,13 @@ describe("Protocol.validateLobby", function()
 		{ type = "PartyStart", endMode = "Duel" },
 		{ type = "PartyStart", endMode = true },
 		{ type = "QueueJoin", playerId = "1" },
+		{ type = "SoloStart", endMode = "Rounds" },
+		{ type = "SoloStart", bots = 3 },
+		{ type = "SoloStart", bots = 0, endMode = "Rounds" },
+		{ type = "SoloStart", bots = 8, endMode = "Rounds" },
+		{ type = "SoloStart", bots = 2.5, endMode = "Rounds" },
+		{ type = "SoloStart", bots = 3, endMode = "Duel" },
+		{ type = "SoloStart", bots = 3, endMode = "Rounds", playerId = "1" },
 	}
 
 	it("rechaza tipos, campos y valores que no son del lobby", function()
