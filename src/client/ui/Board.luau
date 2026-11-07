@@ -477,10 +477,16 @@ end
 
 -- Pestañas sobre el papel ------------------------------------------------------------------------------
 
-export type Tab = { id: string, label: string }
+export type Tab = {
+	id: string,
+	label: string,
+	-- Color del asiento o de la zona, si la pestaña nombra a alguien o algo con color propio.
+	tint: string?,
+}
 
 -- Fila de pestañas para elegir una opción: rival, rondas. La elegida va rellena y las demás solo con
--- contorno, así que se distingue por forma y tono, no solo por color.
+-- contorno, así que se distingue por forma y tono, no solo por color. Con `tint`, la pestaña lleva un
+-- punto del color del jugador (o de la zona) delante del texto.
 function Board.Tabs(
 	parent: Instance,
 	order: number,
@@ -506,7 +512,15 @@ function Board.Tabs(
 		tab.FontFace = font.road
 		tab.TextSize = 14
 		tab.TextColor3 = if chosen then color.limestone else color.asphalt
-		tab.Text = Strings.upper(item.label)
+		local rawLabel = Strings.upper(item.label)
+		if item.tint ~= nil then
+			-- El punto va dentro del texto con marcado enriquecido: así cuenta para el ancho automático y
+			-- nunca se monta encima del nombre. Es el color del asiento: placa, ficha y mini-mapa.
+			tab.RichText = true
+			tab.Text = `<font color="{item.tint}">●</font>  {rawLabel}`
+		else
+			tab.Text = rawLabel
+		end
 		tab.LayoutOrder = position
 		tab.Parent = row
 		corner(tab, 18)

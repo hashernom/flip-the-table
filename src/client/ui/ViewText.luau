@@ -81,6 +81,17 @@ function ViewText.playerName(view: any, names: Names?, id: PlayerId): string
 	return text
 end
 
+-- Color del asiento de un jugador —el mismo de su placa, su ficha y su punto en el mini-mapa—, o nil si
+-- no está sentado en la vista.
+function ViewText.seatTint(view: any, id: PlayerId): string?
+	for at, seated in view.players or {} do
+		if seated.id == id then
+			return Ui.seatColors[(at - 1) % #Ui.seatColors + 1]
+		end
+	end
+	return nil
+end
+
 -- Nombre para la placa de la mesa: el bot se ve por su antena y su marca, así que solo se añade «(tú)».
 function ViewText.seatName(view: any, names: Names?, id: PlayerId): string
 	local known = if names ~= nil then names[id] else nil

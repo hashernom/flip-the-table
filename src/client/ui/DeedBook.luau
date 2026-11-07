@@ -18,9 +18,16 @@ local Ui = require("../../shared/config/Ui")
 
 local color = Theme.color
 
-local WIDTH = 356
+local WIDTH = 340
 local HEADER_HEIGHT = 52
 local BODY_HEIGHT = 402
+-- Debajo de la columna de la izquierda (el botón amarillo y la fila de Pactos y Tratos) y por encima del
+-- gestor de abajo: el cajón no tapa ningún botón.
+local TOP = Ui.panelTop + 74 + Ui.panelGap + 44 + 12
+local BOTTOM = Ui.manage.height + Ui.manage.bottomGap + Ui.roadHeight + 16
+-- Plegado: una pestaña pequeña, no una barra de lado a lado.
+local COLLAPSED_WIDTH = 186
+local COLLAPSED_HEIGHT = 40
 
 export type Handles = {
 	setOpen: (open: boolean) -> boolean,
@@ -40,9 +47,9 @@ function DeedBook.create(playerGui: Instance): Handles
 	gui.Enabled = false
 
 	local plate = Components.Panel(gui, "Drawer", Ui.radius.plate)
-	plate.root.AnchorPoint = Vector2.new(0, 0.5)
-	plate.root.Position = UDim2.new(0, 12, 0.5, 0)
-	plate.root.Size = UDim2.new(0, WIDTH, 0.72, 0)
+	plate.root.AnchorPoint = Vector2.new(0, 0)
+	plate.root.Position = UDim2.fromOffset(12, TOP)
+	plate.root.Size = UDim2.fromOffset(WIDTH, 320)
 	local drawer = plate.root
 
 	local head = Instance.new("TextButton")
@@ -106,13 +113,31 @@ function DeedBook.create(playerGui: Instance): Handles
 
 	local rebuild: () -> ()
 
+	-- El cajón vive entre dos huecos: debajo de la columna de la izquierda y por encima del gestor. En
+	-- pantallas bajas se aprieta en vez de salirse, y nunca baja de la mitad de lo que queda libre.
+	local function fit()
+		local guiHeight = gui.AbsoluteSize.Y
+		if guiHeight <= 0 then
+			guiHeight = Ui.referenceViewport.y
+		end
+		local top = math.min(TOP, guiHeight * 0.34)
+		local bottom = math.min(BOTTOM, guiHeight * 0.42)
+		drawer.Position = UDim2.fromOffset(12, top)
+		drawer.Size = if collapsed
+			then UDim2.fromOffset(COLLAPSED_WIDTH, COLLAPSED_HEIGHT)
+			else UDim2.fromOffset(WIDTH, math.max(guiHeight - top - bottom, 120))
+	end
+
 	local function applyCollapsed()
 		scroll.Visible = not collapsed
-		drawer.Size = if collapsed
-			then UDim2.fromOffset(WIDTH, HEADER_HEIGHT)
-			else UDim2.new(0, WIDTH, 0.72, 0)
+		head.Size = UDim2.new(1, 0, 0, if collapsed then COLLAPSED_HEIGHT else HEADER_HEIGHT)
+		title.TextSize = if collapsed then 13 else 15
+		-- Plegado apunta a la derecha («se abre»); abierto, a la izquierda («se cierra»).
 		mark.Rotation = if collapsed then -90 else 90
+		fit()
 	end
+
+	gui:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 
 	-- Fila plegada: la franja de la zona, el nombre y lo que rinde ahora. Toda la fila es el botón.
 	local function header(parent: Instance, order: number, index: number): TextButton
