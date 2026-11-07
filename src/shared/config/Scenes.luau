@@ -124,10 +124,21 @@ Scenes.maxRideSec = 4
 Scenes.rideSecPerSquare = 0.4
 Scenes.minRideSec = 1.2
 
--- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto ese
--- tipo de evento en la partida: a partir de la segunda, la escena se acorta. El recorrido de una ficha
--- no: se repite en cada turno y es lo que el grupo mira, así que depende solo de la distancia. Un
--- TokenMoved sin ruta es un salto, no un recorrido, y se trata como cualquier otra escena.
+-- Qué escena le toca a un evento, y con qué clave se cuentan sus repeticiones. Una carta jugada se anuncia
+-- con su id —cada legendaria tiene la suya—, así que jugar cinco cartas distintas no acorta la quinta. Todo
+-- lo demás usa el tipo del evento. Servidor (`SceneClock`) y cliente (`SceneDirector`) cuentan con esta
+-- misma clave: si no, el reloj del servidor y las escenas del cliente no durarían lo mismo.
+function Scenes.sceneIdFor(event: Event): string
+	if event.type == "CardPlayed" and type(event.cardId) == "string" then
+		return event.cardId
+	end
+	return event.type
+end
+
+-- Duración en segundos de la escena de un evento. `seenCount` es cuántas veces se ha visto esa misma escena
+-- en la partida: a partir de la segunda, se acorta. El recorrido de una ficha no: se repite en cada turno y
+-- es lo que el grupo mira, así que depende solo de la distancia. Un TokenMoved sin ruta es un salto, no un
+-- recorrido, y se trata como cualquier otra escena.
 function Scenes.durationFor(event: Event, seenCount: number): number
 	if event.type == "TokenMoved" and type(event.path) == "table" and #event.path > 0 then
 		return math.clamp(#event.path * Scenes.rideSecPerSquare, Scenes.minRideSec, Scenes.maxRideSec)

@@ -268,6 +268,19 @@ describe("SceneClock", function()
 		expect(third <= second).toBeTruthy()
 	end)
 
+	it("dos cartas distintas no se acortan entre sí", function()
+		local clock = SceneClock.new()
+		local hurricane = cardEvent("Hurricane")
+		local earthquake = cardEvent("Earthquake")
+		local first = SceneClock.schedule(clock, { hurricane }, 0)
+		local second = SceneClock.schedule(clock, { earthquake }, 100) - 100
+		expect(first).toBe(Scenes.durationFor(hurricane, 0))
+		expect(second).toBe(Scenes.durationFor(earthquake, 0))
+		-- La misma carta repetida sí se acorta.
+		local again = SceneClock.schedule(clock, { hurricane }, 200) - 200
+		expect(again).toBe(Scenes.durationFor(hurricane, 1))
+	end)
+
 	it("un lote que llega durante una escena empieza cuando esta acaba", function()
 		local clock = SceneClock.new()
 		-- Huracán dura 10 s y un dado recién visto, 2 s.
