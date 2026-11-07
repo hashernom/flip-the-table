@@ -177,7 +177,7 @@ function DeedBook.create(playerGui: Instance): Handles
 
 		local summary = if info.mortgaged
 			then Strings.get("manage.mortgaged")
-			else `{info.levelText} · {Strings.get("manage.rent", { amount = info.rent })}`
+			else `{info.levelText} · {Strings.get("manage.rentNow", { amount = info.rentText })}`
 		local detail = Components.label(button, "Detail", summary, {
 			face = Theme.font.textBold,
 			size = 12,

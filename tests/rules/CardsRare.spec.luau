@@ -95,7 +95,7 @@ end
 
 -- Renta base de una casilla libre de efectos: 10 % del precio, sin redondear dos veces.
 local function baseRent(state: Types.GameState, index: number): number
-	return math.floor(priceOf(state, index) * Economy.baseRentRate)
+	return Property.roundRent(priceOf(state, index) * Economy.baseRentRate)
 end
 
 local function modifierExpiry(state: Types.GameState, rounds: number): number
@@ -111,7 +111,8 @@ describe("Inflación", function()
 		s.round = 2
 		Fixtures.give(s, a.id, idx)
 		Fixtures.hand(s, a.id, "Inflation")
-		local doubled = math.floor(priceOf(s, idx) * Economy.baseRentRate * Economy.inflationRentMultiplier)
+		local doubled =
+			Property.roundRent(priceOf(s, idx) * Economy.baseRentRate * Economy.inflationRentMultiplier)
 
 		local events = playCard(s, a.id, "Inflation")
 		expect(events).toEqual({ { type = "CardPlayed", playerId = a.id, cardId = "Inflation" } })

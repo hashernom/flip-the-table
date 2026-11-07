@@ -199,7 +199,7 @@ end)
 **Criterios de aceptación:**
 - [x] Solo se construye con la zona completa.
 - [x] Niveles de 0 a 5: solar, una, dos y tres casas, hotel y rascacielos.
-- [x] La renta usa × 2, × 3, × 5, × 8 y × 12 según el nivel.
+- [x] La renta usa × 2, × 3, × 5, × 8 y × 12 según el nivel. *(Cambiado el 2026-11-06 por la escalera × 2, × 5, × 12, × 24 y × 32; manda `01-arquitectura/arquitectura.md`.)*
 - [x] Bajar de nivel 0 no hace nada.
 
 - [x] **Paso 1:** Escribir pruebas para: construir sin zona falla, construir con zona sube y cobra el 50 % del precio, nivel 6 falla, y renta en cada nivel.

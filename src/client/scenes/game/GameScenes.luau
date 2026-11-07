@@ -14,6 +14,7 @@ local CardStaging = require("../../../shared/config/CardStaging")
 local CityLayout = require("../../../shared/config/CityLayout")
 local CommonCards = require("../cards/CommonCards")
 local Economy = require("../../../shared/config/Economy")
+local HudRules = require("../../ui/HudRules")
 local LegendaryKit = require("../legendary/LegendaryKit")
 local Perks = require("../../../shared/config/Perks")
 local LegendaryRules = require("../legendary/LegendaryRules")
@@ -119,12 +120,15 @@ end
 local function rent(env: Env): Step
 	local base = env.actorBase :: Vector3
 	local amount = if type(env.event.amount) == "number" then env.event.amount else 0
+	-- La cifra va formateada como en el resto de la interfaz: con la escalera nueva las rentas
+	-- pasan de mil y «1920» se lee peor que «1.920».
+	local shown = HudRules.formatMoney(amount)
 	local index = env.event.index
 	local lotAt = if type(index) == "number" then env.handles.lotOf(index).Position else base
 	local target = lotAt + Vector3.new(0, 8, 0)
-	local head = kit.header(env, base, kit.names(env, "scene.rent.header", { amount = amount }), "#C4382B")
-	local minus = floating(env, base + Vector3.new(0, 9, 0), `-{amount}`, "#C4382B", 0.2, 120)
-	local plus = floating(env, target + Vector3.new(0, 6, 0), `+{amount}`, "#F5C518", 0.65, 120)
+	local head = kit.header(env, base, kit.names(env, "scene.rent.header", { amount = shown }), "#C4382B")
+	local minus = floating(env, base + Vector3.new(0, 9, 0), `-{shown}`, "#C4382B", 0.2, 120)
+	local plus = floating(env, target + Vector3.new(0, 6, 0), `+{shown}`, "#F5C518", 0.65, 120)
 	local fly: (p: number, t: number) -> ()
 	if env.variation == 2 then
 		local bill = LegendaryKit.bill(env.run.props, "#8DB86B", "#4E7A3A", CFrame.new(base))

@@ -350,7 +350,8 @@ Valores de partida. Se ajustan en pruebas, siempre en `src/shared/config`.
 | Niveles de edificio | De 0 a 5: sin mejoras, una, dos y tres casas, hotel y rascacielos. Son niveles de la regla: el edificio no se sustituye (R-P50) |
 | Renta base | 10 % del precio |
 | Renta con grupo completo | Base × 2 |
-| Multiplicador de renta por nivel | × 2, × 3, × 5, × 8 y × 12 |
+| Multiplicador de renta por nivel | × 2, × 5, × 12, × 24 y × 32 (2026-11-06: la escalera imita la del clásico; el hotel cobra casi cinco veces el precio) |
+| Redondeo de la renta | Al múltiplo de 5 hacia arriba, en `Property.roundRent`; toda cifra de la carta y toda renta calculada termina en 0 o en 5 (un cobro parcial por bancarrota puede quedar por debajo) |
 | Coste por nivel de edificio | 50 % del precio |
 | Multiplicador máximo de renta | × 4 sobre el producto de los efectos dinámicos (rondas finales, presión, Inflación, Zona Caliente, Huelga y Embrujo); la zona completa y los edificios se aplican aparte |
 | Temporizador de decisión | 100 s (subido de 20 s por el responsable el 2026-11-05) |

@@ -10,6 +10,7 @@ local Boards = require("../../shared/config/Boards")
 local Building = require("../../shared/rules/Building")
 local Cards = require("../../shared/config/Cards")
 local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Perks = require("../../shared/config/Perks")
 local Property = require("../../shared/rules/Property")
 local Score = require("../../shared/rules/Score")
@@ -531,10 +532,12 @@ function ViewText.headline(view: any, names: Names?): string
 			return "Subasta"
 		end
 		local square = ViewText.board(view.sizeId).squares[auction.index]
-		local worth = if square ~= nil and square.price ~= nil then ` (vale {square.price})` else ""
+		local worth = if square ~= nil and square.price ~= nil
+			then ` (vale {HudRules.formatMoney(square.price)})`
+			else ""
 		local head = `Subasta de {ViewText.squareName(view, auction.index)}{worth}`
 		if auction.highBidder ~= nil then
-			return `{head}: puja más alta {auction.high} de {name(auction.highBidder)}`
+			return `{head}: puja más alta {HudRules.formatMoney(auction.high)} de {name(auction.highBidder)}`
 		end
 		return `{head}: sin pujas`
 	elseif phase == "Reaction" then

@@ -358,6 +358,7 @@ local TEXTS: { [string]: string } = {
 	["manage.Mortgage"] = "Hipotecar · +{amount}",
 	["manage.Unmortgage"] = "Levantar · {amount}",
 	["manage.rent"] = "Renta {amount}",
+	["manage.rentNow"] = "Renta ahora {amount}",
 	["manage.mortgaged"] = "Hipotecada: no cobra renta",
 	["manage.notYourTurn"] = "Solo puedes gestionar en tu turno",
 	["manage.none"] = "Todavía no tienes propiedades",

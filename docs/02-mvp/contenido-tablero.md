@@ -101,14 +101,15 @@ Las dos zonas de 2 propiedades son **Cobre** (la más barata) y **Violeta** (la 
 
 | Nivel | Estado | Coste del paso | Coste acumulado | Multiplicador | Renta en 60 | Renta en 400 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | Sin mejoras | — | — | × 1 (× 2 con zona) | 12 | 80 |
-| 1 | 1 casa | 50 % | 50 % | × 2 | 24 | 160 |
-| 2 | 2 casas | 50 % | 100 % | × 3 | 36 | 240 |
-| 3 | 3 casas | 50 % | 150 % | × 5 | 60 | 400 |
-| 4 | Hotel | 50 % | 200 % | × 8 | 96 | 640 |
-| 5 | Rascacielos | 50 % | 250 % | × 12 | 144 | 960 |
+| 0 | Sin mejoras | — | — | × 1 (× 2 con zona) | 15 | 80 |
+| 1 | 1 casa | 50 % | 50 % | × 2 | 25 | 160 |
+| 2 | 2 casas | 50 % | 100 % | × 5 | 60 | 400 |
+| 3 | 3 casas | 50 % | 150 % | × 12 | 145 | 960 |
+| 4 | Hotel | 50 % | 200 % | × 24 | 290 | 1920 |
+| 5 | Rascacielos | 50 % | 250 % | × 32 | 385 | 2560 |
 
-- La renta es precio × 10 % × multiplicador del nivel; con la zona completa se aplica además el × 2.
+- La renta es precio × 10 % × multiplicador del nivel; con la zona completa se aplica además el × 2. El resultado se redondea **hacia arriba al múltiplo de 5**, así que toda cifra de la carta termina en 0 o en 5. El ×2 va antes del redondeo, así que en las zonas baratas el doble no es exacto: en Cobre, 10 → 15, no 20.
+- La escalera imita la del clásico (2026-11-06): las dos primeras casas son los saltos grandes y el hotel cobra casi cinco veces el precio, para que caer en él duela de verdad. El estudio está en [balance-rentas](resultados/balance-rentas.md).
 - Los efectos dinámicos (rondas finales, Zona Caliente, Inflación, presión) se aplican aparte y están topados a × 4.
 - El hotel exige las 3 casas, y el rascacielos, el hotel. Los nombres son los de la regla: el edificio de la propiedad no se sustituye. Cada nivel pone sus marcadores y su añadido (ficha, «Zonas reales»), y el aspecto sale siempre del nivel que manda el motor.
 - La zona completa se exige para construir: 2 compras en Cobre y Violeta, 3 en el resto.

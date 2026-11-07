@@ -249,7 +249,7 @@ function PropertyManager.create(playerGui: Instance): Handles
 		zoneName.Text = Strings.upper(info.zoneName)
 		counter.Text = Strings.get("manage.count", { at = table.find(list, index) or 1, total = #list })
 		name.Text = Strings.upper(info.name)
-		detail.Text = `{info.levelText} · {Strings.get("manage.rent", { amount = info.rent })}`
+		detail.Text = `{info.levelText} · {Strings.get("manage.rentNow", { amount = info.rentText })}`
 		local anyLegal = false
 		for _, button in info.buttons do
 			if button.action ~= nil then

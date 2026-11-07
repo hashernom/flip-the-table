@@ -3,6 +3,7 @@
 -- que deja ver todo el tablero aunque la cámara siga a una sola ficha (R-P51). `MiniMap` solo las pinta.
 local CityLayout = require("../../shared/config/CityLayout")
 local Economy = require("../../shared/config/Economy")
+local HudRules = require("./HudRules")
 local Property = require("../../shared/rules/Property")
 local Strings = require("../../shared/config/Strings")
 local Ui = require("../../shared/config/Ui")
@@ -86,13 +87,16 @@ function MiniMapRules.detailLines(view: any, names: ViewText.Names?, index: numb
 	local owner = property.ownerId
 	if owner == nil then
 		table.insert(lines, "Sin dueño")
-		table.insert(lines, `Precio: {square.price}`)
+		local price = square.price
+		if price ~= nil then
+			table.insert(lines, `Precio: {HudRules.formatMoney(price)}`)
+		end
 		return lines
 	end
 	table.insert(lines, `Dueño: {ViewText.playerName(view, names, owner)}`)
 	table.insert(lines, Strings.buildingLevel(math.clamp(property.level, 0, Economy.maxBuildingLevel)))
 	local state = setmetatable({ board = board }, { __index = view })
-	table.insert(lines, `Renta: {Property.rentFor(state :: any, index)}`)
+	table.insert(lines, `Renta: {HudRules.formatMoney(Property.rentFor(state :: any, index))}`)
 	return lines
 end
 
